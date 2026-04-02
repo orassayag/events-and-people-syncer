@@ -1,0 +1,15 @@
+export const TYPES = {
+  AuthService: Symbol.for('AuthService'),
+  ContactService: Symbol.for('ContactService'),
+  ContactWizard: Symbol.for('ContactWizard'),
+  ContactSearchService: Symbol.for('ContactSearchService'),
+  DuplicateDetector: Symbol.for('DuplicateDetector'),
+  ContactValidator: Symbol.for('ContactValidator'),
+  ApiTracker: Symbol.for('ApiTracker'),
+  RetryHandler: Symbol.for('RetryHandler'),
+  RateLimitMonitor: Symbol.for('RateLimitMonitor'),
+  Logger: Symbol.for('Logger'),
+  OAuth2Client: Symbol.for('OAuth2Client'),
+  ServiceFactory: Symbol.for('ServiceFactory'),
+  HealthCheck: Symbol.for('HealthCheck'),
+};

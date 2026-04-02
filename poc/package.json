@@ -1,0 +1,42 @@
+{
+  "name": "google-people-api-poc",
+  "version": "1.0.0",
+  "description": "POC for Google People API - Read and Write Contacts",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "start:verbose": "tsx src/index.ts --verbose",
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "google",
+    "people-api",
+    "contacts",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@types/inquirer": "^9.0.9",
+    "bidi-js": "^1.0.3",
+    "cli-spinners": "^3.4.0",
+    "dotenv": "16.4.5",
+    "fuse.js": "^7.1.0",
+    "googleapis": "^140.0.0",
+    "inquirer": "^9.3.8",
+    "ora": "^9.3.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@vitest/ui": "^4.0.18",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^4.0.18"
+  }
+}

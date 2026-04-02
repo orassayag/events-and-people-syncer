@@ -1,0 +1,14 @@
+
+> events-and-people-syncer@1.0.0 lint /Users/orassayag/Repos/events-and-people-syncer/code
+> eslint "src/**/*.ts"
+
+
+/Users/orassayag/Repos/events-and-people-syncer/code/src/utils/promptWithEnquirer.ts
+   60:8   error  Async function 'selectWithEscape' has no 'await' expression                       require-await
+   87:8   error  Async function 'inputWithEscape' has no 'await' expression                        require-await
+  117:12  error  'error' is defined but never used. Allowed unused caught errors must match /^_/u  @typescript-eslint/no-unused-vars
+  162:12  error  'error' is defined but never used. Allowed unused caught errors must match /^_/u  @typescript-eslint/no-unused-vars
+
+✖ 4 problems (4 errors, 0 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.

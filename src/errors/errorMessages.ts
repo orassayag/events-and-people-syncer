@@ -1,0 +1,37 @@
+import { ErrorCode } from './errorCodes';
+
+export const ERROR_MESSAGES: Record<ErrorCode, string> = {
+  [ErrorCode.AUTH_MISSING_CREDENTIALS]: 'Missing required OAuth credentials',
+  [ErrorCode.AUTH_INVALID_TOKEN]: 'Invalid or expired authentication token',
+  [ErrorCode.AUTH_TIMEOUT]: 'Authentication timeout',
+  [ErrorCode.CONTACT_NOT_FOUND]: 'Contact not found',
+  [ErrorCode.CONTACT_INVALID_DATA]: 'Invalid contact data provided',
+  [ErrorCode.CONTACT_DUPLICATE]: 'Duplicate contact detected',
+  [ErrorCode.API_RATE_LIMIT]: 'API rate limit exceeded',
+  [ErrorCode.API_REQUEST_FAILED]: 'API request failed',
+  [ErrorCode.API_NETWORK_ERROR]: 'Network error during API request',
+  [ErrorCode.VALIDATION_FAILED]: 'Validation failed',
+  [ErrorCode.VALIDATION_EMAIL_INVALID]: 'Invalid email address format',
+  [ErrorCode.VALIDATION_PHONE_INVALID]: 'Invalid phone number format',
+  [ErrorCode.LINKEDIN_ZIP_NOT_FOUND]: 'LinkedIn ZIP file not found',
+  [ErrorCode.LINKEDIN_CSV_NOT_FOUND]: 'connections.csv not found in ZIP',
+  [ErrorCode.LINKEDIN_CSV_EMPTY]: 'connections.csv is empty',
+  [ErrorCode.LINKEDIN_EXTRACTION_FAILED]: 'Failed to extract ZIP file',
+  [ErrorCode.LINKEDIN_INVALID_CONNECTION]: 'Invalid LinkedIn connection data',
+  [ErrorCode.LINKEDIN_INVALID_FOLDER_PATTERN]:
+    'Invalid company folder naming pattern',
+  [ErrorCode.LINKEDIN_FILE_SYSTEM_ERROR]:
+    'File system error during LinkedIn sync',
+  [ErrorCode.LINKEDIN_CSV_VALIDATION_FAILED]: 'CSV validation failed',
+  [ErrorCode.LINKEDIN_MULTIPLE_CSV_FILES]: 'Multiple CSV files found in ZIP',
+  [ErrorCode.LINKEDIN_INVALID_PROFILE_URL]: 'Invalid LinkedIn profile URL',
+  [ErrorCode.LINKEDIN_ZIP_PASSWORD_PROTECTED]: 'ZIP file is password protected',
+  [ErrorCode.LINKEDIN_CSV_ENCODING_ERROR]: 'CSV encoding error',
+  [ErrorCode.CONTACTS_SYNC_NO_CONTACTS]: 'No contacts available to sync',
+  [ErrorCode.CONTACTS_SYNC_TOO_MANY_CONTACTS]: 'Too many contacts (exceeds limit)',
+  [ErrorCode.CONTACTS_SYNC_INVALID_CONTACT_DATA]: 'Invalid contact data',
+  [ErrorCode.CONTACTS_SYNC_MISSING_RESOURCE_NAME]: 'Contact missing resource name',
+  [ErrorCode.CONTACTS_SYNC_VALIDATION_FAILED]: 'Contact validation failed',
+  [ErrorCode.SYSTEM_FILE_NOT_FOUND]: 'Required file not found',
+  [ErrorCode.SYSTEM_PORT_IN_USE]: 'Specified port is already in use',
+};

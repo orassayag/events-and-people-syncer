@@ -1,0 +1,44 @@
+{
+  "cSpell.words": [
+    "Assayag",
+    "Azulay",
+    "breakline",
+    "breaklines",
+    "btmanifest",
+    "EACCES",
+    "EADDRINUSE",
+    "Elbit",
+    "ENOENT",
+    "findstr",
+    "Gevit",
+    "googleapis",
+    "googleusercontent",
+    "hibob",
+    "inversify",
+    "Microsft",
+    "newgroup",
+    "ngcontent",
+    "orassayag",
+    "Planview",
+    "syncable",
+    "Syncer",
+    "taskkill",
+    "testfolder",
+    "xclip"
+  ],
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true,
+  "[typescript]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+}

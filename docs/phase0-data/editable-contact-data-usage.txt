@@ -1,0 +1,17 @@
+src/types/validation.ts:12:export interface EditableContactData {
+src/validators/inputValidator.ts:9:interface EditableContactData {
+src/validators/inputValidator.ts:152:  static validateMinimumRequirements(data: EditableContactData): string | true {
+src/validators/inputValidator.ts:161:  static validateFieldLimits(data: EditableContactData): string | true {
+src/services/contacts/contactSyncer.ts:12:import type { EditableContactData } from './contactEditor';
+src/services/contacts/contactSyncer.ts:350:    updatedData: EditableContactData,
+src/services/contacts/eventsContactEditor.ts:4:import { ContactEditor, EditableContactData } from './contactEditor';
+src/services/contacts/eventsContactEditor.ts:13:interface PrePopulatedData extends Partial<EditableContactData> {
+src/services/contacts/eventsContactEditor.ts:24:  async collectInitialInput(prePopulated?: PrePopulatedData): Promise<EditableContactData> {
+src/services/contacts/contactEditor.ts:26:export interface EditableContactData {
+src/services/contacts/contactEditor.ts:128:  async collectInitialInput(): Promise<EditableContactData> {
+src/services/contacts/contactEditor.ts:265:    data: EditableContactData,
+src/services/contacts/contactEditor.ts:274:  ): Promise<EditableContactData | null> {
+src/services/contacts/contactEditor.ts:467:    data: EditableContactData
+src/services/contacts/contactEditor.ts:468:  ): Promise<EditableContactData> {
+src/services/contacts/contactEditor.ts:857:  async createContact(data: EditableContactData, note: string): Promise<void> {
+src/services/contacts/contactEditor.ts:1020:  convertContactDataToEditable(contact: ContactData): EditableContactData {

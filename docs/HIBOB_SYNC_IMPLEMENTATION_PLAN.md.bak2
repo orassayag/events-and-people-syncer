@@ -1,0 +1,1157 @@
+# Hibob Sync Script Implementation Plan
+
+## Overview
+
+Create a batch script that reads Hibob contact data from a text file and syncs it to Google Contacts, positioned above LinkedIn Sync in the scripts menu.
+
+## Goals
+
+- Fetch names and emails from Hibob contacts file (`sources/hibob.txt`)
+- Support both simple text format and JSON array format
+- Deduplicate contacts within and across both formats
+- Sync to Google Contacts with user-specified label and company name
+- Provide real-time progress feedback with status bar
+- Display comprehensive summary with statistics
+
+## File Structure Analysis
+
+From the existing LinkedIn sync implementation, we'll reuse:
+
+- `src/scripts/linkedinSync.ts` - Main script structure, progress bar integration, summary display, and post-sync menu
+- `src/flow/syncStatusBar.ts` - Progress bar with real-time status updates
+- `src/services/linkedin/contactSyncer.ts` - Contact creation logic
+- `src/services/contacts/contactEditor.ts` - Label selection prompt (lines 1083-1132)
+- `src/settings/settings.ts` - Configuration settings
+
+## Implementation Steps
+
+### 1. Add Hibob Settings to Configuration
+
+**File:** `src/settings/settings.ts`
+
+Add `hibob` section to `Settings` interface:
+
+```typescript
+hibob: {
+  filePath: string;
+  writeDelayMs: number;
+  testContactLimit: number | null;
+}
+```
+
+**Configuration Values:**
+- `filePath`: `/Users/orassayag/Repos/events-and-people-syncer/code/sources/hibob.txt`
+- `writeDelayMs`: `2500` (same as LinkedIn)
+- `testContactLimit`: Optional limit for testing purposes
+
+### 2. Create Hibob Contact Type
+
+**File:** `src/types/hibob.ts`
+
+Define interfaces for Hibob contacts:
+
+```typescript
+export interface HibobContact {
+  firstName: string;
+  lastName?: string;
+  email?: string;
+}
+
+export interface HibobSyncStatus {
+  processed: number;
+  new: number;
+  upToDate: number;
+  updated: number;
+  warning: number;
+  needClarification: number;
+  error: number;
+  skipped: number;
+}
+
+export interface ContactWithDetails {
+  contact: HibobContact;
+  label: string;
+  reason?: string;
+}
+```
+
+### 3. Create Hibob Extractor Service
+
+**File:** `src/services/hibob/hibobExtractor.ts`
+
+**Responsibilities:**
+1. File validation (check if file exists, throw error if missing)
+2. Parse both contact formats from the file
+3. Deduplicate contacts during extraction
+4. Validate emails using Zod schema
+5. Return array of unique contacts
+
+**Format Parsing:**
+
+**Simple Format (lines 1-7):**
+Parse patterns like:
+- `Name (email@domain.com)`
+- `Name email@domain.com`
+- Multiple entries per line separated by commas
+
+**Parsing Rules:**
+- Ignore trailing commas
+- Normalize whitespace (multiple spaces → single space)
+- Handle mixed entries: if name exists, extract it; if email exists, extract it
+- Handle nicknames in parentheses: "Allen (Aaron) Jacobson" → firstName: "Allen", lastName: "(Aaron) Jacobson"
+- **Pattern Matching Order for Simple Format:**
+  1. First try `NAME_WITH_PARENS_EMAIL`: "Name (email@domain.com)"
+  2. Then try `NAME_WITH_NICKNAME`: "Allen (Aaron) Jacobson (email@domain.com)" 
+  3. Then try `NAME_WITH_SPACE_EMAIL`: "Name email@domain.com"
+  4. Extract any remaining email using `EMAIL_IN_STRING`
+- **Line-by-line processing:** Each line in simple format represents one or more comma-separated entries; no multi-line spanning
+
+Example:
+```
+Michael Lev (michaell@getvim.com), Allen (Aaron) Jacobson (allenj@getvim.com)
+```
+
+**JSON Array Format (lines 9+):**
+Parse JSON array with structure:
+```json
+{
+  "displayName": "Marija Ringwelski",
+  "email": "marijar@getvim.com",
+  "firstName": "Marija",
+  "surname": "Ringwelski"
+}
+```
+
+**Name Extraction Strategy:**
+- **From JSON:** 
+  - **Priority 1:** Use `displayName` field if present
+  - **Priority 2:** If `displayName` is missing, use `firstName` + `surname`
+  - **Skip:** If both `displayName` and `firstName`/`surname` are missing, skip the contact
+- **From Simple Format:** Parse name before email/parentheses. Handle nicknames in parentheses (e.g., "Allen (Aaron) Jacobson" → firstName: "Allen", lastName: "(Aaron) Jacobson")
+
+**JSON Error Handling:**
+- If entire JSON parsing fails (invalid JSON structure), throw error and exit the script
+- If multiple JSON arrays are found in the file, throw error and exit (expect single array only)
+- If individual objects in the array are malformed, skip them and continue processing valid objects
+- If partial/truncated JSON at file end, parse what can be parsed (take what you can take)
+- If UTF-8 BOM detected at file start, throw error and exit (file encoding issue)
+- Log skipped objects with reason (e.g., "Invalid JSON object at index 42")
+- **JSON Field Validation for each object:**
+  - If `email` field is missing or empty: OK, process by name only
+  - If both `displayName` AND (`firstName`+`surname`) are missing: skip this object
+  - Include emojis and special characters in names (e.g., "John 👨‍💻 Doe")
+
+**Duplicate Detection Logic:**
+- Track unique contacts using a composite key: `normalizedFirstName|normalizedLastName|normalizedEmail`
+- Normalization: trim whitespace, convert to lowercase
+- **Composite Key Construction:**
+  - If email exists: use email as primary key component (most reliable)
+  - If only name exists (no email): use name-based key (firstName|lastName)
+  - Ignore empty string components in key construction (don't create false matches like `||email`)
+- Skip duplicates found within the simple format section
+- Skip duplicates found within the JSON array section
+- Skip duplicates found across both sections
+- Log skipped duplicates for debugging with details (which field matched)
+- Only the first occurrence is kept
+- Same logic as LinkedIn sync for handling contacts with missing data
+
+**Validation Rules:**
+- ✅ Name + Email (if not duplicate) - extract both
+- ✅ Name only (if not duplicate) - extract name
+- ❌ Email only - skip (emails alone are not processed)
+- ❌ Neither name nor email (skip)
+- ❌ Duplicate by name + email (skip)
+
+**Email Validation:**
+- Validate emails using Zod schema during extraction (not just during sync)
+- Invalid emails cause the contact to be skipped with appropriate logging
+- Same validation logic as LinkedIn sync (using `emailSchema` from entities)
+
+**Method Signature:**
+```typescript
+async extract(): Promise<HibobContact[]>
+```
+
+### 4. Create Hibob Contact Syncer
+
+**File:** `src/services/hibob/contactSyncer.ts`
+
+**Responsibilities:**
+- Initialize contact groups
+- Add new contacts to Google Contacts
+- Update existing contacts (merge labels)
+- Format contact data appropriately
+- Invalidate cache after each write (same as LinkedIn sync)
+
+**Similar to LinkedIn's ContactSyncer but simpler:**
+- No company extraction (uses user-provided company - identical for all contacts)
+- No position/job title handling
+- User-provided label is identical for all contacts
+
+**Method Signatures:**
+```typescript
+async addContact(
+  contact: HibobContact,
+  label: string,
+  companyName: string
+): Promise<SyncStatusType>
+
+async updateContact(
+  resourceName: string,
+  contact: HibobContact,
+  label: string,
+  companyName: string
+): Promise<SyncResult>
+```
+
+**Contact Structure:**
+- **Name:** `firstName` + calculated lastName
+  - Format: `lastName label companyName`
+  - Use only the FIRST selected label + company name (same as "Add new contact" wizard)
+- **Email:** with label format: `label companyName`
+- **Company:** from user input (formatted to PascalCase)
+- **Label membership:** from user selection
+- **Biography:** Use `buildNewContactNote(new Date())` - same as LinkedIn sync
+
+**Existing Contact Handling:**
+- If contact already exists with different label: **merge labels** (existing + new)
+- Use DuplicateDetector to find matches
+- Update contact to include both old and new label memberships
+- **Label Merging Logic (HiBob Sync ONLY):**
+  - Fetch existing contact's label memberships from Google Contacts API
+  - Compare with user-selected labels (from pre-sync prompt)
+  - If label already exists: don't add it (no duplicates)
+  - If label doesn't exist: add it to memberships array
+  - If partial overlap (some labels exist, some don't): add only missing ones
+  - This logic is ONLY used for HiBob sync, NOT for LinkedIn sync
+
+**Return Values:**
+- `SyncStatusType.NEW` - Contact created successfully
+- `SyncStatusType.UPDATED` - Contact updated (label merged)
+- `SyncStatusType.UP_TO_DATE` - Contact already has the label
+- `SyncStatusType.SKIPPED` - Contact skipped (missing required data)
+- `SyncStatusType.ERROR` - Error occurred during creation/update
+
+**Cache Invalidation:**
+- Invalidate cache after each write operation (same as LinkedIn sync line 116, 311)
+- Ensures duplicate detection works on fresh data throughout the sync process
+
+### 5. Create Main Hibob Sync Script
+
+**File:** `src/scripts/hibobSync.ts`
+
+**Structure** (reuse patterns from `linkedinSync.ts`):
+
+```typescript
+@injectable()
+export class HibobSyncScript {
+  constructor(
+    @inject('OAuth2Client') _auth: OAuth2Client,
+    @inject(HibobExtractor) private extractor: HibobExtractor,
+    @inject(HibobContactSyncer) private contactSyncer: HibobContactSyncer,
+    @inject(DuplicateDetector) private duplicateDetector: DuplicateDetector
+  ) {}
+  
+  async run(): Promise<void> {
+    // Implementation
+  }
+}
+```
+
+**Execution Flow:**
+
+1. **File Validation & Display**
+   - Display file path being processed
+   - Validate file path via `HibobExtractor`
+   - Throw error if file doesn't exist
+
+2. **Extract Contacts**
+   - Extract contacts with built-in duplicate detection
+   - Display extraction statistics
+   - Throw error if no contacts found after deduplication
+
+3. **Prompt for Label** (Required)
+   - Use `ContactEditor.promptForLabels()` pattern (lines 1083-1132)
+   - At least one label must be selected
+   - Allow creating new labels if needed
+   - Handle ESC cancellation (same as LinkedIn sync)
+   - Use only the FIRST selected label for lastName/email formatting
+
+4. **Prompt for Company** (Required)
+   - Use `inputWithEscape` pattern
+   - Cannot be left empty
+   - Format to PascalCase using `TextUtils.formatCompanyToPascalCase`
+
+5. **Display Pre-Sync Confirmation**
+   - Show confirmation prompt with company and label
+   - Format:
+     ```
+     ================================
+     🏢 Company: Vim
+     🏷️ Label: Employees
+     ================================
+     
+     Proceed? (y/N)
+     ```
+   - Use emojis from `EMOJIS.FIELDS.COMPANY` and `EMOJIS.FIELDS.LABEL`
+   - If user answers No or ESC, exit gracefully
+
+6. **Fetch Google Contacts Count**
+   - Use status bar fetch phase
+   - Display progress while fetching
+   - Store count for summary
+
+7. **Process Each Contact**
+   - Match against existing contacts via `DuplicateDetector`
+   - For uncertain matches: add to warning list (same as LinkedIn sync)
+   - For existing matches: update contact (merge labels)
+   - For new contacts: create contact
+   - Apply testContactLimit if set (same as LinkedIn sync behavior)
+   - Update status bar with current contact details
+   - Handle cancellation (ESC/Ctrl+C)
+   - Invalidate cache after each write
+
+8. **Calculate Contact Count**
+   - After sync completes, calculate: `contactsAfter = contactsBefore + status.new`
+   - This is a **calculation**, not a verification with actual API fetch
+   - Display calculated count in summary (same as LinkedIn sync)
+
+9. **Display Summary**
+   - Show formatted summary with statistics
+   - Align format with LinkedIn sync
+
+10. **Post-Sync Menu**
+    - Display warnings (if any)
+    - Display errors (if any)
+    - Display skipped contacts (if any)
+    - Back to main menu
+    - Exit
+
+**Cancellation Logic:**
+- ESC key handler (same as LinkedIn sync)
+- Ctrl+C (SIGINT) handler (same as LinkedIn sync)
+- Graceful cancellation message (same as LinkedIn sync)
+- Cleanup and restore console (same as LinkedIn sync)
+- Cleanup raw mode (same as LinkedIn sync)
+- Remove SIGINT handler on completion (same as LinkedIn sync)
+
+**Console Capture:**
+- Capture console.log and console.error (same as LinkedIn sync)
+- Redirect to SyncLogger (same as LinkedIn sync)
+- Filter spinner characters (same as LinkedIn sync)
+- Restore original console on completion/error (same as LinkedIn sync)
+
+**Resource Cleanup on Error:**
+- Status bar cleanup
+- Console restoration
+- Raw mode cleanup
+- SIGINT handler removal
+- Same cleanup strategy as LinkedIn sync (lines 327-333, 390-393)
+
+**Error Recovery:**
+- API rate limiting handled by `retryWithBackoff` utility (same as LinkedIn sync)
+- Network errors handled with exponential backoff (same as LinkedIn sync)
+- Log all errors to SyncLogger (same as LinkedIn sync)
+
+**Progress Bar Display** (reuse `SyncStatusBar`):
+
+**Status Bar Type Compatibility:**
+- Make `SyncStatusBar` generic to accept both `LinkedInConnection` and `HibobContact`
+- Update type definition: `updateStatus(status: Partial<SyncStatus>, currentConnection?: LinkedInConnection | HibobContact, currentLabel?: string)`
+- Adapt contact display logic to handle both types
+
+Display format:
+```
+⠧ Time: 00:00:06 | Status: Stable
+  Path: /Users/orassayag/Repos/events-and-people-syncer/code/sources/hibob.txt
+  Processing: 000,112 / 009,042 | New: 000,000 | Up-To-Date: 000,111 | Updated: 000,001
+  Error: 000,000 | Warning: 000,000 | Skipped: 000,000
+  Current:
+  -Full name: Maayan Katz Vim
+  -Labels: Vim
+  -Company: Vim
+  -Email: maayank@getvim.com Vim
+```
+
+**LinkedIn Sync Display format (add file path line):**
+```
+⠧ Time: 00:00:06 | Status: Stable
+  Path: /Users/orassayag/Repos/events-and-people-syncer/code/sources/Basic_LinkedInDataExport_03-11-2026.zip
+  Processing: 000,112 / 009,042 | New: 000,000 | Up-To-Date: 000,111 | Updated: 000,001
+  Error: 000,000 | Warning: 000,000 | Skipped: 000,000
+  Current:
+  -Full name: Maayan Katz Job Prologic Ltd.
+  -Labels: Job
+  -Company: Prologic Ltd.
+  -Job Title: Talent Acquisition Manager
+  -Email: (none) Job Prologic Ltd.
+  -LinkedIn URL: https://www.linkedin.com/in/maayan-katz LinkedIn
+```
+
+**Summary Display Format:**
+
+```
+=================Hibob Sync Summary=================
+========Hibob Contacts from File: 009,042=========
+===========New: 000,000 | Processed: 009,042===========
+=========Warning: 000,000 | UpToDate: 000,111==========
+===========Skipped: 000,000 | Error: 000,001===========
+============Google Contacts Before: 002,598============
+============Google Contacts After: 002,598=============
+=======================================================
+```
+
+### 6. Register Script in Scripts Index
+
+**File:** `src/scripts/index.ts`
+
+```typescript
+import { hibobSyncScript } from './hibobSync';
+
+export const AVAILABLE_SCRIPTS: Record<string, Script> = {
+  'hibob-sync': hibobSyncScript,      // Position ABOVE linkedin-sync
+  'linkedin-sync': linkedInSyncScript,
+  'contacts-sync': contactsSyncScript,
+  // ... rest
+};
+```
+
+**Script Metadata:**
+```typescript
+export const hibobSyncScript: Script = {
+  metadata: {
+    name: 'Hibob Sync',
+    description: 'Syncs Hibob contacts from text file to Google Contacts',
+    version: '1.0.0',
+    category: 'batch',
+    requiresAuth: true,
+    estimatedDuration: '5-10 minutes',
+    emoji: EMOJIS.SCRIPTS.HIBOB,
+  },
+  run: async () => {
+    const { container } = await import('../di/container');
+    const script = container.get(HibobSyncScript);
+    await script.run();
+  },
+};
+```
+
+### 7. Add Emoji Constant & Regex Patterns
+
+**File:** `src/constants/emojis.ts`
+
+```typescript
+SCRIPTS: {
+  DEFAULT: "📄",
+  CONTACTS_SYNC: "🔄",
+  EVENTS_JOBS: "📝",
+  HIBOB: "📇",           // ADD THIS (card index emoji)
+  LINKEDIN: "🔗",
+  OTHER_CONTACTS: "🗄️ ",
+  SMS_WHATSAPP: "💬",
+  STATISTICS: "📊",
+}
+```
+
+**File:** `src/regex/patterns.ts`
+
+Add HiBob parsing patterns:
+
+```typescript
+export const HIBOB_PATTERNS = {
+  // Match: "Name (email@domain.com)" - captures name and email
+  NAME_WITH_PARENS_EMAIL: /^(.+?)\s*\(([^)]+@[^)]+)\)$/,
+  
+  // Match name with nickname and email: "Allen (Aaron) Jacobson (allenj@getvim.com)"
+  // Captures: firstName, nickname (with parens preserved), lastName, email
+  NAME_WITH_NICKNAME: /^(.+?)\s+(\([^)]+\))\s+(.+?)\s*\(([^)]+@[^)]+)\)$/,
+  
+  // Match: "Name email@domain.com" - captures name and email
+  NAME_WITH_SPACE_EMAIL: /^(.+?)\s+([^\s]+@[^\s]+)$/,
+  
+  // Match email anywhere in string (fallback)
+  EMAIL_IN_STRING: /([^\s]+@[^\s]+)/,
+  
+  // Normalize whitespace
+  MULTIPLE_SPACES: /\s+/g,
+};
+```
+
+### 8. Update Dependency Injection Container & SyncStatusBar
+
+**File:** `src/di/container.ts`
+
+```typescript
+import { HibobExtractor } from '../services/hibob/hibobExtractor';
+import { HibobContactSyncer } from '../services/hibob/contactSyncer';
+import { HibobSyncScript } from '../scripts/hibobSync';
+
+// Register services
+container.bind(HibobExtractor).toSelf().inSingletonScope();
+container.bind(HibobContactSyncer).toSelf().inSingletonScope();
+container.bind(HibobSyncScript).toSelf();
+```
+
+**File:** `src/flow/syncStatusBar.ts`
+
+Make `SyncStatusBar` generic to support both LinkedInConnection and HibobContact:
+
+```typescript
+// Update imports
+import { LinkedInConnection } from '../types/linkedin';
+import { HibobContact } from '../types/hibob';
+
+// Update class to accept union type
+type SupportedContact = LinkedInConnection | HibobContact;
+
+export class SyncStatusBar {
+  private currentConnection: SupportedContact | null = null;
+  private filePath: string = ''; // Add file path tracking
+  
+  updateStatus(
+    status: Partial<SyncStatus>,
+    currentConnection?: SupportedContact,
+    currentLabel?: string
+  ): void {
+    // ... implementation
+  }
+  
+  setFilePath(path: string): void {
+    this.filePath = path;
+  }
+  
+  // Update formatProcessStatus to handle both types
+  private formatProcessStatus(): string {
+    let output = `Time: ${this.formatTime()} | Status: ${this.apiStatus}\n`;
+    
+    // Add file path line for both sync types
+    if (this.filePath) {
+      output += `  Path: ${this.filePath}\n`;
+    }
+    
+    // ... rest of status formatting
+    
+    if (this.currentConnection) {
+      // Type guard to determine which type we have
+      if ('position' in this.currentConnection) {
+        // LinkedInConnection - has position field
+        const conn = this.currentConnection as LinkedInConnection;
+        // Display: Full name, Labels, Company, Job Title, Email, LinkedIn URL
+        // ... existing LinkedIn formatting
+      } else {
+        // HibobContact - no position field (optional, not required)
+        const conn = this.currentConnection as HibobContact;
+        // Display: Full name, Labels, Company, Email (simpler, no Job Title or LinkedIn URL)
+        // ... HiBob formatting
+      }
+    }
+  }
+}
+```
+
+## Key Reusable Components
+
+### From LinkedInSync
+
+**Progress Bar Integration** (lines 127-143):
+- Start fetch phase
+- Hook into fetchAllContacts to track progress
+- Complete fetch and display count
+- Start process phase
+
+**Status Update Loop** (lines 154-289):
+- Process each contact
+- Check for cancellation
+- Match contacts
+- Handle warnings/errors/skipped
+- Update status bar
+- Log activities
+
+**Summary Display Method** (lines 395-478):
+- Format numbers with leading zeros
+- Align text with equals padding
+- Display all statistics
+- Maintain consistent width
+
+**Post-Sync Menu** (lines 479-533):
+- Dynamic menu based on status counts
+- Display warnings/errors/skipped
+- Navigation options (back/exit)
+- ESC handling
+
+**Connection Display** (lines 535-594):
+- Display first 10 items
+- Show remaining count
+- Format contact details
+- PascalCase company names
+
+**Console Capture** (lines 347-388):
+- Override console.log/error
+- Filter spinner characters
+- Redirect to logger
+- Restore on completion
+
+**Cancellation Handling** (lines 66-88):
+- ESC key press detection
+- Ctrl+C signal handling
+- Prevent duplicate calls
+- Cleanup raw mode
+
+### From ContactEditor
+
+**Label Prompt Pattern** (lines 1083-1132):
+- Check for existing labels
+- Create new label if none exist
+- Multi-select with validation
+- Require at least one selection
+
+**Company Input Pattern:**
+- Use `inputWithEscape`
+- Text validation
+- Format to PascalCase
+- Allow empty or provide value
+
+### From SyncStatusBar
+
+**Progress Bar Display:**
+- Time tracking with HH:MM:SS format
+- API status indicator
+- Multi-line status display
+- Current contact details
+- Spinner animation
+
+**Phase Management:**
+- Fetch phase for loading contacts
+- Process phase for syncing
+- Cancel/fail states
+- Cleanup intervals
+
+## Validation Rules Summary
+
+### Contact Extraction
+
+| Condition | Action |
+|-----------|--------|
+| Name + Email | ✅ Include (if not duplicate) |
+| Name only | ✅ Include (if not duplicate) |
+| Email only | ✅ Include (treat as contact with email but no name) |
+| Neither | ❌ Skip |
+| Duplicate | ❌ Skip |
+| Invalid email | ❌ Skip (validate with Zod schema) |
+| Malformed JSON object | ❌ Skip individual object, continue processing |
+| Invalid entire JSON | ❌ Throw error, exit script |
+
+### Duplicate Detection
+
+**Composite Key Format:**
+```
+normalizedFirstName|normalizedLastName|normalizedEmail
+```
+
+**Normalization:**
+- Trim whitespace
+- Convert to lowercase
+
+**Detection Strategy:**
+- If email exists, prioritize email as primary uniqueness key (most reliable)
+- If only name exists (no email), use name-based key but less reliable
+- Same logic as LinkedIn sync for handling edge cases
+
+**Detection Levels:**
+1. Within simple format section
+2. Within JSON array section
+3. Across both sections
+
+**Policy:**
+- Only the first occurrence is kept
+- Subsequent duplicates are skipped
+- Skipped duplicates are logged with details (which field matched)
+
+**Logging:**
+- Log to SyncLogger with INFO level (same as LinkedIn sync)
+- Include details: which contact was kept vs. skipped, matched field (email/name)
+- Example: "Skipped duplicate: John Doe (johndoe@test.com) - matched by email"
+
+### User Inputs
+
+| Input | Requirement | Validation |
+|-------|-------------|------------|
+| Label | Required | At least one label must be selected; use first selected label for formatting |
+| Company | Required | Cannot be empty string; formatted to PascalCase |
+| Pre-sync Confirmation | Required | User must confirm company + label before proceeding |
+
+**Label Selection:**
+- Same behavior as LinkedIn sync for ESC handling
+- If user presses ESC during label selection: throw `Error('User cancelled')` and exit gracefully
+- Multiple labels can be selected, but only the FIRST is used for lastName/email formatting (same as "Add new contact" wizard)
+
+**Company Input:**
+- Same behavior as LinkedIn sync
+- If user presses ESC: throw `Error('User cancelled')` and exit gracefully
+- Format using `TextUtils.formatCompanyToPascalCase`
+
+**Pre-Sync Confirmation:**
+- Display company and label with emojis
+- If user answers No or ESC: exit gracefully with appropriate message
+- Only proceed to sync if user confirms with Yes
+
+## Testing Approach
+
+### Test Cases
+
+1. **File Validation**
+   - Valid file path
+   - Invalid/missing file path
+   - Empty file
+
+2. **Format Parsing**
+   - Simple format only
+   - JSON format only
+   - Mixed formats
+   - Malformed data (trailing commas, multiple spaces, etc.)
+   - Names with nicknames in parentheses: "Allen (Aaron) Jacobson"
+   - Invalid JSON structure (entire array)
+   - Invalid JSON objects (individual items)
+
+3. **Duplicate Detection**
+   - Duplicates within simple format
+   - Duplicates within JSON format
+   - Duplicates across formats
+   - Case sensitivity handling
+   - Email-based deduplication
+   - Name-based deduplication (when no email)
+
+4. **Contact Validation**
+   - Name + Email
+   - Name only
+   - Email only
+   - Neither
+   - Invalid email addresses (Zod schema validation)
+
+5. **User Interaction**
+   - Label selection (required)
+   - Company input (required)
+   - Pre-sync confirmation (new requirement)
+   - Cancellation (ESC/Ctrl+C) at each prompt
+   - Multiple label selection (using only first)
+
+6. **Sync Process**
+   - New contacts
+   - Existing contacts (merge labels)
+   - Uncertain matches (warnings)
+   - Errors
+   - Progress bar updates
+   - Cache invalidation after each write
+   - testContactLimit behavior (applied to extracted contacts, same as LinkedIn)
+
+7. **Summary Display**
+   - Statistics accuracy
+   - Format alignment
+   - Post-sync menu
+   - Contact count verification (before vs. after)
+
+8. **Special Characters & Encoding**
+   - Names with special characters (Müller, Søren)
+   - Hebrew/RTL names (handled with formatHebrewText)
+   - UTF-8 encoding (same as LinkedIn sync)
+
+### Test Configuration
+
+**File Path:**
+```
+/Users/orassayag/Repos/events-and-people-syncer/code/sources/hibob.txt
+```
+
+**Test Limit:**
+- Use `testContactLimit` setting for limited testing
+- Applied to contacts AFTER extraction and deduplication (slice the extracted array)
+- Same behavior as LinkedIn sync lines 114-126: slice `extractedContacts` to `testContactLimit`
+- Log shows: "TEST MODE: Limited to X contacts for testing" (where X = testContactLimit)
+- Test with 10-20 contacts first
+- Full run with all contacts
+
+### Verification Checklist
+
+- [ ] File validation throws appropriate errors
+- [ ] File path displayed at start of sync
+- [ ] Both simple and JSON formats parsed correctly
+- [ ] Names with nicknames parsed correctly: "Allen (Aaron) Jacobson"
+- [ ] Trailing commas ignored
+- [ ] Multiple spaces normalized
+- [ ] Invalid emails caught by Zod schema
+- [ ] Malformed JSON objects skipped, valid ones processed
+- [ ] Invalid entire JSON throws error and exits
+- [ ] Duplicates removed within each section
+- [ ] Duplicates removed across sections
+- [ ] Email-based deduplication working
+- [ ] Regex patterns defined in `src/regex/patterns.ts`
+- [ ] Label prompt requires selection
+- [ ] Company prompt requires input
+- [ ] Pre-sync confirmation shows company + label with emojis
+- [ ] Pre-sync confirmation can be cancelled
+- [ ] Only first selected label used for formatting
+- [ ] Progress bar updates in real-time
+- [ ] Progress bar handles HibobContact type correctly
+- [ ] Cancellation works with ESC and Ctrl+C at all stages
+- [ ] Cache invalidated after each write
+- [ ] Existing contacts have labels merged (not replaced)
+- [ ] Contact count calculation after sync (contactsAfter = contactsBefore + status.new)
+- [ ] Biography notes added (using buildNewContactNote)
+- [ ] Summary display matches LinkedIn sync format
+- [ ] Post-sync menu shows correct counts
+- [ ] Google Contacts created with correct data
+- [ ] Warnings displayed for uncertain matches
+- [ ] Errors logged appropriately to SyncLogger
+- [ ] testContactLimit applied after deduplication
+- [ ] Resource cleanup on error (console, raw mode, SIGINT handler)
+- [ ] Hebrew/special characters handled correctly
+
+## Implementation Order
+
+1. **Phase 1: Foundation**
+   - Add settings configuration
+   - Create type definitions
+   - Add emoji constant (📇)
+   - Add regex patterns to `src/regex/patterns.ts`
+
+2. **Phase 2: Services**
+   - Update SyncStatusBar to be generic (support LinkedInConnection | HibobContact)
+   - Create HibobExtractor with:
+     - Duplicate detection
+     - Email validation (Zod schema)
+     - Nickname parsing
+     - Whitespace normalization
+     - JSON error handling
+   - Create HibobContactSyncer with:
+     - Add contact method
+     - Update contact method (label merging)
+     - Cache invalidation after writes
+     - Biography notes
+
+3. **Phase 3: Script**
+   - Create main HibobSyncScript
+   - Implement execution flow:
+     - File path display
+     - Contact extraction
+     - Label selection
+     - Company input
+     - Pre-sync confirmation prompt
+     - Progress bar integration
+     - Contact processing with label merging
+     - Contact count verification
+   - Add all cancellation handlers
+   - Add console capture
+   - Add resource cleanup
+
+4. **Phase 4: Integration**
+   - Register in scripts index (position above LinkedIn sync)
+   - Update DI container
+   - Test SyncStatusBar with both contact types
+
+5. **Phase 5: Testing**
+   - Test with limited contacts (testContactLimit)
+   - Verify all parsing scenarios (nicknames, trailing commas, etc.)
+   - Verify email validation with Zod
+   - Verify JSON error handling
+   - Verify deduplication
+   - Verify label merging for existing contacts
+   - Verify pre-sync confirmation
+   - Test full workflow
+   - Verify summary display
+   - Verify contact count matches
+
+6. **Phase 6: LinkedIn Sync Enhancement** (MUST BE DONE FIRST)
+   - **CRITICAL:** Add file path display to LinkedIn sync status bar BEFORE implementing HiBob sync
+   - Update `SyncStatusBar` to support `filePath` tracking and display
+   - Update `linkedinSync.ts` to pass file path to status bar via `setFilePath()`
+   - Display format: Add "Path: ${filePath}" line to status bar
+   - Test LinkedIn sync with new file path display
+   - Then proceed with HiBob implementation reusing this pattern
+
+## Success Criteria
+
+- ✅ Script appears in menu above LinkedIn Sync
+- ✅ Uses 📇 emoji in menu display
+- ✅ Displays file path at start of sync
+- ✅ Validates file path correctly
+- ✅ Parses both simple and JSON formats
+- ✅ Handles names with nicknames: "Allen (Aaron) Jacobson"
+- ✅ Normalizes whitespace and ignores trailing commas
+- ✅ Validates emails with Zod schema during extraction
+- ✅ Handles JSON errors (skip individual objects, fail on invalid structure)
+- ✅ Removes duplicates within and across sections
+- ✅ Uses email as primary deduplication key when available
+- ✅ Prompts for required label and company
+- ✅ Uses only first selected label for formatting
+- ✅ Shows pre-sync confirmation with company + label (with emojis)
+- ✅ Shows real-time progress with status bar
+- ✅ Status bar handles HibobContact type correctly
+- ✅ Syncs contacts to Google successfully
+- ✅ Merges labels for existing contacts (not replaces)
+- ✅ Adds biography notes to all contacts
+- ✅ Invalidates cache after each write
+- ✅ Calculates contact count after sync (arithmetic, not API fetch)
+- ✅ Displays aligned summary matching LinkedIn sync
+- ✅ Handles cancellation gracefully at all stages
+- ✅ Shows post-sync menu with counts
+- ✅ Cleans up resources on error (console, raw mode, SIGINT)
+- ✅ No duplicate contacts created in Google
+- ✅ testContactLimit applied after deduplication
+- ✅ Regex patterns defined in constants
+- ✅ Hebrew/special characters handled correctly
+
+## Post-Implementation Tasks
+
+1. **Add file path display to LinkedIn Sync** (MUST BE DONE FIRST - see Phase 6)
+2. **Verify SyncStatusBar works with both contact types** (LinkedInConnection | HibobContact)
+3. **Document new regex patterns** in `src/regex/patterns.ts`
+4. **Verify label merging logic** works correctly for HiBob (not used in LinkedIn)
+5. **Test nickname parsing** with parentheses preserved: "(Aaron)"
+6. **Test emoji and special character handling** in names
+
+---
+
+## Design Decisions & Edge Case Handling
+
+This section documents all design decisions made during planning to address edge cases and ambiguities.
+
+### Name Parsing
+
+**Decision 1.1: displayName vs firstName Priority (JSON)**
+- **Decision:** Use `displayName` field from JSON. If not present, fallback to `firstName + surname`
+- **Rationale:** displayName represents how the person prefers to be called (e.g., "Joe" vs "Joseph")
+
+**Decision 1.2: Nickname Handling (Simple Format)**
+- **Example:** "Allen (Aaron) Jacobson (allenj@getvim.com)"
+- **Decision:** firstName: "Allen", lastName: "(Aaron) Jacobson"
+- **Rationale:** Preserve all name information; parentheses distinguish nickname from family name
+- **Implementation:** Regex captures nickname WITH parentheses preserved: `(\([^)]+\))` captures "(Aaron)"
+
+**Decision 1.3: Names Without Last Names**
+- **Decision:** Keep same logic as LinkedIn sync - if no clear separation, treat as firstName only
+- **Rationale:** Consistency with existing codebase patterns
+
+### Email & Contact Validation
+
+**Decision 2.1: Email Validation Location**
+- **Decision:** Validate emails using Zod schema during extraction, not just during sync
+- **Rationale:** Fail fast - invalid emails shouldn't inflate extraction statistics
+
+**Decision 2.2: Email-Only Contacts**
+- **Decision:** Skip contacts with only email (no name)
+- **Rationale:** HiBob sync requires at least a name; email-only entries are not processed
+
+**Decision 2.3: Name-Only Contacts**
+- **Decision:** Accept contacts with only name (no email)
+- **Rationale:** Consistent with LinkedIn sync behavior
+
+### Text Parsing Edge Cases
+
+**Decision 3.1: Names Without Emails (Mixed With Named Emails)**
+- **Decision:** If entry has name, extract it; if entry has email, extract it
+- **Rationale:** Maximize data extraction; each field is independent
+
+**Decision 3.2: Trailing Commas**
+- **Decision:** Ignore trailing commas
+- **Rationale:** Common formatting artifact; doesn't represent data
+
+**Decision 3.3: Multiple Spaces**
+- **Decision:** Normalize to single space
+- **Rationale:** Spacing inconsistencies shouldn't affect parsing
+
+**Decision 3.4: Empty Lines**
+- **Decision:** Ignore empty lines
+- **Rationale:** No data to extract
+
+**Decision 3.5: Multi-Line Entries**
+- **Decision:** Each line is processed independently; no multi-line spanning
+- **Rationale:** Simple line-by-line processing; if entry spans multiple lines, it's treated as incomplete
+
+### JSON Error Handling
+
+**Decision 4.1: Entire JSON Parsing Failure**
+- **Decision:** Throw error and exit script
+- **Rationale:** Indicates file corruption or wrong format; can't proceed safely
+
+**Decision 4.2: Individual Malformed JSON Objects**
+- **Decision:** Skip malformed object, continue processing valid objects
+- **Rationale:** Maximize successful imports; log skipped objects for review
+
+**Decision 4.3: Missing Email in JSON Object**
+- **Decision:** If `email` field is missing or empty string, process by name only (displayName or firstName+surname)
+- **Rationale:** Name is sufficient to create contact; email can be added later
+
+**Decision 4.4: Missing Name Fields in JSON Object**
+- **Decision:** If both `displayName` AND (`firstName`+`surname`) are missing, skip the object
+- **Rationale:** At least one name is required to identify the contact
+
+**Decision 4.5: Multiple JSON Arrays in File**
+- **Decision:** If more than one JSON array `[...]` found, throw error and exit
+- **Rationale:** Ambiguous data structure; user should consolidate into single array
+
+**Decision 4.6: UTF-8 BOM Detection**
+- **Decision:** If UTF-8 BOM detected at file start, throw error and exit
+- **Rationale:** File encoding issue; user should save without BOM
+
+**Decision 4.7: Partial/Truncated JSON**
+- **Decision:** Parse what can be parsed from partial JSON (take what you can take)
+- **Rationale:** Maximize data extraction even if file is incomplete
+
+**Decision 4.8: Special Characters and Emojis in Names**
+- **Decision:** Include emojis and special characters in names (e.g., "John 👨‍💻 Doe", "Müller")
+- **Rationale:** Modern names can include Unicode characters; preserve them
+
+### Contact Syncing
+
+**Decision 5.1: Cache Invalidation**
+- **Decision:** Same as LinkedIn sync - invalidate after each write
+- **Rationale:** Ensures duplicate detection works on fresh data throughout sync
+
+**Decision 5.2: SyncStatusBar Type Compatibility**
+- **Decision:** Make SyncStatusBar generic to accept `LinkedInConnection | HibobContact`
+- **Rationale:** Reuse existing infrastructure without code duplication
+
+**Decision 5.3: Company Name Source**
+- **Decision:** User enters company name once; identical for all contacts
+- **Rationale:** HiBob data doesn't include company names (all same company)
+
+**Decision 5.4: Label Merging for Existing Contacts (HiBob Sync ONLY)**
+- **Decision:** Merge labels (existing + new) when contact already exists
+- **Implementation:** 
+  - Fetch existing contact's current label memberships
+  - Compare with user-selected labels (from pre-sync prompt)
+  - Add only labels that don't already exist (avoid duplicates)
+  - If partial overlap, add only missing labels
+- **Scope:** This logic is ONLY implemented for HiBob sync, NOT for LinkedIn sync
+- **Rationale:** Preserve existing labels; contacts can belong to multiple groups
+
+**Decision 5.5: Multiple Label Selection**
+- **Decision:** Allow multiple label selection but use only FIRST for lastName/email formatting
+- **Rationale:** Same as "Add new contact" wizard; consistent UX
+
+**Decision 5.6: Biography Notes**
+- **Decision:** Add biography using `buildNewContactNote(new Date())` - same as LinkedIn sync
+- **Rationale:** Track when contact was synced; consistent with LinkedIn sync
+
+### User Experience
+
+**Decision 6.1: Pre-Sync Confirmation**
+- **Decision:** Show confirmation prompt with company + label before starting sync
+- **Format:**
+  ```
+  ================================
+  🏢 Company: Vim
+  🏷️ Label: Employees
+  ================================
+  
+  Proceed? (y/N)
+  ```
+- **Rationale:** User verifies critical parameters before expensive API operations
+
+**Decision 6.2: File Path Display**
+- **Decision:** Display file path in status bar during sync (not just at start)
+- **Location:** Add "Path:" line to status bar display, appears on every status update
+- **Implementation Order:** 
+  1. Implement first for LinkedIn sync (to establish pattern)
+  2. Then reuse for HiBob sync
+- **Display Format:**
+  ```
+  ⠧ Time: 00:00:06 | Status: Stable
+    Path: /path/to/file
+    Processing: ...
+  ```
+- **Rationale:** User confirms correct file is being processed throughout sync
+
+**Decision 6.3: Contact Count Calculation**
+- **Decision:** Calculate `contactsAfter = contactsBefore + status.new` (no API fetch verification)
+- **Implementation:** Same as LinkedIn sync line 293 - simple arithmetic calculation
+- **Rationale:** Avoid extra API call; calculation sufficient for display purposes
+
+**Decision 6.4: Cancellation Handling**
+- **Decision:** Same as LinkedIn sync for all cancellation scenarios
+- **Rationale:** Consistent UX; proven implementation
+
+**Decision 6.5: Error Recovery**
+- **Decision:** Same as LinkedIn sync (retryWithBackoff, exponential backoff)
+- **Rationale:** Proven robust error handling
+
+### Testing & Configuration
+
+**Decision 7.1: testContactLimit Application**
+- **Decision:** Apply after extraction and deduplication by slicing the extracted contacts array
+- **Implementation:** `contactsToProcess = testLimit ? extractedContacts.slice(0, testLimit) : extractedContacts`
+- **Logging:** "TEST MODE: Processing X of Y contacts (limit set in settings)"
+- **Same as LinkedIn sync lines 114-126**
+- **Rationale:** Test actual sync process, not parsing process
+
+**Decision 7.2: Regex Patterns Location**
+- **Decision:** Define all HiBob parsing patterns in `src/regex/patterns.ts`
+- **Rationale:** Centralized pattern management; testable and reusable
+
+**Decision 7.3: Special Characters & Encoding**
+- **Decision:** Handle UTF-8, Hebrew, special characters, emojis same as LinkedIn sync
+- **Include:** Emojis (👨‍💻), special characters (Müller, Søren), Hebrew/RTL names
+- **Handle with:** `formatHebrewText` utility for RTL display
+- **BOM Handling:** Throw error if UTF-8 BOM detected at file start
+- **Rationale:** Consistent international character support
+
+### Logging & Debugging
+
+**Decision 8.1: Duplicate Skip Logging**
+- **Decision:** Log to SyncLogger with INFO level, include details (which field matched)
+- **Rationale:** Same as LinkedIn sync; aids debugging without cluttering errors
+
+**Decision 8.2: Resource Cleanup**
+- **Decision:** Same cleanup as LinkedIn sync (console, raw mode, SIGINT handlers)
+- **Rationale:** Prevent terminal corruption on error/cancellation
+
+### Concurrency & File Access
+
+**Decision 9.1: Single Process Execution**
+- **Decision:** Only one sync process runs at a time (no concurrent execution)
+- **Rationale:** Prevents race conditions with cache invalidation and file access
+
+**Decision 9.2: File Size & Memory**
+- **Decision:** Load entire file into memory (no streaming/pagination)
+- **Current File:** 3560 lines with JSON objects (~reasonable size)
+- **Rationale:** Simplifies parsing logic; file size manageable for modern systems
+
+**Decision 9.3: File Modification During Sync**
+- **Decision:** No file locking; assume file is not modified during sync
+- **Rationale:** Single-user tool; risk is low; complexity not warranted
+
+### Out of Scope
+
+The following features were explicitly decided as not needed:
+
+- ❌ File backup before processing
+- ❌ Dry-run mode (use testContactLimit instead)
+- ❌ Validation-only mode
+- ❌ Dynamic rate limiting adjustment (use fixed writeDelayMs)
+- ❌ Multi-line name parsing (process line-by-line only)
+- ❌ File locking/concurrent modification detection
+- ❌ Streaming/pagination for large files
+
+---
+
+## References
+
+### Key Files Referenced
+
+- `src/scripts/linkedinSync.ts` - Main reference implementation
+- `src/services/linkedin/contactSyncer.ts` - Contact creation/update patterns
+- `src/services/contacts/contactEditor.ts` - Label prompt patterns (lines 1083-1132)
+- `src/flow/syncStatusBar.ts` - Progress bar implementation
+- `src/logging/syncLogger.ts` - Logging patterns
+- `src/services/contacts/duplicateDetector.ts` - Duplicate detection logic
+- `src/utils/textUtils.ts` - Text formatting utilities
+
+### Key Patterns to Reuse
+
+1. **Console Capture** (linkedinSync.ts lines 347-388)
+2. **Cancellation Handling** (linkedinSync.ts lines 66-88)
+3. **Progress Bar Integration** (linkedinSync.ts lines 127-143)
+4. **Summary Display** (linkedinSync.ts lines 395-478)
+5. **Post-Sync Menu** (linkedinSync.ts lines 479-533)
+6. **Cache Invalidation** (contactSyncer.ts lines 116, 311)
+7. **Label Merging** (to be implemented based on contactEditor patterns)

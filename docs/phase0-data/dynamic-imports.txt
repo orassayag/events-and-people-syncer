@@ -1,0 +1,25 @@
+src/utils/retryWithBackoff.ts:36:    const { SyncStatusBar } = await import('../flow/syncStatusBar');
+src/scripts/contactsSync.ts:266:    const { container } = await import('../di/container');
+src/scripts/contactsSync.ts:267:    const { AuthService } = await import('../services/auth/authService');
+src/scripts/linkedinSync.ts:558:    const { container } = await import('../di/container');
+src/scripts/linkedinSync.ts:559:    const { AuthService } = await import('../services/auth/authService');
+src/scripts/statistics.ts:39:    const ora = (await import('ora')).default;
+src/scripts/statistics.ts:237:    const { container } = await import('../di/container');
+src/scripts/statistics.ts:238:    const { AuthService } = await import('../services/auth/authService');
+src/scripts/__tests__/eventsJobsSync.test.ts:25:  const actual = await vi.importActual<typeof import('../../utils/promptWithEnquirer')>('../../utils/promptWithEnquirer');
+src/scripts/eventsJobsSync.ts:146:      const { spawn } = await import('child_process');
+src/scripts/eventsJobsSync.ts:412:        const ora = (await import('ora')).default;
+src/scripts/eventsJobsSync.ts:491:      const ora = (await import('ora')).default;
+src/scripts/eventsJobsSync.ts:833:          const ora = (await import('ora')).default;
+src/scripts/eventsJobsSync.ts:962:      const ora = (await import('ora')).default;
+src/scripts/eventsJobsSync.ts:967:      const { spawn } = await import('child_process');
+src/scripts/eventsJobsSync.ts:1127:      const ora = (await import('ora')).default;
+src/scripts/eventsJobsSync.ts:1132:      const { spawn } = await import('child_process');
+src/scripts/eventsJobsSync.ts:1264:    const ora = (await import('ora')).default;
+src/scripts/eventsJobsSync.ts:1832:    const { container } = await import('../di/container');
+src/scripts/eventsJobsSync.ts:1833:    const { AuthService } = await import('../services/auth/authService');
+src/monitoring/healthCheck.ts:67:    const fs = await import('fs/promises');
+src/services/auth/authService.ts:91:      const { unlink } = await import('fs/promises');
+src/services/contacts/contactEditor.ts:308:        const { FormatUtils } = await import('../../constants/formatUtils');
+src/services/contacts/contactEditor.ts:1089:        const ora = (await import('ora')).default;
+No require found

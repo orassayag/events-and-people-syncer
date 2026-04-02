@@ -1,0 +1,1 @@
+export { OtherContactsFetcher } from './otherContactsFetcher';

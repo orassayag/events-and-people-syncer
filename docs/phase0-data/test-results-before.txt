@@ -1,0 +1,760 @@
+
+> events-and-people-syncer@1.0.0 test /Users/orassayag/Repos/events-and-people-syncer/code
+> NODE_OPTIONS='--no-warnings' vitest run
+
+
+ RUN  v4.0.18 /Users/orassayag/Repos/events-and-people-syncer/code
+
+Sourcemap for "/Users/orassayag/Repos/events-and-people-syncer/code/dist/utils/__tests__/promptWithEscape.test.js" points to missing source files
+Sourcemap for "/Users/orassayag/Repos/events-and-people-syncer/code/dist/utils/promptWithEscape.js" points to missing source files
+[2J[0f[2J[0f[2J[0f[2J[0f[2J[0f[2J[0f[2J[0f[2J[0f[2J[0f[2J[0f[2J[0f ✓ dist/utils/__tests__/promptWithEscape.test.js (24 tests) 9ms
+stderr | src/services/notes/__tests__/noteWriter.test.ts > NoteWriter > getNextFileName > should ignore files from different dates
+⚠️  Found note files with future dates in folder. System time may have changed.
+
+ ✓ src/services/notes/__tests__/noteWriter.test.ts (22 tests) 8ms
+ ✓ dist/logging/__tests__/logger.test.js (23 tests) 5ms
+ ❯ src/services/linkedin/__tests__/linkedinExtractor.test.ts (13 tests | 3 failed) 22ms
+       ✓ should parse valid CSV with all fields 6ms
+       ✓ should skip rows with missing required fields 8ms
+       ✓ should skip rows with company URLs 1ms
+       ✓ should detect duplicate URLs within CSV 0ms
+       ✓ should trim all field values 2ms
+       ✓ should handle empty optional fields 0ms
+       ✓ should extract profile slug as ID 0ms
+       × should return cached CSV if valid 2ms
+       × should return null if cache is expired 0ms
+       × should return null if cache file does not exist 0ms
+       ✓ should accept personal profile URLs 0ms
+       ✓ should reject company URLs 0ms
+       ✓ should reject URLs without /in/ 0ms
+ ❯ dist/services/linkedin/__tests__/linkedinExtractor.test.js (13 tests | 3 failed) 26ms
+       ✓ should parse valid CSV with all fields 7ms
+       ✓ should skip rows with missing required fields 7ms
+       ✓ should skip rows with company URLs 1ms
+       ✓ should detect duplicate URLs within CSV 1ms
+       ✓ should trim all field values 1ms
+       ✓ should handle empty optional fields 1ms
+       ✓ should extract profile slug as ID 2ms
+       × should return cached CSV if valid 2ms
+       × should return null if cache is expired 0ms
+       × should return null if cache file does not exist 0ms
+       ✓ should accept personal profile URLs 0ms
+       ✓ should reject company URLs 0ms
+       ✓ should reject URLs without /in/ 0ms
+ ✓ src/cache/__tests__/companyCache.test.ts (4 tests) 12ms
+ ✓ dist/cache/__tests__/companyCache.test.js (4 tests) 10ms
+ ✓ src/utils/__tests__/dateFormatter.test.ts (15 tests) 6ms
+stderr | dist/services/notes/__tests__/noteWriter.test.js > NoteWriter > getNextFileName > should ignore files from different dates
+⚠️  Found note files with future dates in folder. System time may have changed.
+
+ ✓ dist/services/notes/__tests__/noteWriter.test.js (22 tests) 8ms
+ ✓ src/cache/__tests__/folderCache.test.ts (10 tests) 7ms
+ ✓ src/utils/__tests__/promptWithEnquirer.test.ts (20 tests) 7ms
+ ✓ dist/utils/__tests__/promptWithEnquirer.test.js (20 tests) 8ms
+ ✓ dist/utils/__tests__/dateFormatter.test.js (15 tests) 5ms
+ ✓ dist/services/folders/__tests__/folderManager.test.js (49 tests) 10ms
+ ✓ dist/services/linkedin/__tests__/noteParser.test.js (15 tests) 5ms
+ ✓ src/services/folders/__tests__/folderManager.test.ts (49 tests) 9ms
+ ✓ dist/services/contacts/__tests__/hebrewWorkflow.test.js (17 tests) 3ms
+ ✓ dist/cache/__tests__/folderCache.test.js (10 tests) 9ms
+ ✓ src/services/linkedin/__tests__/noteParser.test.ts (15 tests) 6ms
+ ✓ dist/validators/__tests__/pathValidator.test.js (8 tests) 7ms
+ ✓ src/logging/__tests__/logger.test.ts (23 tests) 7ms
+ ✓ src/services/contacts/__tests__/contactSyncer.test.ts (45 tests) 5ms
+ ✓ dist/services/folders/__tests__/folderMatcher.test.js (14 tests) 9ms
+ ✓ .pnpm-store/v10/projects/fbf5c46fdf37d592ef09fb822e3712d0/src/utils/__tests__/nameParser.test.ts (11 tests) 5ms
+ ✓ src/services/folders/__tests__/folderMatcher.test.ts (14 tests) 7ms
+ ✓ dist/services/contacts/__tests__/contactSyncer.test.js (45 tests) 6ms
+ ✓ src/validators/__tests__/pathValidator.test.ts (8 tests) 5ms
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > selectOrCreateFolder > should return null when cache is empty
+===⚠️ Cache is empty. Please restart the script===
+
+
+ ✓ src/services/linkedin/__tests__/urlNormalizer.test.ts (18 tests) 3ms
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > selectOrCreateFolder > should handle folder deleted externally during exact match
+===⚠️ Folder was deleted externally===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > selectOrCreateFolder > should return null when cache is empty
+===⚠️ Cache is empty. Please restart the script===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > selectOrCreateFolder > should handle folder deleted externally during exact match
+===⚠️ Folder was deleted externally===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > selectOrCreateFolder > should prompt to create folder when no matches found
+===❌ Folder creation cancelled===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > selectOrCreateFolder > should prompt to create folder when no matches found
+===❌ Folder creation cancelled===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createFolderFlow > should return folder without creating note when createNoteAfter=false
+===✅ Folder created: HR_TestCompany===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createFolderFlow > should return null when folder already exists
+===⚠️ Folder already exists. Please choose a different name===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createFolderFlow > should return folder without creating note when createNoteAfter=false
+===✅ Folder created: HR_TestCompany===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createFolderFlow > should return null when folder already exists
+===⚠️ Folder already exists. Please choose a different name===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createFolderFlow > should return null when user cancels confirmation
+===❌ Folder creation cancelled===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createFolderFlow > should return null when user cancels confirmation
+===❌ Folder creation cancelled===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should throw EscapeSignal when allowCancel=true and user declines retry on empty clipboard
+===📋 Copy your message now and press <enter>===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should throw EscapeSignal when allowCancel=true and user declines retry on empty clipboard
+===⚠️ Clipboard is empty===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should retry when allowCancel=true and user accepts retry on empty clipboard
+===📋 Copy your message now and press <enter>===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should retry when allowCancel=true and user accepts retry on empty clipboard
+===⚠️ Clipboard is empty===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should retry when allowCancel=true and user accepts retry on empty clipboard
+
+===📋 Copy your message now and press <enter>===
+
+
+ ✓ .pnpm-store/v10/projects/fbf5c46fdf37d592ef09fb822e3712d0/src/validators/__tests__/validationSchemas.test.ts (16 tests) 7ms
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should throw EscapeSignal when allowCancel=true and user declines retry on empty clipboard
+===📋 Copy your message now and press <enter>===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should throw EscapeSignal when allowCancel=true and user declines retry on empty clipboard
+===⚠️ Clipboard is empty===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should retry when allowCancel=true and user accepts retry on empty clipboard
+===✅ Note added: job-interviews/HR_AddedValue/notes_16032026-1.txt===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should retry when allowCancel=true and user accepts retry on empty clipboard
+===📋 Copy your message now and press <enter>===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should retry when allowCancel=true and user accepts retry on empty clipboard
+===⚠️ Clipboard is empty===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should throw error when folder no longer exists
+===📋 Copy your message now and press <enter>===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should retry when allowCancel=true and user accepts retry on empty clipboard
+
+===📋 Copy your message now and press <enter>===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should update stats correctly for job folder
+===📋 Copy your message now and press <enter>===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should retry when allowCancel=true and user accepts retry on empty clipboard
+===✅ Note added: job-interviews/HR_AddedValue/notes_16032026-1.txt===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should update stats correctly for job folder
+===✅ Note added: job-interviews/HR_AddedValue/notes_16032026-1.txt===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should update stats correctly for life event folder
+===📋 Copy your message now and press <enter>===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should throw error when folder no longer exists
+===📋 Copy your message now and press <enter>===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should update stats correctly for life event folder
+===✅ Note added: life-events/Alex Z OSR/notes_16032026-1.txt===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should update lastCreatedNotePath after successful creation
+===📋 Copy your message now and press <enter>===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should update stats correctly for job folder
+===📋 Copy your message now and press <enter>===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should update lastCreatedNotePath after successful creation
+===✅ Note added: job-interviews/HR_AddedValue/notes_16032026-1.txt===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should update stats correctly for job folder
+===✅ Note added: job-interviews/HR_AddedValue/notes_16032026-1.txt===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should update lastSelectedFolder after successful creation
+===📋 Copy your message now and press <enter>===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should update stats correctly for life event folder
+===📋 Copy your message now and press <enter>===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should update lastSelectedFolder after successful creation
+===✅ Note added: job-interviews/HR_AddedValue/notes_16032026-1.txt===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should update stats correctly for life event folder
+===✅ Note added: life-events/Alex Z OSR/notes_16032026-1.txt===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should update lastCreatedNotePath after successful creation
+===📋 Copy your message now and press <enter>===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should update lastCreatedNotePath after successful creation
+===✅ Note added: job-interviews/HR_AddedValue/notes_16032026-1.txt===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should update lastSelectedFolder after successful creation
+===📋 Copy your message now and press <enter>===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > writeNotesFlow > should create multiple notes in succession
+===⚠️ Error creating note: User pressed ESC to go back===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createNoteInFolder > should update lastSelectedFolder after successful creation
+===✅ Note added: job-interviews/HR_AddedValue/notes_16032026-1.txt===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > writeNotesFlow > should show "No notes created" message when cancelled on first note
+===⚠️ Error creating note: User pressed ESC to go back===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > writeNotesFlow > should create multiple notes in succession
+===⚠️ Error creating note: User pressed ESC to go back===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > writeNotesFlow > should show correct count when cancelled after creating notes
+===⚠️ Error creating note: User pressed ESC to go back===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > writeNotesFlow > should show "No notes created" message when cancelled on first note
+===⚠️ Error creating note: User pressed ESC to go back===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > writeNotesFlow > should show correct count when cancelled after creating notes
+===⚠️ Error creating note: User pressed ESC to go back===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > writeNotesFlow > should ask to continue after non-ENOENT error
+===⚠️ Error creating note: Permission denied===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > writeNotesFlow > should ask to continue after non-ENOENT error
+
+===⚠️ Error creating note: User pressed ESC to go back===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > writeNotesFlow > should exit when user declines to continue after error
+===⚠️ Error creating note: Permission denied===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > writeNotesFlow > should ask to continue after non-ENOENT error
+===⚠️ Error creating note: Permission denied===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > writeNotesFlow > should not increment noteCount when error occurs
+===⚠️ Error creating note: Permission denied===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > writeNotesFlow > should not increment noteCount when error occurs
+
+===⚠️ Error creating note: User pressed ESC to go back===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > writeNotesFlow > should ask to continue after non-ENOENT error
+
+===⚠️ Error creating note: User pressed ESC to go back===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > writeNotesFlow > should exit when user declines to continue after error
+===⚠️ Error creating note: Permission denied===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > writeNotesFlow > should validate folder exists before each iteration
+===⚠️ Error creating note: User pressed ESC to go back===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createNoteFlow integration with selectOrCreateFolder > should use selectOrCreateFolder helper
+===⚠️ No folder context available===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > writeNotesFlow > should not increment noteCount when error occurs
+===⚠️ Error creating note: Permission denied===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > writeNotesFlow > should not increment noteCount when error occurs
+
+===⚠️ Error creating note: User pressed ESC to go back===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > Clipboard behavior > should handle unicode and emoji content correctly
+===📋 Copy your message now and press <enter>===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > Clipboard behavior > should handle unicode and emoji content correctly
+===✅ Note added: job-interviews/HR_AddedValue/notes_16032026-1.txt===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > Clipboard behavior > should handle clipboard read error
+===📋 Copy your message now and press <enter>===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > writeNotesFlow > should validate folder exists before each iteration
+===⚠️ Error creating note: User pressed ESC to go back===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > Clipboard behavior > should clear clipboard after successful note creation
+===📋 Copy your message now and press <enter>===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > Clipboard behavior > should clear clipboard after successful note creation
+===✅ Note added: job-interviews/HR_AddedValue/notes_16032026-1.txt===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createNoteFlow integration with selectOrCreateFolder > should use selectOrCreateFolder helper
+===⚠️ No folder context available===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > Clipboard behavior > should handle unicode and emoji content correctly
+===📋 Copy your message now and press <enter>===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > Clipboard behavior > should handle unicode and emoji content correctly
+===✅ Note added: job-interviews/HR_AddedValue/notes_16032026-1.txt===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > Clipboard behavior > should handle clipboard read error
+===📋 Copy your message now and press <enter>===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > Clipboard behavior > should clear clipboard after successful note creation
+===📋 Copy your message now and press <enter>===
+
+
+ ✓ dist/services/contacts/__tests__/contactEditor.test.js (21 tests) 5ms
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > Clipboard behavior > should clear clipboard after successful note creation
+===✅ Note added: job-interviews/HR_AddedValue/notes_16032026-1.txt===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createLifeEventFolderFlow with label selection > should show combined list of Google labels and existing folder labels (not input words)
+===✅ Folder created: Airbnb Stay TestLabel1===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createLifeEventFolderFlow with label selection > should deduplicate labels case-insensitively
+===✅ Folder created: Airbnb Stay osr===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createLifeEventFolderFlow with label selection > should show combined list of Google labels and existing folder labels (not input words)
+===✅ Folder created: Airbnb Stay TestLabel1===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createLifeEventFolderFlow with label selection > should handle skip label selection
+===✅ Folder created: Airbnb Stay===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createLifeEventFolderFlow with label selection > should handle create new label flow with Google creation
+===✅ Label created in Google Contacts: NewLabel===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createLifeEventFolderFlow with label selection > should deduplicate labels case-insensitively
+===✅ Folder created: Airbnb Stay osr===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createLifeEventFolderFlow with label selection > should handle create new label flow with Google creation
+
+===✅ Folder created: Airbnb Stay NewLabel===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createLifeEventFolderFlow with label selection > should handle skip label selection
+===✅ Folder created: Airbnb Stay===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createLifeEventFolderFlow with label selection > should handle create new label flow with Google creation
+===✅ Label created in Google Contacts: NewLabel===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createLifeEventFolderFlow with label selection > should handle create new label flow without Google creation
+===✅ Folder created: Airbnb Stay NewLabel===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createLifeEventFolderFlow with label selection > should handle create new label flow with Google creation
+
+===✅ Folder created: Airbnb Stay NewLabel===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createLifeEventFolderFlow with label selection > should use existing label if new label name already exists
+===⚠️ Label 'ExistingLabel' already exists. Using existing label===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createLifeEventFolderFlow with label selection > should handle create new label flow without Google creation
+===✅ Folder created: Airbnb Stay NewLabel===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createLifeEventFolderFlow with label selection > should use existing label if new label name already exists
+
+===✅ Folder created: Airbnb Stay ExistingLabel===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createLifeEventFolderFlow with label selection > should validate new label has at least 2 characters
+===✅ Label created in Google Contacts: A===
+
+
+===⚠️ Label must be at least 2 characters. Please enter a different name===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createLifeEventFolderFlow with label selection > should use existing label if new label name already exists
+===⚠️ Label 'ExistingLabel' already exists. Using existing label===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createLifeEventFolderFlow with label selection > should use existing label if new label name already exists
+
+===✅ Folder created: Airbnb Stay ExistingLabel===
+
+
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createLifeEventFolderFlow with label selection > should not duplicate label if it already exists in folder name
+===✅ Folder created: Airbnb Stay===
+
+
+ ✓ .pnpm-store/v10/projects/fbf5c46fdf37d592ef09fb822e3712d0/src/utils/__tests__/contactCache.test.ts (6 tests) 5ms
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createLifeEventFolderFlow with label selection > should validate new label has at least 2 characters
+===✅ Label created in Google Contacts: A===
+
+
+===⚠️ Label must be at least 2 characters. Please enter a different name===
+
+
+ ✓ poc/src/validators/__tests__/validationSchemas.test.ts (16 tests) 4ms
+stdout | src/scripts/__tests__/eventsJobsSync.test.ts > EventsJobsSyncScript - Write Notes Feature > createLifeEventFolderFlow with label selection > should append label when it is not in folder name
+===✅ Folder created: Airbnb Stay TestLabel1===
+
+
+ ✓ src/scripts/__tests__/eventsJobsSync.test.ts (45 tests) 355ms
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createLifeEventFolderFlow with label selection > should not duplicate label if it already exists in folder name
+===✅ Folder created: Airbnb Stay===
+
+
+stdout | dist/scripts/__tests__/eventsJobsSync.test.js > EventsJobsSyncScript - Write Notes Feature > createLifeEventFolderFlow with label selection > should append label when it is not in folder name
+===✅ Folder created: Airbnb Stay TestLabel1===
+
+
+ ✓ dist/scripts/__tests__/eventsJobsSync.test.js (45 tests) 352ms
+ ❯ dist/services/linkedin/__tests__/contactSyncer.test.js (20 tests | 13 failed) 348ms
+       ✓ should remove Corporation suffix 15ms
+       ✓ should remove Inc suffix 14ms
+       ✓ should split on comma and take first part 14ms
+       ✓ should return original if cleaning results in empty 27ms
+       ✓ should return empty string for empty input 15ms
+       ✓ should trim whitespace 15ms
+       × should return first word of company name 18ms
+       × should return entire company name if single word 15ms
+       × should return empty string for empty input 14ms
+       × should handle multiple spaces 17ms
+       × should format last name as "LastName Label CompanyFirstWord" 15ms
+       × should handle empty last name 17ms
+       × should handle empty company 16ms
+       × should format email label as "Label CompanyFirstWord" 21ms
+       ✓ should load contact groups 14ms
+       × should include biographies with Added note 26ms
+       × should add Updated note when no existing note 18ms
+       × should convert Added message to Updated message even with same date 18ms
+       × should convert Added to Updated and update date 22ms
+       × should append Updated note to existing non-syncer note 17ms
+ ✓ src/services/labels/__tests__/labelResolver.test.ts (18 tests | 1 skipped) 6ms
+ ❯ src/services/linkedin/__tests__/contactSyncer.test.ts (20 tests | 13 failed) 321ms
+       ✓ should remove Corporation suffix 18ms
+       ✓ should remove Inc suffix 14ms
+       ✓ should split on comma and take first part 13ms
+       ✓ should return original if cleaning results in empty 13ms
+       ✓ should return empty string for empty input 14ms
+       ✓ should trim whitespace 15ms
+       × should return first word of company name 17ms
+       × should return entire company name if single word 14ms
+       × should return empty string for empty input 14ms
+       × should handle multiple spaces 13ms
+       × should format last name as "LastName Label CompanyFirstWord" 13ms
+       × should handle empty last name 19ms
+       × should handle empty company 13ms
+       × should format email label as "Label CompanyFirstWord" 13ms
+       ✓ should load contact groups 17ms
+       × should include biographies with Added note 23ms
+       × should add Updated note when no existing note 18ms
+       × should convert Added message to Updated message even with same date 24ms
+       × should convert Added to Updated and update date 19ms
+       × should append Updated note to existing non-syncer note 17ms
+ ✓ src/services/linkedin/__tests__/companyMatcher.test.ts (21 tests) 3ms
+ ✓ src/services/contacts/__tests__/contactEditor.test.ts (21 tests) 4ms
+ ✓ poc/src/utils/__tests__/contactCache.test.ts (6 tests) 6ms
+ ✓ poc/src/utils/__tests__/nameParser.test.ts (11 tests) 3ms
+ ✓ src/services/linkedin/__tests__/noteParserSync.test.ts (8 tests) 4ms
+ ✓ .pnpm-store/v10/projects/fbf5c46fdf37d592ef09fb822e3712d0/src/utils/__tests__/textUtils.test.ts (4 tests) 2ms
+ ✓ dist/services/linkedin/__tests__/companyMatcher.test.js (21 tests) 5ms
+ ✓ poc/src/utils/__tests__/textUtils.test.ts (4 tests) 2ms
+ ✓ dist/services/linkedin/__tests__/urlNormalizer.test.js (18 tests) 2ms
+ ✓ src/services/contacts/__tests__/hebrewWorkflow.test.ts (17 tests) 2ms
+ ✓ dist/services/linkedin/__tests__/noteParserSync.test.js (8 tests) 2ms
+ ✓ dist/services/labels/__tests__/labelResolver.test.js (18 tests | 1 skipped) 3ms
+ ✓ src/services/linkedin/__tests__/connectionMatcher.test.ts (10 tests) 3ms
+ ✓ dist/services/linkedin/__tests__/connectionMatcher.test.js (10 tests) 3ms
+ ✓ dist/services/contacts/__tests__/eventsContactEditor.test.js (2 tests) 2ms
+ ✓ src/services/contacts/__tests__/eventsContactEditor.test.ts (2 tests) 2ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 32 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  dist/services/linkedin/__tests__/contactSyncer.test.js > ContactSyncer > getCompanyFirstWord > should return first word of company name
+ FAIL  src/services/linkedin/__tests__/contactSyncer.test.ts > ContactSyncer > getCompanyFirstWord > should return first word of company name
+TypeError: syncer.getCompanyFirstWord is not a function
+ ❯ src/services/linkedin/__tests__/contactSyncer.test.ts:97:41
+     95|     it('should return first word of company name', () => {
+     96|       const syncer = new ContactSyncer(mockAuth);
+     97|       const firstWord = (syncer as any).getCompanyFirstWord(
+       |                                         ^
+     98|         'Microsoft Corporation'
+     99|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/32]⎯
+
+ FAIL  dist/services/linkedin/__tests__/contactSyncer.test.js > ContactSyncer > getCompanyFirstWord > should return entire company name if single word
+ FAIL  src/services/linkedin/__tests__/contactSyncer.test.ts > ContactSyncer > getCompanyFirstWord > should return entire company name if single word
+TypeError: syncer.getCompanyFirstWord is not a function
+ ❯ src/services/linkedin/__tests__/contactSyncer.test.ts:104:41
+    102|     it('should return entire company name if single word', () => {
+    103|       const syncer = new ContactSyncer(mockAuth);
+    104|       const firstWord = (syncer as any).getCompanyFirstWord('Google');
+       |                                         ^
+    105|       expect(firstWord).toBe('Google');
+    106|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/32]⎯
+
+ FAIL  dist/services/linkedin/__tests__/contactSyncer.test.js > ContactSyncer > getCompanyFirstWord > should return empty string for empty input
+ FAIL  src/services/linkedin/__tests__/contactSyncer.test.ts > ContactSyncer > getCompanyFirstWord > should return empty string for empty input
+TypeError: syncer.getCompanyFirstWord is not a function
+ ❯ src/services/linkedin/__tests__/contactSyncer.test.ts:109:41
+    107|     it('should return empty string for empty input', () => {
+    108|       const syncer = new ContactSyncer(mockAuth);
+    109|       const firstWord = (syncer as any).getCompanyFirstWord('');
+       |                                         ^
+    110|       expect(firstWord).toBe('');
+    111|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/32]⎯
+
+ FAIL  dist/services/linkedin/__tests__/contactSyncer.test.js > ContactSyncer > getCompanyFirstWord > should handle multiple spaces
+ FAIL  src/services/linkedin/__tests__/contactSyncer.test.ts > ContactSyncer > getCompanyFirstWord > should handle multiple spaces
+TypeError: syncer.getCompanyFirstWord is not a function
+ ❯ src/services/linkedin/__tests__/contactSyncer.test.ts:114:41
+    112|     it('should handle multiple spaces', () => {
+    113|       const syncer = new ContactSyncer(mockAuth);
+    114|       const firstWord = (syncer as any).getCompanyFirstWord(
+       |                                         ^
+    115|         '  Multi   Word   Company  '
+    116|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/32]⎯
+
+ FAIL  dist/services/linkedin/__tests__/contactSyncer.test.js > ContactSyncer > field mapping > should format last name as "LastName Label CompanyFirstWord"
+ FAIL  src/services/linkedin/__tests__/contactSyncer.test.ts > ContactSyncer > field mapping > should format last name as "LastName Label CompanyFirstWord"
+TypeError: syncer.getCompanyFirstWord is not a function
+ ❯ src/services/linkedin/__tests__/contactSyncer.test.ts:131:25
+    129|         mockConnection.lastName,
+    130|         label,
+    131|         (syncer as any).getCompanyFirstWord(cleanedCompany),
+       |                         ^
+    132|       ]
+    133|         .filter((s: string) => s)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/32]⎯
+
+ FAIL  dist/services/linkedin/__tests__/contactSyncer.test.js > ContactSyncer > field mapping > should handle empty last name
+ FAIL  src/services/linkedin/__tests__/contactSyncer.test.ts > ContactSyncer > field mapping > should handle empty last name
+TypeError: syncer.getCompanyFirstWord is not a function
+ ❯ src/services/linkedin/__tests__/contactSyncer.test.ts:145:25
+    143|         '',
+    144|         label,
+    145|         (syncer as any).getCompanyFirstWord(cleanedCompany),
+       |                         ^
+    146|       ]
+    147|         .filter((s: string) => s)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/32]⎯
+
+ FAIL  dist/services/linkedin/__tests__/contactSyncer.test.js > ContactSyncer > field mapping > should handle empty company
+ FAIL  src/services/linkedin/__tests__/contactSyncer.test.ts > ContactSyncer > field mapping > should handle empty company
+TypeError: syncer.getCompanyFirstWord is not a function
+ ❯ src/services/linkedin/__tests__/contactSyncer.test.ts:160:25
+    158|         lastName,
+    159|         label,
+    160|         (syncer as any).getCompanyFirstWord(cleanedCompany),
+       |                         ^
+    161|       ]
+    162|         .filter((s: string) => s)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/32]⎯
+
+ FAIL  dist/services/linkedin/__tests__/contactSyncer.test.js > ContactSyncer > field mapping > should format email label as "Label CompanyFirstWord"
+ FAIL  src/services/linkedin/__tests__/contactSyncer.test.ts > ContactSyncer > field mapping > should format email label as "Label CompanyFirstWord"
+TypeError: syncer.getCompanyFirstWord is not a function
+ ❯ src/services/linkedin/__tests__/contactSyncer.test.ts:174:37
+    172|       const label = 'HR';
+    173|       const emailLabel =
+    174|         `${label} ${(syncer as any).getCompanyFirstWord(cleanedCompany…
+       |                                     ^
+    175|       expect(emailLabel).toBe('HR Microsoft');
+    176|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/32]⎯
+
+ FAIL  dist/services/linkedin/__tests__/contactSyncer.test.js > ContactSyncer > addContact - biographies field > should include biographies with Added note
+ FAIL  src/services/linkedin/__tests__/contactSyncer.test.ts > ContactSyncer > addContact - biographies field > should include biographies with Added note
+AssertionError: expected 'error' to be 'new' // Object.is equality
+
+Expected: "new"
+Received: "error"
+
+ ❯ src/services/linkedin/__tests__/contactSyncer.test.ts:229:22
+    227|       await contactSyncer.initialize();
+    228|       const result = await contactSyncer.addContact(mockConnection, 'J…
+    229|       expect(result).toBe('new');
+       |                      ^
+    230|       expect(mockCreateFn).toHaveBeenCalled();
+    231|       const requestBody = mockCreateFn.mock.calls[0][0].requestBody;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/32]⎯
+
+ FAIL  dist/services/linkedin/__tests__/contactSyncer.test.js > ContactSyncer > updateContact - biographies field > should add Updated note when no existing note
+ FAIL  src/services/linkedin/__tests__/contactSyncer.test.ts > ContactSyncer > updateContact - biographies field > should add Updated note when no existing note
+AssertionError: expected "vi.fn()" to be called with arguments: [ ObjectContaining{…} ]
+
+Number of calls: 0
+
+ ❯ src/services/linkedin/__tests__/contactSyncer.test.ts:264:25
+    262|       } as any);
+    263|       await contactSyncer.updateContact('people/123', mockConnection, …
+    264|       expect(mockGetFn).toHaveBeenCalledWith(
+       |                         ^
+    265|         expect.objectContaining({
+    266|           personFields: 'names,emailAddresses,urls,organizations,biogr…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/32]⎯
+
+ FAIL  dist/services/linkedin/__tests__/contactSyncer.test.js > ContactSyncer > updateContact - biographies field > should convert Added message to Updated message even with same date
+ FAIL  src/services/linkedin/__tests__/contactSyncer.test.ts > ContactSyncer > updateContact - biographies field > should convert Added message to Updated message even with same date
+AssertionError: expected { status: 'error' } to be 'updated' // Object.is equality
+
+- Expected: 
+"updated"
+
++ Received: 
+{
+  "status": "error",
+}
+
+ ❯ src/services/linkedin/__tests__/contactSyncer.test.ts:317:22
+    315|         'Job'
+    316|       );
+    317|       expect(result).toBe('updated');
+       |                      ^
+    318|       expect(mockUpdateFn).toHaveBeenCalled();
+    319|       const requestBody = mockUpdateFn.mock.calls[0][0].requestBody;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/32]⎯
+
+ FAIL  dist/services/linkedin/__tests__/contactSyncer.test.js > ContactSyncer > updateContact - biographies field > should convert Added to Updated and update date
+ FAIL  src/services/linkedin/__tests__/contactSyncer.test.ts > ContactSyncer > updateContact - biographies field > should convert Added to Updated and update date
+AssertionError: expected "vi.fn()" to be called at least once
+ ❯ src/services/linkedin/__tests__/contactSyncer.test.ts:357:28
+    355|       } as any);
+    356|       await contactSyncer.updateContact('people/123', mockConnection, …
+    357|       expect(mockUpdateFn).toHaveBeenCalled();
+       |                            ^
+    358|       const requestBody = mockUpdateFn.mock.calls[0][0].requestBody;
+    359|       expect(requestBody.biographies[0].value).toMatch(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/32]⎯
+
+ FAIL  dist/services/linkedin/__tests__/contactSyncer.test.js > ContactSyncer > updateContact - biographies field > should append Updated note to existing non-syncer note
+ FAIL  src/services/linkedin/__tests__/contactSyncer.test.ts > ContactSyncer > updateContact - biographies field > should append Updated note to existing non-syncer note
+AssertionError: expected "vi.fn()" to be called at least once
+ ❯ src/services/linkedin/__tests__/contactSyncer.test.ts:390:28
+    388|       } as any);
+    389|       await contactSyncer.updateContact('people/123', mockConnection, …
+    390|       expect(mockUpdateFn).toHaveBeenCalled();
+       |                            ^
+    391|       const requestBody = mockUpdateFn.mock.calls[0][0].requestBody;
+    392|       expect(requestBody.biographies[0].value).toContain('Some persona…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/32]⎯
+
+ FAIL  dist/services/linkedin/__tests__/linkedinExtractor.test.js > LinkedInExtractor > cache handling > should return cached CSV if valid
+ FAIL  src/services/linkedin/__tests__/linkedinExtractor.test.ts > LinkedInExtractor > cache handling > should return cached CSV if valid
+TypeError: extractor.getCachedCsv is not a function
+ ❯ src/services/linkedin/__tests__/linkedinExtractor.test.ts:110:47
+    108|       } as any);
+    109|       vi.mocked(fs.readFile).mockResolvedValue(MOCK_CSV_CONTENT);
+    110|       const cached = await (extractor as any).getCachedCsv();
+       |                                               ^
+    111|       expect(cached).toBe(MOCK_CSV_CONTENT);
+    112|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/32]⎯
+
+ FAIL  dist/services/linkedin/__tests__/linkedinExtractor.test.js > LinkedInExtractor > cache handling > should return null if cache is expired
+ FAIL  src/services/linkedin/__tests__/linkedinExtractor.test.ts > LinkedInExtractor > cache handling > should return null if cache is expired
+TypeError: extractor.getCachedCsv is not a function
+ ❯ src/services/linkedin/__tests__/linkedinExtractor.test.ts:117:47
+    115|         mtimeMs: Date.now() - 2 * 24 * 60 * 60 * 1000,
+    116|       } as any);
+    117|       const cached = await (extractor as any).getCachedCsv();
+       |                                               ^
+    118|       expect(cached).toBeNull();
+    119|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/32]⎯
+
+ FAIL  dist/services/linkedin/__tests__/linkedinExtractor.test.js > LinkedInExtractor > cache handling > should return null if cache file does not exist
+ FAIL  src/services/linkedin/__tests__/linkedinExtractor.test.ts > LinkedInExtractor > cache handling > should return null if cache file does not exist
+TypeError: extractor.getCachedCsv is not a function
+ ❯ src/services/linkedin/__tests__/linkedinExtractor.test.ts:122:47
+    120|     it('should return null if cache file does not exist', async () => {
+    121|       vi.mocked(fs.stat).mockRejectedValue(new Error('File not found')…
+    122|       const cached = await (extractor as any).getCachedCsv();
+       |                                               ^
+    123|       expect(cached).toBeNull();
+    124|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/32]⎯
+
+
+ Test Files  4 failed | 49 passed (53)
+      Tests  32 failed | 900 passed | 2 skipped (934)
+   Start at  00:17:45
+   Duration  3.83s (transform 2.62s, setup 0ms, import 17.16s, tests 1.68s, environment 4ms)
+
+ ELIFECYCLE  Test failed. See above for more details.

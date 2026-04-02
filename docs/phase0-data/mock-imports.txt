@@ -1,0 +1,1 @@
+src/services/linkedin/__tests__/linkedinExtractor.test.ts:8:} from '../__mocks__/connections.mock';

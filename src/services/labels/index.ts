@@ -1,0 +1,1 @@
+export { LabelResolver } from './labelResolver';

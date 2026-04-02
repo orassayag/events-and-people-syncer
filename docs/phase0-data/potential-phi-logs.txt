@@ -1,0 +1,33 @@
+src/managers/portManager.ts:13:      this.logger.info(`Port ${port} is in use. Killing process`);
+src/managers/portManager.ts:30:      this.logger.info(`Process ${pid} killed successfully`);
+src/scripts/statistics.ts:199:      this.logger.warn(
+src/scripts/statistics.ts:205:      this.logger.warn(
+src/scripts/statistics.ts:212:      this.logger.warn(
+src/scripts/statistics.ts:218:      this.logger.warn(
+src/monitoring/healthCheck.ts:21:    this.logger.info('Running health checks');
+src/monitoring/healthCheck.ts:32:      this.logger.error('Health check failed', undefined, {
+src/monitoring/healthCheck.ts:36:      this.logger.info('All health checks passed');
+src/services/auth/authService.ts:28:        this.logger.warn(
+src/services/auth/authService.ts:86:    this.logger.info('Token saved');
+src/services/auth/authService.ts:94:        this.logger.info('Token file deleted');
+src/services/auth/authService.ts:97:      this.logger.warn('Failed to delete token file');
+src/services/auth/authService.ts:166:            this.logger.info('Authentication successful');
+src/services/auth/authService.ts:200:        this.logger.info('Opening browser for authentication');
+src/services/auth/authService.ts:201:        this.logger.info(
+src/services/auth/authService.ts:206:        this.logger.warn(
+src/services/auth/authService.ts:236:          this.logger.warn('Could not automatically open browser');
+src/services/contacts/contactSyncer.ts:88:          this.logger.warn('Skipping contact without resourceName', {
+src/services/api/retryHandler.ts:23:    this.logger.error('Max retries exceeded', lastError);
+src/services/api/rateLimitMonitor.ts:36:      this.logger.warn(
+src/services/api/rateLimitMonitor.ts:42:      this.logger.error(
+src/services/linkedin/contactSyncer.ts:67:          this.logger.debug(`Invalid email skipped: ${connection.email}`);
+src/services/linkedin/contactSyncer.ts:119:      this.logger.debug(
+src/services/linkedin/contactSyncer.ts:249:          this.logger.debug(`Invalid email skipped: ${newEmail}`);
+src/services/linkedin/contactSyncer.ts:314:      this.logger.debug(
+src/services/linkedin/linkedinExtractor.ts:109:            this.logger.debug(`Skipped: Missing required fields - firstName: "${firstName}", lastName: "${lastName}", url: "${url}"`);
+src/services/linkedin/linkedinExtractor.ts:113:            this.logger.debug(`Skipped: Invalid LinkedIn profile URL - ${url}`);
+src/services/linkedin/linkedinExtractor.ts:119:            this.logger.debug(`Skipped: Invalid LinkedIn URL format - ${url}`);
+src/services/linkedin/linkedinExtractor.ts:124:            this.logger.debug(`Skipped: Duplicate LinkedIn URL - ${url}`);
+src/services/linkedin/linkedinExtractor.ts:141:          this.logger.debug(`Skipped: Validation failed - ${error instanceof Error ? error.message : 'Unknown error'}`);
+src/flow/syncStatusBar.ts:59:    this.logger.info(
+src/flow/syncStatusBar.ts:112:    this.logger.error(message);

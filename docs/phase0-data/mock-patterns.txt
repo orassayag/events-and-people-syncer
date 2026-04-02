@@ -1,0 +1,64 @@
+src/cache/__tests__/folderCache.test.ts:7:vi.mock('fs/promises');
+src/cache/__tests__/companyCache.test.ts:4:vi.mock('../../settings', () => ({
+src/utils/__tests__/promptWithEnquirer.test.ts:10:vi.mock('enquirer');
+src/scripts/__tests__/eventsJobsSync.test.ts:21:vi.mock('fs/promises');
+src/scripts/__tests__/eventsJobsSync.test.ts:22:vi.mock('../../cache/folderCache');
+src/scripts/__tests__/eventsJobsSync.test.ts:23:vi.mock('child_process');
+src/scripts/__tests__/eventsJobsSync.test.ts:24:vi.mock('../../utils/promptWithEnquirer', async () => {
+src/scripts/__tests__/eventsJobsSync.test.ts:36:vi.mock('ora', () => ({
+src/scripts/__tests__/eventsJobsSync.test.ts:97:    mockSelectWithEscape = vi.mocked(selectWithEscape);
+src/scripts/__tests__/eventsJobsSync.test.ts:98:    mockInputWithEscape = vi.mocked(inputWithEscape);
+src/scripts/__tests__/eventsJobsSync.test.ts:99:    mockConfirmWithEscape = vi.mocked(confirmWithEscape);
+src/scripts/__tests__/eventsJobsSync.test.ts:100:    mockSpawn = vi.mocked(spawnActual as any);
+src/scripts/__tests__/eventsJobsSync.test.ts:182:      vi.mocked(FolderCache.getInstance).mockReturnValue({
+src/scripts/__tests__/eventsJobsSync.test.ts:190:      vi.mocked(FolderCache.getInstance).mockReturnValue({
+src/scripts/__tests__/eventsJobsSync.test.ts:247:      vi.mocked(FolderCache.getInstance).mockReturnValue({
+src/scripts/__tests__/eventsJobsSync.test.ts:265:      vi.mocked(FolderCache.getInstance).mockReturnValue({
+src/scripts/__tests__/eventsJobsSync.test.ts:448:      vi.mocked(FolderCache.getInstance).mockReturnValue({
+src/scripts/__tests__/eventsJobsSync.test.ts:759:      vi.mocked(FolderCache.getInstance).mockReturnValue({
+src/validators/__tests__/pathValidator.test.ts:5:vi.mock('fs/promises');
+src/services/notes/__tests__/noteWriter.test.ts:5:vi.mock('fs/promises');
+src/services/notes/__tests__/noteWriter.test.ts:6:vi.mock('../../../utils/dateFormatter', (): { formatDateDDMMYYYYCompact: (date: Date) => string } => ({
+src/services/folders/__tests__/folderManager.test.ts:5:vi.mock('fs/promises');
+src/services/linkedin/__tests__/companyMatcher.test.ts:4:vi.mock('../../../settings', () => ({
+src/services/linkedin/__tests__/companyMatcher.test.ts:24:vi.mock('../../../cache/companyCache', () => ({
+src/services/linkedin/__tests__/contactSyncer.test.ts:6:vi.mock('googleapis');
+src/services/linkedin/__tests__/contactSyncer.test.ts:7:vi.mock('../../../utils/retryWithBackoff', () => ({
+src/services/linkedin/__tests__/contactSyncer.test.ts:10:vi.mock('../../../settings', () => ({
+src/services/linkedin/__tests__/contactSyncer.test.ts:32:vi.mock('../../api/apiTracker', () => ({
+src/services/linkedin/__tests__/contactSyncer.test.ts:197:      vi.mocked(google.people).mockReturnValue({
+src/services/linkedin/__tests__/contactSyncer.test.ts:217:      vi.mocked(google.people).mockReturnValue({
+src/services/linkedin/__tests__/contactSyncer.test.ts:257:      vi.mocked(google.people).mockReturnValue({
+src/services/linkedin/__tests__/contactSyncer.test.ts:306:      vi.mocked(google.people).mockReturnValue({
+src/services/linkedin/__tests__/contactSyncer.test.ts:350:      vi.mocked(google.people).mockReturnValue({
+src/services/linkedin/__tests__/contactSyncer.test.ts:383:      vi.mocked(google.people).mockReturnValue({
+src/services/linkedin/__tests__/linkedinExtractor.test.ts:11:vi.mock('fs', () => ({
+src/services/linkedin/__tests__/linkedinExtractor.test.ts:22:vi.mock('../../../settings', () => ({
+src/services/linkedin/__tests__/linkedinExtractor.test.ts:33:vi.mock('adm-zip', () => {
+src/services/linkedin/__tests__/linkedinExtractor.test.ts:106:      vi.mocked(fs.stat).mockResolvedValue({
+src/services/linkedin/__tests__/linkedinExtractor.test.ts:109:      vi.mocked(fs.readFile).mockResolvedValue(MOCK_CSV_CONTENT);
+src/services/linkedin/__tests__/linkedinExtractor.test.ts:114:      vi.mocked(fs.stat).mockResolvedValue({
+src/services/linkedin/__tests__/linkedinExtractor.test.ts:121:      vi.mocked(fs.stat).mockRejectedValue(new Error('File not found'));
+src/services/linkedin/__tests__/connectionMatcher.test.ts:33:      vi.mocked(
+src/services/linkedin/__tests__/connectionMatcher.test.ts:56:      vi.mocked(
+src/services/linkedin/__tests__/connectionMatcher.test.ts:92:      vi.mocked(
+src/services/linkedin/__tests__/connectionMatcher.test.ts:95:      vi.mocked(mockDuplicateDetector.checkDuplicateEmail).mockResolvedValue([
+src/services/linkedin/__tests__/connectionMatcher.test.ts:116:      vi.mocked(
+src/services/linkedin/__tests__/connectionMatcher.test.ts:119:      vi.mocked(mockDuplicateDetector.checkDuplicateEmail).mockResolvedValue([
+src/services/linkedin/__tests__/connectionMatcher.test.ts:153:      vi.mocked(
+src/services/linkedin/__tests__/connectionMatcher.test.ts:156:      vi.mocked(mockDuplicateDetector.checkDuplicateEmail).mockResolvedValue(
+src/services/linkedin/__tests__/connectionMatcher.test.ts:159:      vi.mocked(mockDuplicateDetector.checkDuplicateName).mockResolvedValue([
+src/services/linkedin/__tests__/connectionMatcher.test.ts:182:      vi.mocked(
+src/services/linkedin/__tests__/connectionMatcher.test.ts:185:      vi.mocked(mockDuplicateDetector.checkDuplicateEmail).mockResolvedValue(
+src/services/linkedin/__tests__/connectionMatcher.test.ts:188:      vi.mocked(mockDuplicateDetector.checkDuplicateName).mockResolvedValue([
+src/services/linkedin/__tests__/connectionMatcher.test.ts:210:      vi.mocked(
+src/services/linkedin/__tests__/connectionMatcher.test.ts:213:      vi.mocked(mockDuplicateDetector.checkDuplicateEmail).mockResolvedValue(
+src/services/linkedin/__tests__/connectionMatcher.test.ts:216:      vi.mocked(mockDuplicateDetector.checkDuplicateName).mockResolvedValue([
+src/services/linkedin/__tests__/connectionMatcher.test.ts:237:      vi.mocked(
+src/services/linkedin/__tests__/connectionMatcher.test.ts:240:      vi.mocked(mockDuplicateDetector.checkDuplicateEmail).mockResolvedValue(
+src/services/linkedin/__tests__/connectionMatcher.test.ts:243:      vi.mocked(mockDuplicateDetector.checkDuplicateName).mockResolvedValue([
+src/services/linkedin/__tests__/connectionMatcher.test.ts:279:      vi.mocked(
+src/services/linkedin/__tests__/connectionMatcher.test.ts:282:      vi.mocked(mockDuplicateDetector.checkDuplicateEmail).mockResolvedValue(
+src/services/linkedin/__tests__/connectionMatcher.test.ts:285:      vi.mocked(mockDuplicateDetector.checkDuplicateName).mockResolvedValue([]);
+src/services/linkedin/__tests__/connectionMatcher.test.ts:291:      vi.mocked(
+src/services/linkedin/__tests__/connectionMatcher.test.ts:294:      vi.mocked(mockDuplicateDetector.checkDuplicateName).mockResolvedValue([]);

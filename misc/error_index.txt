@@ -1,0 +1,25 @@
+# Error Code Index
+
+## Authentication Errors (2000xxx)
+- 2000001: AUTH_MISSING_CREDENTIALS - Missing required OAuth credentials
+- 2000002: AUTH_INVALID_TOKEN - Invalid or expired authentication token
+- 2000003: AUTH_TIMEOUT - Authentication timeout
+
+## Contact Errors (2001xxx)
+- 2001001: CONTACT_NOT_FOUND - Contact not found
+- 2001002: CONTACT_INVALID_DATA - Invalid contact data provided
+- 2001003: CONTACT_DUPLICATE - Duplicate contact detected
+
+## API Errors (2002xxx)
+- 2002001: API_RATE_LIMIT - API rate limit exceeded
+- 2002002: API_REQUEST_FAILED - API request failed
+- 2002003: API_NETWORK_ERROR - Network error during API request
+
+## Validation Errors (2003xxx)
+- 2003001: VALIDATION_FAILED - Validation failed
+- 2003002: VALIDATION_EMAIL_INVALID - Invalid email address format
+- 2003003: VALIDATION_PHONE_INVALID - Invalid phone number format
+
+## System Errors (2009xxx)
+- 2009001: SYSTEM_FILE_NOT_FOUND - Required file not found
+- 2009002: SYSTEM_PORT_IN_USE - Specified port is already in use

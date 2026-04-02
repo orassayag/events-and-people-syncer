@@ -1,0 +1,13 @@
+src/scripts/statistics.ts:201:        { noPHI: true }
+src/scripts/statistics.ts:207:        { noPHI: true }
+src/scripts/statistics.ts:214:        { noPHI: true }
+src/scripts/statistics.ts:220:        { noPHI: true }
+src/services/statistics/statisticsCollector.ts:177:        this.logger.warn('Error scanning job-interviews folder', { noPHI: true });
+src/services/statistics/statisticsCollector.ts:210:        this.logger.warn('Error scanning life-events folder', { noPHI: true });
+src/services/statistics/statisticsCollector.ts:328:      this.logger.error('Failed to fetch contacts', error as Error, { noPHI: true });
+src/services/contacts/contactSyncer.ts:89:            noPHI: true,
+src/services/contacts/contactSyncer.ts:481:      this.logger.info('No fields changed, skipping update', { noPHI: true });
+src/services/linkedin/contactSyncer.ts:122:          noPHI: true,
+src/services/linkedin/contactSyncer.ts:144:        this.logger.debug('Using cached contact data (no API call needed)', { noPHI: true });
+src/services/linkedin/contactSyncer.ts:164:        this.logger.debug('Cache miss - fetching contact from API', { noPHI: true });
+src/services/linkedin/contactSyncer.ts:317:          noPHI: true,

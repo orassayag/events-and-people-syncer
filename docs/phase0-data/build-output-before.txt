@@ -1,0 +1,10 @@
+
+> events-and-people-syncer@1.0.0 build /Users/orassayag/Repos/events-and-people-syncer/code
+> tsc
+
+src/index.ts(12,60): error TS2339: Property 'code' does not exist on type 'Error'.
+src/logging/logger.ts(10,11): error TS6133: 'isDisplayMethod' is declared but its value is never read.
+src/services/auth/authService.ts(211,42): error TS2304: Cannot find name 'handleSignal'.
+src/services/auth/authService.ts(212,43): error TS2304: Cannot find name 'handleSignal'.
+src/utils/promptWithEnquirer.ts(154,7): error TS2353: Object literal may only specify known properties, and 'limit' does not exist in type 'BasePromptOptions | ArrayPromptOptions | ((this: Enquirer<object>) => PromptOptions) | (PromptOptions | ((this: Enquirer<...>) => PromptOptions))[]'.
+ ELIFECYCLE  Command failed with exit code 2.

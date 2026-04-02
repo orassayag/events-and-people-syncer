@@ -1,0 +1,491 @@
+-Do a simple script on the Lenovo which delete all the content of all the folders, run it on copy of life events and job interviews, and make sure all works as expected.
+-Move the folder cleaner to the lenovo and bring a copy of all the dictionaries which are empty.
+-Also move back the contacts file from the Hibob.
+-Do export for all my contacts and import it on the Mac.
+-Test all scripts.
+-Move the project to the Lenovo.
+-Mark myself on the dates when to run each script - write “WELCOME - START HERE - MUST READ.md” file.
+Other Contacts sync
+=================
+
+Goal:
+The goal of this script is simple: Fetch emails from the Other contacts and sync them into Google contacts
+
+This script will be placed above the “SMS & WhatsApp” script in the scripts menu - Please ask me which emoji to display and suggest a few options while planning this feature.
+
+-CLI steps:
+-We will fetch all the “Other contacts” of the user. - API documentation: https://developers.google.com/people/v1/other-contacts
+-Like the “SMS & WhatsApp” script, we will review each email and display the menu:
+═══════════════════════════════════════════════════════════════════
+Index: 000,001 / 000,004
+email: test@test.com
+═══════════════════════════════════════════════════════════════════
+? What would you like to do? … 
+❯ 🔍 Search in contacts
+  ➕ Add a new contact
+  ⏭️  Skip this phone
+
+In the end of the script (when there are no numbers left or the user interrupted)
+We will display the following, for example:
+
+=================Other Contacts Sync Summary==================
+===========Added: 000,000 | Updated: 000,000============
+===========Skipped: 000,000 | Error: 000,000============
+========================================================
+(Make it align like on all lines like the results on the linkedin sync script).
+-Other contacts -> review them one by one and convert them to contacts (add new / to existing contact).
+
+ToDo:
+-Fix the Ctl + C to display summary.
+-Add the Other google contacts to sync to the statistics.
+-Fix the “SMS & WhatApp” to remove it from the statistics.
+
+================
+
+-Do a simple script on the Lenovo which delete all the content of all the folders, run it on copy of life events and job interviews, and make sure all works as expected.
+-Move the folder cleaner to the lenovo and bring a copy of all the dictionaries which are empty.
+-Also move back the contacts file from the Hibob.
+-Do export for all my contacts and import it on the Mac.
+-Test all scripts.
+-Move the project to the Lenovo.
+-Mark myself on the dates when to run each script - write “WELCOME - START HERE - MUST READ.md” file.
+-Delete all contacts from this google account.
+
+HiBob Sync:
+=========
+-Sync their script with Google contacts.
+
+
+END:
+====
+-Re-Review the refactors plan and update them according to the new codes.
+
+-Make sure all imports from “…utils” and not “utils/####.ts”.
+-Make sure all md files are up to date.
+-Make sure all types are in the types folder under specific files.
+
+
+23. Duplicate Summary Formatting Logic
+Both ContactDisplay.displaySummary() and your planned summary use similar formatting. Consider extracting to a shared utility:
+class SummaryFormatter {
+  static display(title: string, lines: Record<string, number>, width = 56): void {
+    // ...
+  }
+}
+
+25. Path Validation Reusable Across Scripts
+The PathValidator you're creating could be useful for other scripts too (e.g., validating sources path in LinkedInSync). Consider making it more generic.
+
+26. Validation Logic Scattered
+Validation happens in multiple places:
+* InputValidator
+* FolderManager
+* PathValidator
+* Script level
+* Recommendation: Consider a unified validation service that coordinates all validation rules
+
+=========================
+
+
+
+-Places to refactor and suggestion by 4 AI models.
+-Make sure all unit tests works + and 100% covered.
+
+
+=====================
+
+
+DONE & CANCELLED:
+================
+
+-All script should end like: *
+
+=================Contacts Sync Summary================== *
+============Added: 00,001 | Updated: 00,000============= *
+============Skipped: 00,000 | Error: 00,000============= *
+======================================================== *
+
+🚪 Exit script *
+
+~/Repos/events-and-people-syncer/code 59s ❯       *
+
+-Make sure all console.log start and end with ===. on logger lever instead of in specific places, also add break lines between lines and avoid duplicate break lines. *
+-Do the cosmetics fixes for all scripts - Review all options. *
+ToDo: * 
+-Check how we can back on the steps. *
+============================================ *
+
+Events and People Syncer:
+====================
+
+Events & Jobs Sync:
+
+Goal:
+The goal of this script is simple: Sync emails, SMS, Linkedin, WhatsApp, and any other message to notes.
+
+-Refactor the plan - New Plan.
+-CLI steps:
+-Validate paths exist.
+-Validate People API credentials of needed.
+-Sync the cache of the company names and the life-events.
+-Ask the user to enter the event / company name.
+-If empty - We will throw an error.
+-If less then 2 letters - Throw an error.
+-When enter - It will do fuzzy matching and will display on dropdown the folders that we want to write and match what the user typed.
+-If already exists (compare ignore case) - Select this folder and the relevant path of it (job-interviews / events).
+-If the folder not exists not in the job interview folder and not in the life events folder,
+-Ask the user Job Interview / Life Event (Select from a drop down).
+-If the path is job-interview and the folder don’t exists - Go to the next step.
+-Next - Ask to select Job / HR.
+-If not exists, it will ask to create a new folder.
+-When creating new - Make sure it Capital letter on each word.
+-If it’s an event life create it by the user input.
+-If it’s job interview, according to what the user selected + Add capital letter when merge the words.
+-For example, if it’s a life event.
+-If it’s a life event - Skip the previous step.
+-Next step - Ask for the message. Enable copy paste here. - Throw error if skipped / empty.
+-Once done, immediately save the file.
+-It will create the relevant note.txt file with the current date (ddMMyyyy format) and a counter.
+-For example - If not exists already:
+-notes_23032026-1.txt
+-If already exists so it will be:
+-notes_23032026-2.txt
+-Once the new notes.txt file.
+-The next step - Ask if the user wants to create another note - Y / N - and end this loop until the user enter N.
+-Next step - Add person details? (Yes / No selection from drop down).
+-If yes - It will reach the “Add new contact” flow from the Contacts sync script - Same flow. Use the functions and logic already built from there, no duplications.
+-Once exit the script (interrupted by user or user selected to exit):
+
+=================Events & Jobs Sync Summary=================
+====Job notes: 00,001 | Life events notes: 00,001 |  Contacts: 09,042=====
+=======================================================
+(Make it align by width of all lines - UI perspective)
+
+===========
+
+-CLI steps:
+-Validate paths exist.
+-Validate People API credentials of needed.
+-Ask for the category: job-interviews / life-events?
+-If selected life-events, Ask for the flow: Full Flow / Notes Only Flow. + Scan and display the number of Events folders and notes on the status bar.
+-If selected job-interviews - Ask if HR or Job. + Scan and display the number of Company folders, how many HR and how many Job, and total notes on the status bar.
+-Ask for the title of the company / person. - Throw error if skipped / empty.
+-On the given path on the settings.ts (job-interviews / life-events) search for the relevant folder.
+-If already exists (compare ignore case) - Create a new notes.txt file inside the folder.
+-If not exists - Create a new folder and create a new notes.txt file inside the folder.
+-When creating new - Make sure it Capital letter on each word.
+-Next step - Ask for the message. Enable copy paste here. - Throw error if skipped / empty.
+-Once done, immediately save the file.
+-If select Notes Only flow, skip the next steps and ask for the next message.
+-When no more messages - Press escape.
+(Test long messages)
+
+-For Full flow:
+-Next step - Add person details? (Yes / No selection from drop down).
+-Next step - If Yes was selected - 
+
+-Select if to add new person / update existing person.
+
+-Add new person flow:
+
+-Next step - Ask for the person details:
+-Name. - Throw error if skipped / empty.
+-Once name entered - Search for it on Google Contacts. If it already exists notify about it.
+-If have similar names (contains but not equals) - Notify about it, and select from the drop down if you want to update the person details, or to add new person.
+-Ask for all the other details: Category (Label) (Job, HR, Customer service, so on), Phone, Email, LinkedIn URL, Label, first name, last name, company, job title, email (+ email label),
+phone: country, number, label
+Website url + website label
+
+
+-Update new person flow:
+-Next step - Ask for the person details:
+-Name. - Throw error if skipped / empty.
+-If not exists - throw an error.
+-Ask for all the other details: Category (Label) (Job, HR, Customer service, so on), Phone, Email, LinkedIn URL, Label, first name, last name, company, job title, email (+ email label),
+phone: country, number, label
+Website url + website label
+
+-Update / Add the new Google contact via the People API.
+-It will create the relevant note.txt file with the current date (add -1, -2, -3 if already exists).
+-Add bulk option for this too (Add on the settings.ts limiter for maximum items to add / update).
+-In the end of the bulk operation - fetch all the contacts and verify they were added / updated.
+
+-Let’s add logs history under a separate folder, which will log the number of notes in each folder name + The contacts that added / updated to the google contacts.
+-Each step we pass show the bottom status bar: Contacts: 10,746 | Notes: 28,345.
+-Show stats: How many new job interviews folders added / how many events folders added.
+-How many new Contacts added, How many new notes added.
+
+-Do we support the copy paste and reading from clipboard for all OS? *
+-Check Hebrew and french outside. *
+-Test the event adding flow. *
+-Check that label is required on the Contacts Sync script. *
+-Add the flow of adding a note and a contact. *
+-Fix the re-write flow. *
+-Review all the rest of the flows. *
+Add stats option: *
+ =========Stats========== *
+-Jobs: 00,334 *
+-HR: 00,455 *
+-Events: 00,453 *
+-Notes: 23,445 *
+-Contacts: 09,434 *
+============================================ *
+
+Contacts Sync:
+
+Goal:
+The goal of this script is simple: Fetch all the Google contacts, and fix / complete the missing / incorrect data manually.
+
+-CLI steps:
+-Validate People API credentials of needed.
+-Fetch all google contacts.
+-Select flow: Add contacts / Fix contacts.
+-If Add contacts selected, do the same flow of adding contacts over and over again, like in the POC steps (when selecting to add a new contact - We should copy the exact flow).
+-If Fix contacts selected:
+-Filter the ones which DON’T have a note “Added by the people syncer script” or “Updated by the people syncer script”.
+-Display random contact that missing match the following criteria:
+If Missing one of the following:
+-Category (Label) (Job, HR, Customer service, so on), Phone, Email, LinkedIn URL, Label, first name, last name, company, job title, email (+ email label),
+phone: country, number, label, Website url + website label.
+OR if the first name or last name contains only HEBREW letters, or any other field contains ONLY HEBREW letters.
+
+The priority is to the following:
+-Contains Hebrew on any field
+-No label
+-No Company
+-Missing other details or data.
+
+You will display the following:
+-Reason: Missing Label
+-Contact Index: XX,XXX/XX,XXX (for example 00,234/03,455)
+-Contact ID: (The inner id of the google people api)
+-Labels:
+-Company: dsfds
+-Full name: sdf sdf HR dsfds
+-Job Title: ajshd asd
+-Email: sadhgj@walla.com HR dsfds
+-Phone: 324234 HR dsfds
+-LinkedIn URL: 
+
+The CLI will ask for the missing / English name for the HEBREW word that need to be replaces
+If have several, ask each time one thing.
+
+Each time it will ask what to edit, just like the POC flow when adding a new contact.
+
+The CLI will ask if to save or not.
+If yes, save (Call API to update) it and continue to the next random person.
+If no, it will come back to the edit and re-ask about all the missing fields again.
+
+We will add a note “Updated …. “ - Same logic as the linkedIn sync script.
+
+In the end of the script (when there are no one left to edit anymore or the user interrupted)
+We will display the following, for example:
+
+=================Contacts Fixer Summary=================
+============Added: 00,001 | Updated: 09,042============
+=======================================================
+
+(Make it align like on all lines like the results on the linkedin sync script).
+
+ToDos: *
+-Let’s add to the conditions if contains “unknown” label. *
+
+-Make sure all logs written like the contact sync in the linkedin sync script. *
+-Fix the bug on the save contact. *
+-Add the UI into 2 lines: *
+=================Contacts Sync Summary================== *
+===Added: 00,000 | Updated: 00,000==== *
+===Skipped: 00,001 | Error: 00,000==== *
+======================================================== *
+
+============================================
+
+-Bring 2-3 emails and password for gmail for experiments.
+-Bring the structure examples of job-interviews / life-events.
+
+============================================
+
+Please investigate this project and understand whats its target and goals.
+Once you understand it completely, do the following:
+1. Add / Update the CONTRIBUTING.md file - See ref from: /Users/orassayag/Repos/event-dates-calendar/event-dates-calendar-ts-github
+2. Add / Update the INSTRUCTIONS.md file - See ref from: /Users/orassayag/Repos/event-dates-calendar/event-dates-calendar-ts-github
+3. Add / Update the README.md file - See ref from: /Users/orassayag/Repos/event-dates-calendar/event-dates-calendar-ts-github
+    1. Also update to MIT license
+    2. Add also mermarid diagram for each README.md
+4. Add / Update the LICENSE file - See ref from: /Users/orassayag/Repos/event-dates-calendar/event-dates-calendar-ts-github
+5. Update the package.json file:
+    1. Update to "license": "MIT",
+    2. Update the description tag.
+    3. Update the keys.
+
+===============================
+
+-יום 909 לעבודה בVim. *
+-יום 1410 למלחמת אוקראינה-רוסיה. *
+
+LinkedIn-Sync:
+
+Goal:
+The goal of this script is simple: Fetch all the connections exported from the LinkedIn CSV file and sync them into the Google Contacts via People API.
+
+We will run this script by “pnpm run linkedin-sync”
+
+-CLI steps:
+-Validate that the zip file exists on the backup folder. If the zip not found throw an error.
+-Search for the zip file name by zip file which contains this exact name, or zip file which contains one of the words: “linkedin”, “data”, “export”.
+-As we said, if the zip not found, throw an error.
+
+-You can see the Zip file ref here:
+/Users/orassayag/Repos/events-and-people-syncer/Basic_LinkedInDataExport_03-11-2026.zip
+-Inside the Zip file we will look for this file:
+/Users/orassayag/Repos/events-and-people-syncer/Basic_LinkedInDataExport_03-11-2026.zip/Connections.csv
+
+-We will extract the zip by the “import AdmZip from 'adm-zip’;” package. if it failed we will throw an error.
+-In the content of the zip file we will search “connections.csv” (ignore case), if not found - throw an error.
+-If there are no connections inside this file, throw an error.
+
+-We need to do this logic in a smart way, so that in the next time we will run this script, we will first search if we already have the connections.csv file instead of just unziping again and searching for the connections.csv file.
+-Delete all the unziped content (exclude the connections.csv file).
+
+-Inside the connections.csv you will have the following columns:
+First Name,Last Name,URL,Email Address,Company,Position,Connected On
+-We will use the end of the URL (postfix) as the unique indicator (instead of id).
+-For example, from the URL: https://www.linkedin.com/in/gevit-azulay-hrdirector, the id will be: gevit-azulay-hrdirector 
+-We will load the entire connections by reading the entire file.
+
+-Validate People API credentials of needed.
+-Fetch all google contacts.
+
+-Start to compare which one exists and which one need to be added.
+-Comparison fallbacks:
+1. LinkedIn URL === Website from google contacts.
+2. Email.
+3. Names fuzzy (Take the matching logic from the POC).
+
+ADD FLOW:
+=========
+
+If we don’t have a matching, we will add a new contact.
+
+Consider the following data of a LinkedIn Connection:
+First Name,Last Name,URL,Email Address,Company,Position,Connected On
+Elena,Ohayon,https://www.linkedin.com/in/elena-ohayon-b22b583,eeisenstorg@gmail.com,"Planview, Inc.","Senior HR Manager, HRBP IL and International",10 Mar 2026
+
+So on Google contacts it will be:
+
+Label: **According to the labels matching logic, see below**
+Company: Planview (We will ignore any tld, ltd, inc, anything after the first “,”)
+First Name: Eleana
+Last Name: Ohayon HR Planview
+Job Title: Senior HR Manager, HRBP IL and International
+Email: elieana12345@gmail.com | Label: HR Planview
+Phone: 123456789 | Label: HR Planview
+Website URL: https://www.linkedin.com/in/elena-ohayon-b22b583 | HR Planview
+
+Matching Logic:
+-In the begging of the script, we will scan the “dummy/job-interviews” path (Of course that in the real world we will take the path from settings.ts) and create the entities of all the company names by category of HR or Job.
+-It’s pretty straight fawoard, for example:
+Job_ElbitSystems -> Label: Job | Company name: ElbitSystems
+HR_AddedValue -> Label: HR | Company name: AddedValue
+
+-We need to add a caching (from a text file database which will be added to the gitignore) for this logic, that if this list already exists, check the last date and if it’s higher than 1 day. IF it does, re-read it and re-cache it.
+
+So the logic is simple, if the company name matching (equal (slice words by capital letter or compare it as a single word), ignore case), take the label from there.
+-If there is no matching, return by default “Job” as the label.
+
+UPDATE FLOW:
+===========
+
+If in any case we have a matching - 
+-Update the missing data - Or change the data.
+-What does it mean to “change the data”?
+
+Consider the following data of a Google Contact:
+Label: Job, Friend, Old-School
+Company: Vim
+First Name: Eleana
+Last Name: Ohayon Job Vim
+Job Title: Head of R&D
+Email: elieana12345@gmail.com | Label: Job Vim
+Phone: 123456789 | Label: Job Vim
+Website URL: https://www.linkedin.com/in/elena-ohayon-b22b583 | Job Vim
+
+Now, consider the following data of a LinkedIn Connection:
+First Name,Last Name,URL,Email Address,Company,Position,Connected On
+Elena,Ohayon Moshe Haim,https://www.linkedin.com/in/elena-ohayon-b22b583,eeisenstorg@gmail.com,"Planview, Inc.","Senior HR Manager, HRBP IL and International",10 Mar 2026
+
+The contact will be matched by the “elena-ohayon-b22b583” that is identical (ignore case) between the website (Google contacts) and the connection CSV URL.
+So we will go with the update contact flow, so we will update the following:
+Label: Job, Friend, Old-School
+Company: Vim
+First Name: Eleana
+Last Name: Moshe Haim Job Vim
+Job Title: Senior HR Manager, HRBP IL and International
+Email: 
+elieana12345@gmail.com | Label: Job Vim
+eeisenstorg@gmail.com | Label: Job Vim
+Phone: 123456789 | Label: Job Vim
+Website URL: https://www.linkedin.com/in/elena-ohayon-b22b583 | Job Vim
+
+So, what we actually updated?
+-Last name, if changed or updated.
+-Job Title.
+-Email (added a new one).
+
+Notes: 
+-We will NEVER delete an email, we will always add a new one it it’s not exists
+-We will NEVER change the first name, company name, labels, Website URL, Phone.
+
+-Important note:
+-Unlike the POC, here will insert Hebrew in any field that it’s exists, we will not change any field content or throw an error.
+
+-In the end delete the data of the connections from linkedin.
+
+-Let’s add logs history under a separate folder, which will log the number of contacts which merged, how many exists, how many updated.
+-Each step we pass show the bottom status bar: New: 1,233 | Up-To-Date: 8,934 | Updated: 6,999 | Error: 34 | Need clarification: 56 | Skipped: 3.
+-Index:
+-New: Added new contacts.
+-Up-To-Date: Contact exists but nothing was updated, since all up to date.
+-Updated: Connection exists and updated.
+-Need clarification: If in any case the matching is not certain, label is not 100% matching but close matching, we will mark it as with the status of “Need clarification”
+-Error: In case we failed to add / update from any reason.
+
+Tasks ToDo:
+1. Backup all again. *
+2. In case of an error, no need to display the error on the console, just add it to the errors on the progress bar counter and write the specific error to the log, but don’t display it on the terminal. Today when exit the script or finish it, it display all errors of connections, i don’t want that. *
+3. On the POC, let’s check if we can add a note. If we can, add “Imported by script on {}” (The date of today). *
+4. -Add to the POC option to delete all connections. *
+5. -Add note in the contact - "Imported by script - Last update: ##/##/####" *
+6. On the POC, let’s try to use several 3 API keys from 3 projects. + Write a quick guide how to add a new project. - Cancelled. *
+7. If it works - add auth step, to get tokens from all projects (if needed). - Cancelled. *
+8. Build the logic of handling several API keys and tokens, and mingling from 3 projects. - Cancelled. *
+9. -Finish with the notes tests. *
+10. -Review all the csv HR titles for better HR detection - Check if this is relevant. *
+
+Tests: *
+-Add a new contact -> Added with the note. *
+-Update an existing contact - No notes -> see the note was added. *
+-Update an existing contact - Existing notes -> see the note was added. *
+-Update an existing contact - Existing notes with script note -> see the note was updated. *
+
+====================
+
+
+? What would you like to do now? (Use arrow keys)
+  Create contact *
+  Edit labels  *
+  Create new label *
+  Remove label * 
+  Edit company *
+  Remove company *
+  Edit first name *
+  Edit last name *
+  Edit job title *
+  Remove job title * 
+  Edit email *
+  Add email *
+  Remove email * 
+  Edit phone *
+  Add phone *
+  Remove phone *
+  Cancel  *
