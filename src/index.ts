@@ -57,7 +57,7 @@ async function main(): Promise<void> {
   const skipPrompt = flags.includes('--yes') || flags.includes('-y');
   if (SETTINGS.dryMode && !skipPrompt) {
     console.log('');
-    console.log(`${EMOJIS.STATUS.WARNING} You are running in DRY MODE`);
+    console.log(`${EMOJIS.STATUS.WARNING}  You are running in DRY MODE`);
     console.log('');
     console.log('  No write actions to the Google API will be executed.');
     console.log(

@@ -62,33 +62,62 @@ pnpm build
 #### Step-by-Step Google Cloud Setup
 
 1. **Create or Select Project**
-   - Navigate to [Google Cloud Console](https://console.cloud.google.com/)
-   - Click "Select a project" → "New Project"
-   - Enter project name (e.g., "Contact Manager")
-   - Click "Create"
+   - Navigate to [Google Cloud Console](https://console.cloud.google.com/).
+   - Click "Select a project" → "New Project".
+   - Enter project name (e.g., "contact-manager-49221").
+   - Click "Create".
+   - Wait a few seconds until it finish to create.
+   - You will see a notification: "Create Project: contact-manager-492213".
+   - Once finished, click again on "Select a project", and select the new project "contact-manager-492213".
 
 2. **Enable Google People API**
-   - In the left sidebar, go to "APIs & Services" → "Library"
-   - Search for "Google People API"
-   - Click on "Google People API"
-   - Click "Enable"
+   - In the left sidebar, go to "APIs & Services" → "Library".
+   - Search for "Google People API".
+   - Click on "Google People API".
+   - Click "Enable".
 
 3. **Create OAuth 2.0 Credentials**
-   - Go to "APIs & Services" → "Credentials"
-   - Click "Create Credentials" → "OAuth client ID"
-   - If prompted, configure the OAuth consent screen:
-     - User Type: "External" (or "Internal" for workspace users)
-     - App name: Your application name
-     - User support email: Your email
-     - Developer contact: Your email
-     - Scopes: Add `contacts` and `contacts.readonly`
-   - Application type: Select "Desktop app"
-   - Name: "Contact Manager Client"
-   - Click "Create"
+   - Once clicked on the "Enable" you will be redirect to: https://console.cloud.google.com/apis/api/people.googleapis.com/metrics?project=contact-manager-492213
+   - If not - Go to "APIs & Services" → "Credentials".
+   - On "Credentials Type" section, from the "Select an API" dropdown, select "People API".
+   - Check the "User data" radio button.
+   - Click on the "Next" button.
+   - On the "OAuth Consent Screen" section:
+     - App name: Your application name ('people-syncer').
+     - User support email: Your email (You can select it from the dropdown).
+     - App Logo - Ignore it.
+     - Developer contact information - Your email (You need to write it here).
+   - Once done to fill, click on "Save and continue" button.
+   - On the "Scopes (optional)" section, click on "Save and continue" button.
+   - On the "OAuth Client ID" section, select from the "Application type" dropdown, "Web application".
+     - On the new textbox "Name" - Enter the name of the application (e.g., "people-syncer").
+     - On the "Authorized JavaScript origins" - Ignore it.
+     - On the "Authorized redirect URIs":
+       - Click on "Add URI".
+       - Enter "http://localhost".
+       - Click on "Add URI".
+       - Enter "http://localhost:3000".
+   - Once done to fill, click on "Create" button.
 
 4. **Download Credentials**
-   - Click the download icon next to your newly created OAuth 2.0 Client ID
-   - Save the JSON file (you'll extract values from this file)
+   - Once done to load, you will reach the "Your Credentials" section.
+   - Copy the "Client ID" value from the textbox.
+   - Paste it on the .env.test file on the CLIENT_ID field.
+   - Click the download icon next to your newly created OAuth 2.0 Client ID.
+   - Put is somewhere in reach.
+   - Open the downloaded json file and:
+     - Copy the "project_id" value and paste it on the .env.test file on the PROJECT_ID field.
+     - Copy the "client_secret" value and paste it on the .env.test file on the CLIENT_SECRET field.
+   - The rest of the fields, you can leave as it is.
+   - Once done, click on the "Done" button.
+
+5. **Test Users**
+   - If you are using a personal Google account, you need to add it as a test user.
+   - Click on the "OAuth consent screen" tab.
+   - Click on the "Audience" tab.
+   - Scoll donw to "Test users" title.
+   - Click on "+ Add users" button.
+   - Enter your email address and click on the "Save" button.
 
 #### Understanding the Credentials File
 
@@ -185,7 +214,7 @@ pnpm start
 
 #### First-Time Recommendations
 
-1. **Start with Dry-Mode**: Keep `DRY_MODE=true` for your first few runs
+1. **Start with Dry-Mode**: Keep `DRY_MODE=true` for your first few runs (the default, you don't need to add anything if you don't see it on the env file).
 2. **Test Authentication**: Run `pnpm health` to verify your setup
 3. **Review Logs**: Check `logs/` directory to understand script behavior
 4. **Read Alert Documentation**: Familiarize yourself with the alert file system

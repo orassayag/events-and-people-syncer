@@ -103,7 +103,7 @@ export const SETTINGS: Settings = {
     zipFileName: 'Basic_LinkedInDataExport_03-11-2026.zip',
     sourcesPath: join(__dirname, '..', '..', 'sources'),
     cachePath: join(__dirname, '..', '..', 'sources', '.cache'),
-    companyFoldersPath: join(__dirname, '..', '..', 'dummy', 'job-interviews'),
+    companyFoldersPath: 'C:\\Or\\job-interviews',
     cacheExpirationDays: 1,
     defaultLabel: 'Job',
     deleteAfterSync: false,
@@ -136,7 +136,7 @@ export const SETTINGS: Settings = {
   get eventsJobsSync() {
     return {
       companyFoldersPath: this.linkedin.companyFoldersPath,
-      lifeEventsPath: join(__dirname, '..', '..', 'dummy', 'life-events'),
+      lifeEventsPath: 'C:\\Users\\Or Assayag\\Dropbox\\life-events',
     };
   },
   smsWhatsappSync: {

@@ -14,7 +14,7 @@ import {
   clearClipboard,
 } from '../utils';
 import { promises as fs } from 'fs';
-import { join } from 'path';
+import { join, basename } from 'path';
 import { Logger, SyncLogger } from '../logging';
 import { AuthService } from '../services/auth';
 import { EventsContactEditor } from '../services/contacts';
@@ -994,12 +994,12 @@ export class EventsJobsSyncScript {
         new Date()
       );
       await this.logger.logMain(`${EMOJIS.STATUS.SUCCESS} Note saved: '${filePath}'`);
-      const fileName = filePath.split('/').pop();
+      const fileName = basename(filePath);
       const basePath =
         folder.type === FolderTypeEnum.LIFE_EVENT
           ? SETTINGS.eventsJobsSync.lifeEventsPath
           : SETTINGS.eventsJobsSync.companyFoldersPath;
-      const basePathName = basePath.split('/').pop();
+      const basePathName = basename(basePath);
       const relativePath = `${basePathName}/${folder.name}/${fileName}`;
       this.uiLogger.displaySuccess(`Note added: ${relativePath}`);
       await this.clearClipboardInternal();
@@ -1136,7 +1136,7 @@ export class EventsJobsSyncScript {
       this.uiLogger.displayWarning('No note has been created in this session');
       return;
     }
-    const fileName = this.lastCreatedNotePath.split('/').pop();
+    const fileName = basename(this.lastCreatedNotePath);
     const folderName = this.lastSelectedFolder?.name || 'unknown';
     const confirmResult2 = await confirmWithEscape({
       message: `About to delete: '${folderName}/${fileName}'. Proceed?`,
@@ -1167,7 +1167,7 @@ export class EventsJobsSyncScript {
         `${EMOJIS.STATUS.SUCCESS} Note deleted: '${this.lastCreatedNotePath}'`
       );
       const folderName = this.lastSelectedFolder?.name || 'unknown';
-      const fileName = this.lastCreatedNotePath.split('/').pop();
+      const fileName = basename(this.lastCreatedNotePath);
       this.uiLogger.displaySuccess(`Note deleted: ${folderName}/${fileName}`);
       this.lastCreatedNotePath = null;
     } catch (error) {
@@ -1500,7 +1500,7 @@ export class EventsJobsSyncScript {
     }
     try {
       await fs.access(this.lastSelectedFolder.path);
-      const folderName = this.lastSelectedFolder.path.split('/').pop() || '';
+      const folderName = this.lastSelectedFolder.name;
       const isJobOrHR =
         this.lastSelectedFolder.type === FolderTypeEnum.JOB ||
         this.lastSelectedFolder.type === FolderTypeEnum.HR;

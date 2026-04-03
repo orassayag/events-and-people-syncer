@@ -1,5 +1,5 @@
 import { promises as fs } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
 import { LinkedInConnection, ContactData, WarningEntry } from '../types';
 
 export class SyncLogger {
@@ -17,7 +17,7 @@ export class SyncLogger {
   }
 
   async initialize(): Promise<void> {
-    const logDir: string = this.logPath.substring(0, this.logPath.lastIndexOf('/'));
+    const logDir: string = dirname(this.logPath);
     await fs.mkdir(logDir, { recursive: true });
     const fileExists = await fs.access(this.logPath).then(() => true).catch(() => false);
     if (!fileExists) {

@@ -1,6 +1,6 @@
 import AdmZip from 'adm-zip';
 import { promises as fs } from 'fs';
-import { join } from 'path';
+import { join, basename } from 'path';
 import { parse } from 'csv-parse/sync';
 import { injectable } from 'inversify';
 import { SETTINGS } from '../../settings';
@@ -67,7 +67,7 @@ export class LinkedInExtractor {
       const zipEntries = zip.getEntries();
       const csvEntries = zipEntries.filter((entry) => {
         const entryNameLower = entry.entryName.toLowerCase();
-        const fileName = entryNameLower.split('/').pop() || '';
+        const fileName = basename(entryNameLower);
         return fileName === 'connections.csv';
       });
       if (csvEntries.length === 0) {

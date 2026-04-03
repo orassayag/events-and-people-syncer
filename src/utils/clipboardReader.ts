@@ -14,7 +14,7 @@ export async function readFromClipboard(
         : 'xclip';
   const clipboardArgs =
     process.platform === 'win32'
-      ? ['-command', 'Get-Clipboard']
+      ? ['-NoProfile', '-Command', '[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; Get-Clipboard']
       : process.platform === 'linux'
         ? ['-o', '-selection', 'clipboard']
         : [];
