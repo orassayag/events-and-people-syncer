@@ -328,7 +328,13 @@ export class ContactEditor {
       } else {
         console.log(`${EMOJIS.FIELDS.LABEL}  Labels: `);
       }
-      console.log(`${EMOJIS.FIELDS.COMPANY} Company: ${displayCompany}`);
+      const companyWithLabel = [firstLabelName, editableData.company]
+        .filter((s) => s)
+        .join(' ');
+      const displayCompanyWithLabel = companyWithLabel
+        ? TextUtils.reverseHebrewText(companyWithLabel)
+        : '';
+      console.log(`${EMOJIS.FIELDS.COMPANY} Company: ${displayCompanyWithLabel}`);
       const displayJobTitle = editableData.jobTitle
         ? TextUtils.reverseHebrewText(editableData.jobTitle)
         : '';
@@ -1037,7 +1043,7 @@ export class ContactEditor {
     if (data.company || data.jobTitle) {
       requestBody.organizations = [
         {
-          name: data.company || undefined,
+          name: finalCompositeSuffix || undefined,
           title: data.jobTitle || undefined,
           type: 'work',
         },
@@ -1093,7 +1099,7 @@ export class ContactEditor {
         label: finalSelectedLabelNames.join(' | '),
         firstName: data.firstName,
         lastName: data.lastName,
-        company: data.company ?? '',
+        company: compositeSuffix || '',
         jobTitle: data.jobTitle ?? '',
         emails: data.emails.map((email) => ({
           value: email,
@@ -1134,7 +1140,7 @@ export class ContactEditor {
         console.log(`-Full name: ${fullName}`);
       }
       console.log(`-Labels: ${finalSelectedLabelNames.join(' | ') || ''}`);
-      console.log(`-Company: ${data.company || ''}`);
+      console.log(`-Company: ${compositeSuffix || ''}`);
       console.log(`-Job Title: ${data.jobTitle || ''}`);
       if (data.emails.length === 1) {
         console.log(`-Email: ${data.emails[0]} ${compositeSuffix || 'other'}`);
@@ -1189,7 +1195,7 @@ export class ContactEditor {
       label: finalSelectedLabelNames.join(' | '),
       firstName: data.firstName,
       lastName: data.lastName,
-      company: data.company ?? '',
+      company: compositeSuffix || '',
       jobTitle: data.jobTitle ?? '',
       emails: data.emails.map((email) => ({
         value: email,
@@ -1216,7 +1222,7 @@ export class ContactEditor {
       console.log(`-Full name: ${fullName}`);
     }
     console.log(`-Labels: ${finalSelectedLabelNames.join(' | ') || ''}`);
-    console.log(`-Company: ${data.company || ''}`);
+    console.log(`-Company: ${compositeSuffix || ''}`);
     console.log(`-Job Title: ${data.jobTitle || ''}`);
     if (data.emails.length === 1) {
       console.log(`-Email: ${data.emails[0]} ${compositeSuffix || 'other'}`);
