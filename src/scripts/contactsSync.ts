@@ -1,6 +1,6 @@
 import { injectable, inject } from 'inversify';
 import type { OAuth2Client, Script, Stats } from '../types';
-import { selectWithEscape, formatDateDDMMYYYY, TextUtils, inputWithEscape } from '../utils';
+import { selectWithEscape, formatDateTimeDDMMYYYY_HHMMSS, TextUtils, inputWithEscape } from '../utils';
 import { ContactSyncer, ContactDisplay, ContactEditor, DuplicateDetector } from '../services/contacts';
 import { Logger, SyncLogger } from '../logging';
 import { AuthService } from '../services/auth';
@@ -221,8 +221,8 @@ export class ContactsSyncScript {
         this.uiLogger.displayError('Contact creation cancelled');
         return;
       }
-      const currentDate = formatDateDDMMYYYY(new Date());
-      const note = `Added by the contacts sync script - Last update: ${currentDate}`;
+      const timestamp = formatDateTimeDDMMYYYY_HHMMSS(new Date());
+      const note = `Added by the contacts sync script - Last update: ${timestamp}`;
       await this.contactEditor.createContact(finalData, note);
       this.stats.added++;
     } catch (error) {
@@ -320,8 +320,8 @@ export class ContactsSyncScript {
         return;
       }
 
-      const currentDate = formatDateDDMMYYYY(new Date());
-      const note = `Updated by the contacts sync script - Last update: ${currentDate}`;
+      const timestamp = formatDateTimeDDMMYYYY_HHMMSS(new Date());
+      const note = `Updated by the contacts sync script - Last update: ${timestamp}`;
       await this.contactEditor.updateExistingContact(
         selectedContact.resourceName,
         updatedData,

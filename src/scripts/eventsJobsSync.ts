@@ -9,7 +9,6 @@ import {
   confirmWithEscape,
   EscapeSignal,
   TextUtils,
-  formatDateDDMMYYYY,
   retryWithBackoff,
   readFromClipboard,
   clearClipboard,
@@ -1670,8 +1669,8 @@ export class EventsJobsSyncScript {
         this.contactEditor.setApiLogging(false);
         return;
       }
-      const currentDate = formatDateDDMMYYYY(new Date());
-      const note = `Added by events & jobs sync script - Last update: ${currentDate}`;
+      const timestamp = formatDateTimeDDMMYYYY_HHMMSS(new Date());
+      const note = `Added by the events & jobs sync script - Last update: ${timestamp}`;
       await this.contactEditor.createContact(finalData, note);
       this.stats.contacts++;
       await this.logger.logMain(`${EMOJIS.STATUS.SUCCESS} Contact created successfully`);
@@ -1771,7 +1770,7 @@ export class EventsJobsSyncScript {
       }
 
       const timestamp = formatDateTimeDDMMYYYY_HHMMSS(new Date());
-      const updateNote = `\n[${timestamp}] Updated via events & jobs sync (Folder: ${this.lastSelectedFolder!.name})`;
+      const updateNote = `\nUpdated by the events & jobs sync script - Last update: ${timestamp}`;
       const finalNote = (contact.biography || '') + updateNote;
 
       if (!contact.resourceName) {

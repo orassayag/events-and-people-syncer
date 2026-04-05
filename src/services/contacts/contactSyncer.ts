@@ -5,7 +5,7 @@ import type { ContactData, OAuth2Client, EditableContactData, SyncableContact, C
 import { RegexPatterns } from '../../regex';
 import { ApiTracker } from '../api';
 import { SETTINGS } from '../../settings';
-import { retryWithBackoff, formatDateDDMMYYYY, DryModeChecker, DryModeMocks } from '../../utils';
+import { retryWithBackoff, formatDateTimeDDMMYYYY_HHMMSS, DryModeChecker, DryModeMocks } from '../../utils';
 import { Logger } from '../../logging';
 import { determineSyncNoteUpdate } from '../linkedin/noteParser';
 import { ContactCache } from '../../cache';
@@ -498,9 +498,9 @@ export class ContactSyncer {
       uiLogger.displaySuccess('[DRY MODE] Contact updated successfully');
       return;
     }
-    const currentDate = formatDateDDMMYYYY(new Date());
+    const currentTimestamp = formatDateTimeDDMMYYYY_HHMMSS(new Date());
     const existingNote = existingContact.data.biographies?.[0]?.value || '';
-    const noteUpdate = determineSyncNoteUpdate(existingNote, currentDate);
+    const noteUpdate = determineSyncNoteUpdate(existingNote, currentTimestamp);
     if (noteUpdate.shouldUpdate) {
       requestBody.biographies = [
         {

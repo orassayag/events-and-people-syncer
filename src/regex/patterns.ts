@@ -25,10 +25,10 @@ export class RegexPatterns {
   static readonly PHONE_NORMALIZE = /[\s\-()#*]/g;
   static readonly ISO_TIMESTAMP_COLONS = /[:.]/g;
   static readonly PORT_PID_WINDOWS = /\s+(\d+)\s*$/;
-  static readonly SYNCER_ADDED_NOTE = /Added by the people syncer script( \([^)]+\))?/;
-  static readonly SYNCER_UPDATED_NOTE = /Updated by the people syncer script( \([^)]+\))?/;
-  static readonly SYNC_ADDED_NOTE = /Added by the contacts sync script/;
-  static readonly SYNC_UPDATED_NOTE = /Updated by the contacts sync script/;
+  static readonly SYNCER_ADDED_NOTE = /Added (by the people syncer script|via)( \([^)]+\))?/;
+  static readonly SYNCER_UPDATED_NOTE = /Updated (by the people syncer script|via)( \([^)]+\))?/;
+  static readonly SYNC_ADDED_NOTE = /Added (by the |via )(contacts sync|events & jobs sync)( script)?/;
+  static readonly SYNC_UPDATED_NOTE = /Updated (by the |via )(contacts sync|events & jobs sync)( script)?/;
   static readonly SYNCER_NOTE_DATE = /Last update: (\d{2}\/\d{2}\/\d{4}(?: \d{2}:\d{2}:\d{2})?)/;
   static readonly DATE_DD_MM_YYYY = /(\d{2})\/(\d{2})\/(\d{4})(?: (\d{2}):(\d{2}):(\d{2}))?/;
   static readonly PHONE_UNIVERSAL = /^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]*$/;
