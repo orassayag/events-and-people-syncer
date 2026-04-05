@@ -250,8 +250,10 @@ export class ContactSyncer {
     if (this.isArrayFieldMissing(contact.phones, (p) => p.number)) {
       missing.push('Missing phone');
     }
-    const hasLinkedIn = contact.websites.some((w) =>
-      w.label.toLowerCase().includes('linkedin')
+    const hasLinkedIn = contact.websites.some(
+      (w) =>
+        w.label.toLowerCase().includes('linkedin') ||
+        w.url.toLowerCase().includes('linkedin.com')
     );
     if (!hasLinkedIn) {
       missing.push('Missing LinkedIn URL');
@@ -371,7 +373,8 @@ export class ContactSyncer {
     const originalEmails = originalData.emails.map((e) => e.value);
     const originalPhones = originalData.phones.map((p) => p.number);
     const originalLinkedInUrl = originalData.websites.find((w) =>
-      w.label.toLowerCase().includes('linkedin')
+      w.label.toLowerCase().includes('linkedin') ||
+      w.url.toLowerCase().includes('linkedin.com')
     )?.url;
     const firstNameChanged = updatedData.firstName !== originalFirstName;
     const lastNameChanged = updatedData.lastName !== originalLastName;

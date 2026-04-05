@@ -68,8 +68,10 @@ export class ContactDisplay {
     } else {
       console.log(`${EMOJIS.FIELDS.PHONE} Phone: `);
     }
-    const linkedInWebsite = contact.websites.find((w) =>
-      w.label.toLowerCase().includes('linkedin')
+    const linkedInWebsite = contact.websites.find(
+      (w) =>
+        w.label.toLowerCase().includes('linkedin') ||
+        w.url.toLowerCase().includes('linkedin.com')
     );
     if (linkedInWebsite) {
       const displayLinkedInUrl = linkedInWebsite.url;

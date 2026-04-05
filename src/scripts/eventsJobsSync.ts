@@ -1819,7 +1819,11 @@ export class EventsJobsSyncScript {
     }
 
     // LinkedIn / Website
-    const linkedIn = contact.websites.find(w => w.label.toLowerCase().includes('linkedin'));
+    const linkedIn = contact.websites.find(
+      (w) =>
+        w.label.toLowerCase().includes('linkedin') ||
+        w.url.toLowerCase().includes('linkedin.com')
+    );
     if (linkedIn) {
       console.log(`${EMOJIS.FIELDS.LINKEDIN} LinkedIn URL: ${linkedIn.url} ${formatMixedHebrewEnglish(linkedIn.label)}`);
     } else {

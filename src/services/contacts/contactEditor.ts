@@ -479,11 +479,14 @@ export class ContactEditor {
           name: `${EMOJIS.FIELDS.LINKEDIN} Edit LinkedIn URL`,
           value: 'edit_linkedIn',
         });
-      }
-      if (editableData.linkedInUrl) {
         choices.push({
           name: `${EMOJIS.FIELDS.LINKEDIN} Remove LinkedIn URL`,
           value: 'remove_linkedIn',
+        });
+      } else {
+        choices.push({
+          name: `${EMOJIS.FIELDS.LINKEDIN} Add LinkedIn URL`,
+          value: 'add_linkedIn',
         });
       }
       choices.push({ name: `${EMOJIS.STATUS.ERROR} Cancel`, value: 'cancel' });
@@ -945,9 +948,11 @@ export class ContactEditor {
           this.uiLogger.displaySuccess('Phone removed successfully');
         }
       }
-    } else if (action === 'edit_linkedIn') {
+    } else if (action === 'edit_linkedIn' || action === 'add_linkedIn') {
+      const isAdding = action === 'add_linkedIn';
+      const promptLabel = isAdding ? 'Add' : 'Edit';
       const newLinkedInUrlResult = await inputWithEscape({
-        message: `${EMOJIS.FIELDS.LINKEDIN} LinkedIn URL (type 'cancel' to go back):`,
+        message: `${EMOJIS.FIELDS.LINKEDIN} ${promptLabel} LinkedIn URL (type 'cancel' to go back):`,
         default: newData.linkedInUrl || '',
         validate: (input: string): boolean | string => {
           const trimmed = input.trim().toLowerCase();
@@ -976,6 +981,11 @@ export class ContactEditor {
             );
           if (shouldContinue) {
             newData.linkedInUrl = normalizedUrl;
+            if (isAdding) {
+              this.uiLogger.displaySuccess('LinkedIn URL added successfully');
+            } else {
+              this.uiLogger.displaySuccess('LinkedIn URL updated successfully');
+            }
           }
         } else {
           newData.linkedInUrl = undefined;
@@ -1188,7 +1198,8 @@ export class ContactEditor {
     const emailValues = contact.emails.map((e) => e.value);
     const phoneValues = contact.phones.map((p) => p.number);
     const linkedInWebsite = contact.websites.find((w) =>
-      w.label.toLowerCase().includes('linkedin')
+      w.label.toLowerCase().includes('linkedin') ||
+      w.url.toLowerCase().includes('linkedin.com')
     );
     const labelResourceNames: string[] = [];
     return {
