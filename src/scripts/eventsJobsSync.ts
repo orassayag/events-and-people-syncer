@@ -4,6 +4,7 @@ import type { OAuth2Client, Script, ContactGroup, ContactData } from '../types';
 import { FolderType, FolderMapping, FolderCacheData, EventsJobsSyncStats, FolderType as FolderTypeEnum, MenuOption as MenuOptionEnum, ScriptState } from '../types';
 import {
   selectWithEscape,
+  searchableSelectWithEscape,
   inputWithEscape,
   confirmWithEscape,
   EscapeSignal,
@@ -752,9 +753,9 @@ export class EventsJobsSyncScript {
       { name: `${EMOJIS.ACTIONS.ADD} Create new label`, value: 'CREATE_NEW' },
       { name: `${EMOJIS.NAVIGATION.SKIP}  Skip (no label)`, value: 'SKIP' },
     ];
-    const selectedLabelResult = await selectWithEscape<string>({
+    const selectedLabelResult = await searchableSelectWithEscape<string>({
       message: 'Select label for folder organization (ESC to go back):',
-      loop: true,
+      pageSize: SETTINGS.api.displayPageSize,
       choices,
     });
     if (selectedLabelResult.escaped) {
@@ -1423,9 +1424,9 @@ export class EventsJobsSyncScript {
           .map((label) => ({ name: label, value: label })),
         { name: `${EMOJIS.NAVIGATION.SKIP}  Skip (no label change)`, value: 'SKIP' },
       ];
-      const selectedLabelResult2 = await selectWithEscape<string>({
+      const selectedLabelResult2 = await searchableSelectWithEscape<string>({
         message: 'Select label for folder (ESC to go back):',
-        loop: false,
+        pageSize: SETTINGS.api.displayPageSize,
         choices: labelChoices,
       });
       if (selectedLabelResult2.escaped) {

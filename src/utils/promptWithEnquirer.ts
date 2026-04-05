@@ -1,6 +1,7 @@
 import Enquirer from 'enquirer';
 import type { PromptResult, SelectChoice, SelectConfig, InputConfig, ConfirmConfig, CheckboxChoice, CheckboxConfig } from '../types';
 import { SearchableMultiSelect } from './searchableMultiselect';
+import { SearchableSelect } from './searchableSelect';
 
 export { PromptResult, SelectChoice, SelectConfig, InputConfig, ConfirmConfig, CheckboxChoice, CheckboxConfig };
 
@@ -128,6 +129,37 @@ export async function checkboxWithEscape<T = string>(
       return choice ? choice.value : (name as unknown as T);
     });
     return { escaped: false, value: selectedValues };
+  } catch {
+    enquirerInstance = null;
+    return { escaped: true };
+  }
+}
+
+export async function searchableSelectWithEscape<T = string>(
+  config: SelectConfig<T>
+): Promise<PromptResult<T>> {
+  try {
+    const choiceConfigs = config.choices.map((c) => ({
+      name: c.name || String(c.value),
+      value: c.value,
+    }));
+    const promptConfig: any = {
+      name: 'value',
+      message: config.message,
+      choices: choiceConfigs,
+    };
+    if (config.pageSize) {
+      promptConfig.limit = config.pageSize;
+    }
+    const prompt: any = new (SearchableSelect as any)(promptConfig);
+    const result: string = await prompt.run();
+    const finalChoice = config.choices.find(
+      (c) => (c.name || String(c.value)) === result
+    );
+    return {
+      escaped: false,
+      value: finalChoice ? finalChoice.value : (result as unknown as T),
+    };
   } catch {
     enquirerInstance = null;
     return { escaped: true };

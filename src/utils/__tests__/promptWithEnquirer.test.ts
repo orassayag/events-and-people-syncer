@@ -5,9 +5,11 @@ import {
   inputWithEscape,
   confirmWithEscape,
   checkboxWithEscape,
+  searchableSelectWithEscape,
 } from '../promptWithEnquirer';
 
 let mockCheckboxResult: { escaped: boolean; value?: string[] } = { escaped: false, value: [] };
+let mockSelectResult: { escaped: boolean; value?: string } = { escaped: false, value: '' };
 
 vi.mock('enquirer');
 vi.mock('../searchableMultiselect', () => ({
@@ -23,10 +25,24 @@ vi.mock('../searchableMultiselect', () => ({
   },
 }));
 
+vi.mock('../searchableSelect', () => ({
+  SearchableSelect: class MockSearchableSelect {
+    constructor(public config: any) {}
+
+    async run(): Promise<string> {
+      if (mockSelectResult.escaped) {
+        throw new Error('cancelled');
+      }
+      return mockSelectResult.value || '';
+    }
+  },
+}));
+
 describe('promptWithEnquirer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockCheckboxResult = { escaped: false, value: [] };
+    mockSelectResult = { escaped: false, value: '' };
   });
   describe('PromptResult type structure', () => {
     it('should return escaped true when user presses ESC', async () => {
@@ -206,6 +222,30 @@ describe('promptWithEnquirer', () => {
       if (!result.escaped) {
         expect(result.value).toEqual(['label1']);
       }
+    });
+  });
+  describe('searchableSelectWithEscape', () => {
+    it('should return selected item', async () => {
+      mockSelectResult = { escaped: false, value: 'Label 1' };
+      const result = await searchableSelectWithEscape({
+        message: 'Select label',
+        choices: [
+          { value: 'label1', name: 'Label 1' },
+          { value: 'label2', name: 'Label 2' },
+        ],
+      });
+      expect(result.escaped).toBe(false);
+      if (!result.escaped) {
+        expect(result.value).toBe('label1');
+      }
+    });
+    it('should return escaped true when user presses ESC', async () => {
+      mockSelectResult = { escaped: true };
+      const result = await searchableSelectWithEscape({
+        message: 'Select label',
+        choices: [{ value: 'label1' }],
+      });
+      expect(result.escaped).toBe(true);
     });
   });
   describe('ESC with default values', () => {
