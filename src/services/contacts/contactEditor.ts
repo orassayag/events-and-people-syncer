@@ -1013,7 +1013,7 @@ export class ContactEditor {
       ? data.company
       : [firstLabelName, data.company].filter(s => s).join(' ');
 
-    const requestBody = this.buildContactRequestBody(data, note);
+    const { requestBody } = this.buildContactRequestBody(data, note);
 
     if (Object.keys(requestBody).length === 0) {
       this.uiLogger.displayError(
@@ -1653,25 +1653,44 @@ export class ContactEditor {
     const service = google.people({ version: 'v1', auth: this.auth });
     const apiTracker = ApiTracker.getInstance();
 
-    // 1. Fetch current etag
+    // 1. Fetch current etag and metadata
     const current = await retryWithBackoff(async () =>
       service.people.get({
         resourceName,
-        personFields: 'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies',
+        personFields: 'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies,metadata',
       })
     );
     await apiTracker.trackRead();
 
-    // 2. Build requestBody
-    const requestBody = this.buildContactRequestBody(data, note);
+    if (resourceName.startsWith('people/d')) {
+      if (this.logCallback) {
+        await this.logCallback(`WARNING: Targeted contact ${resourceName} looks like a Directory contact. Updates may trigger 'Save Contact' prompt.`);
+      }
+    }
+
+    // 2. Build requestBody and identify updated fields
+    const { requestBody, updatedFields } = this.buildContactRequestBody(
+      data,
+      note,
+      current.data
+    );
 
     // 3. Dry mode
     if (SETTINGS.dryMode) {
-      DryModeChecker.logApiCall('service.people.updateContact()', `${resourceName}`, this.uiLogger);
+      DryModeChecker.logApiCall(
+        'service.people.updateContact()',
+        `${resourceName}`,
+        this.uiLogger
+      );
       await apiTracker.trackWrite();
       await this.delay(SETTINGS.contactsSync.writeDelayMs);
       await ContactCache.getInstance().invalidate();
       this.uiLogger.displaySuccess('[DRY MODE] Contact updated successfully');
+      return;
+    }
+
+    if (updatedFields.length === 0) {
+      this.uiLogger.displayInfo('No fields changed, skipping update');
       return;
     }
 
@@ -1680,7 +1699,7 @@ export class ContactEditor {
     await retryWithBackoff(async () =>
       service.people.updateContact({
         resourceName,
-        updatePersonFields: 'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies',
+        updatePersonFields: updatedFields.join(','),
         requestBody: { etag: current.data.etag, ...requestBody },
       })
     );
@@ -1693,80 +1712,144 @@ export class ContactEditor {
     this.uiLogger.displaySuccess('Contact updated successfully');
   }
 
-  private buildContactRequestBody(data: EditableContactData, note: string): CreateContactRequest {
+  private buildContactRequestBody(
+    data: EditableContactData,
+    note: string,
+    existingContact?: any
+  ): { requestBody: CreateContactRequest; updatedFields: string[] } {
     const allGroups = this.cachedContactGroups || [];
-    const selectedLabelNames = data.labelResourceNames.map(
-      (resourceName) => {
-        const group = allGroups.find(
-          (g) => g.resourceName === resourceName
-        );
-        return group ? group.name : resourceName;
-      }
-    );
+    const selectedLabelNames = data.labelResourceNames.map((resourceName) => {
+      const group = allGroups.find((g) => g.resourceName === resourceName);
+      return group ? group.name : resourceName;
+    });
     const firstLabelName =
       selectedLabelNames.length > 0 ? selectedLabelNames[0] : '';
 
-    const compositeSuffix = (data.company && firstLabelName && data.company.startsWith(firstLabelName))
-      ? data.company
-      : [firstLabelName, data.company].filter(s => s).join(' ');
-    
-    // Proactively strip current labels/company from lastName before re-appending
-    const baseLastName = this.extractBaseLastName(data.lastName, selectedLabelNames.join(' | '), data.company);
+    const compositeSuffix =
+      data.company && firstLabelName && data.company.startsWith(firstLabelName)
+        ? data.company
+        : [firstLabelName, data.company].filter((s) => s).join(' ');
+
+    const baseLastName = this.extractBaseLastName(
+      data.lastName,
+      selectedLabelNames.join(' | '),
+      data.company
+    );
     const lastNameValue = [baseLastName, compositeSuffix]
       .filter((s) => s)
       .join(' ');
 
     const requestBody: CreateContactRequest = {};
+    const updatedFields: string[] = [];
+
+    // 1. Names
     if (data.firstName || lastNameValue) {
+      const existingName = existingContact?.names?.[0] || {};
       requestBody.names = [
         {
+          ...existingName,
           givenName: data.firstName || undefined,
           familyName: lastNameValue || undefined,
         },
       ];
+      updatedFields.push('names');
     }
+
+    // 2. Emails
     if (data.emails.length > 0) {
-      requestBody.emailAddresses = data.emails.map((email) => ({
-        value: email,
-        type: compositeSuffix || 'other',
-      }));
+      requestBody.emailAddresses = data.emails.map((email, i) => {
+        const existingEmail = existingContact?.emailAddresses?.[i] || {};
+        return {
+          ...existingEmail,
+          value: email,
+          type: compositeSuffix || 'other',
+        };
+      });
+      updatedFields.push('emailAddresses');
+    } else if (existingContact?.emailAddresses?.length > 0) {
+      requestBody.emailAddresses = [];
+      updatedFields.push('emailAddresses');
     }
+
+    // 3. Phones
     if (data.phones.length > 0) {
-      requestBody.phoneNumbers = data.phones.map((phone) => ({
-        value: phone,
-        type: compositeSuffix || 'other',
-      }));
+      requestBody.phoneNumbers = data.phones.map((phone, i) => {
+        const existingPhone = existingContact?.phoneNumbers?.[i] || {};
+        return {
+          ...existingPhone,
+          value: phone,
+          type: compositeSuffix || 'other',
+        };
+      });
+      updatedFields.push('phoneNumbers');
+    } else if (existingContact?.phoneNumbers?.length > 0) {
+      requestBody.phoneNumbers = [];
+      updatedFields.push('phoneNumbers');
     }
+
+    // 4. Organizations
     if (data.company || data.jobTitle) {
+      const existingOrg = existingContact?.organizations?.[0] || {};
       requestBody.organizations = [
         {
+          ...existingOrg,
           name: compositeSuffix || undefined,
           title: data.jobTitle || undefined,
           type: 'work',
         },
       ];
+      updatedFields.push('organizations');
+    } else if (existingContact?.organizations?.length > 0) {
+      requestBody.organizations = [];
+      updatedFields.push('organizations');
     }
+
+    // 5. URLs
     if (data.linkedInUrl) {
+      const existingUrl = existingContact?.urls?.[0] || {};
       requestBody.urls = [
         {
+          ...existingUrl,
           value: data.linkedInUrl,
           type: 'LinkedIn',
         },
       ];
+      updatedFields.push('urls');
+    } else if (existingContact?.urls?.length > 0) {
+      requestBody.urls = [];
+      updatedFields.push('urls');
     }
-    if (data.labelResourceNames.length > 0) {
-      requestBody.memberships = data.labelResourceNames.map((resourceName) => ({
-        contactGroupMembership: {
-          contactGroupResourceName: resourceName,
+
+    // 6. Memberships - Preserve system memberships correctly
+    const userManageableGroups = this.cachedContactGroups || [];
+    const systemMemberships = (existingContact?.memberships || []).filter(
+      (m: any) => {
+        const rn = m.contactGroupMembership?.contactGroupResourceName;
+        if (!rn) return true; // Keep domainMembership etc.
+        
+        // Keep memberships that are NOT in our manageable user groups list (e.g. 'myContacts', 'starred')
+        return !userManageableGroups.some(g => g.resourceName === rn);
+      }
+    );
+
+    const userMemberships = data.labelResourceNames.map((resourceName) => ({
+      contactGroupMembership: { contactGroupResourceName: resourceName },
+    }));
+
+    requestBody.memberships = [...systemMemberships, ...userMemberships];
+    updatedFields.push('memberships');
+
+    // 7. Biographies
+    if (note) {
+      requestBody.biographies = [
+        {
+          value: note,
+          contentType: 'TEXT_PLAIN',
         },
-      }));
+      ];
+      updatedFields.push('biographies');
     }
-    requestBody.biographies = [
-      {
-        value: note,
-        contentType: 'TEXT_PLAIN',
-      },
-    ];
-    return requestBody;
+
+    return { requestBody, updatedFields };
   }
 }

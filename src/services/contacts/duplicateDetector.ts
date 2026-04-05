@@ -398,7 +398,7 @@ export class DuplicateDetector {
           resourceName: 'people/me',
           pageSize: SETTINGS.api.pageSize,
           personFields:
-            'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies',
+            'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies,metadata',
           pageToken,
         });
       });
