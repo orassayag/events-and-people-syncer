@@ -1472,7 +1472,7 @@ export class ContactEditor {
     const currentContact = await retryWithBackoff(async () => {
       return await service.people.get({
         resourceName,
-        personFields: 'phoneNumbers,etag',
+        personFields: 'phoneNumbers',
       });
     });
     await apiTracker.trackRead();
@@ -1517,7 +1517,7 @@ export class ContactEditor {
         const refreshedContact = await retryWithBackoff(async () => {
           return await service.people.get({
             resourceName,
-            personFields: 'phoneNumbers,etag',
+            personFields: 'phoneNumbers',
           });
         });
         await apiTracker.trackRead();
@@ -1657,7 +1657,7 @@ export class ContactEditor {
     const current = await retryWithBackoff(async () =>
       service.people.get({
         resourceName,
-        personFields: 'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies,etag',
+        personFields: 'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies',
       })
     );
     await apiTracker.trackRead();

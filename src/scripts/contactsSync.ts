@@ -1,6 +1,6 @@
 import { injectable, inject } from 'inversify';
 import type { OAuth2Client, Script, Stats } from '../types';
-import { selectWithEscape, formatDateDDMMYYYY } from '../utils';
+import { selectWithEscape, formatDateDDMMYYYY, TextUtils, inputWithEscape } from '../utils';
 import { ContactSyncer, ContactDisplay, ContactEditor, DuplicateDetector } from '../services/contacts';
 import { Logger, SyncLogger } from '../logging';
 import { AuthService } from '../services/auth';
@@ -16,7 +16,7 @@ export class ContactsSyncScript {
     @inject('OAuth2Client') _auth: OAuth2Client,
     @inject(ContactSyncer) private contactSyncer: ContactSyncer,
     @inject(ContactEditor) private contactEditor: ContactEditor,
-    @inject(DuplicateDetector) _duplicateDetector: DuplicateDetector
+    @inject(DuplicateDetector) private duplicateDetector: DuplicateDetector
   ) {
     this.logger = new SyncLogger('contacts-sync');
     this.uiLogger = new Logger('ContactsSyncScript');
@@ -94,6 +94,7 @@ export class ContactsSyncScript {
         loop: false,
         choices: [
           { name: `${EMOJIS.ACTIONS.ADD} Add contacts`, value: 'add' },
+          { name: `${EMOJIS.ACTIONS.EDIT}  Edit a contact`, value: 'edit' },
           { name: `${EMOJIS.ACTIONS.SYNC} Sync contacts`, value: 'sync' },
           { name: `${EMOJIS.NAVIGATION.EXIT} Exit`, value: 'exit' },
         ],
@@ -120,6 +121,14 @@ export class ContactsSyncScript {
           await this.logger.logMain(msg);
         });
         await this.addContactFlow();
+        this.contactEditor.setApiLogging(false);
+      } else if (action === 'edit') {
+        await this.logger.logMain(`User selected: ${EMOJIS.ACTIONS.EDIT} Edit a contact`);
+        this.contactEditor.setApiLogging(true);
+        this.contactEditor.setLogCallback(async (msg: string) => {
+          await this.logger.logMain(msg);
+        });
+        await this.editContactFlow();
         this.contactEditor.setApiLogging(false);
       }
     }
@@ -227,6 +236,104 @@ export class ContactsSyncScript {
       } else {
         this.uiLogger.error('Failed to create contact', error as Error);
         this.uiLogger.displayError(`Failed to create contact: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+  }
+
+  private async editContactFlow(): Promise<void> {
+    try {
+      const fullNameResult = await inputWithEscape({
+        message: `${EMOJIS.FIELDS.PERSON} Enter full name to search (ESC to go back):`,
+        validate: (input: string): boolean | string => {
+          if (!input.trim()) {
+            return 'Full name is required to search contacts.';
+          }
+          return true;
+        },
+      });
+
+      if (fullNameResult.escaped) {
+        return;
+      }
+
+      const fullName = fullNameResult.value;
+      const { firstName, lastName } = TextUtils.parseFullName(fullName);
+
+      const matches = await this.duplicateDetector.checkDuplicateName(firstName, lastName);
+
+      if (matches.length === 0) {
+        this.uiLogger.displayWarning(`No contacts found matching "${fullName}"`);
+        return;
+      }
+
+      const choices = matches.map((match, i) => {
+        const first = TextUtils.reverseHebrewText(match.contact.firstName);
+        const last = TextUtils.reverseHebrewText(match.contact.lastName);
+        const email = match.contact.emails[0]?.value ? ` (${match.contact.emails[0].value})` : '';
+        return {
+          name: `🔍 ${`${first} ${last}`.trim()}${email}`,
+          value: i,
+        };
+      });
+
+      const selectedMatchResult = await selectWithEscape<number>({
+        message: 'Select contact to update:',
+        choices: [
+          ...choices,
+          { name: '❌ Cancel', value: -1 }
+        ],
+        loop: false,
+      });
+
+      if (selectedMatchResult.escaped || selectedMatchResult.value === -1) {
+        return;
+      }
+
+      const selectedContact = matches[selectedMatchResult.value].contact;
+      if (!selectedContact.resourceName) {
+        this.uiLogger.displayError('Selected contact does not have a resource name');
+        return;
+      }
+
+      const editableData = this.contactEditor.convertContactDataToEditable(selectedContact);
+
+      // Populate labelResourceNames
+      const allGroups = await this.contactEditor.fetchContactGroups();
+      const existingLabelResourceNames: string[] = [];
+      const labelParts = (selectedContact.label || '').split(' | ');
+      for (const labelName of labelParts) {
+        const group = allGroups.find((g) => g.name === labelName.trim());
+        if (group) {
+          existingLabelResourceNames.push(group.resourceName);
+        }
+      }
+      editableData.labelResourceNames = existingLabelResourceNames;
+
+      const updatedData = await this.contactEditor.showSummaryAndEdit(
+        editableData,
+        'Save'
+      );
+
+      if (updatedData === null) {
+        await this.logger.logMain('Contact update cancelled by user');
+        this.uiLogger.displayError('Contact update cancelled');
+        return;
+      }
+
+      const currentDate = formatDateDDMMYYYY(new Date());
+      const note = `Updated by the contacts sync script - Last update: ${currentDate}`;
+      await this.contactEditor.updateExistingContact(
+        selectedContact.resourceName,
+        updatedData,
+        note
+      );
+      this.stats.updated++;
+    } catch (error) {
+      if (error instanceof Error && error.message === 'User cancelled') {
+        await this.logger.logMain('User cancelled edit contact flow');
+      } else {
+        this.uiLogger.error('Failed to update contact', error as Error);
+        this.uiLogger.displayError(`Failed to update contact: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
   }
