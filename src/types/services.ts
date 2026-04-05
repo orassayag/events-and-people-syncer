@@ -49,3 +49,7 @@ export interface SanitizeResult {
   scriptsRemoved: number;
   stylesRemoved: number;
 }
+
+export type DuplicatePromptResult =
+  | { action: 'create_new' }
+  | { action: 'use_existing'; contact: ContactData };

@@ -20,6 +20,7 @@ import { SETTINGS } from '../../settings';
 import { ContactCache } from '../../cache';
 import { Logger } from '../../logging';
 import { EMOJIS } from '../../constants';
+import { ExistingContactSelected } from '../../errors';
 
 export { EditableContactData };
 
@@ -64,50 +65,42 @@ export class ContactEditor {
     firstName: string,
     lastName: string
   ): Promise<boolean> {
-    if (!firstName || !lastName) {
-      return true;
-    }
-    const nameDuplicates = await this.duplicateDetector.checkDuplicateName(
-      firstName,
-      lastName
-    );
-    return await this.duplicateDetector.promptForDuplicateContinue(
-      nameDuplicates,
-      this.uiLogger
-    );
+    if (!firstName || !lastName) return true;
+    const nameDuplicates = await this.duplicateDetector.checkDuplicateName(firstName, lastName);
+    const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(nameDuplicates, this.uiLogger);
+    if (result === null) return false;                          // user escaped
+    if (result.action === 'use_existing') throw new ExistingContactSelected(result.contact);
+    return true;                                               // 'create_new'
   }
 
   protected async checkAndHandleEmailDuplicate(
     email: string
   ): Promise<boolean> {
-    const emailDuplicates =
-      await this.duplicateDetector.checkDuplicateEmail(email);
-    return await this.duplicateDetector.promptForDuplicateContinue(
-      emailDuplicates,
-      this.uiLogger
-    );
+    const emailDuplicates = await this.duplicateDetector.checkDuplicateEmail(email);
+    const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(emailDuplicates, this.uiLogger);
+    if (result === null) return false;
+    if (result.action === 'use_existing') throw new ExistingContactSelected(result.contact);
+    return true;
   }
 
   protected async checkAndHandlePhoneDuplicate(
     phone: string
   ): Promise<boolean> {
-    const phoneDuplicates =
-      await this.duplicateDetector.checkDuplicatePhone(phone);
-    return await this.duplicateDetector.promptForDuplicateContinue(
-      phoneDuplicates,
-      this.uiLogger
-    );
+    const phoneDuplicates = await this.duplicateDetector.checkDuplicatePhone(phone);
+    const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(phoneDuplicates, this.uiLogger);
+    if (result === null) return false;
+    if (result.action === 'use_existing') throw new ExistingContactSelected(result.contact);
+    return true;
   }
 
   protected async checkAndHandleLinkedInDuplicate(
     url: string
   ): Promise<boolean> {
-    const linkedInDuplicates =
-      await this.duplicateDetector.checkDuplicateLinkedInUrl(url);
-    return await this.duplicateDetector.promptForDuplicateContinue(
-      linkedInDuplicates,
-      this.uiLogger
-    );
+    const linkedInDuplicates = await this.duplicateDetector.checkDuplicateLinkedInUrl(url);
+    const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(linkedInDuplicates, this.uiLogger);
+    if (result === null) return false;
+    if (result.action === 'use_existing') throw new ExistingContactSelected(result.contact);
+    return true;
   }
 
   async collectInitialInput(
@@ -151,13 +144,15 @@ export class ContactEditor {
         firstName,
         lastName
       );
-      const shouldContinue =
-        await this.duplicateDetector.promptForDuplicateContinue(
-          nameDuplicates,
-          this.uiLogger
-        );
-      if (!shouldContinue) {
-        throw new Error('User cancelled due to duplicate');
+      const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(
+        nameDuplicates,
+        this.uiLogger
+      );
+      if (result === null) {
+        throw new Error('User cancelled');
+      }
+      if (result.action === 'use_existing') {
+        throw new ExistingContactSelected(result.contact);
       }
     }
     const defaultJobTitle = prePopulatedData?.jobTitle || '';
@@ -187,13 +182,15 @@ export class ContactEditor {
         const trimmedEmail = emailValue.trim();
         const emailDuplicates =
           await this.duplicateDetector.checkDuplicateEmail(trimmedEmail);
-        const shouldContinue =
-          await this.duplicateDetector.promptForDuplicateContinue(
-            emailDuplicates,
-            this.uiLogger
-          );
-        if (!shouldContinue) {
-          throw new Error('User cancelled due to duplicate');
+        const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(
+          emailDuplicates,
+          this.uiLogger
+        );
+        if (result === null) {
+          throw new Error('User cancelled');
+        }
+        if (result.action === 'use_existing') {
+          throw new ExistingContactSelected(result.contact);
         }
         emails.push(trimmedEmail);
       }
@@ -213,13 +210,15 @@ export class ContactEditor {
         const trimmedPhone = phoneNumber.trim();
         const phoneDuplicates =
           await this.duplicateDetector.checkDuplicatePhone(trimmedPhone);
-        const shouldContinue =
-          await this.duplicateDetector.promptForDuplicateContinue(
-            phoneDuplicates,
-            this.uiLogger
-          );
-        if (!shouldContinue) {
-          throw new Error('User cancelled due to duplicate');
+        const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(
+          phoneDuplicates,
+          this.uiLogger
+        );
+        if (result === null) {
+          throw new Error('User cancelled');
+        }
+        if (result.action === 'use_existing') {
+          throw new ExistingContactSelected(result.contact);
         }
         phones.push(trimmedPhone);
       }
@@ -239,13 +238,15 @@ export class ContactEditor {
         linkedInUrl = InputValidator.normalizeLinkedInUrl(linkedInUrlInput);
         const linkedInDuplicates =
           await this.duplicateDetector.checkDuplicateLinkedInUrl(linkedInUrl);
-        const shouldContinue =
-          await this.duplicateDetector.promptForDuplicateContinue(
-            linkedInDuplicates,
-            this.uiLogger
-          );
-        if (!shouldContinue) {
-          throw new Error('User cancelled due to duplicate');
+        const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(
+          linkedInDuplicates,
+          this.uiLogger
+        );
+        if (result === null) {
+          throw new Error('User cancelled');
+        }
+        if (result.action === 'use_existing') {
+          throw new ExistingContactSelected(result.contact);
         }
       }
     }
@@ -288,22 +289,27 @@ export class ContactEditor {
         currentSelectedLabelNames.length > 0
           ? currentSelectedLabelNames[0]
           : '';
-      const displayLabel = firstLabelName
-        ? TextUtils.reverseHebrewText(firstLabelName)
-        : '';
-      const displayCompany = editableData.company
-        ? TextUtils.reverseHebrewText(editableData.company)
+
+      // Intelligent composite suffix for display
+      const compositeSuffix = (editableData.company && firstLabelName && editableData.company.startsWith(firstLabelName))
+        ? editableData.company
+        : [firstLabelName, editableData.company].filter(s => s).join(' ');
+
+      const displaySuffix = compositeSuffix
+        ? TextUtils.reverseHebrewText(compositeSuffix)
         : '';
       const displayFirstName = editableData.firstName
         ? TextUtils.reverseHebrewText(editableData.firstName)
         : '';
-      const displayLastName = editableData.lastName
-        ? TextUtils.reverseHebrewText(editableData.lastName)
+      
+      const baseLastName = this.extractBaseLastName(editableData.lastName, firstLabelName, editableData.company);
+      const displayBaseLastName = baseLastName ? TextUtils.reverseHebrewText(baseLastName) : '';
+      const cleanFullName = `${displayFirstName} ${displayBaseLastName}`.trim();
+
+      const fullNameWithLabel = cleanFullName
+        ? `${cleanFullName} ${displaySuffix}`.trim()
         : '';
-      const fullName = `${displayFirstName} ${displayLastName}`.trim();
-      const fullNameWithLabel = fullName
-        ? `${fullName} ${displayLabel} ${displayCompany}`.trim()
-        : '';
+
       if (syncMetadata) {
         const { FormatUtils } = await import('../../constants/formatUtils');
         console.log('');
@@ -315,7 +321,7 @@ export class ContactEditor {
           `${EMOJIS.DATA.ID} Contact ID: ${syncMetadata.resourceName}\n`
         );
       } else {
-        this.uiLogger.display('Contact Summary');
+        console.log('\n--- Contact Summary ---');
       }
       console.log(`${EMOJIS.FIELDS.PERSON} Full name: ${fullNameWithLabel}`);
       if (currentSelectedLabelNames.length > 0) {
@@ -328,35 +334,23 @@ export class ContactEditor {
       } else {
         console.log(`${EMOJIS.FIELDS.LABEL}  Labels: `);
       }
-      const companyWithLabel = [firstLabelName, editableData.company]
-        .filter((s) => s)
-        .join(' ');
-      const displayCompanyWithLabel = companyWithLabel
-        ? TextUtils.reverseHebrewText(companyWithLabel)
-        : '';
-      console.log(`${EMOJIS.FIELDS.COMPANY} Company: ${displayCompanyWithLabel}`);
+      
+      console.log(`${EMOJIS.FIELDS.COMPANY} Company: ${displaySuffix}`);
       const displayJobTitle = editableData.jobTitle
         ? TextUtils.reverseHebrewText(editableData.jobTitle)
         : '';
       console.log(`${EMOJIS.FIELDS.JOB_TITLE} Job Title: ${displayJobTitle}`);
+      
       if (editableData.emails.length === 1) {
         const displayEmail = TextUtils.reverseHebrewText(
           editableData.emails[0]
         );
-        const emailParts = [displayEmail, displayLabel, displayCompany].filter(
-          (s) => s
-        );
-        console.log(`${EMOJIS.FIELDS.EMAIL} Email: ${emailParts.join(' ')}`);
+        console.log(`${EMOJIS.FIELDS.EMAIL} Email: ${displayEmail} ${displaySuffix}`);
       } else if (editableData.emails.length > 1) {
         console.log(`${EMOJIS.FIELDS.EMAIL} Emails:`);
         editableData.emails.forEach((email) => {
           const displayEmail = TextUtils.reverseHebrewText(email);
-          const emailParts = [
-            displayEmail,
-            displayLabel,
-            displayCompany,
-          ].filter((s) => s);
-          console.log(`  ${emailParts.join(' ')}`);
+          console.log(`  ${displayEmail} ${displaySuffix}`);
         });
       } else {
         console.log(`${EMOJIS.FIELDS.EMAIL} Email: `);
@@ -365,20 +359,12 @@ export class ContactEditor {
         const displayPhone = TextUtils.reverseHebrewText(
           editableData.phones[0]
         );
-        const phoneParts = [displayPhone, displayLabel, displayCompany].filter(
-          (s) => s
-        );
-        console.log(`${EMOJIS.FIELDS.PHONE} Phone: ${phoneParts.join(' ')}`);
+        console.log(`${EMOJIS.FIELDS.PHONE} Phone: ${displayPhone} ${displaySuffix}`);
       } else if (editableData.phones.length > 1) {
         console.log(`${EMOJIS.FIELDS.PHONE} Phones:`);
         editableData.phones.forEach((phone) => {
           const displayPhone = TextUtils.reverseHebrewText(phone);
-          const phoneParts = [
-            displayPhone,
-            displayLabel,
-            displayCompany,
-          ].filter((s) => s);
-          console.log(`  ${phoneParts.join(' ')}`);
+          console.log(`  ${displayPhone} ${displaySuffix}`);
         });
       } else {
         console.log(`${EMOJIS.FIELDS.PHONE} Phone: `);
@@ -646,14 +632,15 @@ export class ContactEditor {
           const trimmedEmail = updatedEmail.trim();
           const emailDuplicates =
             await this.duplicateDetector.checkDuplicateEmail(trimmedEmail);
-          const shouldContinue =
-            await this.duplicateDetector.promptForDuplicateContinue(
-              emailDuplicates,
-              this.uiLogger
-            );
-          if (shouldContinue) {
-            newData.emails[emailIndex] = trimmedEmail;
+          const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(
+            emailDuplicates,
+            this.uiLogger
+          );
+          if (result === null) return newData;
+          if (result.action === 'use_existing') {
+            throw new ExistingContactSelected(result.contact);
           }
+          newData.emails[emailIndex] = trimmedEmail;
         }
       }
     } else if (action === 'add_email') {
@@ -684,14 +671,15 @@ export class ContactEditor {
         const trimmedEmail = newEmail.trim();
         const emailDuplicates =
           await this.duplicateDetector.checkDuplicateEmail(trimmedEmail);
-        const shouldContinue =
-          await this.duplicateDetector.promptForDuplicateContinue(
-            emailDuplicates,
-            this.uiLogger
-          );
-        if (shouldContinue) {
-          newData.emails.push(trimmedEmail);
+        const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(
+          emailDuplicates,
+          this.uiLogger
+        );
+        if (result === null) return newData;
+        if (result.action === 'use_existing') {
+          throw new ExistingContactSelected(result.contact);
         }
+        newData.emails.push(trimmedEmail);
       }
     } else if (action === 'edit_phone') {
       if (newData.phones.length === 0) {
@@ -738,14 +726,15 @@ export class ContactEditor {
           const trimmedPhone = updatedPhone.trim();
           const phoneDuplicates =
             await this.duplicateDetector.checkDuplicatePhone(trimmedPhone);
-          const shouldContinue =
-            await this.duplicateDetector.promptForDuplicateContinue(
-              phoneDuplicates,
-              this.uiLogger
-            );
-          if (shouldContinue) {
-            newData.phones[phoneIndex] = trimmedPhone;
+          const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(
+            phoneDuplicates,
+            this.uiLogger
+          );
+          if (result === null) return newData;
+          if (result.action === 'use_existing') {
+            throw new ExistingContactSelected(result.contact);
           }
+          newData.phones[phoneIndex] = trimmedPhone;
         }
       }
     } else if (action === 'add_phone') {
@@ -771,14 +760,15 @@ export class ContactEditor {
         const trimmedPhone = newPhone.trim();
         const phoneDuplicates =
           await this.duplicateDetector.checkDuplicatePhone(trimmedPhone);
-        const shouldContinue =
-          await this.duplicateDetector.promptForDuplicateContinue(
-            phoneDuplicates,
-            this.uiLogger
-          );
-        if (shouldContinue) {
-          newData.phones.push(trimmedPhone);
+        const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(
+          phoneDuplicates,
+          this.uiLogger
+        );
+        if (result === null) return newData;
+        if (result.action === 'use_existing') {
+          throw new ExistingContactSelected(result.contact);
         }
+        newData.phones.push(trimmedPhone);
       }
     } else if (action === 'edit_fullName') {
       const currentFullName = `${newData.firstName} ${newData.lastName}`.trim();
@@ -801,15 +791,18 @@ export class ContactEditor {
         firstName.trim(),
         lastName.trim()
       );
-      const shouldContinue =
-        await this.duplicateDetector.promptForDuplicateContinue(
-          nameDuplicates,
-          this.uiLogger
-        );
-      if (shouldContinue) {
-        newData.firstName = firstName.trim();
-        newData.lastName = lastName.trim();
+      const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(
+        nameDuplicates,
+        this.uiLogger
+      );
+      if (result === null) {
+        return newData;
       }
+      if (result.action === 'use_existing') {
+        throw new ExistingContactSelected(result.contact);
+      }
+      newData.firstName = firstName.trim();
+      newData.lastName = lastName.trim();
     } else if (action === 'edit_company') {
       await this.log(`? ${EMOJIS.FIELDS.COMPANY} Company:`);
       const newCompanyResult = await inputWithEscape({
@@ -1011,71 +1004,24 @@ export class ContactEditor {
         return group ? group.name : resourceName;
       }
     );
-    const finalFirstLabelName =
+
+    const firstLabelName =
       finalSelectedLabelNames.length > 0 ? finalSelectedLabelNames[0] : '';
-    const finalCompositeSuffix = [finalFirstLabelName, data.company]
-      .filter((s) => s)
-      .join(' ');
-    const finalLastNameValue = [data.lastName, finalCompositeSuffix]
-      .filter((s) => s)
-      .join(' ');
-    const requestBody: CreateContactRequest = {};
-    if (data.firstName || finalLastNameValue) {
-      requestBody.names = [
-        {
-          givenName: data.firstName || undefined,
-          familyName: finalLastNameValue || undefined,
-        },
-      ];
-    }
-    if (data.emails.length > 0) {
-      requestBody.emailAddresses = data.emails.map((email) => ({
-        value: email,
-        type: finalCompositeSuffix || 'other',
-      }));
-    }
-    if (data.phones.length > 0) {
-      requestBody.phoneNumbers = data.phones.map((phone) => ({
-        value: phone,
-        type: finalCompositeSuffix || 'other',
-      }));
-    }
-    if (data.company || data.jobTitle) {
-      requestBody.organizations = [
-        {
-          name: finalCompositeSuffix || undefined,
-          title: data.jobTitle || undefined,
-          type: 'work',
-        },
-      ];
-    }
-    if (data.linkedInUrl) {
-      requestBody.urls = [
-        {
-          value: data.linkedInUrl,
-          type: 'LinkedIn',
-        },
-      ];
-    }
-    if (data.labelResourceNames.length > 0) {
-      requestBody.memberships = data.labelResourceNames.map((resourceName) => ({
-        contactGroupMembership: {
-          contactGroupResourceName: resourceName,
-        },
-      }));
-    }
-    requestBody.biographies = [
-      {
-        value: note,
-        contentType: 'TEXT_PLAIN',
-      },
-    ];
+    
+    // Construct compositeSuffix intelligently to avoid 'HR HR Huntiq'
+    const compositeSuffix = (data.company && firstLabelName && data.company.startsWith(firstLabelName))
+      ? data.company
+      : [firstLabelName, data.company].filter(s => s).join(' ');
+
+    const requestBody = this.buildContactRequestBody(data, note);
+
     if (Object.keys(requestBody).length === 0) {
       this.uiLogger.displayError(
         'No data provided. Contact creation cancelled'
       );
       return;
     }
+
     if (SETTINGS.dryMode) {
       const contactDetails =
         `Contact: ${data.firstName} ${data.lastName}` +
@@ -1090,11 +1036,7 @@ export class ContactEditor {
         data.firstName,
         data.lastName
       );
-      const firstLabelName =
-        finalSelectedLabelNames.length > 0 ? finalSelectedLabelNames[0] : '';
-      const compositeSuffix = [firstLabelName, data.company]
-        .filter((s) => s)
-        .join(' ');
+
       const newContact: ContactData = {
         label: finalSelectedLabelNames.join(' | '),
         firstName: data.firstName,
@@ -1116,16 +1058,8 @@ export class ContactEditor {
         biography: note,
         etag: mockResponse.etag,
       };
-      try {
-        this.duplicateDetector.addRecentlyModifiedContact(newContact);
-      } catch (error: unknown) {
-        this.uiLogger.debug(
-          'Failed to add mock contact to duplicate detector',
-          {
-            error: error instanceof Error ? error.message : 'Unknown error',
-          }
-        );
-      }
+      this.duplicateDetector.addRecentlyModifiedContact(newContact);
+
       await apiTracker.trackWrite();
       await this.delay(SETTINGS.contactsSync.writeDelayMs);
       if (this.logApiStats) {
@@ -1134,7 +1068,7 @@ export class ContactEditor {
       this.uiLogger.displaySuccess('[DRY MODE] Contact created successfully');
       console.log(`-Resource Name: ${mockResponse.resourceName} (mock)`);
       const fullName = `${data.firstName} ${data.lastName}`.trim();
-      if (compositeSuffix) {
+      if (compositeSuffix && !fullName.endsWith(compositeSuffix)) {
         console.log(`-Full name: ${fullName} ${compositeSuffix}`);
       } else {
         console.log(`-Full name: ${fullName}`);
@@ -1170,6 +1104,7 @@ export class ContactEditor {
       console.log('');
       return;
     }
+
     const service = google.people({ version: 'v1', auth: this.auth });
     const spinner = ora('Creating new contact...').start();
     const response = await retryWithBackoff(async () => {
@@ -1185,12 +1120,8 @@ export class ContactEditor {
     }
     await this.delay(SETTINGS.contactsSync.writeDelayMs);
     await ContactCache.getInstance().invalidate();
+
     const resourceName = response.data.resourceName;
-    const firstLabelName =
-      finalSelectedLabelNames.length > 0 ? finalSelectedLabelNames[0] : '';
-    const compositeSuffix = [firstLabelName, data.company]
-      .filter((s) => s)
-      .join(' ');
     const newContact: ContactData = {
       label: finalSelectedLabelNames.join(' | '),
       firstName: data.firstName,
@@ -1214,12 +1145,13 @@ export class ContactEditor {
     };
     this.duplicateDetector.addRecentlyModifiedContact(newContact);
     this.uiLogger.displaySuccess('Contact created successfully');
+
     console.log(`-Resource Name: ${resourceName}`);
-    const fullName = `${data.firstName} ${data.lastName}`.trim();
-    if (compositeSuffix) {
-      console.log(`-Full name: ${fullName} ${compositeSuffix}`);
+    const fullNameOut = `${data.firstName} ${data.lastName}`.trim();
+    if (compositeSuffix && !fullNameOut.endsWith(compositeSuffix)) {
+      console.log(`-Full name: ${fullNameOut} ${compositeSuffix}`);
     } else {
-      console.log(`-Full name: ${fullName}`);
+      console.log(`-Full name: ${fullNameOut}`);
     }
     console.log(`-Labels: ${finalSelectedLabelNames.join(' | ') || ''}`);
     console.log(`-Company: ${compositeSuffix || ''}`);
@@ -1281,21 +1213,38 @@ export class ContactEditor {
     company?: string
   ): string {
     if (!lastName) return '';
-    const trimmed = lastName.trim();
-    const labelParts = label ? label.split(' | ') : [];
-    const firstLabel = labelParts.length > 0 ? labelParts[0].trim() : '';
-    const formattedCompany = company
-      ? TextUtils.formatCompanyToPascalCase(company)
-      : '';
-    const suffixParts = [firstLabel, formattedCompany].filter((s) => s);
-    if (suffixParts.length === 0) {
-      return trimmed;
+    let current = lastName.trim();
+
+    // Collect possible suffixes to strip
+    const possibleSuffixes: string[] = [];
+    if (label) {
+      const parts = label.split(' | ').map((p) => p.trim());
+      possibleSuffixes.push(...parts);
     }
-    const suffix = suffixParts.join(' ');
-    if (trimmed.endsWith(' ' + suffix)) {
-      return trimmed.substring(0, trimmed.length - suffix.length - 1).trim();
+    if (company) {
+      possibleSuffixes.push(company.trim());
+      const formatted = TextUtils.formatCompanyToPascalCase(company);
+      if (formatted && formatted !== company.trim()) {
+        possibleSuffixes.push(formatted);
+      }
     }
-    return trimmed;
+    
+    // Sort suffixes by length descending to match longest first
+    const sorted = [...new Set(possibleSuffixes)].sort((a, b) => b.length - a.length);
+
+    // Iteratively strip from the end
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const suffix of sorted) {
+        if (suffix && current.toLowerCase().endsWith(' ' + suffix.toLowerCase())) {
+          current = current.substring(0, current.length - suffix.length - 1).trim();
+          changed = true;
+          break; // restart loop after a change to check all suffixes again
+        }
+      }
+    }
+    return current;
   }
 
   async promptForLabels(): Promise<string[]> {
@@ -1694,5 +1643,130 @@ export class ContactEditor {
     await apiTracker.trackWrite();
     await this.delay(SETTINGS.contactsSync.writeDelayMs);
     await ContactCache.getInstance().invalidate();
+  }
+
+  async updateExistingContact(
+    resourceName: string,
+    data: EditableContactData,
+    note: string
+  ): Promise<void> {
+    const service = google.people({ version: 'v1', auth: this.auth });
+    const apiTracker = ApiTracker.getInstance();
+
+    // 1. Fetch current etag
+    const current = await retryWithBackoff(async () =>
+      service.people.get({
+        resourceName,
+        personFields: 'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies,etag',
+      })
+    );
+    await apiTracker.trackRead();
+
+    // 2. Build requestBody
+    const requestBody = this.buildContactRequestBody(data, note);
+
+    // 3. Dry mode
+    if (SETTINGS.dryMode) {
+      DryModeChecker.logApiCall('service.people.updateContact()', `${resourceName}`, this.uiLogger);
+      await apiTracker.trackWrite();
+      await this.delay(SETTINGS.contactsSync.writeDelayMs);
+      await ContactCache.getInstance().invalidate();
+      this.uiLogger.displaySuccess('[DRY MODE] Contact updated successfully');
+      return;
+    }
+
+    // 4. Real API update
+    const spinner = ora('Updating contact...').start();
+    await retryWithBackoff(async () =>
+      service.people.updateContact({
+        resourceName,
+        updatePersonFields: 'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies',
+        requestBody: { etag: current.data.etag, ...requestBody },
+      })
+    );
+    await apiTracker.trackWrite();
+    spinner.stop();
+    this.uiLogger.resetState('spinner');
+    if (this.logApiStats) await apiTracker.logStats(this.uiLogger);
+    await this.delay(SETTINGS.contactsSync.writeDelayMs);
+    await ContactCache.getInstance().invalidate();
+    this.uiLogger.displaySuccess('Contact updated successfully');
+  }
+
+  private buildContactRequestBody(data: EditableContactData, note: string): CreateContactRequest {
+    const allGroups = this.cachedContactGroups || [];
+    const selectedLabelNames = data.labelResourceNames.map(
+      (resourceName) => {
+        const group = allGroups.find(
+          (g) => g.resourceName === resourceName
+        );
+        return group ? group.name : resourceName;
+      }
+    );
+    const firstLabelName =
+      selectedLabelNames.length > 0 ? selectedLabelNames[0] : '';
+
+    const compositeSuffix = (data.company && firstLabelName && data.company.startsWith(firstLabelName))
+      ? data.company
+      : [firstLabelName, data.company].filter(s => s).join(' ');
+    
+    // Proactively strip current labels/company from lastName before re-appending
+    const baseLastName = this.extractBaseLastName(data.lastName, selectedLabelNames.join(' | '), data.company);
+    const lastNameValue = [baseLastName, compositeSuffix]
+      .filter((s) => s)
+      .join(' ');
+
+    const requestBody: CreateContactRequest = {};
+    if (data.firstName || lastNameValue) {
+      requestBody.names = [
+        {
+          givenName: data.firstName || undefined,
+          familyName: lastNameValue || undefined,
+        },
+      ];
+    }
+    if (data.emails.length > 0) {
+      requestBody.emailAddresses = data.emails.map((email) => ({
+        value: email,
+        type: compositeSuffix || 'other',
+      }));
+    }
+    if (data.phones.length > 0) {
+      requestBody.phoneNumbers = data.phones.map((phone) => ({
+        value: phone,
+        type: compositeSuffix || 'other',
+      }));
+    }
+    if (data.company || data.jobTitle) {
+      requestBody.organizations = [
+        {
+          name: compositeSuffix || undefined,
+          title: data.jobTitle || undefined,
+          type: 'work',
+        },
+      ];
+    }
+    if (data.linkedInUrl) {
+      requestBody.urls = [
+        {
+          value: data.linkedInUrl,
+          type: 'LinkedIn',
+        },
+      ];
+    }
+    if (data.labelResourceNames.length > 0) {
+      requestBody.memberships = data.labelResourceNames.map((resourceName) => ({
+        contactGroupMembership: {
+          contactGroupResourceName: resourceName,
+        },
+      }));
+    }
+    requestBody.biographies = [
+      {
+        value: note,
+        contentType: 'TEXT_PLAIN',
+      },
+    ];
+    return requestBody;
   }
 }

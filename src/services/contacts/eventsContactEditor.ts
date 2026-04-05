@@ -59,31 +59,6 @@ export class EventsContactEditor extends ContactEditor {
     } else {
       labelResourceNames = await this.promptForLabels();
     }
-    let company = '';
-    if (prePopulated.company) {
-      const result = await inputWithEscape({
-        message: `${EMOJIS.FIELDS.COMPANY} Company:`,
-        default: prePopulated.company,
-        validate: (input: string): boolean | string =>
-          InputValidator.validateText(input, true),
-      });
-      if (result.escaped) {
-        throw new Error('User cancelled');
-      }
-      company = result.value;
-    } else {
-      const result = await inputWithEscape({
-        message: `${EMOJIS.FIELDS.COMPANY} Company:`,
-        default: '',
-        validate: (input: string): boolean | string =>
-          InputValidator.validateText(input, true),
-      });
-      if (result.escaped) {
-        throw new Error('User cancelled');
-      }
-      company = result.value;
-    }
-    const trimmedCompany = TextUtils.formatCompanyToPascalCase(company.trim());
     const fullNameResult = await inputWithEscape({
       message: `${EMOJIS.FIELDS.PERSON} Full name:`,
       default: '',
@@ -99,13 +74,24 @@ export class EventsContactEditor extends ContactEditor {
     }
     const fullName = fullNameResult.value;
     const { firstName, lastName } = TextUtils.parseFullName(fullName);
-    const shouldContinueAfterNameCheck = await this.checkAndHandleNameDuplicate(
-      firstName,
-      lastName
-    );
-    if (!shouldContinueAfterNameCheck) {
-      throw new Error('User cancelled due to duplicate');
+    
+    // This will throw ExistingContactSelected if user selects an existing contact
+    await this.checkAndHandleNameDuplicate(firstName, lastName);
+
+    let company = '';
+    const suggestedCompany = prePopulated.company || '';
+    const companyResult = await inputWithEscape({
+      message: `${EMOJIS.FIELDS.COMPANY} Company:`,
+      default: suggestedCompany,
+      validate: (input: string): boolean | string =>
+        InputValidator.validateText(input, true),
+    });
+    if (companyResult.escaped) {
+      throw new Error('User cancelled');
     }
+    company = companyResult.value;
+    const trimmedCompany = TextUtils.formatCompanyToPascalCase(company.trim());
+
     const jobTitleResult = await inputWithEscape({
       message: `${EMOJIS.FIELDS.JOB_TITLE} Job Title:`,
       default: '',
@@ -116,6 +102,7 @@ export class EventsContactEditor extends ContactEditor {
       throw new Error('User cancelled');
     }
     const jobTitle = jobTitleResult.value;
+
     const emails: string[] = [];
     const emailResult = await inputWithEscape({
       message: `${EMOJIS.FIELDS.EMAIL} Email address:`,
@@ -129,13 +116,10 @@ export class EventsContactEditor extends ContactEditor {
     const emailValue = emailResult.value;
     if (emailValue.trim()) {
       const trimmedEmail = emailValue.trim();
-      const shouldContinueAfterEmailCheck =
-        await this.checkAndHandleEmailDuplicate(trimmedEmail);
-      if (!shouldContinueAfterEmailCheck) {
-        throw new Error('User cancelled due to duplicate');
-      }
+      await this.checkAndHandleEmailDuplicate(trimmedEmail);
       emails.push(trimmedEmail);
     }
+
     const phones: string[] = [];
     const phoneResult = await inputWithEscape({
       message: `${EMOJIS.FIELDS.PHONE} Phone number:`,
@@ -148,11 +132,7 @@ export class EventsContactEditor extends ContactEditor {
     const phoneNumber = phoneResult.value;
     if (phoneNumber.trim()) {
       const trimmedPhone = phoneNumber.trim();
-      const shouldContinueAfterPhoneCheck =
-        await this.checkAndHandlePhoneDuplicate(trimmedPhone);
-      if (!shouldContinueAfterPhoneCheck) {
-        throw new Error('User cancelled due to duplicate');
-      }
+      await this.checkAndHandlePhoneDuplicate(trimmedPhone);
       phones.push(trimmedPhone);
     }
     let linkedInUrl: string | undefined;
@@ -167,11 +147,7 @@ export class EventsContactEditor extends ContactEditor {
     const linkedInUrlInput = linkedInResult.value;
     if (linkedInUrlInput.trim()) {
       linkedInUrl = InputValidator.normalizeLinkedInUrl(linkedInUrlInput);
-      const shouldContinueAfterLinkedInCheck =
-        await this.checkAndHandleLinkedInDuplicate(linkedInUrl);
-      if (!shouldContinueAfterLinkedInCheck) {
-        throw new Error('User cancelled due to duplicate');
-      }
+      await this.checkAndHandleLinkedInDuplicate(linkedInUrl);
     }
     return {
       firstName,

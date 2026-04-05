@@ -1,8 +1,8 @@
 import { google } from 'googleapis';
-import { confirmWithEscape, retryWithBackoff, formatMixedHebrewEnglish } from '../../utils';
+import { confirmWithEscape, selectWithEscape, retryWithBackoff, formatMixedHebrewEnglish } from '../../utils';
 import Fuse from 'fuse.js';
 import { injectable, inject } from 'inversify';
-import type { ContactData, OAuth2Client, SimilarityType, DuplicateMatch } from '../../types';
+import type { ContactData, OAuth2Client, SimilarityType, DuplicateMatch, DuplicatePromptResult } from '../../types';
 import { ApiTracker } from '../api';
 import { ContactCache } from '../../cache';
 import { SETTINGS } from '../../settings';
@@ -277,6 +277,72 @@ export class DuplicateDetector {
     const proceed = result.value;
     await this.log(`User answered: ${proceed ? 'Yes' : 'No'}`);
     return proceed;
+  }
+
+  async promptDuplicateSelectOrCreate(
+    duplicates: DuplicateMatch[],
+    uiLogger: Logger
+  ): Promise<DuplicatePromptResult | null> {
+    if (duplicates.length === 0) {
+      return { action: 'create_new' };
+    }
+
+    const paddedCount = duplicates.length.toString().padStart(3, '0');
+    uiLogger.displayWarning(`Found ${paddedCount} similar contacts:`);
+    for (let i = 0; i < duplicates.length; i++) {
+      const { contact, similarityType } = duplicates[i];
+      const matchNumber = (i + 1).toString().padStart(3, '0');
+      console.log(`===Match ${matchNumber}:===`);
+      console.log(`-Similarity Type: ${similarityType}`);
+      const firstName = formatMixedHebrewEnglish(contact.firstName);
+      const lastName = formatMixedHebrewEnglish(contact.lastName);
+      console.log(`-Full Name: ${`${firstName} ${lastName}`.trim()}`);
+      if (contact.label) console.log(`-Labels: ${formatMixedHebrewEnglish(contact.label)}`);
+      if (contact.company) console.log(`-Company Name: ${formatMixedHebrewEnglish(contact.company)}`);
+      if (contact.emails.length === 1) console.log(`-Email: ${contact.emails[0].value}`);
+      else if (contact.emails.length > 1) console.log(`-Emails: ${contact.emails.map(e => e.value).join(', ')}`);
+      if (contact.phones.length === 1) console.log(`-Phone: ${contact.phones[0].number}`);
+      else if (contact.phones.length > 1) console.log(`-Phones: ${contact.phones.map(p => p.number).join(', ')}`);
+      const linkedin = contact.websites.find(w => w.label.toLowerCase().includes('linkedin'));
+      if (linkedin) console.log(`-LinkedIn URL: ${linkedin.url} LinkedIn`);
+      if (contact.etag) console.log(`-ETag: ${contact.etag}`);
+      console.log('');
+    }
+
+    const choices = [
+      { name: '➕ Create a new contact', value: 'create_new' },
+      ...duplicates.map((match, i) => {
+        const first = formatMixedHebrewEnglish(match.contact.firstName);
+        const last = formatMixedHebrewEnglish(match.contact.lastName);
+        const email = match.contact.emails[0]?.value ? ` (${match.contact.emails[0].value})` : '';
+        return {
+          name: `🔍 ${`${first} ${last}`.trim()}${email}`,
+          value: `existing_${i}`,
+        };
+      }),
+    ];
+
+    await this.log('? Select an action:');
+    const result = await selectWithEscape<string>({
+      message: 'Select an action:',
+      loop: false,
+      choices,
+    });
+
+    if (result.escaped) {
+      await this.log('User pressed ESC');
+      return null;
+    }
+
+    if (result.value === 'create_new') {
+      await this.log('User selected: Create a new contact');
+      return { action: 'create_new' };
+    }
+
+    const index = parseInt(result.value.replace('existing_', ''), 10);
+    const selected = duplicates[index].contact;
+    await this.log(`User selected existing contact: ${selected.firstName} ${selected.lastName}`);
+    return { action: 'use_existing', contact: selected };
   }
 
   private async fetchAllContacts(

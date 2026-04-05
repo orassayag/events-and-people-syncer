@@ -1,6 +1,6 @@
 import { injectable, inject } from 'inversify';
 import { google } from 'googleapis';
-import type { OAuth2Client, Script, ContactGroup } from '../types';
+import type { OAuth2Client, Script, ContactGroup, ContactData } from '../types';
 import { FolderType, FolderMapping, FolderCacheData, EventsJobsSyncStats, FolderType as FolderTypeEnum, MenuOption as MenuOptionEnum, ScriptState } from '../types';
 import {
   selectWithEscape,
@@ -12,7 +12,10 @@ import {
   retryWithBackoff,
   readFromClipboard,
   clearClipboard,
+  formatMixedHebrewEnglish,
+  formatDateTimeDDMMYYYY_HHMMSS,
 } from '../utils';
+import { ExistingContactSelected } from '../errors';
 import { promises as fs } from 'fs';
 import { join, basename } from 'path';
 import { Logger, SyncLogger } from '../logging';
@@ -1558,7 +1561,7 @@ export class EventsJobsSyncScript {
       `Prompting contact creation for folder: '${folderDisplay}'`
     );
     const shouldAddContactResult = await confirmWithEscape({
-      message: `Create a new contact for ${folderDisplay}?`,
+      message: `Create/Update contact for ${folderDisplay}?`,
       default: false,
     });
     if (shouldAddContactResult.escaped || !shouldAddContactResult.value) {
@@ -1674,6 +1677,10 @@ export class EventsJobsSyncScript {
       this.uiLogger.displaySuccess('Contact created');
       this.contactEditor.setApiLogging(false);
     } catch (error) {
+      if (error instanceof ExistingContactSelected) {
+        await this.handleExistingContactSelected(error.contact);
+        return;
+      }
       await this.logger.logError(
         `Contact creation error: ${(error as Error).message}`
       );
@@ -1719,6 +1726,107 @@ export class EventsJobsSyncScript {
       pageToken = response.data.nextPageToken || undefined;
     } while (pageToken);
     return contactGroups.sort((a, b) => a.name.localeCompare(b.name, 'en-US'));
+  }
+
+  private async handleExistingContactSelected(contact: ContactData): Promise<void> {
+    const fullName = `${contact.firstName} ${contact.lastName}`.trim();
+    this.uiLogger.displayInfo(`Selected existing contact: ${fullName}`);
+    this.displayContactDetails(contact);
+    console.log('');
+
+    const confirmUpdate = await confirmWithEscape({
+      message: `Update existing contact '${fullName}' with current folder data?`,
+      default: true,
+    });
+
+    if (confirmUpdate.escaped || !confirmUpdate.value) {
+      await this.logger.logMain('User declined updating existing contact');
+      return;
+    }
+
+    try {
+      this.contactEditor.setApiLogging(true);
+      this.contactEditor.setLogCallback(async (msg: string) => await this.logger.logMain(msg));
+
+      const editable = this.contactEditor.convertContactDataToEditable(contact);
+      
+      // Auto-add current folder label
+      let currentLabelResource = '';
+      const labelString = this.lastSelectedFolder!.label;
+      if (labelString) {
+        const result = this.labelResolver.resolveLabel(labelString, false, this.cachedContactGroups || []);
+        currentLabelResource = result.resourceName;
+      }
+
+      if (currentLabelResource && !editable.labelResourceNames.includes(currentLabelResource)) {
+        editable.labelResourceNames.push(currentLabelResource);
+        this.uiLogger.displayInfo(`Auto-added label: ${this.lastSelectedFolder!.label}`);
+      }
+
+      const finalData = await this.contactEditor.showSummaryAndEdit(editable, 'Save');
+      if (finalData === null) {
+        this.uiLogger.displayError('Update cancelled');
+        return;
+      }
+
+      const timestamp = formatDateTimeDDMMYYYY_HHMMSS(new Date());
+      const updateNote = `\n[${timestamp}] Updated via events & jobs sync (Folder: ${this.lastSelectedFolder!.name})`;
+      const finalNote = (contact.biography || '') + updateNote;
+
+      if (!contact.resourceName) {
+        throw new Error('Contact resourceName is missing');
+      }
+
+      await this.contactEditor.updateExistingContact(contact.resourceName, finalData, finalNote);
+      
+      this.stats.contacts++;
+      this.uiLogger.displaySuccess('Contact updated successfully');
+      await this.logger.logMain(`${EMOJIS.STATUS.SUCCESS} Existing contact updated: ${fullName}`);
+    } catch (err) {
+      await this.logger.logError(`Failed to update existing contact: ${(err as Error).message}`);
+      this.uiLogger.displayWarning(`Update failed: ${(err as Error).message}`);
+    } finally {
+      this.contactEditor.setApiLogging(false);
+    }
+  }
+
+  private displayContactDetails(contact: ContactData): void {
+    const first = formatMixedHebrewEnglish(contact.firstName);
+    const last = formatMixedHebrewEnglish(contact.lastName);
+    const fullName = `${first} ${last}`.trim();
+    
+    console.log(`${EMOJIS.FIELDS.PERSON} Full name: ${fullName}`);
+    console.log(`${EMOJIS.FIELDS.LABEL}  Labels: ${formatMixedHebrewEnglish(contact.label || '')}`);
+    console.log(`${EMOJIS.FIELDS.COMPANY} Company: ${formatMixedHebrewEnglish(contact.company || '')}`);
+    console.log(`${EMOJIS.FIELDS.JOB_TITLE} Job Title: ${formatMixedHebrewEnglish(contact.jobTitle || '')}`);
+    
+    // Email(s)
+    if (contact.emails.length === 0) {
+      console.log(`${EMOJIS.FIELDS.EMAIL} Email: `);
+    } else {
+      contact.emails.forEach(e => {
+        console.log(`${EMOJIS.FIELDS.EMAIL} Email: ${e.value} ${e.label ? formatMixedHebrewEnglish(e.label) : ''}`);
+      });
+    }
+
+    // Phone(s) - Always show key as requested
+    if (contact.phones.length === 0) {
+      console.log(`${EMOJIS.FIELDS.PHONE} Phone: `);
+    } else {
+      contact.phones.forEach(p => {
+        console.log(`${EMOJIS.FIELDS.PHONE} Phone: ${p.number} ${p.label ? formatMixedHebrewEnglish(p.label) : ''}`);
+      });
+    }
+
+    // LinkedIn / Website
+    const linkedIn = contact.websites.find(w => w.label.toLowerCase().includes('linkedin'));
+    if (linkedIn) {
+      console.log(`${EMOJIS.FIELDS.LINKEDIN} LinkedIn URL: ${linkedIn.url} ${formatMixedHebrewEnglish(linkedIn.label)}`);
+    } else {
+      // Also show other websites or at least the key as per user's "even if not exists, show the key" logic for phone, 
+      // though user specifically mentioned LinkedIn URL for the key.
+      console.log(`${EMOJIS.FIELDS.LINKEDIN} LinkedIn URL: `);
+    }
   }
 
   private displayFinalSummary(): void {
