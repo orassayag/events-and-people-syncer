@@ -1298,6 +1298,13 @@ export class ContactEditor {
       name: group.name,
       value: group.resourceName,
     }));
+    
+    // Add "Create a new label" option
+    choices.unshift({
+      name: '✨ Create a new label',
+      value: 'CREATE_NEW',
+    });
+
     const selectedLabelsResult = await checkboxWithEscape<string>({
       message: 'Select labels (At least one required):',
       choices,
@@ -1313,7 +1320,50 @@ export class ContactEditor {
     if (selectedLabelsResult.escaped) {
       throw new Error('User cancelled');
     }
+    
     selectedResourceNames = selectedLabelsResult.value;
+
+    if (selectedResourceNames.includes('CREATE_NEW')) {
+      // Remove CREATE_NEW from the selected array
+      selectedResourceNames = selectedResourceNames.filter((r) => r !== 'CREATE_NEW');
+
+      const labelNameResult = await inputWithEscape({
+        message: 'Enter new label name:',
+        validate: (input: string): boolean | string => {
+          if (!input.trim()) {
+            return 'Label name cannot be empty.';
+          }
+          return InputValidator.validateLabelName(input, existingGroups);
+        },
+      });
+      if (labelNameResult.escaped) {
+        throw new Error('User cancelled');
+      }
+      const labelName = labelNameResult.value;
+      const trimmedLabelName = labelName.trim();
+      const ora = (await import('ora')).default;
+      const spinner = ora({
+        text: `Creating label: ${trimmedLabelName}...`,
+        color: 'cyan',
+      }).start();
+      const newResourceName = await this.createContactGroup(trimmedLabelName);
+      spinner.stop();
+      spinner.clear();
+      this.uiLogger.resetState('spinner');
+      this.uiLogger.displaySuccess(`Label created: ${trimmedLabelName}`);
+      
+      // Update local existingGroups cache
+      existingGroups = await this.fetchContactGroups(true);
+
+      // Add the new label's resource name to the selected labels
+      selectedResourceNames.push(newResourceName);
+    }
+    
+    // Safety check again since CREATE_NEW could theoretically have been the only option
+    if (selectedResourceNames.length === 0) {
+      throw new Error('At least one label must be selected');
+    }
+
     return selectedResourceNames;
   }
 
