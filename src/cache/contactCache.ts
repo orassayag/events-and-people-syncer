@@ -90,11 +90,10 @@ export class ContactCache {
     if (!contacts) {
       return [];
     }
-    const emailLower = email.toLowerCase();
     const matches: ContactData[] = [];
     for (const contact of contacts) {
       for (const contactEmail of contact.emails) {
-        if (contactEmail.value.toLowerCase() === emailLower) {
+        if (contactEmail.value === email) {
           matches.push(contact);
           break;
         }

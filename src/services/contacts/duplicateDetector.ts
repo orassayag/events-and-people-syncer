@@ -149,7 +149,7 @@ export class DuplicateDetector {
     const matches: DuplicateMatch[] = [];
     for (const contact of contacts) {
       for (const contactEmail of contact.emails) {
-        if (contactEmail.value.toLowerCase() === email.toLowerCase()) {
+        if (contactEmail.value === email) {
           matches.push({ contact, similarityType: 'Email' });
           break;
         }

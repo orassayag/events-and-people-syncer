@@ -92,7 +92,7 @@ export class InputValidator {
       return emailValidation;
     }
     const duplicateIndex = existingEmails.findIndex(
-      (e) => e.toLowerCase() === trimmed.toLowerCase()
+      (e) => e.trim() === trimmed
     );
     if (duplicateIndex !== -1 && duplicateIndex !== currentIndex) {
       return 'This email address is already added to this contact.';
