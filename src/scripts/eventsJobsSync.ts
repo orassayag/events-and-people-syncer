@@ -589,6 +589,63 @@ export class EventsJobsSyncScript {
     }
   }
 
+  private async askFolderCreationConfirm(
+    folderName: string,
+    prefixRequired: boolean = false
+  ): Promise<string | null> {
+    let currentFolderName = folderName;
+    while (true) {
+      const choices = [
+        { name: 'Yes', value: 'yes' },
+        { name: 'No', value: 'no' },
+        { name: 'Rename', value: 'rename' },
+      ];
+      const result = await selectWithEscape<string>({
+        message: `About to create folder: '${currentFolderName}'. Proceed?`,
+        loop: false,
+        choices,
+      });
+
+      if (result.escaped || result.value === 'no') {
+        return null;
+      }
+
+      if (result.value === 'yes') {
+        return currentFolderName;
+      }
+
+      if (result.value === 'rename') {
+        const renameResult = await inputWithEscape({
+          message: 'Enter the folder name:',
+          validate: (input: string): boolean | string => {
+            const trimmed = input.trim();
+            if (!trimmed) {
+              return 'Folder name cannot be empty.';
+            }
+            if (prefixRequired) {
+              if (!trimmed.startsWith('Job_') && !trimmed.startsWith('HR_')) {
+                return 'Folder name must start with "Job_" or "HR_".';
+              }
+            } else if (trimmed.length < 2) {
+              return 'Folder name must be at least 2 characters.';
+            }
+            const illegalCharsRegex = /[\/\\:*?"<>|]/;
+            if (illegalCharsRegex.test(trimmed)) {
+              return 'Folder name cannot contain: / \\ : * ? " < > |';
+            }
+            return true;
+          },
+        });
+
+        if (renameResult.escaped) {
+          continue;
+        }
+
+        currentFolderName = renameResult.value.trim();
+      }
+    }
+  }
+
   private async createFolderFlow(
     initialInput: string,
     createNoteAfter: boolean = true
@@ -659,29 +716,29 @@ export class EventsJobsSyncScript {
       await this.scanFolders();
       return null;
     }
-    const confirmResult = await confirmWithEscape({
-      message: `About to create folder: '${finalFolderName}'. Proceed?`,
-      default: true,
-    });
-    await this.logger.logMain('Awaiting user confirmation...');
-    if (confirmResult.escaped || !confirmResult.value) {
+    const confirmedFolderName = await this.askFolderCreationConfirm(
+      finalFolderName,
+      true
+    );
+    if (!confirmedFolderName) {
       await this.logger.logMain('Folder creation cancelled by user');
       this.uiLogger.displayError('Folder creation cancelled');
       return null;
     }
+    const finalFolderNameToCreate = confirmedFolderName;
     try {
       const folderPath = await this.folderManager.createFolder(
         basePath,
-        finalFolderName
+        finalFolderNameToCreate
       );
       await FolderCache.getInstance().invalidate();
       await this.scanFolders();
       this.stats.createdFolders++;
       await this.logger.logMain(`${EMOJIS.STATUS.SUCCESS} Folder created: '${folderPath}'`);
-      this.uiLogger.displaySuccess(`Folder created: ${finalFolderName}`);
+      this.uiLogger.displaySuccess(`Folder created: ${finalFolderNameToCreate}`);
       this.scriptState = ScriptState.FOLDER_SELECTED;
       const cache = await FolderCache.getInstance().get();
-      const folder = cache?.jobFolders.find((f) => f.name === finalFolderName);
+      const folder = cache?.jobFolders.find((f) => f.name === finalFolderNameToCreate);
       if (folder) {
         if (createNoteAfter) {
           await this.createNoteInFolder(folder);
@@ -876,30 +933,30 @@ export class EventsJobsSyncScript {
       await this.scanFolders();
       return null;
     }
-    const confirmResult = await confirmWithEscape({
-      message: `About to create folder: '${finalFolderName}'. Proceed?`,
-      default: true,
-    });
-    await this.logger.logMain('Awaiting user confirmation...');
-    if (confirmResult.escaped || !confirmResult.value) {
+    const confirmedFolderName = await this.askFolderCreationConfirm(
+      finalFolderName,
+      false
+    );
+    if (!confirmedFolderName) {
       await this.logger.logMain('Folder creation cancelled by user');
       this.uiLogger.displayError('Folder creation cancelled');
       return null;
     }
+    const finalFolderNameToCreate = confirmedFolderName;
     try {
       const folderPath = await this.folderManager.createFolder(
         basePath,
-        finalFolderName
+        finalFolderNameToCreate
       );
       await FolderCache.getInstance().invalidate();
       await this.scanFolders();
       this.stats.createdFolders++;
       await this.logger.logMain(`${EMOJIS.STATUS.SUCCESS} Folder created: '${folderPath}'`);
-      this.uiLogger.displaySuccess(`Folder created: ${finalFolderName}`);
+      this.uiLogger.displaySuccess(`Folder created: ${finalFolderNameToCreate}`);
       this.scriptState = ScriptState.FOLDER_SELECTED;
       const cache = await FolderCache.getInstance().get();
       const folder = cache?.lifeEventFolders.find(
-        (f) => f.name === finalFolderName
+        (f) => f.name === finalFolderNameToCreate
       );
       if (folder) {
         if (createNoteAfter) {
