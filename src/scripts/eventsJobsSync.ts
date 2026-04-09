@@ -296,6 +296,7 @@ export class EventsJobsSyncScript {
       const choices = [
         { name: `${EMOJIS.MENU.WRITE_NOTES} Write notes`, value: MenuOptionEnum.WRITE_NOTES },
         { name: `${EMOJIS.MENU.CREATE_NOTE} Write a note`, value: MenuOptionEnum.CREATE_NOTE },
+        { name: `${EMOJIS.MENU.CREATE_NOTE} Write a note with contact`, value: MenuOptionEnum.CREATE_NOTE_WITH_CONTACT },
         { name: `${EMOJIS.MENU.REWRITE_NOTE} Rewrite a note`, value: MenuOptionEnum.REWRITE_NOTE },
       ];
       if (this.lastCreatedNotePath !== null) {
@@ -332,6 +333,8 @@ export class EventsJobsSyncScript {
         process.exit(0);
       } else if (action === MenuOptionEnum.CREATE_NOTE) {
         await this.createNoteFlow();
+      } else if (action === MenuOptionEnum.CREATE_NOTE_WITH_CONTACT) {
+        await this.createNoteWithContactFlow();
       } else if (action === MenuOptionEnum.REWRITE_NOTE) {
         await this.rewriteNoteFlow();
       } else if (action === MenuOptionEnum.DELETE_LAST_NOTE) {
@@ -481,6 +484,13 @@ export class EventsJobsSyncScript {
   private async createNoteFlow(): Promise<void> {
     const selectedFolder = await this.selectOrCreateFolder();
     if (selectedFolder) {
+      await this.createNoteInFolder(selectedFolder);
+    }
+  }
+
+  private async createNoteWithContactFlow(): Promise<void> {
+    const selectedFolder = await this.selectOrCreateFolder();
+    if (selectedFolder) {
       const noteCreated = await this.createNoteInFolder(selectedFolder);
       if (noteCreated) {
         await this.promptAndCreateContact();
@@ -546,9 +556,6 @@ export class EventsJobsSyncScript {
           await this.logger.logMain(
             `User exited write notes loop after ${successfulNoteCount} successful notes`
           );
-          if (successfulNoteCount > 0) {
-            await this.promptAndCreateContact();
-          }
           return;
         }
         if (
