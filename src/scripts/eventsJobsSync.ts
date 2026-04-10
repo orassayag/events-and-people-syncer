@@ -1025,11 +1025,11 @@ export class EventsJobsSyncScript {
         if (options?.allowCancel) {
           this.uiLogger.displayWarning('Clipboard is empty');
           await this.logger.logMain(`${EMOJIS.STATUS.WARNING}  Clipboard validation failed: empty`);
-          const shouldRetryResult = await confirmWithEscape({
-            message: 'Try again? (ESC to cancel)',
+          const exitResult = await confirmWithEscape({
+            message: 'Exit?',
             default: true,
           });
-          if (shouldRetryResult.escaped || !shouldRetryResult.value) {
+          if (exitResult.escaped || exitResult.value) {
             throw new EscapeSignal();
           }
         } else {

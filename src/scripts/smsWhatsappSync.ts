@@ -170,11 +170,11 @@ export class SmsWhatsappSyncScript {
       }
       const clipboardContent = await this.readAndValidateClipboard();
       if (clipboardContent === null) {
-        const retryResult = await confirmWithEscape({
-          message: 'Try again? (ESC to cancel)',
+        const exitResult = await confirmWithEscape({
+          message: 'Exit?',
           default: true,
         });
-        if (retryResult.escaped || !retryResult.value) {
+        if (exitResult.escaped || exitResult.value) {
           return null;
         }
         continue;
