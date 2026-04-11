@@ -60,4 +60,21 @@ export class TextUtils {
     });
     return pascalCaseWords.join('');
   }
+
+  static cleanName(name: string): string {
+    if (!name) return '';
+    // Remove Hebrew characters
+    let cleaned = name.replace(/[\u0590-\u05FF]/g, '').trim();
+    // Remove multiple spaces that might have been left behind
+    cleaned = cleaned.replace(/\s+/g, ' ');
+    // Title Case
+    return cleaned
+      .toLowerCase()
+      .split(' ')
+      .map((word) =>
+        word.length > 0 ? word.charAt(0).toUpperCase() + word.slice(1) : ''
+      )
+      .filter((word) => word.length > 0)
+      .join(' ');
+  }
 }

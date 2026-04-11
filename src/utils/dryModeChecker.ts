@@ -7,15 +7,18 @@ export class DryModeChecker {
   }
 
   static logApiCall(
-    apiMethod: string,
-    details: string,
-    logger?: { info: (msg: string, meta?: any) => void } | Logger
+    _apiMethod: string,
+    _details: string,
+    _logger?: { info: (msg: string, meta?: any) => void } | Logger
   ): void {
+    // Silencing dry-mode API call logs as requested
+    /*
     if (!logger || typeof logger.info !== 'function') {
       console.log(`[DRY-MODE] Calling API ${apiMethod} - ${details}`);
       return;
     }
     const message = `[DRY-MODE] Calling API ${apiMethod} - ${details}`;
     logger.info(message);
+    */
   }
 }

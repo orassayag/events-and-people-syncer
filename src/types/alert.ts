@@ -6,6 +6,8 @@ export interface Alert {
   timestamp: string;
   contact: AlertContact;
   reason: string;
+  matches?: AlertContact[];
+  exactMatchMessage?: string;
 }
 
 export interface AlertContact {
@@ -14,6 +16,10 @@ export interface AlertContact {
   email?: string;
   url?: string;
   company?: string;
+  jobTitle?: string;
+  phone?: string;
+  labels?: string[];
+  score?: number;
 }
 
 export interface AlertCounts {

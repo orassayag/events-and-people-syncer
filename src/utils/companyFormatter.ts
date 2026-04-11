@@ -58,11 +58,14 @@ export function cleanCompany(company: string): string {
   return cleanedParts.join(' ');
 }
 
-export function formatCompanyToPascalCase(company: string): string {
+export function formatCompanyToPascalCase(company: string, maxWords?: number): string {
   if (!company || !company.trim()) {
     return '';
   }
-  const words = company.trim().split(/\s+/);
+  let words = company.trim().split(/\s+/);
+  if (maxWords && maxWords > 0) {
+    words = words.slice(0, maxWords);
+  }
   const pascalCaseWords = words.map((word: string) => {
     if (!word) return '';
     return word.charAt(0).toUpperCase() + word.slice(1);
@@ -70,10 +73,10 @@ export function formatCompanyToPascalCase(company: string): string {
   return pascalCaseWords.join('');
 }
 
-export function calculateFormattedCompany(company: string): string {
+export function calculateFormattedCompany(company: string, maxWords?: number): string {
   const cleanedCompany: string = cleanCompany(company);
   const englishOnlyCompany: string = extractEnglishFromMixed(cleanedCompany);
   const noEmojis: string = removeEmojis(englishOnlyCompany);
-  const formattedCompany: string = formatCompanyToPascalCase(noEmojis);
+  const formattedCompany: string = formatCompanyToPascalCase(noEmojis, maxWords);
   return formattedCompany;
 }

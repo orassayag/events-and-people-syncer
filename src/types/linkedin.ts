@@ -31,11 +31,14 @@ export enum MatchType {
   UNCERTAIN = 'uncertain',
   NONE = 'none',
 }
+import type { DuplicateMatch } from './services';
 
 export interface MatchResult {
   matchType: MatchType;
   resourceName?: string;
   score?: number;
+  matches?: DuplicateMatch[];
+  exactMatchMessage?: string;
 }
 
 export interface SyncStatus {

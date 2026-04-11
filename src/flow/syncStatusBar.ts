@@ -2,7 +2,7 @@ import ora, { Ora } from 'ora';
 import { SyncStatus, SupportedContact, LinkedInConnection, ContactType } from '../types';
 import { Logger } from '../logging';
 import { FormatUtils, EMOJIS } from '../constants';
-import { formatMixedHebrewEnglish, calculateFormattedCompany } from '../utils';
+import { formatMixedHebrewEnglish, calculateFormattedCompany, DryModeChecker } from '../utils';
 
 export class SyncStatusBar {
   private spinner: Ora | null = null;
@@ -173,7 +173,8 @@ export class SyncStatusBar {
     const minutes: number = Math.floor((elapsedSeconds % 3600) / 60);
     const seconds: number = elapsedSeconds % 60;
     const timeString: string = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    const statusLine = `Time: ${timeString} | Status: ${this.apiStatus}`;
+    const dryModeStr: string = DryModeChecker.isEnabled() ? ' | DRY MODE' : '';
+    const statusLine = `Time: ${timeString}${dryModeStr} | Status: ${this.apiStatus}`;
     const spinnerPadding = '  ';
     let result = statusLine;
     if (this.filePath) {
@@ -193,18 +194,20 @@ export class SyncStatusBar {
       const conn = this.currentConnection;
       if (conn.type === ContactType.LINKEDIN) {
         const linkedInConn = conn as LinkedInConnection;
-        const firstName = formatMixedHebrewEnglish(linkedInConn.firstName);
-        const lastName = formatMixedHebrewEnglish(linkedInConn.lastName);
-        const company = formatMixedHebrewEnglish(linkedInConn.company || '(none)');
-        const label = formatMixedHebrewEnglish(this.currentLabel);
-        const position = formatMixedHebrewEnglish(linkedInConn.position || '(none)');
-        const formattedCompany: string = linkedInConn.company ? calculateFormattedCompany(linkedInConn.company) : '';
+        const firstName = linkedInConn.firstName;
+        const lastName = linkedInConn.lastName;
+        const company = linkedInConn.company || '';
+        const label = this.currentLabel;
+        const position = linkedInConn.position || '(none)';
+        const formattedCompany: string = company ? calculateFormattedCompany(company, 2) : '';
+        const emailLabel: string = `${label} ${formattedCompany}`.trim();
         result += `\n${spinnerPadding}Current:`;
-        result += `\n${spinnerPadding}${EMOJIS.FIELDS.PERSON} Full name: ${firstName} ${lastName} ${label} ${formattedCompany}`;
+        result += `\n${spinnerPadding}${EMOJIS.FIELDS.PERSON} Full name: ${firstName} ${lastName} ${label}`;
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.LABEL}  Labels: ${label}`;
-        result += `\n${spinnerPadding}${EMOJIS.FIELDS.COMPANY} Company: ${company}`;
+        result += `\n${spinnerPadding}${EMOJIS.FIELDS.COMPANY} Company: ${emailLabel}`;
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.JOB_TITLE} Job Title: ${position}`;
-        result += `\n${spinnerPadding}${EMOJIS.FIELDS.EMAIL} Email: ${linkedInConn.email || '(none)'} ${label} ${formattedCompany}`;
+        result += `\n${spinnerPadding}${EMOJIS.FIELDS.EMAIL} Email: ${linkedInConn.email ? `${linkedInConn.email} ${emailLabel}` : '(none)'}`;
+        result += `\n${spinnerPadding}📞 Phone: (none)`;
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.LINKEDIN} LinkedIn URL: ${linkedInConn.url || '(none)'} LinkedIn`;
       } else if (conn.type === ContactType.HIBOB) {
         const hibobConn = conn;

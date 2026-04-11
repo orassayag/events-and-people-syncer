@@ -52,7 +52,7 @@ export class ConnectionMatcher {
       return null;
     }
     if (matches.length > 1) {
-      return { matchType: MatchType.UNCERTAIN };
+      return { matchType: MatchType.UNCERTAIN, matches, exactMatchMessage: `Exact value of LinkedIn URL matches multiple contacts` };
     }
     return {
       matchType: MatchType.EXACT,
@@ -67,7 +67,7 @@ export class ConnectionMatcher {
       return null;
     }
     if (matches.length > 1) {
-      return { matchType: MatchType.UNCERTAIN };
+      return { matchType: MatchType.UNCERTAIN, matches, exactMatchMessage: `Exact value of Email matches multiple contacts` };
     }
     return {
       matchType: MatchType.EXACT,
@@ -85,7 +85,7 @@ export class ConnectionMatcher {
       return null;
     }
     if (matches.length > 1) {
-      return { matchType: MatchType.UNCERTAIN };
+      return { matchType: MatchType.UNCERTAIN, matches };
     }
     const match: DuplicateMatch = matches[0];
     const score: number = match.score ?? 1;
@@ -94,10 +94,11 @@ export class ConnectionMatcher {
         matchType: MatchType.FUZZY,
         resourceName: match.contact.resourceName,
         score,
+        matches: [match]
       };
     }
     if (score <= this.FUZZY_WARNING_THRESHOLD) {
-      return { matchType: MatchType.UNCERTAIN, score };
+      return { matchType: MatchType.UNCERTAIN, score, matches: [match] };
     }
     return null;
   }

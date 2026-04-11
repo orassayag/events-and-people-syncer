@@ -39,7 +39,8 @@ export class ContactSyncer {
       const apiTracker: ApiTracker = ApiTracker.getInstance();
       const groupResourceName: string = await this.ensureGroupExists(label);
       const formattedCompany: string = calculateFormattedCompany(
-        connection.company
+        connection.company,
+        2
       );
       const emailLabel: string = `${label} ${formattedCompany}`.trim();
       const lastNameValue: string = [
@@ -252,7 +253,8 @@ export class ContactSyncer {
         existingEtag = existingData.etag || '';
       }
       const formattedCompany: string = calculateFormattedCompany(
-        connection.company
+        connection.company,
+        2
       );
       const emailLabel: string = `${label} ${formattedCompany}`.trim();
       const lastNameValue: string = [

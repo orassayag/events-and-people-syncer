@@ -197,6 +197,12 @@ export class HibobSyncScript {
           statusBar.updateStatus(status);
           continue;
         }
+        const alertContact = {
+          firstName: contact.firstName,
+          lastName: contact.lastName || '',
+          email: contact.email,
+          labels: [companyName]
+        };
         try {
           let nameMatches: DuplicateMatch[] = [];
           let emailMatches: DuplicateMatch[] = [];
@@ -227,37 +233,36 @@ export class HibobSyncScript {
               : undefined,
             score: hasNameMatch ? nameMatches[0].score : undefined,
           };
-          if (matchResult.matchType === MatchType.UNCERTAIN) {
-            if (!alertLogger.checkForDuplicateAlert(contact)) {
+
+
+        if (matchResult.matchType === MatchType.UNCERTAIN) {
+            if (!alertLogger.checkForDuplicateAlert(alertContact)) {
               status.warning++;
-              await alertLogger.writeAlert('warning', contact, ALERT_REASONS.WARNING.UNCERTAIN_MATCH);
+              await alertLogger.writeAlert('warning', alertContact, ALERT_REASONS.WARNING.UNCERTAIN_MATCH);
             }
-            await logger.logWarning(
-              `Contact "${contact.firstName} ${contact.lastName || ''}" (${contact.email || 'No email'}) - ${ALERT_REASONS.WARNING.UNCERTAIN_MATCH} (score: ${matchResult.score})`
-            );
           } else if (matchResult.matchType === MatchType.NONE) {
             const syncResult: SyncResult =
               await this.contactSyncer.addContact(contact, labelResourceName, companyName);
             if (syncResult.status === SyncStatusType.NEW) {
               status.new++;
               await logger.logMain(
-                `Added new contact: ${contact.firstName} ${contact.lastName || ''} (${contact.email || 'No email'}) - Label: ${companyName}`
+                `Added contact: ${contact.firstName} ${contact.lastName || ''} (${companyName || 'No company'}) - Label: ${companyName}`
               );
             } else if (syncResult.status === SyncStatusType.SKIPPED) {
-              if (!alertLogger.checkForDuplicateAlert(contact)) {
+              if (!alertLogger.checkForDuplicateAlert(alertContact)) {
                 status.skipped++;
-                await alertLogger.writeAlert('skipped', contact, ALERT_REASONS.SKIPPED.MISSING_REQUIRED_DATA);
+                await alertLogger.writeAlert('skipped', alertContact, ALERT_REASONS.SKIPPED.MISSING_REQUIRED_DATA);
               }
-              await logger.logWarning(
+              await logger.logMain(
                 `Skipped contact: ${contact.firstName} ${contact.lastName || ''} - Missing required data`
               );
             } else if (syncResult.status === SyncStatusType.ERROR) {
-              if (!alertLogger.checkForDuplicateAlert(contact)) {
+              if (!alertLogger.checkForDuplicateAlert(alertContact)) {
                 status.error++;
                 const errorMessage = syncResult.error
                   ? `Failed to create contact via Google API: ${syncResult.error.message}${syncResult.error.stack ? `\n\nStack trace:\n${syncResult.error.stack}` : ''}`
                   : ALERT_REASONS.ERROR.API_CREATE_FAILED;
-                await alertLogger.writeAlert('error', contact, errorMessage);
+                await alertLogger.writeAlert('error', alertContact, errorMessage);
               }
               await logger.logError(
                 `Error adding contact: ${contact.firstName} ${contact.lastName || ''} (${contact.email || 'No email'})${syncResult.error ? `: ${syncResult.error.message}` : ''}`
@@ -268,9 +273,9 @@ export class HibobSyncScript {
             matchResult.matchType === MatchType.FUZZY
           ) {
             if (!matchResult.resourceName) {
-              if (!alertLogger.checkForDuplicateAlert(contact)) {
+              if (!alertLogger.checkForDuplicateAlert(alertContact)) {
                 status.error++;
-                await alertLogger.writeAlert('error', contact, ALERT_REASONS.ERROR.MISSING_RESOURCE_NAME);
+                await alertLogger.writeAlert('error', alertContact, ALERT_REASONS.ERROR.MISSING_RESOURCE_NAME);
               }
               await logger.logError(
                 `Match found but no resourceName for ${contact.firstName} ${contact.lastName || ''} (${contact.email || 'No email'})`
@@ -284,7 +289,7 @@ export class HibobSyncScript {
               if (syncResult.status === SyncStatusType.UPDATED) {
                 status.updated++;
                 await logger.logMain(
-                  `Updated contact: ${contact.firstName} ${contact.lastName || ''} (${contact.email || 'No email'}) - Added label: ${companyName}`
+                  `Updated contact: ${contact.firstName} ${contact.lastName || ''} (${companyName || 'No company'}) - Label: ${companyName}`
                 );
               } else if (syncResult.status === SyncStatusType.UP_TO_DATE) {
                 status.upToDate++;
@@ -292,12 +297,12 @@ export class HibobSyncScript {
                   `Contact up-to-date: ${contact.firstName} ${contact.lastName || ''} (${contact.email || 'No email'})`
                 );
               } else if (syncResult.status === SyncStatusType.ERROR) {
-                if (!alertLogger.checkForDuplicateAlert(contact)) {
+                if (!alertLogger.checkForDuplicateAlert(alertContact)) {
                   status.error++;
                   const errorMessage = syncResult.error
                     ? `Failed to update contact via Google API: ${syncResult.error.message}${syncResult.error.stack ? `\n\nStack trace:\n${syncResult.error.stack}` : ''}`
                     : ALERT_REASONS.ERROR.API_UPDATE_FAILED;
-                  await alertLogger.writeAlert('error', contact, errorMessage);
+                  await alertLogger.writeAlert('error', alertContact, errorMessage);
                 }
                 await logger.logError(
                   `Error updating contact: ${contact.firstName} ${contact.lastName || ''} (${contact.email || 'No email'})${syncResult.error ? `: ${syncResult.error.message}` : ''}`
@@ -308,9 +313,9 @@ export class HibobSyncScript {
           status.processed++;
           statusBar.updateStatus(status, contact, companyName);
         } catch (error: unknown) {
-          if (!alertLogger.checkForDuplicateAlert(contact)) {
+          if (!alertLogger.checkForDuplicateAlert(alertContact)) {
             status.error++;
-            await alertLogger.writeAlert('error', contact, error instanceof Error ? error.message : ALERT_REASONS.ERROR.UNEXPECTED_ERROR);
+            await alertLogger.writeAlert('error', alertContact, error instanceof Error ? error.message : ALERT_REASONS.ERROR.UNEXPECTED_ERROR);
           }
           status.processed++;
           await logger.logError(
@@ -339,8 +344,7 @@ export class HibobSyncScript {
         googleContactsAfter
       );
       await this.postSyncMenu(status, alertLogger);
-      await logger.finalizeWarningLog();
-    } catch (error: unknown) {
+          } catch (error: unknown) {
       statusBar.fail('HiBob Sync failed');
       if (error instanceof Error && error.message === 'User cancelled') {
         this.uiLogger.displayWarning('User cancelled operation');
@@ -353,8 +357,7 @@ export class HibobSyncScript {
           `Sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`
         );
       }
-      await logger.finalizeWarningLog();
-    } finally {
+          } finally {
       this.restoreConsole();
       if (process.stdin.isTTY) {
         process.stdin.setRawMode(false);

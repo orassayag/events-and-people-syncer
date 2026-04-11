@@ -31,7 +31,12 @@ export class LinkedInSyncScript {
     this.isCancelled = false;
     const alertLogger = new AlertLogger('linkedin-sync');
     await alertLogger.initialize();
-    const shouldContinue = await this.showPreRunMenu(alertLogger);
+    
+    let shouldContinue = true;
+    if (alertLogger.hasAlerts()) {
+      shouldContinue = await this.showPreRunMenu(alertLogger);
+    }
+    
     if (!shouldContinue) {
       return;
     }
@@ -170,51 +175,67 @@ export class LinkedInSyncScript {
           continue;
         }
         let label: string = 'Unknown';
+        const alertContact = {
+          firstName: connection.firstName,
+          lastName: connection.lastName,
+          email: connection.email,
+          url: connection.url,
+          company: connection.company,
+          jobTitle: connection.position,
+          labels: [label]
+        };
         try {
           label = await this.companyMatcher.getLabel(connection.company);
+          // Update labels if needed after finding it
+          alertContact.labels = [label];
           const matchResult: MatchResult =
             await this.connectionMatcher.match(connection);
-          if (matchResult.matchType === MatchType.UNCERTAIN) {
-            if (!alertLogger.checkForDuplicateAlert(connection)) {
+
+        if (matchResult.matchType === MatchType.UNCERTAIN) {
+            if (!alertLogger.checkForDuplicateAlert(alertContact)) {
               status.warning++;
-              await alertLogger.writeAlert('warning', connection, ALERT_REASONS.WARNING.UNCERTAIN_MATCH);
+              const topMatches = (matchResult.matches || []).slice(0, 3).map(m => {
+                const c = m.contact;
+                return {
+                  firstName: c.firstName,
+                  lastName: c.lastName,
+                  email: c.emails?.[0]?.value,
+                  url: c.websites?.find(w => w.url?.toLowerCase().includes('linkedin'))?.url || c.websites?.[0]?.url,
+                  company: c.company,
+                  jobTitle: c.jobTitle,
+                  phone: c.phones?.[0]?.number,
+                  labels: c.label ? [c.label] : undefined,
+                  score: m.score
+                };
+              });
+              await alertLogger.writeAlert('warning', alertContact, ALERT_REASONS.WARNING.UNCERTAIN_MATCH, {
+                matches: topMatches,
+                exactMatchMessage: matchResult.exactMatchMessage
+              });
             }
-            const matches = await this.duplicateDetector.checkDuplicateName(
-              connection.firstName,
-              connection.lastName
-            );
-            logger.addWarningEntry(
-              connection,
-              matches.map((m) => m.contact),
-              ALERT_REASONS.WARNING.UNCERTAIN_MATCH,
-              matchResult.score
-            );
-            await logger.logWarning(
-              `Contact "${connection.firstName} ${connection.lastName}" (${connection.company || 'No company'}) - ${ALERT_REASONS.WARNING.UNCERTAIN_MATCH} (score: ${matchResult.score})`
-            );
           } else if (matchResult.matchType === MatchType.NONE) {
             const syncResult: SyncResult =
               await this.contactSyncer.addContact(connection, label, 'LinkedIn');
             if (syncResult.status === SyncStatusType.NEW) {
               status.new++;
               await logger.logMain(
-                `Added new contact: ${connection.firstName} ${connection.lastName} (${connection.company || 'No company'}) - Label: ${label}`
+                `Added contact: ${connection.firstName} ${connection.lastName} (${connection.company || 'No company'}) - Label: ${label}`
               );
             } else if (syncResult.status === SyncStatusType.SKIPPED) {
-              if (!alertLogger.checkForDuplicateAlert(connection)) {
+              if (!alertLogger.checkForDuplicateAlert(alertContact)) {
                 status.skipped++;
-                await alertLogger.writeAlert('skipped', connection, ALERT_REASONS.SKIPPED.MISSING_REQUIRED_DATA);
+                await alertLogger.writeAlert('skipped', alertContact, ALERT_REASONS.SKIPPED.MISSING_REQUIRED_DATA);
               }
-              await logger.logWarning(
+              await logger.logMain(
                 `Skipped contact: ${connection.firstName} ${connection.lastName} (${connection.company || 'No company'}) - Missing required data`
               );
             } else if (syncResult.status === SyncStatusType.ERROR) {
-              if (!alertLogger.checkForDuplicateAlert(connection)) {
+              if (!alertLogger.checkForDuplicateAlert(alertContact)) {
                 status.error++;
                 const errorMessage = syncResult.error
                   ? `Failed to create contact via Google API: ${syncResult.error.message}${syncResult.error.stack ? `\n\nStack trace:\n${syncResult.error.stack}` : ''}`
                   : ALERT_REASONS.ERROR.API_CREATE_FAILED;
-                await alertLogger.writeAlert('error', connection, errorMessage);
+                await alertLogger.writeAlert('error', alertContact, errorMessage);
               }
               await logger.logError(
                 `Failed to create contact: ${connection.firstName} ${connection.lastName} (${connection.company || 'No company'})${syncResult.error ? `: ${syncResult.error.message}` : ''}`
@@ -222,9 +243,9 @@ export class LinkedInSyncScript {
             }
           } else {
             if (!matchResult.resourceName) {
-              if (!alertLogger.checkForDuplicateAlert(connection)) {
+              if (!alertLogger.checkForDuplicateAlert(alertContact)) {
                 status.error++;
-                await alertLogger.writeAlert('error', connection, ALERT_REASONS.ERROR.MISSING_RESOURCE_NAME);
+                await alertLogger.writeAlert('error', alertContact, ALERT_REASONS.ERROR.MISSING_RESOURCE_NAME);
               }
               await logger.logError(
                 `Match found but no resourceName for ${connection.firstName} ${connection.lastName} (${connection.company || 'No company'})`
@@ -275,12 +296,12 @@ export class LinkedInSyncScript {
               } else if (syncResult.status === SyncStatusType.UP_TO_DATE) {
                 status.upToDate++;
               } else if (syncResult.status === SyncStatusType.ERROR) {
-                if (!alertLogger.checkForDuplicateAlert(connection)) {
+                if (!alertLogger.checkForDuplicateAlert(alertContact)) {
                   status.error++;
                   const errorMessage = syncResult.error
                     ? `Failed to update contact via Google API: ${syncResult.error.message}${syncResult.error.stack ? `\n\nStack trace:\n${syncResult.error.stack}` : ''}`
                     : ALERT_REASONS.ERROR.API_UPDATE_FAILED;
-                  await alertLogger.writeAlert('error', connection, errorMessage);
+                  await alertLogger.writeAlert('error', alertContact, errorMessage);
                 }
                 await logger.logError(
                   `Failed to update contact: ${connection.firstName} ${connection.lastName} (${connection.company || 'No company'})${syncResult.error ? `: ${syncResult.error.message}` : ''}`
@@ -291,9 +312,9 @@ export class LinkedInSyncScript {
           status.processed++;
           statusBar.updateStatus(status, connection, label);
         } catch (error: unknown) {
-          if (!alertLogger.checkForDuplicateAlert(connection)) {
+          if (!alertLogger.checkForDuplicateAlert(alertContact)) {
             status.error++;
-            await alertLogger.writeAlert('error', connection, error instanceof Error ? error.message : ALERT_REASONS.ERROR.UNEXPECTED_ERROR);
+            await alertLogger.writeAlert('error', alertContact, error instanceof Error ? error.message : ALERT_REASONS.ERROR.UNEXPECTED_ERROR);
           }
           status.processed++;
           await logger.logError(
@@ -302,7 +323,7 @@ export class LinkedInSyncScript {
           statusBar.updateStatus(status, connection, label);
         }
       }
-      await logger.finalizeWarningLog();
+      // Removed redundant warning log finalization
       statusBar.complete();
       await ContactCache.getInstance().invalidate();
       const googleContactsAfter: number = googleContactsBefore + status.new;
