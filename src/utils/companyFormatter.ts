@@ -1,15 +1,9 @@
 import { SETTINGS } from '../settings';
 import { RegexPatterns } from '../regex/patterns';
 import { extractEnglishFromMixed } from './hebrewFormatter';
+import { TextUtils } from './textUtils';
 
-function removeEmojis(text: string): string {
-  return text
-    .replace(
-      /[\p{Emoji_Presentation}\p{Extended_Pictographic}\p{Regional_Indicator}\u{FE0F}\u{200D}]/gu,
-      ''
-    )
-    .trim();
-}
+
 
 function removeDomainExtensions(text: string): string {
   return text.replace(
@@ -33,29 +27,33 @@ export function cleanCompany(company: string): string {
   cleaned = removeParenthesesAndContents(cleaned);
   cleaned = cleaned.replace(/\s+at work\.?$/gi, '');
   cleaned = cleaned.trim();
-  const parts: string[] = cleaned.split(/[,|\-]|\.\s+|\s{2,}/);
-  const cleanedParts: string[] = parts
-    .map((p) => p.trim().replace(/\.$/, ''))
-    .map((p) => removeDomainExtensions(p))
-    .map((p) => {
-      let cleaned: string = p;
-      for (const suffix of SETTINGS.linkedin.companySuffixesToRemove) {
-        const regex = RegexPatterns.createCompanySuffixRegex(suffix);
-        const afterRemoval: string = cleaned.replace(regex, '').trim();
-        if (afterRemoval) {
-          cleaned = afterRemoval;
-        }
-      }
-      return cleaned.trim();
-    })
-    .filter((p) => p);
-  if (cleanedParts.length === 0) {
+  // Split on phrase-level separators and take only the FIRST segment
+  // Handles: commas, pipes, spaced dashes/em-dashes, period+space, double+ spaces
+  const parts: string[] = cleaned.split(/\s*[,|]\s*|\s+[-–—]\s+|\.\s+|\s{2,}/);
+  if (parts.length > 0 && parts[0].trim()) {
+    cleaned = parts[0].trim();
+  }
+  // Remove trailing period
+  cleaned = cleaned.replace(/\.$/, '');
+  // Remove domain extensions
+  cleaned = removeDomainExtensions(cleaned);
+  // Remove company suffixes
+  for (const suffix of SETTINGS.linkedin.companySuffixesToRemove) {
+    const regex = RegexPatterns.createCompanySuffixRegex(suffix);
+    const afterRemoval: string = cleaned.replace(regex, '').trim();
+    if (afterRemoval) {
+      cleaned = afterRemoval;
+    }
+  }
+  // Replace word-joining hyphens with spaces (e.g., "Log-On" → "Log On")
+  // This lets PascalCase handle them as separate words
+  cleaned = cleaned.replace(/-/g, ' ');
+  // Clean up whitespace
+  cleaned = cleaned.replace(/\s+/g, ' ').trim();
+  if (!cleaned) {
     return company.trim();
   }
-  if (company.includes(',')) {
-    return cleanedParts[0];
-  }
-  return cleanedParts.join(' ');
+  return cleaned;
 }
 
 export function formatCompanyToPascalCase(company: string, maxWords?: number): string {
@@ -76,7 +74,7 @@ export function formatCompanyToPascalCase(company: string, maxWords?: number): s
 export function calculateFormattedCompany(company: string, maxWords?: number): string {
   const cleanedCompany: string = cleanCompany(company);
   const englishOnlyCompany: string = extractEnglishFromMixed(cleanedCompany);
-  const noEmojis: string = removeEmojis(englishOnlyCompany);
+  const noEmojis: string = TextUtils.removeEmojis(englishOnlyCompany);
   const formattedCompany: string = formatCompanyToPascalCase(noEmojis, maxWords);
   return formattedCompany;
 }

@@ -3,7 +3,7 @@ import readline from 'readline';
 import path from 'path';
 import type { OAuth2Client, Script } from '../types';
 import { LinkedInConnection, MatchType, MatchResult, SyncStatusType, SyncStatus, SyncResult, Alert, ALERT_REASONS } from '../types';
-import { selectWithEscape, confirmWithEscape, formatMixedHebrewEnglish } from '../utils';
+import { selectWithEscape, confirmWithEscape, formatMixedHebrewEnglish, calculateFormattedCompany } from '../utils';
 import { SETTINGS } from '../settings';
 import { LinkedInExtractor, CompanyMatcher, ConnectionMatcher, ContactSyncer } from '../services/linkedin';
 import { DuplicateDetector } from '../services/contacts';
@@ -175,6 +175,7 @@ export class LinkedInSyncScript {
           continue;
         }
         let label: string = 'Unknown';
+        const formattedCompany = calculateFormattedCompany(connection.company, 2);
         const alertContact = {
           firstName: connection.firstName,
           lastName: connection.lastName,
@@ -214,6 +215,8 @@ export class LinkedInSyncScript {
               });
             }
           } else if (matchResult.matchType === MatchType.NONE) {
+            label = 'LinkedIn';
+            alertContact.labels = [label];
             const syncResult: SyncResult =
               await this.contactSyncer.addContact(connection, label, 'LinkedIn');
             if (syncResult.status === SyncStatusType.NEW) {
@@ -227,7 +230,7 @@ export class LinkedInSyncScript {
                 await alertLogger.writeAlert('skipped', alertContact, ALERT_REASONS.SKIPPED.MISSING_REQUIRED_DATA);
               }
               await logger.logMain(
-                `Skipped contact: ${connection.firstName} ${connection.lastName} (${connection.company || 'No company'}) - Missing required data`
+                `Skipped contact: ${connection.firstName} ${connection.lastName} (${formattedCompany || 'No company'}) - Missing required data`
               );
             } else if (syncResult.status === SyncStatusType.ERROR) {
               if (!alertLogger.checkForDuplicateAlert(alertContact)) {
@@ -238,7 +241,7 @@ export class LinkedInSyncScript {
                 await alertLogger.writeAlert('error', alertContact, errorMessage);
               }
               await logger.logError(
-                `Failed to create contact: ${connection.firstName} ${connection.lastName} (${connection.company || 'No company'})${syncResult.error ? `: ${syncResult.error.message}` : ''}`
+                `Failed to create contact: ${connection.firstName} ${connection.lastName} (${formattedCompany || 'No company'})${syncResult.error ? `: ${syncResult.error.message}` : ''}`
               );
             }
           } else {
@@ -248,7 +251,7 @@ export class LinkedInSyncScript {
                 await alertLogger.writeAlert('error', alertContact, ALERT_REASONS.ERROR.MISSING_RESOURCE_NAME);
               }
               await logger.logError(
-                `Match found but no resourceName for ${connection.firstName} ${connection.lastName} (${connection.company || 'No company'})`
+                `Match found but no resourceName for ${connection.firstName} ${connection.lastName} (${formattedCompany || 'No company'})`
               );
             } else {
               const syncResult =
@@ -304,7 +307,7 @@ export class LinkedInSyncScript {
                   await alertLogger.writeAlert('error', alertContact, errorMessage);
                 }
                 await logger.logError(
-                  `Failed to update contact: ${connection.firstName} ${connection.lastName} (${connection.company || 'No company'})${syncResult.error ? `: ${syncResult.error.message}` : ''}`
+                  `Failed to update contact: ${connection.firstName} ${connection.lastName} (${formattedCompany || 'No company'})${syncResult.error ? `: ${syncResult.error.message}` : ''}`
                 );
               }
             }
@@ -318,7 +321,7 @@ export class LinkedInSyncScript {
           }
           status.processed++;
           await logger.logError(
-            `Error processing connection ${connection.firstName} ${connection.lastName} (${connection.company || 'No company'}): ${error instanceof Error ? error.message : 'Unknown error'}`
+            `Error processing connection ${connection.firstName} ${connection.lastName} (${formattedCompany || 'No company'}): ${error instanceof Error ? error.message : 'Unknown error'}`
           );
           statusBar.updateStatus(status, connection, label);
         }

@@ -61,10 +61,28 @@ export class TextUtils {
     return pascalCaseWords.join('');
   }
 
+  static removeEmojis(str: string): string {
+    if (!str) return '';
+    return str
+      .replace(/\p{Emoji}/gu, '')
+      .replace(/\uFE0F/g, '') // remove leftover variation selectors
+      .trim();
+  }
+
+  static removeHebrew(text: string): string {
+    if (!text) return '';
+    let cleaned = text.replace(/[\u0590-\u05FF\uFB1D-\uFB4F]/g, '');
+    cleaned = this.removeEmojis(cleaned);
+    return cleaned.replace(/\s+/g, ' ').trim();
+  }
+
   static cleanName(name: string): string {
     if (!name) return '';
-    // Remove Hebrew characters
-    let cleaned = name.replace(/[\u0590-\u05FF]/g, '').trim();
+    // Remove Hebrew characters (including presentation forms)
+    let cleaned = name.replace(/[\u0590-\u05FF\uFB1D-\uFB4F]/g, '');
+    // Remove emojis
+    cleaned = this.removeEmojis(cleaned);
+    cleaned = cleaned.trim();
     // Remove multiple spaces that might have been left behind
     cleaned = cleaned.replace(/\s+/g, ' ');
     // Title Case
