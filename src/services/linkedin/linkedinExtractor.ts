@@ -12,6 +12,7 @@ import {
 import { ErrorCode } from '../../errors';
 import { UrlNormalizer } from './urlNormalizer';
 import { Logger } from '../../logging';
+import { TextUtils } from '../../utils';
 
 @injectable()
 export class LinkedInExtractor {
@@ -145,8 +146,8 @@ export class LinkedInExtractor {
       const processedUrls = new Set<string>();
       for (const record of records) {
         try {
-          const firstName: string = (record['First Name'] || '').trim();
-          const lastName: string = (record['Last Name'] || '').trim();
+          const firstName: string = TextUtils.cleanName((record['First Name'] || '').trim());
+          const lastName: string = TextUtils.cleanName((record['Last Name'] || '').trim());
           const url: string = (record['URL'] || '').trim();
           if (!firstName || !lastName || !url) {
             this.logger.debug(
@@ -176,9 +177,9 @@ export class LinkedInExtractor {
               id: profileSlug,
               firstName,
               lastName,
-              email: (record['Email Address'] || '').trim(),
-              company: (record['Company'] || '').trim(),
-              position: (record['Position'] || '').trim(),
+              email: TextUtils.removeHebrew((record['Email Address'] || '').trim()),
+              company: TextUtils.removeHebrew((record['Company'] || '').trim()),
+              position: TextUtils.removeHebrew((record['Position'] || '').trim()),
               url,
               connectedOn: (record['Connected On'] || '').trim(),
             }
