@@ -70,6 +70,14 @@ export class SyncLogger {
     this.lineCount += lines;
   }
 
+  async logRaw(message: string): Promise<void> {
+    const logEntry: string = `${message}\n`;
+    const lines = logEntry.split('\n').length - 1;
+    await this.checkRotation(lines);
+    await fs.appendFile(this.logPath, logEntry, 'utf-8');
+    this.lineCount += lines;
+  }
+
   async logError(message: string): Promise<void> {
     const timestamp: string = new Date().toISOString();
     const logEntry: string = `[ERROR] [${timestamp}] ${message}\n`;

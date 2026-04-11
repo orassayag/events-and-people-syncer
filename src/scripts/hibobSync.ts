@@ -8,7 +8,7 @@ import { SETTINGS } from '../settings';
 import { HibobExtractor, HibobContactSyncer } from '../services/hibob';
 import { DuplicateDetector, DuplicateMatch, ContactEditor } from '../services/contacts';
 import { SyncStatusBar } from '../flow/syncStatusBar';
-import { SyncLogger, Logger, LogCleanup, AlertLogger } from '../logging';
+import { SyncLogger, Logger, LogCleanup, AlertLogger, LogFormatter } from '../logging';
 import { FormatUtils, EMOJIS } from '../constants';
 import { ApiTracker } from '../services/api';
 
@@ -245,8 +245,8 @@ export class HibobSyncScript {
               await this.contactSyncer.addContact(contact, labelResourceName, companyName);
             if (syncResult.status === SyncStatusType.NEW) {
               status.new++;
-              await logger.logMain(
-                `Added contact: ${contact.firstName} ${contact.lastName || ''} (${companyName || 'No company'}) - Label: ${companyName}`
+              await logger.logRaw(
+                LogFormatter.formatContactBlock('ADD', contact, companyName)
               );
             } else if (syncResult.status === SyncStatusType.SKIPPED) {
               if (!alertLogger.checkForDuplicateAlert(alertContact)) {
@@ -288,8 +288,8 @@ export class HibobSyncScript {
                 );
               if (syncResult.status === SyncStatusType.UPDATED) {
                 status.updated++;
-                await logger.logMain(
-                  `Updated contact: ${contact.firstName} ${contact.lastName || ''} (${companyName || 'No company'}) - Label: ${companyName}`
+                await logger.logRaw(
+                  LogFormatter.formatContactBlock('UPDATE', contact, companyName)
                 );
               } else if (syncResult.status === SyncStatusType.UP_TO_DATE) {
                 status.upToDate++;

@@ -9,7 +9,7 @@ import { LinkedInExtractor, CompanyMatcher, ConnectionMatcher, ContactSyncer } f
 import { DuplicateDetector } from '../services/contacts';
 import { ContactCache } from '../cache';
 import { SyncStatusBar } from '../flow/syncStatusBar';
-import { SyncLogger, Logger, LogCleanup, AlertLogger } from '../logging';
+import { SyncLogger, Logger, LogCleanup, AlertLogger, LogFormatter } from '../logging';
 import { FormatUtils, EMOJIS } from '../constants';
 import { ApiTracker } from '../services/api';
 
@@ -218,8 +218,8 @@ export class LinkedInSyncScript {
               await this.contactSyncer.addContact(connection, label, 'LinkedIn');
             if (syncResult.status === SyncStatusType.NEW) {
               status.new++;
-              await logger.logMain(
-                `Added contact: ${connection.firstName} ${connection.lastName} (${connection.company || 'No company'}) - Label: ${label}`
+              await logger.logRaw(
+                LogFormatter.formatContactBlock('ADD', connection, label)
               );
             } else if (syncResult.status === SyncStatusType.SKIPPED) {
               if (!alertLogger.checkForDuplicateAlert(alertContact)) {
@@ -290,8 +290,8 @@ export class LinkedInSyncScript {
                   );
                 }
                 const changesString = changesParts.length > 0 ? ` [${changesParts.join(', ')}]` : '';
-                await logger.logMain(
-                  `Updated contact: ${connection.firstName} ${connection.lastName} (${connection.company || 'No company'}) - Label: ${label}${changesString}`
+                await logger.logRaw(
+                  LogFormatter.formatContactBlock('UPDATE', connection, label, syncResult.updateDetails)
                 );
               } else if (syncResult.status === SyncStatusType.UP_TO_DATE) {
                 status.upToDate++;
