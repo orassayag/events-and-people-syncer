@@ -117,7 +117,7 @@ export class DuplicateDetector {
       .filter((t) => t.length > 1);
     const candidates = contactsWithFullName.filter((contact) => {
       const candidateWords = contact.fullName.toLowerCase().split(/\s+/);
-      return searchTokens.some((token) =>
+      return searchTokens.every((token) =>
         this.tokenExistsInName(token, candidateWords)
       );
     });
