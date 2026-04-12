@@ -4,7 +4,7 @@ import { calculateFormattedCompany } from '../utils';
 
 export class LogFormatter {
   static formatContactBlock(
-    type: 'ADD' | 'UPDATE',
+    type: 'ADD' | 'UPDATE' | 'SKIP',
     contact: LinkedInConnection | HibobContact,
     label: string,
     updateDetails?: UpdateDetails
@@ -61,6 +61,10 @@ export class LogFormatter {
         linkedInUrlStr += ' (Added)';
     }
     lines.push(linkedInUrlStr);
+
+    if (type === 'SKIP') {
+      lines.push(`${EMOJIS.NAVIGATION.SKIP}  Reason: Existing match found - skipping update`);
+    }
 
     lines.push(`===${type} CONTACT END===`);
     return lines.join('\n');
