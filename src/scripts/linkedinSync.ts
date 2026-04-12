@@ -245,72 +245,14 @@ export class LinkedInSyncScript {
               );
             }
           } else {
-            if (!matchResult.resourceName) {
-              if (!alertLogger.checkForDuplicateAlert(alertContact)) {
-                status.error++;
-                await alertLogger.writeAlert('error', alertContact, ALERT_REASONS.ERROR.MISSING_RESOURCE_NAME);
-              }
-              await logger.logError(
-                `Match found but no resourceName for ${connection.firstName} ${connection.lastName} (${formattedCompany || 'No company'})`
-              );
-            } else {
-              const syncResult =
-                await this.contactSyncer.updateContact(
-                  matchResult.resourceName,
-                  connection,
-                  label,
-                  'LinkedIn'
-                );
-              if (syncResult.status === SyncStatusType.UPDATED) {
-                status.updated++;
-                const changesParts: string[] = [];
-                if (syncResult.updateDetails?.lastName) {
-                  changesParts.push(
-                    `LastName: "${syncResult.updateDetails.lastName.from}" -> "${syncResult.updateDetails.lastName.to}"`
-                  );
-                }
-                if (syncResult.updateDetails?.jobTitle) {
-                  changesParts.push(
-                    `JobTitle: "${syncResult.updateDetails.jobTitle.from}" -> "${syncResult.updateDetails.jobTitle.to}"`
-                  );
-                }
-                if (syncResult.updateDetails?.emailAdded) {
-                  changesParts.push(
-                    `Email added: ${syncResult.updateDetails.emailAdded}`
-                  );
-                }
-                if (syncResult.updateDetails?.linkedInUrlAdded) {
-                  changesParts.push('LinkedIn URL added');
-                }
-                if (syncResult.updateDetails?.linkedInUrlLabelFixed) {
-                  changesParts.push('LinkedIn URL label fixed');
-                }
-                if (syncResult.updateDetails?.noteUpdated) {
-                  const fromNote = syncResult.updateDetails.noteUpdated.from;
-                  const toNote = syncResult.updateDetails.noteUpdated.to;
-                  changesParts.push(
-                    `Note: "${fromNote}" -> "${toNote}"`
-                  );
-                }
-                const changesString = changesParts.length > 0 ? ` [${changesParts.join(', ')}]` : '';
-                await logger.logRaw(
-                  LogFormatter.formatContactBlock('UPDATE', connection, label, syncResult.updateDetails)
-                );
-              } else if (syncResult.status === SyncStatusType.UP_TO_DATE) {
-                status.upToDate++;
-              } else if (syncResult.status === SyncStatusType.ERROR) {
-                if (!alertLogger.checkForDuplicateAlert(alertContact)) {
-                  status.error++;
-                  const errorMessage = syncResult.error
-                    ? `Failed to update contact via Google API: ${syncResult.error.message}${syncResult.error.stack ? `\n\nStack trace:\n${syncResult.error.stack}` : ''}`
-                    : ALERT_REASONS.ERROR.API_UPDATE_FAILED;
-                  await alertLogger.writeAlert('error', alertContact, errorMessage);
-                }
-                await logger.logError(
-                  `Failed to update contact: ${connection.firstName} ${connection.lastName} (${formattedCompany || 'No company'})${syncResult.error ? `: ${syncResult.error.message}` : ''}`
-                );
-              }
-            }
+            // Exact or Fuzzy match found - skip update as per new requirements
+            status.skipped++;
+            await logger.logRaw(
+              LogFormatter.formatContactBlock('SKIP', connection, label)
+            );
+            await logger.logMain(
+              `Match found for ${connection.firstName} ${connection.lastName} (${formattedCompany || 'No company'}) - Skipping update`
+            );
           }
           status.processed++;
           statusBar.updateStatus(status, connection, label);
@@ -476,7 +418,7 @@ export class LinkedInSyncScript {
     );
     this.uiLogger.info(
       FormatUtils.padLineWithEquals(
-        `New: ${newFormatted} | Processed: ${processedFormatted} | Updated: ${updatedFormatted}`,
+        `New: ${newFormatted} | Processed: ${processedFormatted}`,
         lineWidth
       ),
       {},
@@ -484,15 +426,7 @@ export class LinkedInSyncScript {
     );
     this.uiLogger.info(
       FormatUtils.padLineWithEquals(
-        `Warning: ${warningFormatted} | UpToDate: ${upToDateFormatted}`,
-        lineWidth
-      ),
-      {},
-      false
-    );
-    this.uiLogger.info(
-      FormatUtils.padLineWithEquals(
-        `Skipped: ${skippedFormatted} | Error: ${errorFormatted}`,
+        `Warning: ${warningFormatted} | Skipped: ${skippedFormatted} | Error: ${errorFormatted}`,
         lineWidth
       ),
       {},
