@@ -1,7 +1,6 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import { formatDateDDMMYYYYCompact } from '../../utils';
-import { EMOJIS } from '../../constants';
 
 const NOTE_PATTERN_REGEX = /^notes_\d{8}-\d+\.txt$/;
 const MAX_NOTE_LENGTH = 1048576;
@@ -26,17 +25,6 @@ export class NoteWriter {
           maxCounter = counter;
         }
       }
-    }
-    const hasFutureFiles = files.some((file: string) => {
-      const match = file.match(/^notes_(\d{8})-\d+\.txt$/);
-      if (!match) return false;
-      const fileDate = match[1];
-      return fileDate > dateStr;
-    });
-    if (hasFutureFiles) {
-      console.warn(
-        `${EMOJIS.STATUS.WARNING}  Found note files with future dates in folder. System time may have changed.`
-      );
     }
     return `notes_${dateStr}-${maxCounter + 1}.txt`;
   }
