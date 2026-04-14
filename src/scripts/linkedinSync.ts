@@ -47,8 +47,12 @@ export class LinkedInSyncScript {
       `[People API Stats] ${EMOJIS.API.READ} Read: ${startStats.read}, ${EMOJIS.API.WRITE} Write: ${startStats.write}`
     );
     const logger = new SyncLogger('linkedin-sync');
+    const addLogger = new SyncLogger('linkedin-sync-add', 'txt');
+    const skipLogger = new SyncLogger('linkedin-sync-skip', 'txt');
     const statusBar = new SyncStatusBar();
     await logger.initialize();
+    await addLogger.initialize();
+    await skipLogger.initialize();
     this.setupConsoleCapture(logger);
     let escapeHandlerCalled = false;
     const escapeHandler = (): void => {
@@ -221,7 +225,7 @@ export class LinkedInSyncScript {
               await this.contactSyncer.addContact(connection, label, 'LinkedIn');
             if (syncResult.status === SyncStatusType.NEW) {
               status.new++;
-              await logger.logRaw(
+              await addLogger.logRaw(
                 LogFormatter.formatContactBlock('ADD', connection, label)
               );
             } else if (syncResult.status === SyncStatusType.SKIPPED) {
@@ -247,7 +251,7 @@ export class LinkedInSyncScript {
           } else {
             // Exact or Fuzzy match found - skip update as per new requirements
             status.skipped++;
-            await logger.logRaw(
+            await skipLogger.logRaw(
               LogFormatter.formatContactBlock('SKIP', connection, label)
             );
             await logger.logMain(

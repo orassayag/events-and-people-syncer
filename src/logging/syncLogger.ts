@@ -8,24 +8,26 @@ export class SyncLogger {
   private currentCounter: number = 1;
   private scriptName: string;
   private dateStr: string;
+  private fileExtension: string;
 
-  constructor(scriptName: string) {
+  constructor(scriptName: string, fileExtension: string = 'log') {
     const now = new Date();
     const day = String(now.getDate()).padStart(2, '0');
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const year = now.getFullYear();
     this.dateStr = `${day}_${month}_${year}`;
     this.scriptName = scriptName;
+    this.fileExtension = fileExtension;
     
     const logDir: string = join(process.cwd(), 'logs');
-    this.logPath = join(logDir, `${this.scriptName}_${this.dateStr}-${this.currentCounter}.log`);
+    this.logPath = join(logDir, `${this.scriptName}_${this.dateStr}-${this.currentCounter}.${this.fileExtension}`);
   }
 
   private async checkRotation(newLines: number): Promise<void> {
     if (this.lineCount + newLines > this.maxLines) {
       this.currentCounter++;
       const logDir: string = join(process.cwd(), 'logs');
-      this.logPath = join(logDir, `${this.scriptName}_${this.dateStr}-${this.currentCounter}.log`);
+      this.logPath = join(logDir, `${this.scriptName}_${this.dateStr}-${this.currentCounter}.${this.fileExtension}`);
       this.lineCount = 0;
       await this.initialize();
     }
@@ -43,7 +45,7 @@ export class SyncLogger {
       const lines = content.split('\n').length;
       if (lines >= this.maxLines) {
         this.currentCounter++;
-        this.logPath = join(logDir, `${this.scriptName}_${this.dateStr}-${this.currentCounter}.log`);
+        this.logPath = join(logDir, `${this.scriptName}_${this.dateStr}-${this.currentCounter}.${this.fileExtension}`);
         fileExists = false;
       } else {
         this.lineCount = lines;
