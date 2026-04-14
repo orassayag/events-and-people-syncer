@@ -27,10 +27,10 @@ export function cleanCompany(company: string): string {
   cleaned = removeParenthesesAndContents(cleaned);
   cleaned = cleaned.replace(/\s+at work\.?$/gi, '');
   cleaned = cleaned.trim();
-  // Split on phrase-level separators and take only the FIRST segment
+  // Split on phrase-level separators and take only the FIRST valid segment
   // Handles: commas, pipes, spaced dashes/em-dashes, period+space, double+ spaces
-  const parts: string[] = cleaned.split(/\s*[,|]\s*|\s+[-–—]\s+|\.\s+|\s{2,}/);
-  if (parts.length > 0 && parts[0].trim()) {
+  const parts: string[] = cleaned.split(/\s*[,|]\s*|\s+[-–—]\s+|\.\s+|\s{2,}/).filter(p => p.trim());
+  if (parts.length > 0) {
     cleaned = parts[0].trim();
   }
   // Remove trailing period

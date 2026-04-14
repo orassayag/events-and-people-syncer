@@ -238,7 +238,7 @@ export class AlertLogger {
          `🏷️  Labels: ${alert.contact.labels?.join(', ') || 'LinkedIn'}`,
          `🏢 Company: ${alert.contact.company || '(none)'}`,
          `💼 Job Title: ${alert.contact.jobTitle || '(none)'}`,
-         `📧 Email: ${alert.contact.email || '(none)'}`,
+         `📧 Email: ${alert.contact.email || '(none)'}${alert.contact.email && (alert.contact.jobTitle || alert.contact.company) ? ` ${alert.contact.jobTitle || ''}${alert.contact.jobTitle && alert.contact.company ? ' @ ' : ''}${alert.contact.company || ''}` : ''}`,
          `📞 Phone: ${alert.contact.phone || '(none)'}`,
          `🔗 LinkedIn URL: ${alert.contact.url || '(none)'} LinkedIn`,
          `Reason: ${alert.reason}`
@@ -265,7 +265,7 @@ export class AlertLogger {
       `[${typePrefix}] Contact:`,
       `[${typePrefix}]   -FirstName: ${alert.contact.firstName}`,
       `[${typePrefix}]   -LastName: ${alert.contact.lastName || '(none)'}`,
-      `[${typePrefix}]   -Email: ${alert.contact.email || '(none)'}`,
+      `[${typePrefix}]   -Email: ${alert.contact.email || '(none)'}${alert.contact.email && (alert.contact.jobTitle || alert.contact.company) ? ` ${alert.contact.jobTitle || ''}${alert.contact.jobTitle && alert.contact.company ? ' @ ' : ''}${alert.contact.company || ''}` : ''}`,
     ];
     if (alert.contact.url !== undefined) {
       entry.push(`[${typePrefix}]   -LinkedIn URL: ${alert.contact.url || '(none)'}`);

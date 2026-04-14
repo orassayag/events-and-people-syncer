@@ -146,8 +146,11 @@ export class LinkedInExtractor {
       const processedUrls = new Set<string>();
       for (const record of records) {
         try {
-          const firstName: string = TextUtils.cleanName((record['First Name'] || '').trim());
-          const lastName: string = TextUtils.cleanName((record['Last Name'] || '').trim());
+          const firstNameRaw: string = (record['First Name'] || '').trim();
+          const lastNameRaw: string = (record['Last Name'] || '').trim();
+          const { firstName: fn, lastName: ln } = TextUtils.handleNicknames(firstNameRaw, lastNameRaw);
+          const firstName: string = TextUtils.cleanName(fn);
+          const lastName: string = TextUtils.cleanName(ln);
           const url: string = (record['URL'] || '').trim();
           if (!firstName || !lastName || !url) {
             this.logger.debug(

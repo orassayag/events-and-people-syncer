@@ -71,9 +71,23 @@ export class TextUtils {
 
   static removeHebrew(text: string): string {
     if (!text) return '';
+    // 1. Remove Hebrew and Emojis
     let cleaned = text.replace(/[\u0590-\u05FF\uFB1D-\uFB4F]/g, '');
     cleaned = this.removeEmojis(cleaned);
-    return cleaned.replace(/\s+/g, ' ').trim();
+
+    // 2. Keep only English alphanumeric and basic punctuation
+    // Including @, _, +, . for emails
+    const matches = cleaned.match(/[a-zA-Z0-9\s\-'&.@_+]+/g);
+    if (!matches) return '';
+    cleaned = matches.join(' ').replace(/\s+/g, ' ').trim();
+
+    // 3. Validation: Must contain at least one English letter to be considered a "word"
+    // IF not - leave it empty, as per user request
+    if (cleaned && !/[a-zA-Z]/.test(cleaned)) {
+      return '';
+    }
+
+    return cleaned;
   }
 
   static cleanName(name: string): string {
@@ -82,11 +96,15 @@ export class TextUtils {
     let cleaned = name.replace(/[\u0590-\u05FF\uFB1D-\uFB4F]/g, '');
     // Remove emojis
     cleaned = this.removeEmojis(cleaned);
-    cleaned = cleaned.trim();
-    // Remove multiple spaces that might have been left behind
+    // 2. Keep only English letters and common name symbols (excluding hyphen per user preference)
+    const matches = cleaned.match(/[a-zA-Z\s']+/g);
+    if (!matches) return '';
+    cleaned = matches.join(' ').replace(/\s+/g, ' ').trim();
+
+    // 3. Remove multiple spaces that might have been left behind
     cleaned = cleaned.replace(/\s+/g, ' ');
     // Title Case
-    return cleaned
+    const result = cleaned
       .toLowerCase()
       .split(' ')
       .map((word) =>
@@ -94,5 +112,35 @@ export class TextUtils {
       )
       .filter((word) => word.length > 0)
       .join(' ');
+
+    // Validation: Must contain at least one English letter
+    if (result && !/[a-zA-Z]/.test(result)) {
+      return '';
+    }
+    return result;
+  }
+
+  /**
+   * Moves any content in parentheses (nicknames) to the end of the last name field,
+   * while removing the parentheses themselves.
+   */
+  static handleNicknames(firstName: string, lastName: string): { firstName: string, lastName: string } {
+    const extract = (text: string) => {
+      const nicknames: string[] = [];
+      const cleaned = text.replace(/\(([^)]+)\)/g, (_, nickname) => {
+        nicknames.push(nickname);
+        return '';
+      }).trim();
+      return { cleaned, nicknames };
+    };
+
+    const fnResult = extract(firstName);
+    const lnResult = extract(lastName);
+
+    const allNicknames = [...fnResult.nicknames, ...lnResult.nicknames];
+    const finalFirstName = fnResult.cleaned;
+    const finalLastName = [lnResult.cleaned, ...allNicknames].filter(Boolean).join(' ').trim();
+
+    return { firstName: finalFirstName, lastName: finalLastName };
   }
 }

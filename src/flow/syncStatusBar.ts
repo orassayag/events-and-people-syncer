@@ -200,13 +200,13 @@ export class SyncStatusBar {
         const label = this.currentLabel;
         const position = linkedInConn.position || '(none)';
         const formattedCompany: string = company ? calculateFormattedCompany(company, 2) : '';
-        const emailLabel: string = `${label} ${formattedCompany}`.trim();
+        const emailSuffix = [position, formattedCompany ? `@ ${formattedCompany}` : '', label ? `(${label})` : ''].filter(Boolean).join(' ');
         result += `\n${spinnerPadding}Current:`;
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.PERSON} Full name: ${firstName} ${lastName} ${label}`;
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.LABEL}  Labels: ${label}`;
-        result += `\n${spinnerPadding}${EMOJIS.FIELDS.COMPANY} Company: ${emailLabel}`;
+        result += `\n${spinnerPadding}${EMOJIS.FIELDS.COMPANY} Company: ${formattedCompany || '(none)'}`;
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.JOB_TITLE} Job Title: ${position}`;
-        result += `\n${spinnerPadding}${EMOJIS.FIELDS.EMAIL} Email: ${linkedInConn.email ? `${linkedInConn.email} ${emailLabel}` : '(none)'}`;
+        result += `\n${spinnerPadding}${EMOJIS.FIELDS.EMAIL} Email: ${linkedInConn.email ? `${linkedInConn.email} ${emailSuffix}` : '(none)'}`;
         result += `\n${spinnerPadding}📞 Phone: (none)`;
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.LINKEDIN} LinkedIn URL: ${linkedInConn.url || '(none)'} LinkedIn`;
       } else if (conn.type === ContactType.HIBOB) {

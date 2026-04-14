@@ -45,10 +45,12 @@ export class LogFormatter {
     }
     lines.push(jobTitleStr);
 
-    let email = contact.email || '(none)';
-    let emailStr = `${EMOJIS.FIELDS.EMAIL} Email: ${email}`;
+    const email = contact.email || '(none)';
+    const position = isLinkedIn ? (contact as LinkedInConnection).position : '';
+    const emailSuffix = [position, formattedCompany ? `@ ${formattedCompany}` : '', label ? `(${label})` : ''].filter(Boolean).join(' ');
+    let emailStr = `${EMOJIS.FIELDS.EMAIL} Email: ${email}${email !== '(none)' && emailSuffix ? ` ${emailSuffix}` : ''}`;
     if (type === 'UPDATE' && updateDetails?.emailAdded) {
-        emailStr = `${EMOJIS.FIELDS.EMAIL} Email: ${updateDetails.emailAdded} (Added)`;
+        emailStr = `${EMOJIS.FIELDS.EMAIL} Email: ${updateDetails.emailAdded} ${emailSuffix} (Added)`;
     }
     lines.push(emailStr);
 
