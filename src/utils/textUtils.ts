@@ -96,6 +96,13 @@ export class TextUtils {
     let cleaned = name.replace(/[\u0590-\u05FF\uFB1D-\uFB4F]/g, '');
     // Remove emojis
     cleaned = this.removeEmojis(cleaned);
+    
+    // Remove "im hiring" or "i'm hiring" (ignore case)
+    cleaned = cleaned.replace(/i'm?\s+hiring/gi, '');
+
+    // Remove specific degrees (whole words only)
+    cleaned = cleaned.replace(/\b(llm|mba)\b/gi, '');
+
     // 2. Keep only English letters and common name symbols (excluding hyphen per user preference)
     const matches = cleaned.match(/[a-zA-Z\s']+/g);
     if (!matches) return '';

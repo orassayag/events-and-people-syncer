@@ -6,10 +6,12 @@ import { TextUtils } from './textUtils';
 
 
 function removeDomainExtensions(text: string): string {
-  return text.replace(
+  const cleaned = text.replace(
     /\.(com|co\.il|net|org|io|ai|tech|app|dev|me|info|biz)\b/gi,
     ''
   );
+  // Only remove if the result is meaningful (at least 2 characters)
+  return cleaned.length >= 2 ? cleaned : text;
 }
 
 function removeParenthesesAndContents(text: string): string {
@@ -62,7 +64,17 @@ export function formatCompanyToPascalCase(company: string, maxWords?: number): s
   }
   let words = company.trim().split(/\s+/);
   if (maxWords && maxWords > 0) {
-    words = words.slice(0, maxWords);
+    let resultWords = words.slice(0, maxWords);
+    // If the last word included is a "joiner" (of, &), include the next word too
+    while (resultWords.length < words.length) {
+      const lastWord = resultWords[resultWords.length - 1].toLowerCase();
+      if (lastWord === 'of' || lastWord === '&') {
+        resultWords.push(words[resultWords.length]);
+      } else {
+        break;
+      }
+    }
+    words = resultWords;
   }
   const pascalCaseWords = words.map((word: string) => {
     if (!word) return '';

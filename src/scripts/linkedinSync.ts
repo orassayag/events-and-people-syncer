@@ -2,14 +2,39 @@ import { injectable, inject } from 'inversify';
 import readline from 'readline';
 import path from 'path';
 import type { OAuth2Client, Script } from '../types';
-import { LinkedInConnection, MatchType, MatchResult, SyncStatusType, SyncStatus, SyncResult, Alert, ALERT_REASONS } from '../types';
-import { selectWithEscape, confirmWithEscape, formatMixedHebrewEnglish, calculateFormattedCompany } from '../utils';
+import {
+  LinkedInConnection,
+  MatchType,
+  MatchResult,
+  SyncStatusType,
+  SyncStatus,
+  SyncResult,
+  Alert,
+  ALERT_REASONS,
+} from '../types';
+import {
+  selectWithEscape,
+  confirmWithEscape,
+  formatMixedHebrewEnglish,
+  calculateFormattedCompany,
+} from '../utils';
 import { SETTINGS } from '../settings';
-import { LinkedInExtractor, CompanyMatcher, ConnectionMatcher, ContactSyncer } from '../services/linkedin';
+import {
+  LinkedInExtractor,
+  CompanyMatcher,
+  ConnectionMatcher,
+  ContactSyncer,
+} from '../services/linkedin';
 import { DuplicateDetector } from '../services/contacts';
 import { ContactCache } from '../cache';
 import { SyncStatusBar } from '../flow/syncStatusBar';
-import { SyncLogger, Logger, LogCleanup, AlertLogger, LogFormatter } from '../logging';
+import {
+  SyncLogger,
+  Logger,
+  LogCleanup,
+  AlertLogger,
+  LogFormatter,
+} from '../logging';
 import { FormatUtils, EMOJIS } from '../constants';
 import { ApiTracker } from '../services/api';
 
@@ -31,12 +56,12 @@ export class LinkedInSyncScript {
     this.isCancelled = false;
     const alertLogger = new AlertLogger('linkedin-sync');
     await alertLogger.initialize();
-    
+
     let shouldContinue = true;
     if (alertLogger.hasAlerts()) {
       shouldContinue = await this.showPreRunMenu(alertLogger);
     }
-    
+
     if (!shouldContinue) {
       return;
     }
@@ -62,7 +87,9 @@ export class LinkedInSyncScript {
       escapeHandlerCalled = true;
       this.isCancelled = true;
       statusBar.cancel();
-      this.uiLogger.displayWarning('Cancelling LinkedIn Sync - please wait for current operation to complete');
+      this.uiLogger.displayWarning(
+        'Cancelling LinkedIn Sync - please wait for current operation to complete'
+      );
     };
     const keyPressHandler = (_str: string, key: any): void => {
       if (key && key.name === 'escape') {
@@ -108,7 +135,8 @@ export class LinkedInSyncScript {
       try {
         await this.companyMatcher.getLabel('__VALIDATION_TEST__');
       } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
         this.uiLogger.displayError(
           `Company folder validation failed: ${errorMessage}`
         );
@@ -136,7 +164,9 @@ export class LinkedInSyncScript {
       const originalFetch = this.duplicateDetector['fetchAllContacts'].bind(
         this.duplicateDetector
       );
-      this.duplicateDetector['fetchAllContacts'] = async (onProgress?: (count: number) => void): Promise<any> => {
+      this.duplicateDetector['fetchAllContacts'] = async (
+        onProgress?: (count: number) => void
+      ): Promise<any> => {
         const contacts = await originalFetch((count: number) => {
           statusBar.updateFetchProgress(count);
           if (onProgress) {
@@ -153,7 +183,10 @@ export class LinkedInSyncScript {
       this.duplicateDetector['fetchAllContacts'] = originalFetch;
       await this.contactSyncer.initialize();
       await logger.logMain('Contact syncer initialized');
-      const zipPath = path.join(SETTINGS.linkedin.sourcesPath, SETTINGS.linkedin.zipFileName);
+      const zipPath = path.join(
+        SETTINGS.linkedin.sourcesPath,
+        SETTINGS.linkedin.zipFileName
+      );
       statusBar.setFilePath(zipPath);
       const previousCounts = alertLogger.getAlertCounts();
       statusBar.startProcessPhase(connectionsToProcess.length, previousCounts);
@@ -179,7 +212,10 @@ export class LinkedInSyncScript {
           continue;
         }
         let label: string = 'Unknown';
-        const formattedCompany = calculateFormattedCompany(connection.company, 2);
+        const formattedCompany = calculateFormattedCompany(
+          connection.company,
+          2
+        );
         const alertContact = {
           firstName: connection.firstName,
           lastName: connection.lastName,
@@ -187,7 +223,7 @@ export class LinkedInSyncScript {
           url: connection.url,
           company: connection.company,
           jobTitle: connection.position,
-          labels: [label]
+          labels: [label],
         };
         try {
           label = await this.companyMatcher.getLabel(connection.company);
@@ -196,33 +232,46 @@ export class LinkedInSyncScript {
           const matchResult: MatchResult =
             await this.connectionMatcher.match(connection);
 
-        if (matchResult.matchType === MatchType.UNCERTAIN) {
+          if (matchResult.matchType === MatchType.UNCERTAIN) {
             if (!alertLogger.checkForDuplicateAlert(alertContact)) {
               status.warning++;
-              const topMatches = (matchResult.matches || []).slice(0, 3).map(m => {
-                const c = m.contact;
-                return {
-                  firstName: c.firstName,
-                  lastName: c.lastName,
-                  email: c.emails?.[0]?.value,
-                  url: c.websites?.find(w => w.url?.toLowerCase().includes('linkedin'))?.url || c.websites?.[0]?.url,
-                  company: c.company,
-                  jobTitle: c.jobTitle,
-                  phone: c.phones?.[0]?.number,
-                  labels: c.label ? [c.label] : undefined,
-                  score: m.score
-                };
-              });
-              await alertLogger.writeAlert('warning', alertContact, ALERT_REASONS.WARNING.UNCERTAIN_MATCH, {
-                matches: topMatches,
-                exactMatchMessage: matchResult.exactMatchMessage
-              });
+              const topMatches = (matchResult.matches || [])
+                .slice(0, 3)
+                .map((m) => {
+                  const c = m.contact;
+                  return {
+                    firstName: c.firstName,
+                    lastName: c.lastName,
+                    email: c.emails?.[0]?.value,
+                    url:
+                      c.websites?.find((w) =>
+                        w.url?.toLowerCase().includes('linkedin')
+                      )?.url || c.websites?.[0]?.url,
+                    company: c.company,
+                    jobTitle: c.jobTitle,
+                    phone: c.phones?.[0]?.number,
+                    labels: c.label ? [c.label] : undefined,
+                    score: m.score,
+                  };
+                });
+              await alertLogger.writeAlert(
+                'warning',
+                alertContact,
+                ALERT_REASONS.WARNING.UNCERTAIN_MATCH,
+                {
+                  matches: topMatches,
+                  exactMatchMessage: matchResult.exactMatchMessage,
+                }
+              );
             }
           } else if (matchResult.matchType === MatchType.NONE) {
             label = 'LinkedIn';
             alertContact.labels = [label];
-            const syncResult: SyncResult =
-              await this.contactSyncer.addContact(connection, label, 'LinkedIn');
+            const syncResult: SyncResult = await this.contactSyncer.addContact(
+              connection,
+              label,
+              'LinkedIn'
+            );
             if (syncResult.status === SyncStatusType.NEW) {
               status.new++;
               await addLogger.logRaw(
@@ -231,7 +280,11 @@ export class LinkedInSyncScript {
             } else if (syncResult.status === SyncStatusType.SKIPPED) {
               if (!alertLogger.checkForDuplicateAlert(alertContact)) {
                 status.skipped++;
-                await alertLogger.writeAlert('skipped', alertContact, ALERT_REASONS.SKIPPED.MISSING_REQUIRED_DATA);
+                await alertLogger.writeAlert(
+                  'skipped',
+                  alertContact,
+                  ALERT_REASONS.SKIPPED.MISSING_REQUIRED_DATA
+                );
               }
               await logger.logMain(
                 `Skipped contact: ${connection.firstName} ${connection.lastName} (${formattedCompany || 'No company'}) - Missing required data`
@@ -242,7 +295,11 @@ export class LinkedInSyncScript {
                 const errorMessage = syncResult.error
                   ? `Failed to create contact via Google API: ${syncResult.error.message}${syncResult.error.stack ? `\n\nStack trace:\n${syncResult.error.stack}` : ''}`
                   : ALERT_REASONS.ERROR.API_CREATE_FAILED;
-                await alertLogger.writeAlert('error', alertContact, errorMessage);
+                await alertLogger.writeAlert(
+                  'error',
+                  alertContact,
+                  errorMessage
+                );
               }
               await logger.logError(
                 `Failed to create contact: ${connection.firstName} ${connection.lastName} (${formattedCompany || 'No company'})${syncResult.error ? `: ${syncResult.error.message}` : ''}`
@@ -254,16 +311,19 @@ export class LinkedInSyncScript {
             await skipLogger.logRaw(
               LogFormatter.formatContactBlock('SKIP', connection, label)
             );
-            await logger.logMain(
-              `Match found for ${connection.firstName} ${connection.lastName} (${formattedCompany || 'No company'}) - Skipping update`
-            );
           }
           status.processed++;
           statusBar.updateStatus(status, connection, label);
         } catch (error: unknown) {
           if (!alertLogger.checkForDuplicateAlert(alertContact)) {
             status.error++;
-            await alertLogger.writeAlert('error', alertContact, error instanceof Error ? error.message : ALERT_REASONS.ERROR.UNEXPECTED_ERROR);
+            await alertLogger.writeAlert(
+              'error',
+              alertContact,
+              error instanceof Error
+                ? error.message
+                : ALERT_REASONS.ERROR.UNEXPECTED_ERROR
+            );
           }
           status.processed++;
           await logger.logError(
@@ -389,7 +449,9 @@ export class LinkedInSyncScript {
     const processedFormatted =
       FormatUtils.formatNumberWithLeadingZeros(processedConnections);
     const newFormatted = FormatUtils.formatNumberWithLeadingZeros(status.new);
-    const updatedFormatted = FormatUtils.formatNumberWithLeadingZeros(status.updated);
+    const updatedFormatted = FormatUtils.formatNumberWithLeadingZeros(
+      status.updated
+    );
     const upToDateFormatted = FormatUtils.formatNumberWithLeadingZeros(
       status.upToDate
     );
@@ -508,7 +570,8 @@ export class LinkedInSyncScript {
       }
       if (result.value === 'delete_file') {
         const confirmed = await confirmWithEscape({
-          message: 'Are you sure you want to delete the entire alert file? This cannot be undone.',
+          message:
+            'Are you sure you want to delete the entire alert file? This cannot be undone.',
           default: false,
         });
         if (!confirmed.escaped && confirmed.value) {
@@ -525,13 +588,27 @@ export class LinkedInSyncScript {
     }
   }
 
-  private async displayAlertsWithPagination(alertLogger: AlertLogger): Promise<void> {
+  private async displayAlertsWithPagination(
+    alertLogger: AlertLogger
+  ): Promise<void> {
     const allAlerts = alertLogger.getAllAlerts();
     const counts = alertLogger.getAlertCounts();
     this.uiLogger.breakline();
-    await this.displayAlertTypeWithPagination('warning', allAlerts.warnings, counts.warning);
-    await this.displayAlertTypeWithPagination('skipped', allAlerts.skipped, counts.skipped);
-    await this.displayAlertTypeWithPagination('error', allAlerts.errors, counts.error);
+    await this.displayAlertTypeWithPagination(
+      'warning',
+      allAlerts.warnings,
+      counts.warning
+    );
+    await this.displayAlertTypeWithPagination(
+      'skipped',
+      allAlerts.skipped,
+      counts.skipped
+    );
+    await this.displayAlertTypeWithPagination(
+      'error',
+      allAlerts.errors,
+      counts.error
+    );
   }
 
   private async displayAlertTypeWithPagination(
@@ -542,12 +619,18 @@ export class LinkedInSyncScript {
     if (count === 0) {
       return;
     }
-    const emoji = type === 'warning' ? EMOJIS.STATUS.WARNING : 
-                  type === 'skipped' ? EMOJIS.NAVIGATION.SKIP : 
-                  EMOJIS.STATUS.ERROR;
-    const title = type === 'warning' ? 'Warnings' : 
-                  type === 'skipped' ? 'Skipped' : 
-                  'Errors';
+    const emoji =
+      type === 'warning'
+        ? EMOJIS.STATUS.WARNING
+        : type === 'skipped'
+          ? EMOJIS.NAVIGATION.SKIP
+          : EMOJIS.STATUS.ERROR;
+    const title =
+      type === 'warning'
+        ? 'Warnings'
+        : type === 'skipped'
+          ? 'Skipped'
+          : 'Errors';
     let offset = 0;
     const pageSize = 10;
     while (true) {
@@ -594,13 +677,25 @@ export class LinkedInSyncScript {
 
   private displayAlertEntry(alert: Alert, index: number): void {
     const personNumber = FormatUtils.formatNumberWithLeadingZeros(index);
-    this.uiLogger.info(`  Alert ${personNumber} (Index: ${alert.index}):`, {}, false);
-    this.uiLogger.info(`    -Name: ${formatMixedHebrewEnglish(alert.contact.firstName)} ${formatMixedHebrewEnglish(alert.contact.lastName)}`, {}, false);
+    this.uiLogger.info(
+      `  Alert ${personNumber} (Index: ${alert.index}):`,
+      {},
+      false
+    );
+    this.uiLogger.info(
+      `    -Name: ${formatMixedHebrewEnglish(alert.contact.firstName)} ${formatMixedHebrewEnglish(alert.contact.lastName)}`,
+      {},
+      false
+    );
     if (alert.contact.email) {
       this.uiLogger.info(`    -Email: ${alert.contact.email}`, {}, false);
     }
     if (alert.contact.company) {
-      this.uiLogger.info(`    -Company: ${formatMixedHebrewEnglish(alert.contact.company)}`, {}, false);
+      this.uiLogger.info(
+        `    -Company: ${formatMixedHebrewEnglish(alert.contact.company)}`,
+        {},
+        false
+      );
     }
     if (alert.reason) {
       this.uiLogger.info(`    -Reason: ${alert.reason}`, {}, false);
@@ -628,9 +723,12 @@ export class LinkedInSyncScript {
       const pageAlerts = allAlertsList.slice(offset, offset + pageSize);
       const choices: Array<{ name: string; value: string }> = [];
       for (const alert of pageAlerts) {
-        const typeEmoji = alert.type === 'warning' ? EMOJIS.STATUS.WARNING :
-                          alert.type === 'skipped' ? EMOJIS.NAVIGATION.SKIP :
-                          EMOJIS.STATUS.ERROR;
+        const typeEmoji =
+          alert.type === 'warning'
+            ? EMOJIS.STATUS.WARNING
+            : alert.type === 'skipped'
+              ? EMOJIS.NAVIGATION.SKIP
+              : EMOJIS.STATUS.ERROR;
         const name = `${typeEmoji} Index ${alert.index}: ${alert.contact.firstName} ${alert.contact.lastName} - ${alert.reason}`;
         choices.push({ name, value: String(alert.index) });
       }
@@ -658,7 +756,10 @@ export class LinkedInSyncScript {
     }
   }
 
-  private async showPostSyncMenu(status: SyncStatus, alertLogger: AlertLogger): Promise<void> {
+  private async showPostSyncMenu(
+    status: SyncStatus,
+    alertLogger: AlertLogger
+  ): Promise<void> {
     const currentRunAlerts = alertLogger.getCurrentRunAlerts();
     let continueMenu: boolean = true;
     while (continueMenu) {
@@ -678,11 +779,14 @@ export class LinkedInSyncScript {
       }
       if (status.skipped > 0) {
         choices.push({
-          name: `${EMOJIS.NAVIGATION.SKIP} Display Skipped (${status.skipped})`,
+          name: `${EMOJIS.NAVIGATION.SKIP}  Display Skipped (${status.skipped})`,
           value: 'skipped',
         });
       }
-      choices.push({ name: `${EMOJIS.NAVIGATION.BACK} Back to Main Menu`, value: 'main' });
+      choices.push({
+        name: `${EMOJIS.NAVIGATION.BACK} Back to Main Menu`,
+        value: 'main',
+      });
       choices.push({ name: `${EMOJIS.NAVIGATION.EXIT} Exit`, value: 'exit' });
       const result = await selectWithEscape<string>({
         message: 'What would you like to do now (ESC to return):',
@@ -700,13 +804,13 @@ export class LinkedInSyncScript {
         this.uiLogger.displayInfo(`User selected: ${selectedChoice.name}`);
       }
       if (choice === 'warnings') {
-          this.displayCurrentRunAlerts(currentRunAlerts.warnings, 'Warnings');
-        } else if (choice === 'errors') {
-          this.displayCurrentRunAlerts(currentRunAlerts.errors, 'Errors');
-        } else if (choice === 'skipped') {
-          this.displayCurrentRunAlerts(currentRunAlerts.skipped, 'Skipped');
-        } else if (choice === 'main') {
-          continueMenu = false;
+        this.displayCurrentRunAlerts(currentRunAlerts.warnings, 'Warnings');
+      } else if (choice === 'errors') {
+        this.displayCurrentRunAlerts(currentRunAlerts.errors, 'Errors');
+      } else if (choice === 'skipped') {
+        this.displayCurrentRunAlerts(currentRunAlerts.skipped, 'Skipped');
+      } else if (choice === 'main') {
+        continueMenu = false;
       } else if (choice === 'exit') {
         this.uiLogger.displayExit();
         continueMenu = false;
@@ -722,7 +826,9 @@ export class LinkedInSyncScript {
     this.uiLogger.display(`Displaying ${title} from Current Run`);
     for (let i: number = 0; i < displayCount; i++) {
       const alert = alerts[i];
-      const personNumber: string = FormatUtils.formatNumberWithLeadingZeros(i + 1);
+      const personNumber: string = FormatUtils.formatNumberWithLeadingZeros(
+        i + 1
+      );
       this.uiLogger.info(
         `===Person ${personNumber}/${FormatUtils.formatNumberWithLeadingZeros(displayCount)}===`,
         {},
@@ -744,18 +850,10 @@ export class LinkedInSyncScript {
         );
       }
       if (alert.contact.email) {
-        this.uiLogger.info(
-          `-Email: ${alert.contact.email}`,
-          {},
-          false
-        );
+        this.uiLogger.info(`-Email: ${alert.contact.email}`, {}, false);
       }
       if (alert.contact.url) {
-        this.uiLogger.info(
-          `-LinkedIn URL: ${alert.contact.url}`,
-          {},
-          false
-        );
+        this.uiLogger.info(`-LinkedIn URL: ${alert.contact.url}`, {}, false);
       }
       this.uiLogger.info('================', {}, false);
     }

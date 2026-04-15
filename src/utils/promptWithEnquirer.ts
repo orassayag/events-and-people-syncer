@@ -81,6 +81,7 @@ async function runPrompt<T>(
   }
 
   if (process.stdin.isTTY) {
+    process.stdin.resume();
     readline.emitKeypressEvents(process.stdin);
   }
 
@@ -102,13 +103,13 @@ async function runPrompt<T>(
   } finally {
     dlog('runPrompt: starting cleanup');
 
-    // 1. Restore cursor visibility immediately (fixes the disappearing cursor)
+    // 1. Restore cursor visibility immediately
     if (process.stdout.isTTY) {
       process.stdout.write('\u001b[?25h'); // show cursor
       process.stdout.write('\u001b[?12l'); // disable cursor blinking
     }
 
-    // 2. Gentle prompt cleanup (no aggressive listener removal)
+    // 2. Gentle prompt cleanup
     if (prompt) {
       try {
         if (typeof prompt.close === 'function') {
@@ -117,28 +118,14 @@ async function runPrompt<T>(
         if (prompt.rl && typeof prompt.rl.close === 'function') {
           prompt.rl.close();
         }
-        // Do NOT call prompt.rl?.removeAllListeners() — it breaks next prompt
       } catch (_) {}
     }
 
-    // 3. Minimal stdin reset — this is the key change
-    if (process.stdin.isTTY) {
-      try {
-        // Only turn off raw mode if it's on (prevents breaking arrow keys)
-        if (process.stdin.isRaw) {
-          process.stdin.setRawMode(false);
-        }
-        process.stdin.pause(); // brief pause to flush
-        // IMPORTANT: Do NOT removeAllListeners('keypress') here
-        // Enquirer will re-attach them on the next prompt
-        process.stdin.resume();
-      } catch (_) {}
-    }
-
-    // 4. Re-arm keypress events for the next prompt
-    if (process.stdin.isTTY) {
-      readline.emitKeypressEvents(process.stdin);
-    }
+    // 3. Minimal stdin reset
+    // We NO LONGER setRawMode(false) or pause() here.
+    // Toggling raw mode too quickly on Windows breaks subsequent prompts.
+    // If a script needs non-raw mode, it can set it itself, but for a 
+    // mostly-interactive CLI, staying in raw mode is safer.
 
     dlog('runPrompt: cleanup finished');
   }
@@ -228,63 +215,67 @@ export function confirmWithEscape(
 export async function checkboxWithEscape<T = string>(
   config: CheckboxConfig<T>
 ): Promise<PromptResult<T[]>> {
-  try {
-    const choiceConfigs = config.choices.map((c) => ({
-      name: c.name || String(c.value),
-      value: c.name || String(c.value),
-      enabled: c.checked || false,
-    }));
-    const promptConfig: any = {
-      name: 'value',
-      message: config.message,
-      choices: choiceConfigs,
-      validate: config.validate as any,
-    };
-    if (config.pageSize) {
-      promptConfig.limit = config.pageSize;
+  return runPrompt<T[]>(
+    () => {
+      const choiceConfigs = config.choices.map((c) => ({
+        name: c.name || String(c.value),
+        value: c.name || String(c.value),
+        enabled: c.checked || false,
+      }));
+      const promptConfig: any = {
+        name: 'value',
+        message: config.message,
+        choices: choiceConfigs,
+        validate: config.validate as any,
+        escape() {
+          this.cancel();
+        },
+      };
+      if (config.pageSize) {
+        promptConfig.limit = config.pageSize;
+      }
+      return new (SearchableMultiSelect as any)(promptConfig);
+    },
+    (selectedNames: string[]) => {
+      return selectedNames.map((name: string) => {
+        const choice = config.choices.find(
+          (c) => (c.name || String(c.value)) === name
+        );
+        return choice ? choice.value : (name as unknown as T);
+      });
     }
-    const prompt: any = new (SearchableMultiSelect as any)(promptConfig);
-    const selectedNames: string[] = await prompt.run();
-    const selectedValues = selectedNames.map((name: string) => {
-      const choice = config.choices.find(
-        (c) => (c.name || String(c.value)) === name
-      );
-      return choice ? choice.value : (name as unknown as T);
-    });
-    return { escaped: false, value: selectedValues };
-  } catch {
-    return { escaped: true };
-  }
+  );
 }
 
 export async function searchableSelectWithEscape<T = string>(
   config: SelectConfig<T>
 ): Promise<PromptResult<T>> {
-  try {
-    const choiceConfigs = config.choices.map((c) => ({
-      name: c.name || String(c.value),
-      value: c.value,
-    }));
-    const promptConfig: any = {
-      name: 'value',
-      message: config.message,
-      choices: choiceConfigs,
-    };
-    if (config.pageSize) {
-      promptConfig.limit = config.pageSize;
+  return runPrompt<T>(
+    () => {
+      const choiceConfigs = config.choices.map((c) => ({
+        name: c.name || String(c.value),
+        value: c.value,
+      }));
+      const promptConfig: any = {
+        name: 'value',
+        message: config.message,
+        choices: choiceConfigs,
+        escape() {
+          this.cancel();
+        },
+      };
+      if (config.pageSize) {
+        promptConfig.limit = config.pageSize;
+      }
+      return new (SearchableSelect as any)(promptConfig);
+    },
+    (result: string) => {
+      const finalChoice = config.choices.find(
+        (c) => (c.name || String(c.value)) === result
+      );
+      return finalChoice ? finalChoice.value : (result as unknown as T);
     }
-    const prompt: any = new (SearchableSelect as any)(promptConfig);
-    const result: string = await prompt.run();
-    const finalChoice = config.choices.find(
-      (c) => (c.name || String(c.value)) === result
-    );
-    return {
-      escaped: false,
-      value: finalChoice ? finalChoice.value : (result as unknown as T),
-    };
-  } catch {
-    return { escaped: true };
-  }
+  );
 }
 
 export function resetEscapeManagerForTesting(): void {}

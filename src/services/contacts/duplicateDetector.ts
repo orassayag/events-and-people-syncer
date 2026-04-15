@@ -66,7 +66,10 @@ export class DuplicateDetector {
   }
 
   private extractCleanLastName(contact: ContactData): string {
-    let cleanLastName = contact.lastName;
+    let cleanLastName = (contact.lastName || '')
+      .replace(/i'm?\s+hiring/gi, '')
+      .replace(/\b(llm|mba)\b/gi, '')
+      .trim();
     if (!cleanLastName) {
       return '';
     }
@@ -105,11 +108,16 @@ export class DuplicateDetector {
     lastName: string
   ): Promise<DuplicateMatch[]> {
     const contacts: ContactData[] = await this.fetchAllContacts();
-    const contactsWithFullName = contacts.map((contact: ContactData) => ({
-      ...contact,
-      fullName:
-        `${contact.firstName} ${this.extractCleanLastName(contact)}`.trim(),
-    }));
+    const contactsWithFullName = contacts.map((contact: ContactData) => {
+      const cleanFirstName = (contact.firstName || '')
+        .replace(/i'm?\s+hiring/gi, '')
+        .replace(/\b(llm|mba)\b/gi, '')
+        .trim();
+      return {
+        ...contact,
+        fullName: `${cleanFirstName} ${this.extractCleanLastName(contact)}`.trim(),
+      };
+    });
     const searchName: string = `${firstName} ${lastName}`.trim();
     const searchTokens = searchName
       .toLowerCase()

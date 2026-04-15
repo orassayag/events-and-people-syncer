@@ -10,7 +10,7 @@ export class LogFormatter {
     updateDetails?: UpdateDetails
   ): string {
     const lines: string[] = [];
-    lines.push(`===${type} CONTACT START===`);
+    lines.push('=======================');
 
     const isLinkedIn = contact.type === 'linkedin';
     const formattedCompany = isLinkedIn ? calculateFormattedCompany((contact as LinkedInConnection).company, 2) : '';
@@ -23,6 +23,7 @@ export class LogFormatter {
         return `${firstName} ${enrichedLastName}`.trim();
     };
 
+    const calculatedLabel = [label, formattedCompany].filter(Boolean).join(' ');
     const currentFullName = getEnrichedFullName(contact.firstName, contact.lastName, label, formattedCompany);
     
     let fullNameStr = `${EMOJIS.FIELDS.PERSON} Full name: ${currentFullName}`;
@@ -46,16 +47,15 @@ export class LogFormatter {
     lines.push(jobTitleStr);
 
     const email = contact.email || '(none)';
-    const position = isLinkedIn ? (contact as LinkedInConnection).position : '';
-    const emailSuffix = [position, formattedCompany ? `@ ${formattedCompany}` : '', label ? `(${label})` : ''].filter(Boolean).join(' ');
-    let emailStr = `${EMOJIS.FIELDS.EMAIL} Email: ${email}${email !== '(none)' && emailSuffix ? ` ${emailSuffix}` : ''}`;
+    let emailStr = `${EMOJIS.FIELDS.EMAIL} Email: ${email}${email !== '(none)' && calculatedLabel ? ` ${calculatedLabel}` : ''}`;
     if (type === 'UPDATE' && updateDetails?.emailAdded) {
-        emailStr = `${EMOJIS.FIELDS.EMAIL} Email: ${updateDetails.emailAdded} ${emailSuffix} (Added)`;
+        emailStr = `${EMOJIS.FIELDS.EMAIL} Email: ${updateDetails.emailAdded} ${calculatedLabel} (Added)`;
     }
     lines.push(emailStr);
 
     const phone = '(none)'; // No phone in current connection types
-    lines.push(`${EMOJIS.FIELDS.PHONE} Phone: ${phone}`);
+    let phoneStr = `${EMOJIS.FIELDS.PHONE} Phone: ${phone}${phone !== '(none)' && calculatedLabel ? ` ${calculatedLabel}` : ''}`;
+    lines.push(phoneStr);
 
     const linkedInUrl = isLinkedIn ? (contact as LinkedInConnection).url : '(none)';
     let linkedInUrlStr = `${EMOJIS.FIELDS.LINKEDIN} LinkedIn URL: ${linkedInUrl}`;
@@ -68,7 +68,7 @@ export class LogFormatter {
       lines.push(`${EMOJIS.NAVIGATION.SKIP}  Reason: Existing match found - skipping update`);
     }
 
-    lines.push(`===${type} CONTACT END===`);
+    lines.push('=======================');
     return lines.join('\n');
   }
 }
