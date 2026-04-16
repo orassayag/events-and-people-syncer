@@ -64,7 +64,7 @@ export class TextUtils {
   static removeEmojis(str: string): string {
     if (!str) return '';
     return str
-      .replace(/\p{Emoji}/gu, '')
+      .replace(/\p{Extended_Pictographic}/gu, '')
       .replace(/\uFE0F/g, '') // remove leftover variation selectors
       .trim();
   }
@@ -76,8 +76,8 @@ export class TextUtils {
     cleaned = this.removeEmojis(cleaned);
 
     // 2. Keep only English alphanumeric and basic punctuation
-    // Including @, _, +, . for emails
-    const matches = cleaned.match(/[a-zA-Z0-9\s\-'&.@_+]+/g);
+    // Including @, _, +, . for emails (EXCLUDING apostrophe per user request)
+    const matches = cleaned.match(/[a-zA-Z0-9\s\-&.@_+]+/g);
     if (!matches) return '';
     cleaned = matches.join(' ').replace(/\s+/g, ' ').trim();
 
@@ -103,8 +103,8 @@ export class TextUtils {
     // Remove specific degrees (whole words only)
     cleaned = cleaned.replace(/\b(llm|mba)\b/gi, '');
 
-    // 2. Keep only English letters and common name symbols (excluding hyphen per user preference)
-    const matches = cleaned.match(/[a-zA-Z\s']+/g);
+    // 2. Keep only English letters, numbers and common name symbols (excluding hyphen and apostrophe per user preference)
+    const matches = cleaned.match(/[a-zA-Z0-9\s]+/g);
     if (!matches) return '';
     cleaned = matches.join(' ').replace(/\s+/g, ' ').trim();
 

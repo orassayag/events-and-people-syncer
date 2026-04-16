@@ -28,6 +28,7 @@ export function cleanCompany(company: string): string {
   let cleaned: string = company.trim();
   cleaned = removeParenthesesAndContents(cleaned);
   cleaned = cleaned.replace(/\s+at work\.?$/gi, '');
+  cleaned = cleaned.replace(/'/g, '');
   cleaned = cleaned.trim();
   // Split on phrase-level separators and take only the FIRST valid segment
   // Handles: commas, pipes, spaced dashes/em-dashes, period+space, double+ spaces
@@ -88,5 +89,5 @@ export function calculateFormattedCompany(company: string, maxWords?: number): s
   const englishOnlyCompany: string = extractEnglishFromMixed(cleanedCompany);
   const noEmojis: string = TextUtils.removeEmojis(englishOnlyCompany);
   const formattedCompany: string = formatCompanyToPascalCase(noEmojis, maxWords);
-  return formattedCompany;
+  return formattedCompany ? `LinkedIn ${formattedCompany}` : '';
 }

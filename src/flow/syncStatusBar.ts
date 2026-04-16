@@ -200,7 +200,11 @@ export class SyncStatusBar {
         const label = this.currentLabel;
         const position = linkedInConn.position || '(none)';
         const formattedCompany: string = company ? calculateFormattedCompany(company, 2) : '';
-        const emailSuffix = [position, formattedCompany ? `@ ${formattedCompany}` : '', label ? `(${label})` : ''].filter(Boolean).join(' ');
+        const emailSuffix = [
+          position, 
+          formattedCompany ? `@ ${formattedCompany}` : '', 
+          (label && formattedCompany && formattedCompany.toLowerCase().startsWith(label.toLowerCase())) ? '' : (label ? `(${label})` : '')
+        ].filter(Boolean).join(' ');
         result += `\n${spinnerPadding}Current:`;
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.PERSON} Full name: ${firstName} ${lastName} ${label}`;
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.LABEL}  Labels: ${label}`;

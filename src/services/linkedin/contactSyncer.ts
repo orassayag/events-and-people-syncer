@@ -42,14 +42,15 @@ export class ContactSyncer {
         connection.company,
         2
       );
-      const emailLabel: string = `${label} ${formattedCompany}`.trim();
+      const emailLabel: string = (formattedCompany.toLowerCase().startsWith(label.toLowerCase()) ? formattedCompany : `${label} ${formattedCompany}`).replace(/'/g, '').trim();
       const lastNameValue: string = [
         connection.lastName,
-        label,
+        formattedCompany.toLowerCase().startsWith(label.toLowerCase()) ? '' : label,
         formattedCompany,
       ]
         .filter((s: string) => s)
         .join(' ')
+        .replace(/'/g, '')
         .trim();
       const requestBody: any = {};
       if (connection.firstName || lastNameValue) {
@@ -256,14 +257,15 @@ export class ContactSyncer {
         connection.company,
         2
       );
-      const emailLabel: string = `${label} ${formattedCompany}`.trim();
+      const emailLabel: string = (formattedCompany.toLowerCase().startsWith(label.toLowerCase()) ? formattedCompany : `${label} ${formattedCompany}`).replace(/'/g, '').trim();
       const lastNameValue: string = [
         connection.lastName,
-        label,
+        formattedCompany.toLowerCase().startsWith(label.toLowerCase()) ? '' : label,
         formattedCompany,
       ]
         .filter((s: string) => s)
         .join(' ')
+        .replace(/'/g, '')
         .trim();
       const currentLastName: string = (
         existingData.names?.[0]?.familyName || ''

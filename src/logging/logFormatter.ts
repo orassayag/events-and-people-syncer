@@ -17,14 +17,16 @@ export class LogFormatter {
     
     // Logic matching the syncer's lastNameValue
     const getEnrichedFullName = (firstName: string, lastName: string | undefined, lbl: string, company: string) => {
-        const lastNameParts = [lastName, lbl];
-        if (company) lastNameParts.push(company);
-        const enrichedLastName = lastNameParts.filter(s => s).join(' ').trim();
+        const enrichedLastName = [
+          lastName,
+          company.toLowerCase().startsWith(lbl.toLowerCase()) ? '' : lbl,
+          company
+        ].filter(s => s).join(' ').replace(/'/g, '').trim();
         return `${firstName} ${enrichedLastName}`.trim();
     };
 
-    const calculatedLabel = [label, formattedCompany].filter(Boolean).join(' ');
-    const currentFullName = getEnrichedFullName(contact.firstName, contact.lastName, label, formattedCompany);
+    const calculatedLabel = (formattedCompany.toLowerCase().startsWith(label.toLowerCase()) ? formattedCompany : [label, formattedCompany].filter(Boolean).join(' ')).replace(/'/g, '');
+    const currentFullName = getEnrichedFullName(contact.firstName, contact.lastName, label.replace(/'/g, ''), formattedCompany);
     
     let fullNameStr = `${EMOJIS.FIELDS.PERSON} Full name: ${currentFullName}`;
     if (type === 'UPDATE' && updateDetails?.lastName) {
@@ -34,7 +36,7 @@ export class LogFormatter {
     }
     lines.push(fullNameStr);
 
-    lines.push(`${EMOJIS.FIELDS.LABEL}  Labels: ${label}`);
+    lines.push(`${EMOJIS.FIELDS.LABEL}  Labels: ${label.replace(/'/g, '')}`);
 
     const companyDisplay = isLinkedIn ? (formattedCompany || (contact as LinkedInConnection).company || '(none)') : label;
     lines.push(`${EMOJIS.FIELDS.COMPANY} Company: ${companyDisplay}`);

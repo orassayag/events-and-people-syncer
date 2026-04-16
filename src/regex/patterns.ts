@@ -68,7 +68,7 @@ export class RegexPatterns {
   static readonly HIBOB_NAME_WITH_SPACE_EMAIL = /^(.+?)\s+([^\s]+@[^\s]+)$/;
   static readonly HIBOB_EMAIL_IN_STRING = /([^\s]+@[^\s]+)/;
   static readonly HIBOB_MULTIPLE_SPACES = /\s+/g;
-  static readonly ENGLISH_EXTRACTION = /[A-Za-z0-9\s\-'&.]+/g;
+  static readonly ENGLISH_EXTRACTION = /[A-Za-z0-9\s\-&.]+/g;
   static readonly HEBREW_SEGMENT = /[\u0590-\u05FF\uFB1D-\uFB4F]+/g;
 
   static createCompanySuffixRegex(suffix: string): RegExp {

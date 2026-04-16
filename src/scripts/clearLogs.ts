@@ -22,24 +22,27 @@ export class ClearLogsScript {
       this.logger.info('No logs folder found. Nothing to clear.');
       return;
     }
-    const files = fs.readdirSync(this.logsDir).filter((file: string) => file.endsWith('.log'));
-    if (files.length === 0) {
-      this.logger.info('No log files found.');
+    const allItems = fs.readdirSync(this.logsDir);
+
+    if (allItems.length === 0) {
+      this.logger.info('Logs folder is already empty.');
       return;
     }
-    this.logger.info(`Found ${files.length} log file(s):`);
-    files.forEach((file: string) => {
-      const filePath = path.join(this.logsDir, file);
-      const stats = fs.statSync(filePath);
-      const sizeKB = (stats.size / 1024).toFixed(2);
-      this.logger.info(`  - ${file} (${sizeKB} KB)`);
+    this.logger.info(`Found ${allItems.length} item(s) in logs folder.`);
+    this.logger.info('Clearing everything in logs folder...');
+    
+    let count = 0;
+    allItems.forEach((item: string) => {
+      const fullPath = path.join(this.logsDir, item);
+      try {
+        fs.rmSync(fullPath, { recursive: true, force: true });
+        count++;
+      } catch (error) {
+        this.logger.error(`Failed to delete ${item}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
     });
-    this.logger.info('Clearing logs...');
-    files.forEach((file: string) => {
-      const filePath = path.join(this.logsDir, file);
-      fs.unlinkSync(filePath);
-    });
-    this.logger.info(`${EMOJIS.STATUS.SUCCESS} Successfully cleared ${files.length} log files`);
+    
+    this.logger.info(`${EMOJIS.STATUS.SUCCESS} Successfully cleared ${count} item(s) from logs folder`);
   }
 }
 
