@@ -388,14 +388,14 @@ pnpm linkedin-sync:no-cache
    - Email address (exact match)
    - Full name + LinkedIn URL
    - Fuzzy name matching (for typos and variations)
-4. For new connections: Creates contact with company label
-5. For existing connections: Updates job title, email, LinkedIn URL if changed
+4. For new connections: Creates contact with company label (defaults to "LinkedIn" if missing)
+5. For existing connections: Skips processing (additions only mode)
 6. Logs warnings for uncertain matches to alert file
 7. Displays comprehensive statistics
 
 #### Understanding Match Types
 
-- **Exact Match**: Email or name+URL match → Updates existing contact
+- **Exact Match**: Email or name+URL match → Skips contact (already exists)
 - **Uncertain Match**: Multiple similar names → Logged as warning, no action
 - **No Match**: Creates new contact with company label
 

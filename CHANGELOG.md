@@ -35,6 +35,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Raw mode keypress detection with readline
   - TTY detection and graceful fallback for non-TTY environments
   - Comprehensive unit tests for ESC navigation
+- **LinkedIn Sync Additions-Only Mode** - Script now exclusively adds new contacts and skips existing matches
+- **Standardized LinkedIn Company Formatting** - Missing or "(none)" company names are now replaced with hardcoded "LinkedIn"
+- **Centralized Company Formatter** - Logic unified in `src/utils/companyFormatter.ts` for consistency across UI, API, and logs
+- **Refined Alert Logging** - Company names in alert files now reflect the standardized "LinkedIn" value
 
 ### Changed
 

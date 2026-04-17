@@ -36,8 +36,8 @@ export function cleanCompany(company: string): string {
   if (parts.length > 0) {
     cleaned = parts[0].trim();
   }
-  // Remove trailing period
-  cleaned = cleaned.replace(/\.$/, '');
+  // Remove trailing period, underscore, or hyphen
+  cleaned = cleaned.replace(/[._\-\s]+$/, '');
   // Remove domain extensions
   cleaned = removeDomainExtensions(cleaned);
   // Remove company suffixes
@@ -67,10 +67,26 @@ export function formatCompanyToPascalCase(company: string, maxWords?: number): s
   if (maxWords && maxWords > 0) {
     let resultWords = words.slice(0, maxWords);
     // If the last word included is a "joiner" (of, &), include the next word too
+    const joiners = ['of', '&', 'and', 'with', 'for', 'the', 'a', 'an', 'in', 'at', 'by', 'or', '+', 'co', 'co.', 'ben'];
     while (resultWords.length < words.length) {
-      const lastWord = resultWords[resultWords.length - 1].toLowerCase();
-      if (lastWord === 'of' || lastWord === '&') {
+      const lastWord = resultWords[resultWords.length - 1].toLowerCase().replace(/[.,]$/, '');
+      if (joiners.includes(lastWord)) {
         resultWords.push(words[resultWords.length]);
+      } else {
+        break;
+      }
+    }
+    // If the final word is a joiner and we can't pull more, remove it if it's a symbol
+    // OR if it's the only word left after a joiner (like "Something &")
+    while (resultWords.length > 0) {
+      const lastWord = resultWords[resultWords.length - 1].toLowerCase().replace(/[.,]$/, '');
+      if (joiners.includes(lastWord) && resultWords.length < words.length === false) {
+        // If it's a symbol like '&' or '+', always remove if at the end
+        if (lastWord === '&' || lastWord === '+') {
+          resultWords.pop();
+        } else {
+          break;
+        }
       } else {
         break;
       }
@@ -85,9 +101,15 @@ export function formatCompanyToPascalCase(company: string, maxWords?: number): s
 }
 
 export function calculateFormattedCompany(company: string, maxWords?: number): string {
+  const normalized = company?.trim().toLowerCase();
+  if (!normalized || normalized === '(none)' || normalized === 'none') {
+    return 'LinkedIn';
+  }
+
   const cleanedCompany: string = cleanCompany(company);
   const englishOnlyCompany: string = extractEnglishFromMixed(cleanedCompany);
   const noEmojis: string = TextUtils.removeEmojis(englishOnlyCompany);
   const formattedCompany: string = formatCompanyToPascalCase(noEmojis, maxWords);
-  return formattedCompany ? `LinkedIn ${formattedCompany}` : '';
+  
+  return formattedCompany ? `LinkedIn ${formattedCompany}` : 'LinkedIn';
 }

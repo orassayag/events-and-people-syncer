@@ -96,12 +96,33 @@ export class TextUtils {
     let cleaned = name.replace(/[\u0590-\u05FF\uFB1D-\uFB4F]/g, '');
     // Remove emojis
     cleaned = this.removeEmojis(cleaned);
-    
-    // Remove "im hiring" or "i'm hiring" (ignore case)
-    cleaned = cleaned.replace(/i'm?\s+hiring/gi, '');
 
-    // Remove specific degrees (whole words only)
-    cleaned = cleaned.replace(/\b(llm|mba)\b/gi, '');
+    // Split by common separators used to append titles/suffixes ( - , | , • , / ) and take the first part
+    // This handles cases like "Nava Avi - Tech Recruitment Director"
+    const segments = cleaned.split(/\s+[-–—|•/]\s+/);
+    if (segments.length > 0) {
+      cleaned = segments[0].trim();
+    }
+    
+    // Remove status phrases like "I am hiring", "We're recruiting", "The Tech Recruiter", etc. (ignore case)
+    // Matches "I'm", "Im", "I am", "I m", "We're", "We are" followed by words, often ending with "ing" or "!".
+    cleaned = cleaned.replace(/\b(i'm|i\s+am|im|i\s+m|we're|we\s+are)\s+[\w\s!&-]+$/gi, '');
+    cleaned = cleaned.replace(/\b(i'm|i\s+am|im|i\s+m|we're|we\s+are)\s+[\w\s!&-]+(?=\s+|$)/gi, '');
+    // Remove "The X" phrases at the end (e.g., "The Tech Recruiter") or "Hr with X"
+    cleaned = cleaned.replace(/\s+\bthe\s+[\w\s]+$/gi, '');
+    cleaned = cleaned.replace(/\s+\bhr\s+with\s+[\w\s]+$/gi, '');
+    // Remove everything starting from "Executive" or "Always" at the end
+    cleaned = cleaned.replace(/\s+\b(executive|always)\b.*$/gi, '');
+    // Remove pronouns (e.g., "She/Her", "He/Him", "They/Them", "(She/They)")
+    cleaned = cleaned.replace(/\s*\(?(she|he|they|ze|zir)\s*[/./\s-]\s*(her|him|them|zir|they|any)\b\)?/gi, '');
+    // Remove common quote/status openers at the end (e.g., "Be yourself...")
+    cleaned = cleaned.replace(/\s+\b(be|always|looking|passionate|helping|is|everything)\s+[\w\s!&,.']{10,}$/gi, '');
+    // Remove "X Expert" phrases at the end (e.g., "Career Expert")
+    cleaned = cleaned.replace(/\s+\b[\w\s-]+\s+expert$/gi, '');
+    cleaned = cleaned.replace(/\b(hiring|recruiting|headhunter)\b/gi, '');
+
+    // Remove specific degrees/abbreviations/certifications (whole words only)
+    cleaned = cleaned.replace(/\b(llm|mba|hr|shrm|cp|phr|sphr|gphr|cipd|pmp|mha|phd|md)\b/gi, '');
 
     // 2. Keep only English letters, numbers and common name symbols (excluding hyphen and apostrophe per user preference)
     const matches = cleaned.match(/[a-zA-Z0-9\s]+/g);
@@ -149,5 +170,38 @@ export class TextUtils {
     const finalLastName = [lnResult.cleaned, ...allNicknames].filter(Boolean).join(' ').trim();
 
     return { firstName: finalFirstName, lastName: finalLastName };
+  }
+
+  /**
+   * Removes the company name from name fields if it appears as a standalone phrase.
+   */
+  static removeCompanyFromName(firstName: string, lastName: string, company: string): { firstName: string, lastName: string } {
+    if (!company || !company.trim()) return { firstName, lastName };
+    
+    // Clean company name for comparison - remove "LinkedIn " prefix if present in the provided string
+    let cleanedCompany = company.trim().toLowerCase();
+    if (cleanedCompany.startsWith('linkedin ')) {
+      cleanedCompany = cleanedCompany.substring(9).trim();
+    }
+    
+    // If the company name is too short (e.g. 1-2 chars), don't remove it to avoid accidental matches
+    if (cleanedCompany.length <= 2) return { firstName, lastName };
+
+    const removeMatch = (name: string) => {
+      if (!name) return '';
+      // Create a regex for the company name as a standalone phrase
+      const escaped = this.escapeRegExp(cleanedCompany);
+      const regex = new RegExp(`\\b${escaped}\\b`, 'gi');
+      return name.replace(regex, '').replace(/\s+/g, ' ').trim();
+    };
+
+    return {
+      firstName: removeMatch(firstName),
+      lastName: removeMatch(lastName)
+    };
+  }
+
+  private static escapeRegExp(string: string): string {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 }

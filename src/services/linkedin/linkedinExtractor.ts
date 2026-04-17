@@ -175,13 +175,16 @@ export class LinkedInExtractor {
           }
           processedUrls.add(normalizedUrl);
           const profileSlug: string = UrlNormalizer.extractProfileSlug(url);
+          const company: string = TextUtils.removeHebrew((record['Company'] || '').trim());
+          const { firstName: finalFirstName, lastName: finalLastName } = TextUtils.removeCompanyFromName(firstName, lastName, company);
+
           const connection: LinkedInConnection = linkedInConnectionSchema.parse(
             {
               id: profileSlug,
-              firstName,
-              lastName,
+              firstName: finalFirstName,
+              lastName: finalLastName,
               email: TextUtils.removeHebrew((record['Email Address'] || '').trim()),
-              company: TextUtils.removeHebrew((record['Company'] || '').trim()),
+              company,
               position: TextUtils.removeHebrew((record['Position'] || '').trim()),
               url,
               connectedOn: (record['Connected On'] || '').trim(),

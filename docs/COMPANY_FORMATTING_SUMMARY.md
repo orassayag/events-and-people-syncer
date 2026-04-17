@@ -5,19 +5,20 @@ Successfully implemented PascalCase formatting for company names across all thre
 
 ## Changes Made
 
-### 1. Utility Function Created
+### 1. Centralized Utility Function
 **Files Modified:**
+- `src/utils/companyFormatter.ts`
 - `src/utils/textUtils.ts`
-- `poc/src/utils/textUtils.ts`
 
-**Added Method:** `formatCompanyToPascalCase(company: string): string`
+**Primary Method:** `calculateFormattedCompany(company: string, maxWords: number): string`
 
 **Functionality:**
-- Trims whitespace and splits company name by spaces
-- Capitalizes first letter of each word
-- Converts remaining letters to lowercase
-- Removes all spaces between words
-- Handles edge cases (empty strings, multiple spaces)
+- Trims whitespace and removes invalid characters (emojis, Hebrew, special symbols).
+- Handles empty, `(none)`, or `none` values by returning the hardcoded string `"LinkedIn"`.
+- Prefixes valid company names with `"LinkedIn "` (e.g., `"LinkedIn TanishaSystems"`).
+- Restricts company names to a maximum number of words (default: 2).
+- Sanitizes names by removing apostrophes and content after separators.
+- Formats words into PascalCase.
 
 **Examples:**
 - "Herzliya Medical Center" → "HerzliyaMedicalCenter"
@@ -36,15 +37,14 @@ Successfully implemented PascalCase formatting for company names across all thre
 - Company names entered manually are formatted before storage
 - Formatted company appears in labels, full names, email/phone types
 
-### 3. LinkedIn Sync ContactSyncer Updated
+### 3. LinkedIn Sync Service Updated
 **File:** `src/services/linkedin/contactSyncer.ts`
 
 **Changes:**
-- Added private method `formatCompanyToPascalCase()` (lines 373-383)
-- Removed obsolete method `getCompanyFirstWord()` (previously lines 373-379)
-- `addContact()`: Format cleaned company before use (line 42)
-- `updateContact()`: Format cleaned company before use (line 177)
-- Updated all references to use `formattedCompany` instead of `cleanedCompany` or first word
+- Integrated `calculateFormattedCompany` utility.
+- Removed manual PascalCase formatting and suffix removal logic from the service.
+- Ensures all new contacts and label assignments use the centralized formatting.
+- Missing company data now results in a clean "LinkedIn" label instead of empty fields.
 
 **Impact:**
 - LinkedIn CSV company names are formatted for storage

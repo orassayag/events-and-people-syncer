@@ -242,9 +242,10 @@ Syncs LinkedIn connections from exported CSV files to Google Contacts. The scrip
 - Exports LinkedIn connections from CSV in ZIP archives
 - Intelligent duplicate detection with name and email matching
 - Automatic company folder organization
-- Job title synchronization
+- Skip processing for existing contacts (new additions only)
 - LinkedIn URL management
 - Alert file system for problematic contacts
+- Automatic "LinkedIn" company label for missing data
 
 **Usage:**
 

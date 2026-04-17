@@ -30,9 +30,9 @@
      ├─ Get company label
      ├─ Match against Google contacts
      ├─ If NO MATCH → Add new contact
-     ├─ If MATCH → Update existing contact
+     ├─ If MATCH → Skip processing (Additions-only mode)
      ├─ If UNCERTAIN → Log for clarification
-     └─ Update status (new/updated/error counts)
+     └─ Update status (new/skipped/error counts)
    ↓
 8. Complete & Show Summary
 ```
@@ -51,7 +51,7 @@
 ### ✅ Step c: Sync one by one
 - Line 86: `for (const connection of connectionsToProcess)`
 - Processes each of the 5 connections sequentially
-- Each connection is matched, then added/updated
+- Each connection is matched, then added or skipped (if exists)
 
 ## Flow Summary
 
@@ -60,7 +60,7 @@
 **Step 2:** Limit to first 5 (TEST MODE)  
 **Step 3:** Fetch all Google contacts (e.g., 823 contacts)  
 **Step 4:** Process 5 LinkedIn connections one by one  
-**Output:** 5 contacts synced (new/updated/clarification needed)
+**Output:** 5 contacts processed (new/skipped/clarification needed)
 
 ---
 

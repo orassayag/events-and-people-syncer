@@ -199,7 +199,7 @@ export class SyncStatusBar {
         const company = linkedInConn.company || '';
         const label = this.currentLabel;
         const position = linkedInConn.position || '(none)';
-        const formattedCompany: string = company ? calculateFormattedCompany(company, 2) : '';
+        const formattedCompany: string = calculateFormattedCompany(company, 2);
         const emailSuffix = [
           position, 
           formattedCompany ? `@ ${formattedCompany}` : '', 
@@ -208,7 +208,7 @@ export class SyncStatusBar {
         result += `\n${spinnerPadding}Current:`;
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.PERSON} Full name: ${firstName} ${lastName} ${label}`;
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.LABEL}  Labels: ${label}`;
-        result += `\n${spinnerPadding}${EMOJIS.FIELDS.COMPANY} Company: ${formattedCompany || '(none)'}`;
+        result += `\n${spinnerPadding}${EMOJIS.FIELDS.COMPANY} Company: ${formattedCompany}`;
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.JOB_TITLE} Job Title: ${position}`;
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.EMAIL} Email: ${linkedInConn.email ? `${linkedInConn.email} ${emailSuffix}` : '(none)'}`;
         result += `\n${spinnerPadding}📞 Phone: (none)`;

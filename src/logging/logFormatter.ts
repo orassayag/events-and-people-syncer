@@ -38,7 +38,7 @@ export class LogFormatter {
 
     lines.push(`${EMOJIS.FIELDS.LABEL}  Labels: ${label.replace(/'/g, '')}`);
 
-    const companyDisplay = isLinkedIn ? (formattedCompany || (contact as LinkedInConnection).company || '(none)') : label;
+    const companyDisplay = isLinkedIn ? formattedCompany : label;
     lines.push(`${EMOJIS.FIELDS.COMPANY} Company: ${companyDisplay}`);
 
     const jobTitle = isLinkedIn ? (contact as LinkedInConnection).position : '(none)';

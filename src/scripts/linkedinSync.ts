@@ -221,7 +221,7 @@ export class LinkedInSyncScript {
           lastName: connection.lastName,
           email: connection.email,
           url: connection.url,
-          company: connection.company,
+          company: formattedCompany,
           jobTitle: connection.position,
           labels: [label],
         };
@@ -287,7 +287,7 @@ export class LinkedInSyncScript {
                 );
               }
               await logger.logMain(
-                `Skipped contact: ${connection.firstName} ${connection.lastName} (${formattedCompany || 'No company'}) - Missing required data`
+                `Skipped contact: ${connection.firstName} ${connection.lastName} (${formattedCompany}) - Missing required data`
               );
             } else if (syncResult.status === SyncStatusType.ERROR) {
               if (!alertLogger.checkForDuplicateAlert(alertContact)) {
@@ -302,7 +302,7 @@ export class LinkedInSyncScript {
                 );
               }
               await logger.logError(
-                `Failed to create contact: ${connection.firstName} ${connection.lastName} (${formattedCompany || 'No company'})${syncResult.error ? `: ${syncResult.error.message}` : ''}`
+                `Failed to create contact: ${connection.firstName} ${connection.lastName} (${formattedCompany})${syncResult.error ? `: ${syncResult.error.message}` : ''}`
               );
             }
           } else {
@@ -327,7 +327,7 @@ export class LinkedInSyncScript {
           }
           status.processed++;
           await logger.logError(
-            `Error processing connection ${connection.firstName} ${connection.lastName} (${formattedCompany || 'No company'}): ${error instanceof Error ? error.message : 'Unknown error'}`
+            `Error processing connection ${connection.firstName} ${connection.lastName} (${formattedCompany}): ${error instanceof Error ? error.message : 'Unknown error'}`
           );
           statusBar.updateStatus(status, connection, label);
         }
@@ -449,12 +449,6 @@ export class LinkedInSyncScript {
     const processedFormatted =
       FormatUtils.formatNumberWithLeadingZeros(processedConnections);
     const newFormatted = FormatUtils.formatNumberWithLeadingZeros(status.new);
-    const updatedFormatted = FormatUtils.formatNumberWithLeadingZeros(
-      status.updated
-    );
-    const upToDateFormatted = FormatUtils.formatNumberWithLeadingZeros(
-      status.upToDate
-    );
     const warningFormatted = FormatUtils.formatNumberWithLeadingZeros(
       status.warning
     );

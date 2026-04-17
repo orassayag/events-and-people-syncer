@@ -338,47 +338,24 @@ Website: https://www.linkedin.com/in/elena-ohayon-b22b583 | Label: HR Planview
   - Always use "LinkedIn" for new LinkedIn URLs
 - **Phone**: Not added (LinkedIn doesn't export phones)
 
-**Critical Whitespace Rule**: 
-- **ALL fields must be trimmed** - no leading or trailing spaces, ever
-- Apply `.trim()` to every string field before use
-- This applies to: firstName, lastName, company, jobTitle, email values, labels, URLs
-
-**Note**: Hebrew characters, emojis, and all special characters are allowed.
-
 **UPDATE Flow** (Match found):
 
-**Fields to UPDATE** (if different):
+As per current requirements, the script executes an **Additions-Only** strategy. If an exact or fuzzy match is found with an existing Google Contact, the script will **skip** the connection to avoid overwriting manually curated data.
 
-- Last Name (append label+company if needed, handle empty last name)
-- Job Title
-- Website URL label (change to "LinkedIn" if currently not "LinkedIn")
+- **Match Found**: Increment "Skipped" counter, log as "SKIP" block.
+- **No Update Executed**: Existing contacts are preserved as-is.
 
-**Fields to ADD** (if new):
+**Standardized Company Formatting**:
+When a connection has no company or "(none)" listed, the script automatically uses the hardcoded value **"LinkedIn"**. This ensures consistent labeling across Google Contacts groups and email labels.
 
-- Email (never delete existing, only add if not exact match - case-sensitive)
-- Website URL (if LinkedIn URL doesn't exist)
+**Field Mapping Rules** (for ADD flow):
 
-**Fields to NEVER change**:
-
-- First Name
-- Company name
-- Existing contact group memberships
-- Phone numbers
-- Website URL values (only update labels)
-
-**Update Strategy**:
-
-- Use `resourceName` from match result to identify contact
-- Fetch current contact via People API using resourceName
-- Compare fields (trim all values before comparison)
-- Build update request with only changed/added fields
-- **Use People API exactly as in POC**:
-  - Method: `service.people.createContact()` for new contacts
-  - Method: Contact updates handled per POC patterns
-  - Follow POC implementation exactly (verified working)
-- **500ms delay** after each write operation (create or update)
-  - Prevents rate limiting
-  - Applies only to write operations, not reads
+- **First Name**: Direct from CSV (trim whitespace)
+- **Last Name**: `{CSV Last Name} {Label} {FormattedCompany}`
+- **Company**: Formatted using `calculateFormattedCompany` (defaults to "LinkedIn")
+- **Job Title**: Direct from CSV Position
+- **Contact Group**: Uses formatted company (or "LinkedIn") as label
+- **Website Label**: Always "LinkedIn"
 
 ### Phase 5: Status Tracking & Logging
 
@@ -388,7 +365,7 @@ Extends existing `StatusBar` class to show:
 
 ```
 ⠋ Fetching Google Contacts: 8,234 / ~10,000
-⠋ Processing: 9,464 | New: 1,233 | Up-To-Date: 8,934 | Updated: 6,999 | Error: 34 | Need clarification: 56 | Skipped: 3
+⠋ Processing: 9,464 | New: 1,233 | Skipped: 15,933 | Error: 34 | Need clarification: 56 | Invalid: 3
 ```
 
 **Progress Indicator**:
@@ -403,11 +380,10 @@ Extends existing `StatusBar` class to show:
 **Status Categories**:
 
 - **New**: Successfully created new contacts
-- **Up-To-Date**: Contact exists, no changes needed
-- **Updated**: Contact updated with new information
+- **Skipped**: Match found (exact or fuzzy), connection skipped to preserve existing contact
 - **Need clarification**: Uncertain match, flagged for review
 - **Error**: Failed to add/update (API error, validation error)
-- **Skipped**: Invalid data, couldn't process
+- **Invalid**: Invalid data, couldn't process (missing required fields, etc.)
   - Reasons: missing required fields, invalid URL, invalid email, duplicate URL in CSV
   - Log partial data for debugging:
     - Which required field was missing
@@ -439,11 +415,10 @@ LinkedIn Sync Complete
 ======================
 Total Connections: 11,259
 New: 1,233
-Up-To-Date: 8,934
-Updated: 6,999
+Skipped: 8,934 (matches)
 Need Clarification: 56
 Errors: 34
-Skipped: 3
+Invalid: 3
 
 API Calls:
   Read: 15
