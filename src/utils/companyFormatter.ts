@@ -30,6 +30,12 @@ export function cleanCompany(company: string): string {
   cleaned = cleaned.replace(/\s+at work\.?$/gi, '');
   cleaned = cleaned.replace(/'/g, '');
   cleaned = cleaned.trim();
+
+  // Pre-merge abbreviation-style "WORD. WORD" patterns before splitting.
+  // e.g. "EX. CO" → "EX.CO" so the dot-space splitter doesn't chop off the second part.
+  // We only merge when the word before the dot is short (≤5 chars) — a hallmark of abbreviations.
+  cleaned = cleaned.replace(/\b([A-Za-z]{1,5})\.\s+([A-Za-z]{1,5})\b/g, '$1.$2');
+
   // Split on phrase-level separators and take only the FIRST valid segment
   // Handles: commas, pipes, spaced dashes/em-dashes, period+space, double+ spaces
   const parts: string[] = cleaned.split(/\s*[,|]\s*|\s+[-–—]\s+|\.\s+|\s{2,}/).filter(p => p.trim());
@@ -40,9 +46,11 @@ export function cleanCompany(company: string): string {
   cleaned = cleaned.replace(/[._\-\s]+$/, '');
   // Remove domain extensions
   cleaned = removeDomainExtensions(cleaned);
-  // Remove company suffixes
+  // Remove company suffixes — but only when preceded by a space (not embedded in a dotted abbreviation like EX.CO)
   for (const suffix of SETTINGS.linkedin.companySuffixesToRemove) {
-    const regex = RegexPatterns.createCompanySuffixRegex(suffix);
+    // Only match the suffix when preceded by whitespace or start of string (not after a dot)
+    const escapedSuffix = suffix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(?<=\\s|^),?\\s*${escapedSuffix}\\.?$`, 'gi');
     const afterRemoval: string = cleaned.replace(regex, '').trim();
     if (afterRemoval) {
       cleaned = afterRemoval;

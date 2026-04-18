@@ -1,5 +1,4 @@
 import Enquirer from 'enquirer';
-import readline from 'readline';
 import fs from 'fs';
 import type {
   PromptResult,
@@ -82,7 +81,11 @@ async function runPrompt<T>(
 
   if (process.stdin.isTTY) {
     process.stdin.resume();
-    readline.emitKeypressEvents(process.stdin);
+    if (typeof process.stdin.setRawMode === 'function') {
+      // Keep stdin in cooked mode before creating a prompt.
+      // On Windows, lingering raw mode can break Ctrl+V paste in input prompts.
+      process.stdin.setRawMode(false);
+    }
   }
 
   let escaped = false;
