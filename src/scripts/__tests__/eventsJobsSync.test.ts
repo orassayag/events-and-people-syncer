@@ -438,6 +438,48 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
 
       expect(script.lastSelectedFolder).toEqual(mockJobFolder);
     });
+
+    it('should pass explicit note date when provided', async () => {
+      mockInputWithEscape.mockResolvedValue({ escaped: false, value: '' });
+      const explicitDate = new Date(2011, 4, 12);
+
+      await script.createNoteInFolder(mockJobFolder, { noteDate: explicitDate });
+
+      expect(mockNoteWriter.writeNote).toHaveBeenCalledWith(
+        mockJobFolder.path,
+        expect.any(String),
+        explicitDate
+      );
+    });
+  });
+
+  describe('createNoteWithDateFlow', () => {
+    it('should create note with parsed ddMMyyyy date', async () => {
+      vi.spyOn(script, 'selectOrCreateFolder').mockResolvedValue(mockJobFolder);
+      mockInputWithEscape.mockResolvedValueOnce({ escaped: false, value: '12052011' });
+      const createNoteInFolderSpy = vi
+        .spyOn(script, 'createNoteInFolder')
+        .mockResolvedValue(true);
+
+      await script.createNoteWithDateFlow();
+
+      expect(createNoteInFolderSpy).toHaveBeenCalledWith(
+        mockJobFolder,
+        expect.objectContaining({ noteDate: new Date(2011, 4, 12) })
+      );
+    });
+
+    it('should not create note when date prompt is escaped', async () => {
+      vi.spyOn(script, 'selectOrCreateFolder').mockResolvedValue(mockJobFolder);
+      mockInputWithEscape.mockResolvedValueOnce({ escaped: true, value: '' });
+      const createNoteInFolderSpy = vi
+        .spyOn(script, 'createNoteInFolder')
+        .mockResolvedValue(true);
+
+      await script.createNoteWithDateFlow();
+
+      expect(createNoteInFolderSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('writeNotesFlow', () => {

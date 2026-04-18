@@ -12,6 +12,7 @@ export enum MenuOption {
   WRITE_NOTES = 'write_notes',
   CREATE_NOTE = 'create_note',
   CREATE_NOTE_WITH_CONTACT = 'create_note_with_contact',
+  CREATE_NOTE_WITH_DATE = 'create_note_with_date',
   REWRITE_NOTE = 'rewrite_note',
   DELETE_LAST_NOTE = 'delete_last_note',
   DELETE_EMPTY_FOLDER = 'delete_empty_folder',

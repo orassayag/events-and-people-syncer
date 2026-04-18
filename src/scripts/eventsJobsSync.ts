@@ -297,6 +297,7 @@ export class EventsJobsSyncScript {
         { name: `${EMOJIS.MENU.WRITE_NOTES} Write notes`, value: MenuOptionEnum.WRITE_NOTES },
         { name: `${EMOJIS.MENU.CREATE_NOTE} Write a note`, value: MenuOptionEnum.CREATE_NOTE },
         { name: `${EMOJIS.MENU.CREATE_NOTE} Write a note with contact`, value: MenuOptionEnum.CREATE_NOTE_WITH_CONTACT },
+        { name: `${EMOJIS.MENU.CREATE_NOTE} Write a note with date`, value: MenuOptionEnum.CREATE_NOTE_WITH_DATE },
         { name: `${EMOJIS.MENU.REWRITE_NOTE} Rewrite a note`, value: MenuOptionEnum.REWRITE_NOTE },
       ];
       if (this.lastCreatedNotePath !== null) {
@@ -335,6 +336,8 @@ export class EventsJobsSyncScript {
         await this.createNoteFlow();
       } else if (action === MenuOptionEnum.CREATE_NOTE_WITH_CONTACT) {
         await this.createNoteWithContactFlow();
+      } else if (action === MenuOptionEnum.CREATE_NOTE_WITH_DATE) {
+        await this.createNoteWithDateFlow();
       } else if (action === MenuOptionEnum.REWRITE_NOTE) {
         await this.rewriteNoteFlow();
       } else if (action === MenuOptionEnum.DELETE_LAST_NOTE) {
@@ -496,6 +499,61 @@ export class EventsJobsSyncScript {
         await this.promptAndCreateContact();
       }
     }
+  }
+
+  private parseCompactDate(dateInput: string): Date | null {
+    if (!/^\d{8}$/.test(dateInput)) {
+      return null;
+    }
+    const day = parseInt(dateInput.slice(0, 2), 10);
+    const month = parseInt(dateInput.slice(2, 4), 10);
+    const year = parseInt(dateInput.slice(4, 8), 10);
+    if (month < 1 || month > 12 || day < 1 || day > 31) {
+      return null;
+    }
+    const parsedDate = new Date(year, month - 1, day);
+    if (
+      isNaN(parsedDate.getTime()) ||
+      parsedDate.getDate() !== day ||
+      parsedDate.getMonth() !== month - 1 ||
+      parsedDate.getFullYear() !== year
+    ) {
+      return null;
+    }
+    return parsedDate;
+  }
+
+  private async createNoteWithDateFlow(): Promise<void> {
+    const selectedFolder = await this.selectOrCreateFolder();
+    if (!selectedFolder) {
+      return;
+    }
+    const dateInputResult = await inputWithEscape({
+      message: 'Enter a date (ddMMyyyy) (ESC to cancel):',
+      validate: (input: string): boolean | string => {
+        const trimmed = input.trim();
+        if (!/^\d{8}$/.test(trimmed)) {
+          return 'Date must be exactly 8 digits in ddMMyyyy format.';
+        }
+        const parsedDate = this.parseCompactDate(trimmed);
+        if (!parsedDate) {
+          return 'Invalid date. Please enter a real date in ddMMyyyy format.';
+        }
+        return true;
+      },
+    });
+    if (dateInputResult.escaped) {
+      this.uiLogger.displayGoBack();
+      return;
+    }
+    const parsedDate = this.parseCompactDate(dateInputResult.value.trim());
+    if (!parsedDate) {
+      this.uiLogger.displayWarning(
+        'Invalid date. Please try again with ddMMyyyy format.'
+      );
+      return;
+    }
+    await this.createNoteInFolder(selectedFolder, { noteDate: parsedDate });
   }
 
   private async writeNotesFlow(): Promise<void> {
@@ -992,7 +1050,7 @@ export class EventsJobsSyncScript {
 
   private async createNoteInFolder(
     folder: FolderMapping,
-    options?: { noteCount?: number; allowCancel?: boolean }
+    options?: { noteCount?: number; allowCancel?: boolean; noteDate?: Date }
   ): Promise<boolean> {
     let message: string = '';
     while (!message.trim()) {
@@ -1058,7 +1116,7 @@ export class EventsJobsSyncScript {
       const filePath = await this.noteWriter.writeNote(
         folder.path,
         trimmedMessage,
-        new Date()
+        options?.noteDate ?? new Date()
       );
       await this.logger.logMain(`${EMOJIS.STATUS.SUCCESS} Note saved: '${filePath}'`);
       const fileName = basename(filePath);
