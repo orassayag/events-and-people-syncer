@@ -5,11 +5,19 @@ import { AlertLogger } from './alertLogger';
 import { LOG_CONFIG } from './logConfig';
 
 const TEST_SCRIPT_NAME = 'test-script';
-const TEST_FILE_PATH = join(LOG_CONFIG.logDir, `${TEST_SCRIPT_NAME}_ALERTS.log`);
+const TEST_FILE_PATH = join(LOG_CONFIG.logDir, `${TEST_SCRIPT_NAME}_alerts-1.log`);
+const OLD_TEST_FILE_PATH = join(LOG_CONFIG.logDir, `${TEST_SCRIPT_NAME}_ALERTS.log`);
 
 async function cleanupTestFile(): Promise<void> {
   try {
     await fs.unlink(TEST_FILE_PATH);
+  } catch (error: unknown) {
+    if (error instanceof Error && 'code' in error && (error as any).code !== 'ENOENT') {
+      throw error;
+    }
+  }
+  try {
+    await fs.unlink(OLD_TEST_FILE_PATH);
   } catch (error: unknown) {
     if (error instanceof Error && 'code' in error && (error as any).code !== 'ENOENT') {
       throw error;

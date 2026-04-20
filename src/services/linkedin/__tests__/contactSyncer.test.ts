@@ -219,6 +219,38 @@ describe('ContactSyncer', () => {
     });
   });
 
+  describe('addContact - organizations title', () => {
+    it('should omit title when position is empty', async () => {
+      const mockCreateFn = vi.fn().mockResolvedValue({});
+      const mockListFn = vi.fn().mockResolvedValue({
+        data: { contactGroups: [] },
+      });
+      const mockBatchGetFn = vi.fn().mockResolvedValue({
+        data: { responses: [] },
+      });
+      vi.mocked(google.people).mockReturnValue({
+        contactGroups: {
+          list: mockListFn,
+          batchGet: mockBatchGetFn,
+        },
+        people: {
+          createContact: mockCreateFn,
+        },
+      } as any);
+      await contactSyncer.initialize();
+      const connection: LinkedInConnection = {
+        ...mockConnection,
+        position: '',
+      };
+      const result = await contactSyncer.addContact(connection, 'Job');
+      expect(result.status).toBe('new');
+      const requestBody = mockCreateFn.mock.calls[0][0].requestBody;
+      expect(requestBody.organizations).toBeDefined();
+      expect(requestBody.organizations[0]).not.toHaveProperty('title');
+      expect(requestBody.organizations[0].name).toBeDefined();
+    });
+  });
+
   describe('addContact - biographies field', () => {
     it('should include biographies with Added note', async () => {
       const mockCreateFn = vi.fn().mockResolvedValue({});

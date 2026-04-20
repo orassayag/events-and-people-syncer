@@ -6,7 +6,14 @@ import { SETTINGS } from '../../settings';
 import { ApiTracker } from '../api';
 import { emailSchema } from '../../entities';
 import { Logger } from '../../logging';
-import { retryWithBackoff, calculateFormattedCompany, formatDateTimeDDMMYYYY_HHMMSS, DryModeChecker, DryModeMocks } from '../../utils';
+import {
+  retryWithBackoff,
+  calculateFormattedCompany,
+  formatDateTimeDDMMYYYY_HHMMSS,
+  DryModeChecker,
+  DryModeMocks,
+  stripCompanyPrefixOverlapFromName,
+} from '../../utils';
 import { buildNewContactNote, determineNoteUpdate } from './noteParser';
 import { ContactCache } from '../../cache';
 import { DuplicateDetector } from '../contacts';
@@ -43,8 +50,12 @@ export class ContactSyncer {
         2
       );
       const emailLabel: string = (formattedCompany.toLowerCase().startsWith(label.toLowerCase()) ? formattedCompany : `${label} ${formattedCompany}`).replace(/'/g, '').trim();
-      const lastNameValue: string = [
+      const baseLastName: string = stripCompanyPrefixOverlapFromName(
         connection.lastName,
+        connection.company
+      );
+      const lastNameValue: string = [
+        baseLastName,
         formattedCompany.toLowerCase().startsWith(label.toLowerCase()) ? '' : label,
         formattedCompany,
       ]
@@ -76,14 +87,20 @@ export class ContactSyncer {
           type: emailLabel,
         }));
       }
-      if (formattedCompany || connection.position) {
-        requestBody.organizations = [
-          {
-            name: formattedCompany || undefined,
-            title: connection.position.trim() || undefined,
-            type: 'work',
-          },
-        ];
+      const positionTrimmed = (connection.position ?? '').trim();
+      if (formattedCompany || positionTrimmed) {
+        const organizationEntry: {
+          name?: string;
+          title?: string;
+          type: 'work';
+        } = { type: 'work' };
+        if (formattedCompany) {
+          organizationEntry.name = formattedCompany;
+        }
+        if (positionTrimmed) {
+          organizationEntry.title = positionTrimmed;
+        }
+        requestBody.organizations = [organizationEntry];
       }
       if (connection.url) {
         requestBody.urls = [
@@ -113,7 +130,7 @@ export class ContactSyncer {
       }
       if (SETTINGS.dryMode) {
         const contactDetails =
-          `Contact: ${connection.firstName} ${connection.lastName}` +
+          `Contact: ${connection.firstName} ${lastNameValue}` +
           (connection.email ? ` (${connection.email})` : '') +
           ` - Label: ${label}`;
         DryModeChecker.logApiCall(
@@ -123,7 +140,7 @@ export class ContactSyncer {
         );
         const mockResponse = DryModeMocks.createContactResponse(
           connection.firstName,
-          connection.lastName
+          lastNameValue
         );
         const compositeSuffix = [label, formattedCompany]
           .filter((s) => s)
@@ -131,7 +148,7 @@ export class ContactSyncer {
         const newContact: ContactData = {
           label: label,
           firstName: connection.firstName,
-          lastName: connection.lastName,
+          lastName: lastNameValue,
           company: formattedCompany,
           jobTitle: connection.position,
           emails: connection.email
@@ -258,8 +275,12 @@ export class ContactSyncer {
         2
       );
       const emailLabel: string = (formattedCompany.toLowerCase().startsWith(label.toLowerCase()) ? formattedCompany : `${label} ${formattedCompany}`).replace(/'/g, '').trim();
-      const lastNameValue: string = [
+      const baseLastName: string = stripCompanyPrefixOverlapFromName(
         connection.lastName,
+        connection.company
+      );
+      const lastNameValue: string = [
+        baseLastName,
         formattedCompany.toLowerCase().startsWith(label.toLowerCase()) ? '' : label,
         formattedCompany,
       ]

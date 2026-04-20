@@ -111,8 +111,8 @@ export class TextUtils {
     const statusPrefixes = "(i'm|i\\s+am|im|i\\s+m|we're|we\\s+are)";
     const statusKeywords = "(hiring|recruiting|looking|seeking|building|helping|passionate|expert|specialist)";
     cleaned = cleaned.replace(new RegExp(`\\b${statusPrefixes}\\s+${statusKeywords}\\b[\\w\\s!&-]*`, 'gi'), '');
-    // Remove "The X" phrases (e.g., "The Recruiter") - remove "the" and the next word as requested
-    cleaned = cleaned.replace(/\bthe\s+\w+\b/gi, '');
+    // Remove everything starting from "The " to the end of the string (e.g., "The Corporate Recruiter")
+    cleaned = cleaned.replace(/\bthe\b.*$/gi, '');
     // Remove "Hr with X" phrases (more flexible than end-anchored)
     cleaned = cleaned.replace(/\bhr\s+with\s+\w+\b/gi, '');
     // Remove everything starting from "Executive" or "Always" at the end
@@ -123,14 +123,14 @@ export class TextUtils {
     cleaned = cleaned.replace(/\s+\b(be|always|looking|passionate|helping|is|everything)\s+[\w\s!&,.']{10,}$/gi, '');
     // Remove "X Expert" phrases at the end (e.g., "Career Expert")
     cleaned = cleaned.replace(/\s+\b[\w\s-]+\s+expert$/gi, '');
-    cleaned = cleaned.replace(/\b(hiring|recruiting|headhunter|i\s+m)\b/gi, '');
+    cleaned = cleaned.replace(/\b(hiring|recruiter|recruiting|talent|acquisition|headhunter|i[\s'’`]*m)\b/gi, '');
 
     // Remove dotted academic degrees BEFORE the alphanumeric filter strips their dots
     // e.g. "Ph.D." → removed here so it doesn't become "Ph D" and slip through
     cleaned = cleaned.replace(/\b(ph\.\s*d|m\.\s*d|ll\.\s*m|m\.\s*b\.\s*a|m\.\s*s|b\.\s*s|m\.\s*a)\.?\b/gi, '');
 
     // Remove specific degrees/abbreviations/certifications (whole words only)
-    cleaned = cleaned.replace(/\b(llm|mba|hr|shrm|cp|phr|sphr|gphr|cipd|pmp|mha|phd|md|chfp|cpa|cfa|cfp|cfe|cia|cisa|cism|crisc|cissp|rhia|rhit|cpc|ccs|cdip|chda|chps|cphi|hcispp|cphims|cphq|lcsw|lpc|rn|np|pa|dds|dmd|psyd|edd|jd|do)\b/gi, '');
+    cleaned = cleaned.replace(/\b(llm|mba|hr|shrm|cp|phr|sphr|gphr|cipd|pmp|mha|phd|md|chfp|cpa|cfa|cfp|cfe|cia|cisa|cism|crisc|cissp|rhia|rhit|cpc|ccs|cdip|chda|chps|cphi|hcispp|cphims|cphq|lcsw|lpc|rn|np|pa|dds|dmd|psyd|edd|jd|do|dna)\b/gi, '');
 
     // Remove apostrophes before the alphanumeric filter so they don't become spaces
     cleaned = cleaned.replace(/'/g, '');
@@ -170,14 +170,103 @@ export class TextUtils {
   }
 
   /**
+   * Parenthetical pronoun lines (e.g. "(She/her/hers)") must not be treated as nicknames;
+   * they are dropped entirely. Slash- or comma-separated tokens must all be known pronoun forms.
+   */
+  private static readonly PRONOUN_PAREN_TOKENS: ReadonlySet<string> = new Set([
+    'she',
+    'her',
+    'hers',
+    'herself',
+    'he',
+    'him',
+    'his',
+    'himself',
+    'they',
+    'them',
+    'their',
+    'theirs',
+    'themself',
+    'themselves',
+    'ze',
+    'zir',
+    'zirs',
+    'zirself',
+    'xe',
+    'xem',
+    'xyr',
+    'xyrs',
+    'xemself',
+    'ey',
+    'em',
+    'eir',
+    'eirs',
+    'fae',
+    'faer',
+    'faers',
+    've',
+    'ver',
+    'vis',
+    'vers',
+    'te',
+    'ter',
+    'tem',
+    'it',
+    'its',
+    'any',
+    'all',
+    'none',
+    'other',
+    'others',
+    'mx',
+    'one',
+    'ones',
+    'mix',
+    'mixed',
+    'elle',
+  ]);
+
+  private static isLikelyPronounOnlyParenthetical(text: string): boolean {
+    const raw: string = text.trim();
+    if (!raw) {
+      return false;
+    }
+    const n: string = raw.replace(/\s+/g, ' ').trim();
+    let chunks: string[];
+    if (n.includes('/')) {
+      chunks = n.split(/\s*\/\s*/).map((s: string) => s.trim()).filter(Boolean);
+    } else if (n.includes(',')) {
+      chunks = n.split(/\s*,\s*/).map((s: string) => s.trim()).filter(Boolean);
+    } else {
+      chunks = [n];
+    }
+    const tokens: string[] = [];
+    for (const c of chunks) {
+      if (/\s/.test(c)) {
+        tokens.push(...c.split(/\s+/).filter(Boolean));
+      } else {
+        tokens.push(c);
+      }
+    }
+    if (tokens.length === 0) {
+      return false;
+    }
+    return tokens.every((t: string) =>
+      TextUtils.PRONOUN_PAREN_TOKENS.has(t.toLowerCase())
+    );
+  }
+
+  /**
    * Moves any content in parentheses (nicknames) to the end of the last name field,
    * while removing the parentheses themselves.
    */
   static handleNicknames(firstName: string, lastName: string): { firstName: string, lastName: string } {
     const extract = (text: string) => {
       const nicknames: string[] = [];
-      const cleaned = text.replace(/\(([^)]+)\)/g, (_, nickname) => {
-        nicknames.push(nickname);
+      const cleaned = text.replace(/\(([^)]+)\)/g, (_, nickname: string) => {
+        if (!TextUtils.isLikelyPronounOnlyParenthetical(nickname)) {
+          nicknames.push(nickname);
+        }
         return '';
       }).trim();
       return { cleaned, nicknames };
@@ -188,7 +277,24 @@ export class TextUtils {
 
     const allNicknames = [...fnResult.nicknames, ...lnResult.nicknames];
     const finalFirstName = fnResult.cleaned;
-    const finalLastName = [lnResult.cleaned, ...allNicknames].filter(Boolean).join(' ').trim();
+    const baseLastName = lnResult.cleaned;
+
+    // Collect all words that are part of the core names to avoid duplicating them from the nicknames
+    const nameWords = new Set<string>();
+    [finalFirstName, baseLastName].forEach((namePart) => {
+      if (namePart) {
+        namePart.split(/\s+/).forEach((w) => nameWords.add(w.toLowerCase()));
+      }
+    });
+
+    const deduplicatedNicknames = allNicknames.map((nn) => {
+      // Split the nickname into words, keep only those that are not already present in the core name
+      const nnWords = nn.split(/\s+/);
+      const filtered = nnWords.filter((w) => !nameWords.has(w.toLowerCase()));
+      return filtered.join(' ');
+    }).filter((nn) => nn.trim().length > 0);
+
+    const finalLastName = [baseLastName, ...deduplicatedNicknames].filter(Boolean).join(' ').trim();
 
     return { firstName: finalFirstName, lastName: finalLastName };
   }

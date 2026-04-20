@@ -12,7 +12,7 @@ import {
 import { ErrorCode } from '../../errors';
 import { UrlNormalizer } from './urlNormalizer';
 import { Logger } from '../../logging';
-import { TextUtils } from '../../utils';
+import { TextUtils, stripCompanyPrefixOverlapFromName } from '../../utils';
 
 @injectable()
 export class LinkedInExtractor {
@@ -176,7 +176,16 @@ export class LinkedInExtractor {
           processedUrls.add(normalizedUrl);
           const profileSlug: string = UrlNormalizer.extractProfileSlug(url);
           const company: string = TextUtils.removeHebrew((record['Company'] || '').trim());
-          const { firstName: finalFirstName, lastName: finalLastName } = TextUtils.removeCompanyFromName(firstName, lastName, company);
+          const { firstName: fnAfterPhrase, lastName: lnAfterPhrase } =
+            TextUtils.removeCompanyFromName(firstName, lastName, company);
+          const finalFirstName: string = stripCompanyPrefixOverlapFromName(
+            fnAfterPhrase,
+            company
+          );
+          const finalLastName: string = stripCompanyPrefixOverlapFromName(
+            lnAfterPhrase,
+            company
+          );
 
           const connection: LinkedInConnection = linkedInConnectionSchema.parse(
             {
@@ -186,7 +195,7 @@ export class LinkedInExtractor {
               email: TextUtils.removeHebrew((record['Email Address'] || '').trim()),
               company,
               position: TextUtils.removeHebrew((record['Position'] || '').trim()),
-              url,
+              url: UrlNormalizer.formatLinkedInUrl(url),
               connectedOn: (record['Connected On'] || '').trim(),
             }
           );

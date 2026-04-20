@@ -1,9 +1,14 @@
 export class UrlNormalizer {
+  static formatLinkedInUrl(url: string): string {
+    const normalized = this.normalizeLinkedInUrl(url);
+    if (!normalized) return url;
+    return `linkedin.com/${normalized}`;
+  }
+
   static normalizeLinkedInUrl(url: string): string {
     let normalized: string = url.trim().toLowerCase();
     normalized = normalized.replace(/^https?:\/\//, '');
-    normalized = normalized.replace(/^(www\.|m\.)/, '');
-    normalized = normalized.replace(/^linkedin\.com\//, '');
+    normalized = normalized.replace(/^([^/]*\.)?linkedin\.com\//, '');
     const queryIndex: number = normalized.indexOf('?');
     if (queryIndex !== -1) {
       normalized = normalized.substring(0, queryIndex);

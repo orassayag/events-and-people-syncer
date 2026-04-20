@@ -47,7 +47,7 @@ export function cleanCompany(company: string): string {
   // Remove domain extensions
   cleaned = removeDomainExtensions(cleaned);
   // Remove company suffixes — but only when preceded by a space (not embedded in a dotted abbreviation like EX.CO)
-  for (const suffix of SETTINGS.linkedin.companySuffixesToRemove) {
+  for (const suffix of SETTINGS.linkedin.companySuffixesToRemove ?? []) {
     // Only match the suffix when preceded by whitespace or start of string (not after a dot)
     const escapedSuffix = suffix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`(?<=\\s|^),?\\s*${escapedSuffix}\\.?$`, 'gi');
@@ -67,11 +67,78 @@ export function cleanCompany(company: string): string {
   return cleaned;
 }
 
+const YAFO_OR_JAFFA: ReadonlySet<string> = new Set(['yafo', 'jaffa']);
+
+function stripTrailingPunct(word: string): string {
+  return word.replace(/[.,]$/, '');
+}
+
+function normCompanyWord(word: string): string {
+  return stripTrailingPunct(word).toLowerCase();
+}
+
+/**
+ * Tel Aviv is two words but should count as one city prefix for maxWords; optional
+ * "Yafo"/"Jaffa" is dropped. Same optional skip after "Jerusalem" or "Haifa".
+ */
+function preprocessIsraeliCityCompanyWords(words: string[]): string[] {
+  if (words.length === 0) {
+    return words;
+  }
+  const n0: string = normCompanyWord(words[0]);
+  const n1: string = words.length > 1 ? normCompanyWord(words[1]) : '';
+
+  if (n0 === 'tel' && n1 === 'aviv') {
+    let idx: number = 2;
+    if (idx < words.length && YAFO_OR_JAFFA.has(normCompanyWord(words[idx]))) {
+      idx++;
+    }
+    return ['TelAviv', ...words.slice(idx)];
+  }
+
+  if (n0 === 'jerusalem') {
+    let idx: number = 1;
+    if (idx < words.length && YAFO_OR_JAFFA.has(normCompanyWord(words[idx]))) {
+      idx++;
+    }
+    return ['Jerusalem', ...words.slice(idx)];
+  }
+
+  if (n0 === 'haifa') {
+    let idx: number = 1;
+    if (idx < words.length && YAFO_OR_JAFFA.has(normCompanyWord(words[idx]))) {
+      idx++;
+    }
+    return ['Haifa', ...words.slice(idx)];
+  }
+
+  return words;
+}
+
+function wordToPascalCaseSegment(word: string): string {
+  if (!word) {
+    return '';
+  }
+  const key: string = normCompanyWord(word);
+  if (key === 'telaviv') {
+    return 'TelAviv';
+  }
+  if (key === 'jerusalem') {
+    return 'Jerusalem';
+  }
+  if (key === 'haifa') {
+    return 'Haifa';
+  }
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
 export function formatCompanyToPascalCase(company: string, maxWords?: number): string {
   if (!company || !company.trim()) {
     return '';
   }
-  let words = company.trim().split(/\s+/);
+  let words: string[] = preprocessIsraeliCityCompanyWords(
+    company.trim().split(/\s+/)
+  );
   if (maxWords && maxWords > 0) {
     let resultWords = words.slice(0, maxWords);
     // If the last word included is a "joiner" (of, &), include the next word too
@@ -101,10 +168,9 @@ export function formatCompanyToPascalCase(company: string, maxWords?: number): s
     }
     words = resultWords;
   }
-  const pascalCaseWords = words.map((word: string) => {
-    if (!word) return '';
-    return word.charAt(0).toUpperCase() + word.slice(1);
-  });
+  const pascalCaseWords: string[] = words.map((word: string) =>
+    wordToPascalCaseSegment(word)
+  );
   return pascalCaseWords.join('');
 }
 
@@ -120,4 +186,93 @@ export function calculateFormattedCompany(company: string, maxWords?: number): s
   const formattedCompany: string = formatCompanyToPascalCase(noEmojis, maxWords);
   
   return formattedCompany ? `LinkedIn ${formattedCompany}` : 'LinkedIn';
+}
+
+const GENERIC_COMPANY_TOKENS: Set<string> = new Set([
+  'inc',
+  'llc',
+  'ltd',
+  'corp',
+  'co',
+  'plc',
+  'sa',
+  'ag',
+  'gmbh',
+  'limited',
+]);
+
+function normalizeOverlapToken(token: string): string {
+  return token.toLowerCase().replace(/'/g, '');
+}
+
+function splitOverlapTokens(text: string): string[] {
+  return text.trim().split(/[\s-]+/).filter((t) => t.length > 0);
+}
+
+/**
+ * Removes a trailing run of words from `name` when it matches the leading words of the
+ * cleaned company string (after normalizing spaces and hyphens). Handles cases like
+ * last name "Hrzog Log On" with company "Log-On Software" → "Hrzog".
+ */
+export function stripCompanyPrefixOverlapFromName(
+  name: string,
+  company: string
+): string {
+  if (!name?.trim() || !company?.trim()) {
+    return (name || '').trim();
+  }
+  const nameTokens: string[] = splitOverlapTokens(name);
+  if (nameTokens.length === 0) {
+    return name.trim();
+  }
+  const cleanedCompany: string = cleanCompany(company);
+  if (!cleanedCompany.trim()) {
+    return name.trim();
+  }
+  const companyTokens: string[] = splitOverlapTokens(cleanedCompany);
+  if (companyTokens.length === 0) {
+    return name.trim();
+  }
+
+  const nameNorm: string[] = nameTokens.map(normalizeOverlapToken);
+  const companyNorm: string[] = companyTokens.map(normalizeOverlapToken);
+
+  const maxK: number = Math.min(nameNorm.length, companyNorm.length);
+  let bestK: number = 0;
+  for (let k: number = maxK; k >= 1; k--) {
+    let matches: boolean = true;
+    for (let i: number = 0; i < k; i++) {
+      if (nameNorm[nameNorm.length - k + i] !== companyNorm[i]) {
+        matches = false;
+        break;
+      }
+    }
+    if (!matches) {
+      continue;
+    }
+    if (k === 1) {
+      const firstCompanyWord: string = companyNorm[0];
+      if (GENERIC_COMPANY_TOKENS.has(firstCompanyWord)) {
+        continue;
+      }
+      if (firstCompanyWord.length < 3) {
+        continue;
+      }
+      if (companyNorm.length > 1 && firstCompanyWord.length < 4) {
+        continue;
+      }
+    }
+    const joinedLen: number = companyNorm.slice(0, k).join('').length;
+    if (joinedLen < 3) {
+      continue;
+    }
+    bestK = k;
+    break;
+  }
+
+  if (bestK === 0) {
+    return name.trim();
+  }
+  const kept: string[] = nameTokens.slice(0, nameTokens.length - bestK);
+  return kept.join(' ');
 }

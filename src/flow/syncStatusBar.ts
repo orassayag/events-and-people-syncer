@@ -2,7 +2,12 @@ import ora, { Ora } from 'ora';
 import { SyncStatus, SupportedContact, LinkedInConnection, ContactType } from '../types';
 import { Logger } from '../logging';
 import { FormatUtils, EMOJIS } from '../constants';
-import { formatMixedHebrewEnglish, calculateFormattedCompany, DryModeChecker } from '../utils';
+import {
+  formatMixedHebrewEnglish,
+  calculateFormattedCompany,
+  DryModeChecker,
+  stripCompanyPrefixOverlapFromName,
+} from '../utils';
 
 export class SyncStatusBar {
   private spinner: Ora | null = null;
@@ -195,13 +200,17 @@ export class SyncStatusBar {
       if (conn.type === ContactType.LINKEDIN) {
         const linkedInConn = conn as LinkedInConnection;
         const firstName = linkedInConn.firstName;
-        const lastName = linkedInConn.lastName;
         const company = linkedInConn.company || '';
+        const lastName = stripCompanyPrefixOverlapFromName(
+          linkedInConn.lastName,
+          company
+        );
         const label = this.currentLabel;
-        const position = linkedInConn.position || '(none)';
+        const positionRaw = (linkedInConn.position ?? '').trim();
+        const positionDisplay = positionRaw || '(none)';
         const formattedCompany: string = calculateFormattedCompany(company, 2);
         const emailSuffix = [
-          position, 
+          positionRaw,
           formattedCompany ? `@ ${formattedCompany}` : '', 
           (label && formattedCompany && formattedCompany.toLowerCase().startsWith(label.toLowerCase())) ? '' : (label ? `(${label})` : '')
         ].filter(Boolean).join(' ');
@@ -209,7 +218,7 @@ export class SyncStatusBar {
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.PERSON} Full name: ${firstName} ${lastName} ${label}`;
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.LABEL}  Labels: ${label}`;
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.COMPANY} Company: ${formattedCompany}`;
-        result += `\n${spinnerPadding}${EMOJIS.FIELDS.JOB_TITLE} Job Title: ${position}`;
+        result += `\n${spinnerPadding}${EMOJIS.FIELDS.JOB_TITLE} Job Title: ${positionDisplay}`;
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.EMAIL} Email: ${linkedInConn.email ? `${linkedInConn.email} ${emailSuffix}` : '(none)'}`;
         result += `\n${spinnerPadding}📞 Phone: (none)`;
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.LINKEDIN} LinkedIn URL: ${linkedInConn.url || '(none)'} LinkedIn`;

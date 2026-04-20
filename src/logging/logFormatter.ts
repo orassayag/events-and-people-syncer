@@ -1,6 +1,9 @@
 import { EMOJIS } from '../constants';
 import { LinkedInConnection, UpdateDetails, HibobContact } from '../types';
-import { calculateFormattedCompany } from '../utils';
+import {
+  calculateFormattedCompany,
+  stripCompanyPrefixOverlapFromName,
+} from '../utils';
 
 export class LogFormatter {
   static formatContactBlock(
@@ -26,7 +29,18 @@ export class LogFormatter {
     };
 
     const calculatedLabel = (formattedCompany.toLowerCase().startsWith(label.toLowerCase()) ? formattedCompany : [label, formattedCompany].filter(Boolean).join(' ')).replace(/'/g, '');
-    const currentFullName = getEnrichedFullName(contact.firstName, contact.lastName, label.replace(/'/g, ''), formattedCompany);
+    const lastNameForDisplay: string = isLinkedIn
+      ? stripCompanyPrefixOverlapFromName(
+          contact.lastName ?? '',
+          (contact as LinkedInConnection).company
+        )
+      : (contact.lastName ?? '');
+    const currentFullName = getEnrichedFullName(
+      contact.firstName,
+      lastNameForDisplay,
+      label.replace(/'/g, ''),
+      formattedCompany
+    );
     
     let fullNameStr = `${EMOJIS.FIELDS.PERSON} Full name: ${currentFullName}`;
     if (type === 'UPDATE' && updateDetails?.lastName) {
@@ -41,10 +55,15 @@ export class LogFormatter {
     const companyDisplay = isLinkedIn ? formattedCompany : label;
     lines.push(`${EMOJIS.FIELDS.COMPANY} Company: ${companyDisplay}`);
 
-    const jobTitle = isLinkedIn ? (contact as LinkedInConnection).position : '(none)';
+    const positionRaw = isLinkedIn
+      ? (contact as LinkedInConnection).position?.trim() ?? ''
+      : '';
+    const jobTitle = isLinkedIn ? positionRaw || '(none)' : '(none)';
     let jobTitleStr = `${EMOJIS.FIELDS.JOB_TITLE} Job Title: ${jobTitle}`;
     if (type === 'UPDATE' && updateDetails?.jobTitle) {
-        jobTitleStr = `${EMOJIS.FIELDS.JOB_TITLE} Job Title: ${updateDetails.jobTitle.to} (${updateDetails.jobTitle.from} => ${updateDetails.jobTitle.to})`;
+      const toDisplay =
+        updateDetails.jobTitle.to.trim() || '(none)';
+      jobTitleStr = `${EMOJIS.FIELDS.JOB_TITLE} Job Title: ${toDisplay} (${updateDetails.jobTitle.from} => ${toDisplay})`;
     }
     lines.push(jobTitleStr);
 

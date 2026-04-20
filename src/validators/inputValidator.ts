@@ -1,6 +1,7 @@
 import { RegexPatterns } from '../regex';
 import { ValidationSchemas } from './validationSchemas';
 import type { ContactGroup, EditableContactData } from '../types';
+import { UrlNormalizer } from '../services/linkedin/urlNormalizer';
 
 export class InputValidator {
   static validateNoHebrew(
@@ -66,17 +67,7 @@ export class InputValidator {
   }
 
   static normalizeLinkedInUrl(url: string): string {
-    let normalized = url.trim();
-    if (
-      !normalized.startsWith('http://') &&
-      !normalized.startsWith('https://')
-    ) {
-      normalized = 'https://' + normalized;
-    }
-    while (normalized.endsWith('/')) {
-      normalized = normalized.slice(0, -1);
-    }
-    return normalized;
+    return UrlNormalizer.formatLinkedInUrl(url);
   }
 
   static validateUniqueEmail(
