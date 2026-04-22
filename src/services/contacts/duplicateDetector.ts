@@ -121,10 +121,10 @@ export class DuplicateDetector {
     const searchName: string = `${firstName} ${lastName}`.trim();
     const searchTokens = searchName
       .toLowerCase()
-      .split(/\s+/)
+      .split(/[\s\-]+/)
       .filter((t) => t.length > 1);
     const candidates = contactsWithFullName.filter((contact) => {
-      const candidateWords = contact.fullName.toLowerCase().split(/\s+/);
+      const candidateWords = contact.fullName.toLowerCase().split(/[\s\-]+/);
       return searchTokens.every((token) =>
         this.tokenExistsInName(token, candidateWords)
       );

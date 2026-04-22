@@ -11,22 +11,24 @@ import {
 } from '../../entities';
 import { ErrorCode } from '../../errors';
 import { UrlNormalizer } from './urlNormalizer';
-import { Logger } from '../../logging';
+import { Logger, SyncLogger } from '../../logging';
 import { TextUtils, stripCompanyPrefixOverlapFromName } from '../../utils';
 
 @injectable()
 export class LinkedInExtractor {
   private readonly sourcesPath: string;
   private logger: Logger = new Logger('LinkedInExtractor');
+  private errorLogger: SyncLogger = new SyncLogger('linkedin-sync_errors', 'log');
 
   constructor() {
     this.sourcesPath = SETTINGS.linkedin.sourcesPath;
   }
 
   async extract(): Promise<LinkedInConnection[]> {
+    await this.errorLogger.initialize();
     const zipPath: string = await this.findZipFile();
     const csvContent: string = await this.extractCsvFromZip(zipPath);
-    return this.parseCsv(csvContent);
+    return await this.parseCsv(csvContent);
   }
 
   private async findZipFile(): Promise<string> {
@@ -117,7 +119,7 @@ export class LinkedInExtractor {
     }
   }
 
-  private parseCsv(content: string): LinkedInConnection[] {
+  private async parseCsv(content: string): Promise<LinkedInConnection[]> {
     try {
       const lines: string[] = content.split('\n');
       let headerIndex: number = -1;
@@ -186,6 +188,14 @@ export class LinkedInExtractor {
             lnAfterPhrase,
             company
           );
+
+          const nameWordsCount = (finalFirstName + ' ' + finalLastName).trim().split(/\s+/).length;
+          if (nameWordsCount > 6) {
+            await this.errorLogger.logRaw(
+               `[INVALID NAME - Exceeds 6 words] Original: "${firstNameRaw} ${lastNameRaw}" -> Cleaned: "${finalFirstName} ${finalLastName}" | URL: ${url}`
+            );
+            continue;
+          }
 
           const connection: LinkedInConnection = linkedInConnectionSchema.parse(
             {

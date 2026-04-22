@@ -99,6 +99,10 @@ export class TextUtils {
     // Remove emojis
     cleaned = this.removeEmojis(cleaned);
 
+    // Remove prefacing professional titles (e.g. "Dr. Michal", "Prof Dr Smith")
+    const titleRegex = /^(?:(?:dr|mr|mrs|ms|miss|prof|professor|sir|dame|rev|hon|adv|advocate|eng|engineer|rabbi)\b\.?\s*)+/i;
+    cleaned = cleaned.replace(titleRegex, '');
+
     // Split by common separators used to append titles/suffixes ( - , | , • , / ) and take the first part
     // This handles cases like "Nava Avi - Tech Recruitment Director"
     const segments = cleaned.split(/\s+[-–—|•/]\s+/);
@@ -108,7 +112,7 @@ export class TextUtils {
     
     // Remove status phrases like "I am hiring", "We're recruiting", etc. (ignore case)
     // We target common status prefixes followed by status keywords to avoid removing legitimate content like "LinkedIn"
-    const statusPrefixes = "(i'm|i\\s+am|im|i\\s+m|we're|we\\s+are)";
+    const statusPrefixes = "([il]['’`\\s]*m|[il]\\s+am|we['’`\\s]*re|we\\s+are)";
     const statusKeywords = "(hiring|recruiting|looking|seeking|building|helping|passionate|expert|specialist)";
     cleaned = cleaned.replace(new RegExp(`\\b${statusPrefixes}\\s+${statusKeywords}\\b[\\w\\s!&-]*`, 'gi'), '');
     // Remove everything starting from "The " to the end of the string (e.g., "The Corporate Recruiter")
@@ -119,18 +123,23 @@ export class TextUtils {
     cleaned = cleaned.replace(/\s+\b(executive|always)\b.*$/gi, '');
     // Remove pronouns (e.g., "She/Her", "He/Him", "They/Them", "(She/They)")
     cleaned = cleaned.replace(/\s*\(?(she|he|they|ze|zir)\s*[/./\s-]\s*(her|him|them|zir|they|any)\b\)?/gi, '');
+    // Remove specific phrase "Be yourself everyone else is already taken" anywhere
+    cleaned = cleaned.replace(/\bbe\s+yourself\s+everyone\s+else\s+is\s+already\s+taken\b/gi, '');
     // Remove common quote/status openers at the end (e.g., "Be yourself...")
     cleaned = cleaned.replace(/\s+\b(be|always|looking|passionate|helping|is|everything)\s+[\w\s!&,.']{10,}$/gi, '');
     // Remove "X Expert" phrases at the end (e.g., "Career Expert")
     cleaned = cleaned.replace(/\s+\b[\w\s-]+\s+expert$/gi, '');
-    cleaned = cleaned.replace(/\b(hiring|recruiter|recruiting|talent|acquisition|headhunter|i[\s'’`]*m)\b/gi, '');
+    cleaned = cleaned.replace(/\b(hiring|recruiter|recruiting|talent|acquisition|headhunter|[il][\s'’`]*m)\b/gi, '');
+
+    // Remove network size indicators (e.g., "5k", "10K")
+    cleaned = cleaned.replace(/\b\d+[km]\b/gi, '');
 
     // Remove dotted academic degrees BEFORE the alphanumeric filter strips their dots
     // e.g. "Ph.D." → removed here so it doesn't become "Ph D" and slip through
-    cleaned = cleaned.replace(/\b(ph\.\s*d|m\.\s*d|ll\.\s*m|m\.\s*b\.\s*a|m\.\s*s|b\.\s*s|m\.\s*a)\.?\b/gi, '');
+    cleaned = cleaned.replace(/\b(ph\.\s*d|m\.\s*d|ll\.\s*m|m\.\s*b\.\s*a|m\.\s*s|b\.\s*s|m\.\s*a)\.?\b.*$/gi, '');
 
-    // Remove specific degrees/abbreviations/certifications (whole words only)
-    cleaned = cleaned.replace(/\b(llm|mba|hr|shrm|cp|phr|sphr|gphr|cipd|pmp|mha|phd|md|chfp|cpa|cfa|cfp|cfe|cia|cisa|cism|crisc|cissp|rhia|rhit|cpc|ccs|cdip|chda|chps|cphi|hcispp|cphims|cphq|lcsw|lpc|rn|np|pa|dds|dmd|psyd|edd|jd|do|dna)\b/gi, '');
+    // Remove specific degrees/abbreviations/certifications and everything after them
+    cleaned = cleaned.replace(/\b(llm|mba|hr|shrm|cp|phr|sphr|gphr|cipd|pmp|mha|phd|md|chfp|cpa|cfa|cfp|cfe|cia|cisa|cism|crisc|cissp|rhia|rhit|cpc|ccs|cdip|chda|chps|cphi|hcispp|cphims|cphq|lcsw|lpc|rn|np|pa|dds|dmd|psyd|edd|jd|do|dna)\b.*$/gi, '');
 
     // Remove apostrophes before the alphanumeric filter so they don't become spaces
     cleaned = cleaned.replace(/'/g, '');
@@ -141,14 +150,14 @@ export class TextUtils {
     if (!matches) return '';
     cleaned = matches.join(' ').replace(/\s+/g, ' ').trim();
 
-    // Remove degrees that may have become split words after dot-stripping (e.g. "Ph D", "M D", "Ll M")
-    cleaned = cleaned.replace(/\bph\s+d\b/gi, '');
-    cleaned = cleaned.replace(/\bm\s+d\b/gi, '');
-    cleaned = cleaned.replace(/\bll\s+m\b/gi, '');
-    cleaned = cleaned.replace(/\bm\s+b\s+a\b/gi, '');
-    cleaned = cleaned.replace(/\bm\s+s\b/gi, '');
-    cleaned = cleaned.replace(/\bb\s+s\b/gi, '');
-    cleaned = cleaned.replace(/\bm\s+a\b/gi, '');
+    // Remove degrees that may have become split words after dot-stripping AND everything after them
+    cleaned = cleaned.replace(/\bph\s+d\b.*$/gi, '');
+    cleaned = cleaned.replace(/\bm\s+d\b.*$/gi, '');
+    cleaned = cleaned.replace(/\bll\s+m\b.*$/gi, '');
+    cleaned = cleaned.replace(/\bm\s+b\s+a\b.*$/gi, '');
+    cleaned = cleaned.replace(/\bm\s+s\b.*$/gi, '');
+    cleaned = cleaned.replace(/\bb\s+s\b.*$/gi, '');
+    cleaned = cleaned.replace(/\bm\s+a\b.*$/gi, '');
 
     // 3. Remove multiple spaces that might have been left behind
     cleaned = cleaned.replace(/\s+/g, ' ');

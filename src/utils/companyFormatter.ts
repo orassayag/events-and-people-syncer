@@ -1,5 +1,4 @@
 import { SETTINGS } from '../settings';
-import { RegexPatterns } from '../regex/patterns';
 import { extractEnglishFromMixed } from './hebrewFormatter';
 import { TextUtils } from './textUtils';
 
@@ -147,6 +146,19 @@ export function formatCompanyToPascalCase(company: string, maxWords?: number): s
       const lastWord = resultWords[resultWords.length - 1].toLowerCase().replace(/[.,]$/, '');
       if (joiners.includes(lastWord)) {
         resultWords.push(words[resultWords.length]);
+      } else if (/\d$/.test(lastWord)) {
+        let nextIdx = resultWords.length;
+        // Skip over purely special character words to find the next meaningful word
+        while (nextIdx < words.length && !/[a-zA-Z0-9]/.test(words[nextIdx])) {
+          nextIdx++;
+        }
+        if (nextIdx < words.length) {
+          for (let i = resultWords.length; i <= nextIdx; i++) {
+            resultWords.push(words[i]);
+          }
+        } else {
+          break;
+        }
       } else {
         break;
       }
@@ -237,6 +249,41 @@ export function stripCompanyPrefixOverlapFromName(
   const nameNorm: string[] = nameTokens.map(normalizeOverlapToken);
   const companyNorm: string[] = companyTokens.map(normalizeOverlapToken);
 
+  // 1. Check if the company tokens, when joined, exactly match any contiguous sub-sequence
+  //    of the name tokens. For example: name ["g", "ness"] matches company ["gness"].
+  const companyJoined = companyNorm.join('');
+  if (companyJoined.length >= 3 && !GENERIC_COMPANY_TOKENS.has(companyJoined)) {
+    let matchStartIndex = -1;
+    let matchEndIndex = -1;
+
+    for (let i = 0; i < nameNorm.length; i++) {
+      let currentJoined = '';
+      for (let j = i; j < nameNorm.length; j++) {
+        currentJoined += nameNorm[j];
+        if (currentJoined === companyJoined) {
+          matchStartIndex = i;
+          matchEndIndex = j;
+          break;
+        }
+        if (currentJoined.length > companyJoined.length) {
+          break;
+        }
+      }
+      if (matchStartIndex !== -1) {
+        break;
+      }
+    }
+
+    if (matchStartIndex !== -1) {
+      const kept = [
+        ...nameTokens.slice(0, matchStartIndex),
+        ...nameTokens.slice(matchEndIndex + 1)
+      ];
+      return kept.join(' ').trim();
+    }
+  }
+
+  // 2. Check for overlapping trailing prefix (existing logic)
   const maxK: number = Math.min(nameNorm.length, companyNorm.length);
   let bestK: number = 0;
   for (let k: number = maxK; k >= 1; k--) {
