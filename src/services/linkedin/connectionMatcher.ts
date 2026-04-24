@@ -57,6 +57,7 @@ export class ConnectionMatcher {
     return {
       matchType: MatchType.EXACT,
       resourceName: matches[0].contact.resourceName,
+      matchReason: 'URL',
     };
   }
 
@@ -72,6 +73,7 @@ export class ConnectionMatcher {
     return {
       matchType: MatchType.EXACT,
       resourceName: matches[0].contact.resourceName,
+      matchReason: 'Email',
     };
   }
 
@@ -94,7 +96,8 @@ export class ConnectionMatcher {
         matchType: MatchType.FUZZY,
         resourceName: match.contact.resourceName,
         score,
-        matches: [match]
+        matches: [match],
+        matchReason: 'Name',
       };
     }
     if (score <= this.FUZZY_WARNING_THRESHOLD) {

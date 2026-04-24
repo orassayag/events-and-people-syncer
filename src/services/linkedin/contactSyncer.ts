@@ -49,14 +49,13 @@ export class ContactSyncer {
         connection.company,
         2
       );
-      const emailLabel: string = (formattedCompany.toLowerCase().startsWith(label.toLowerCase()) ? formattedCompany : `${label} ${formattedCompany}`).replace(/'/g, '').trim();
+      const emailLabel: string = formattedCompany.replace(/'/g, '').trim();
       const baseLastName: string = stripCompanyPrefixOverlapFromName(
         connection.lastName,
         connection.company
       );
       const lastNameValue: string = [
         baseLastName,
-        formattedCompany.toLowerCase().startsWith(label.toLowerCase()) ? '' : label,
         formattedCompany,
       ]
         .filter((s: string) => s)
@@ -274,14 +273,13 @@ export class ContactSyncer {
         connection.company,
         2
       );
-      const emailLabel: string = (formattedCompany.toLowerCase().startsWith(label.toLowerCase()) ? formattedCompany : `${label} ${formattedCompany}`).replace(/'/g, '').trim();
+      const emailLabel: string = formattedCompany.replace(/'/g, '').trim();
       const baseLastName: string = stripCompanyPrefixOverlapFromName(
         connection.lastName,
         connection.company
       );
       const lastNameValue: string = [
         baseLastName,
-        formattedCompany.toLowerCase().startsWith(label.toLowerCase()) ? '' : label,
         formattedCompany,
       ]
         .filter((s: string) => s)

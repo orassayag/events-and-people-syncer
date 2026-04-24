@@ -39,6 +39,7 @@ export interface MatchResult {
   score?: number;
   matches?: DuplicateMatch[];
   exactMatchMessage?: string;
+  matchReason?: 'URL' | 'Name' | 'Email';
 }
 
 export interface SyncStatus {
@@ -69,6 +70,7 @@ export interface UpdateDetails {
   linkedInUrlAdded?: boolean;
   linkedInUrlLabelFixed?: boolean;
   noteUpdated?: { from: string; to: string };
+  skipReason?: string;
 }
 
 export interface SyncResult {

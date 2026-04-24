@@ -4,12 +4,11 @@ import { TextUtils } from './textUtils';
 
 
 
-function removeDomainExtensions(text: string): string {
-  const cleaned = text.replace(
-    /\.(com|co\.il|net|org|io|ai|tech|app|dev|me|info|biz)\b/gi,
-    ''
-  );
-  // Only remove if the result is meaningful (at least 2 characters)
+function removeDomainsAndUrls(text: string): string {
+  const urlRegex = /(?:https?:\/\/)?(?:www\.)?[\w-]+\.(?:com|co\.il|net|org|io|ai|tech|app|dev|me|info|biz|co|il|org\.il|gov\.il|edu|ac\.il)\b[/\w-]*\b/gi;
+  let cleaned = text.replace(urlRegex, '').trim();
+  cleaned = cleaned.replace(/\bwww\.\b/gi, '');
+  // If we removed everything, return the original
   return cleaned.length >= 2 ? cleaned : text;
 }
 
@@ -43,8 +42,8 @@ export function cleanCompany(company: string): string {
   }
   // Remove trailing period, underscore, or hyphen
   cleaned = cleaned.replace(/[._\-\s]+$/, '');
-  // Remove domain extensions
-  cleaned = removeDomainExtensions(cleaned);
+  // Remove domains and URLs
+  cleaned = removeDomainsAndUrls(cleaned);
   // Remove company suffixes — but only when preceded by a space (not embedded in a dotted abbreviation like EX.CO)
   for (const suffix of SETTINGS.linkedin.companySuffixesToRemove ?? []) {
     // Only match the suffix when preceded by whitespace or start of string (not after a dot)
@@ -141,7 +140,7 @@ export function formatCompanyToPascalCase(company: string, maxWords?: number): s
   if (maxWords && maxWords > 0) {
     let resultWords = words.slice(0, maxWords);
     // If the last word included is a "joiner" (of, &), include the next word too
-    const joiners = ['of', '&', 'and', 'with', 'for', 'the', 'a', 'an', 'in', 'at', 'by', 'or', '+', 'co', 'co.', 'ben'];
+    const joiners = ['of', '&', 'and', 'with', 'for', 'the', 'a', 'an', 'in', 'at', 'by', 'or', '+', 'co', 'co.', 'ben', 'hebrew', 'jewish'];
     while (resultWords.length < words.length) {
       const lastWord = resultWords[resultWords.length - 1].toLowerCase().replace(/[.,]$/, '');
       if (joiners.includes(lastWord)) {

@@ -215,13 +215,14 @@ export class SyncStatusBar {
           (label && formattedCompany && formattedCompany.toLowerCase().startsWith(label.toLowerCase())) ? '' : (label ? `(${label})` : '')
         ].filter(Boolean).join(' ');
         result += `\n${spinnerPadding}Current:`;
-        result += `\n${spinnerPadding}${EMOJIS.FIELDS.PERSON} Full name: ${firstName} ${lastName} ${label}`;
+        const companyLabel = formattedCompany || 'LinkedIn';
+        result += `\n${spinnerPadding}${EMOJIS.FIELDS.PERSON} Full name: ${firstName} ${lastName} ${companyLabel}`;
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.LABEL}  Labels: ${label}`;
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.COMPANY} Company: ${formattedCompany}`;
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.JOB_TITLE} Job Title: ${positionDisplay}`;
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.EMAIL} Email: ${linkedInConn.email ? `${linkedInConn.email} ${emailSuffix}` : '(none)'}`;
         result += `\n${spinnerPadding}📞 Phone: (none)`;
-        result += `\n${spinnerPadding}${EMOJIS.FIELDS.LINKEDIN} LinkedIn URL: ${linkedInConn.url || '(none)'} LinkedIn`;
+        result += `\n${spinnerPadding}${EMOJIS.FIELDS.LINKEDIN} LinkedIn URL: ${linkedInConn.url || '(none)'}`;
       } else if (conn.type === ContactType.HIBOB) {
         const hibobConn = conn;
         const firstName = formatMixedHebrewEnglish(hibobConn.firstName);

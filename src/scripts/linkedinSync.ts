@@ -309,7 +309,9 @@ export class LinkedInSyncScript {
             // Exact or Fuzzy match found - skip update as per new requirements
             status.skipped++;
             await skipLogger.logRaw(
-              LogFormatter.formatContactBlock('SKIP', connection, label)
+              LogFormatter.formatContactBlock('SKIP', connection, label, {
+                skipReason: `Existing match found - By ${matchResult.matchReason || 'Match'}`,
+              })
             );
           }
           status.processed++;

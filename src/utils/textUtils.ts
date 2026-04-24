@@ -103,9 +103,10 @@ export class TextUtils {
     const titleRegex = /^(?:(?:dr|mr|mrs|ms|miss|prof|professor|sir|dame|rev|hon|adv|advocate|eng|engineer|rabbi)\b\.?\s*)+/i;
     cleaned = cleaned.replace(titleRegex, '');
 
-    // Split by common separators used to append titles/suffixes ( - , | , • , / ) and take the first part
-    // This handles cases like "Nava Avi - Tech Recruitment Director"
-    const segments = cleaned.split(/\s+[-–—|•/]\s+/);
+    // Split by common separators used to append titles/suffixes ( - , | , • , / , ☆ , ★ , » , « , ● ) and take the first part
+    // This handles cases like "Nava Avi - Tech Recruitment Director" or "Tal Fox-Honig ☆be yourself"
+    const separators = /[\s]+[-–—|•/][\s]+|[\s]*[☆★\u2605\u2606|»«●][\s]*/;
+    const segments = cleaned.split(separators);
     if (segments.length > 0) {
       cleaned = segments[0].trim();
     }
@@ -123,23 +124,30 @@ export class TextUtils {
     cleaned = cleaned.replace(/\s+\b(executive|always)\b.*$/gi, '');
     // Remove pronouns (e.g., "She/Her", "He/Him", "They/Them", "(She/They)")
     cleaned = cleaned.replace(/\s*\(?(she|he|they|ze|zir)\s*[/./\s-]\s*(her|him|them|zir|they|any)\b\)?/gi, '');
-    // Remove specific phrase "Be yourself everyone else is already taken" anywhere
-    cleaned = cleaned.replace(/\bbe\s+yourself\s+everyone\s+else\s+is\s+already\s+taken\b/gi, '');
+    // Remove specific phrase "Be yourself everyone else is already taken" anywhere (handle optional comma)
+    cleaned = cleaned.replace(/\bbe\s+yourself[,\s]*everyone\s+else\s+is\s+already\s+taken\b/gi, '');
     // Remove common quote/status openers at the end (e.g., "Be yourself...")
     cleaned = cleaned.replace(/\s+\b(be|always|looking|passionate|helping|is|everything)\s+[\w\s!&,.']{10,}$/gi, '');
-    // Remove "X Expert" phrases at the end (e.g., "Career Expert")
-    cleaned = cleaned.replace(/\s+\b[\w\s-]+\s+expert$/gi, '');
-    cleaned = cleaned.replace(/\b(hiring|recruiter|recruiting|talent|acquisition|headhunter|[il][\s'’`]*m)\b/gi, '');
+    // Remove C-level titles, professional roles, and everything after them
+    const jobTitles = '(ceo|cfo|cto|cio|coo|cmo|ciso|cpo|vp|vice\\s+president|director|manager|head|lead|founder|owner|president|partner|specialist|expert|consultant|developer|engineer|architect|designer|hr|recruiter|recruiting|talent|acquisition|headhunter)';
+    cleaned = cleaned.replace(new RegExp(`\\s+\\b${jobTitles}\\b.*$`, 'gi'), '');
+
+    cleaned = cleaned.replace(/\b(hiring|[il][\s'’`]*m)\b/gi, '');
 
     // Remove network size indicators (e.g., "5k", "10K")
     cleaned = cleaned.replace(/\b\d+[km]\b/gi, '');
+
+    // Remove URLs, domains, and sub-domains (even if attached to words)
+    const urlRegex = /(?:https?:\/\/)?(?:www\.)?[\w-]+\.(?:com|co\.il|net|org|io|ai|tech|app|dev|me|info|biz|co|il|org\.il|gov\.il|edu|ac\.il)\b[/\w-]*\b/gi;
+    cleaned = cleaned.replace(urlRegex, '');
+    cleaned = cleaned.replace(/\bwww\.\b/gi, '');
 
     // Remove dotted academic degrees BEFORE the alphanumeric filter strips their dots
     // e.g. "Ph.D." → removed here so it doesn't become "Ph D" and slip through
     cleaned = cleaned.replace(/\b(ph\.\s*d|m\.\s*d|ll\.\s*m|m\.\s*b\.\s*a|m\.\s*s|b\.\s*s|m\.\s*a)\.?\b.*$/gi, '');
 
     // Remove specific degrees/abbreviations/certifications and everything after them
-    cleaned = cleaned.replace(/\b(llm|mba|hr|shrm|cp|phr|sphr|gphr|cipd|pmp|mha|phd|md|chfp|cpa|cfa|cfp|cfe|cia|cisa|cism|crisc|cissp|rhia|rhit|cpc|ccs|cdip|chda|chps|cphi|hcispp|cphims|cphq|lcsw|lpc|rn|np|pa|dds|dmd|psyd|edd|jd|do|dna)\b.*$/gi, '');
+    cleaned = cleaned.replace(/\b(gdc|assoc|chartered|mcipd|fcipd|llm|mba|hr|shrm|cp|phr|sphr|gphr|cipd|pmp|mha|phd|md|chfp|cpa|cfa|cfp|cfe|cia|cisa|cism|crisc|cissp|rhia|rhit|cpc|ccs|cdip|chda|chps|cphi|hcispp|cphims|cphq|lcsw|lpc|rn|np|pa|dds|dmd|psyd|edd|jd|do|dna)\b.*$/gi, '');
 
     // Remove apostrophes before the alphanumeric filter so they don't become spaces
     cleaned = cleaned.replace(/'/g, '');
@@ -161,6 +169,11 @@ export class TextUtils {
 
     // 3. Remove multiple spaces that might have been left behind
     cleaned = cleaned.replace(/\s+/g, ' ');
+
+    // Remove specific phrase "Vi Vim" if they appear together (editor preference/pronoun noise)
+    // We do this specifically to avoid removing "Vi" or "Vim" when they are part of a real name
+    cleaned = cleaned.replace(/\bvi\s+vim\b/gi, '');
+
     // Title Case
     const result = cleaned
       .toLowerCase()

@@ -190,9 +190,9 @@ export class LinkedInExtractor {
           );
 
           const nameWordsCount = (finalFirstName + ' ' + finalLastName).trim().split(/\s+/).length;
-          if (nameWordsCount > 6) {
+          if (nameWordsCount > 7) {
             await this.errorLogger.logRaw(
-               `[INVALID NAME - Exceeds 6 words] Original: "${firstNameRaw} ${lastNameRaw}" -> Cleaned: "${finalFirstName} ${finalLastName}" | URL: ${url}`
+               `[SKIPPED - Name too long] Original: "${firstNameRaw} ${lastNameRaw}" -> Cleaned: "${finalFirstName} ${finalLastName}" (${nameWordsCount} words) | URL: ${url}`
             );
             continue;
           }

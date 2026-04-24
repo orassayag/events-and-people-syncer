@@ -22,13 +22,12 @@ export class LogFormatter {
     const getEnrichedFullName = (firstName: string, lastName: string | undefined, lbl: string, company: string) => {
         const enrichedLastName = [
           lastName,
-          company.toLowerCase().startsWith(lbl.toLowerCase()) ? '' : lbl,
           company
         ].filter(s => s).join(' ').replace(/'/g, '').trim();
         return `${firstName} ${enrichedLastName}`.trim();
     };
 
-    const calculatedLabel = (formattedCompany.toLowerCase().startsWith(label.toLowerCase()) ? formattedCompany : [label, formattedCompany].filter(Boolean).join(' ')).replace(/'/g, '');
+    const calculatedLabel = formattedCompany.replace(/'/g, '');
     const lastNameForDisplay: string = isLinkedIn
       ? stripCompanyPrefixOverlapFromName(
           contact.lastName ?? '',
@@ -49,6 +48,13 @@ export class LogFormatter {
       fullNameStr = `${EMOJIS.FIELDS.PERSON} Full name: ${currentFullName} (${oldFullName} => ${currentFullName})`;
     }
     lines.push(fullNameStr);
+    
+    if (type === 'SKIP') {
+      const reason = updateDetails?.skipReason || 'Existing match found - skipping update';
+      lines.push(`${EMOJIS.NAVIGATION.SKIP}  Reason: ${reason}`);
+      lines.push('=======================');
+      return lines.join('\n');
+    }
 
     lines.push(`${EMOJIS.FIELDS.LABEL}  Labels: ${label.replace(/'/g, '')}`);
 
@@ -84,10 +90,6 @@ export class LogFormatter {
         linkedInUrlStr += ' (Added)';
     }
     lines.push(linkedInUrlStr);
-
-    if (type === 'SKIP') {
-      lines.push(`${EMOJIS.NAVIGATION.SKIP}  Reason: Existing match found - skipping update`);
-    }
 
     lines.push('=======================');
     return lines.join('\n');
