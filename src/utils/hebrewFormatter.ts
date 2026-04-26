@@ -66,7 +66,7 @@ export function formatMixedHebrewEnglish(text: string): string {
   const trimmedText: string = text.trim();
   const hasHebrew: boolean = containsHebrew(trimmedText);
   const englishMatches: string[] | null =
-    trimmedText.match(/[A-Za-z0-9\s\-&.]+/g);
+    trimmedText.match(/[\p{L}\p{N}\s\-&.@_+']+/gu);
   const hasEnglish: boolean =
     englishMatches !== null && englishMatches.length > 0;
   if (!hasHebrew && !hasEnglish) {

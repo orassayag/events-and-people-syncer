@@ -75,9 +75,9 @@ export class TextUtils {
     let cleaned = text.replace(/[\u0590-\u05FF\uFB1D-\uFB4F]/g, '');
     cleaned = this.removeEmojis(cleaned);
 
-    // 2. Keep only English alphanumeric and basic punctuation
-    // Including @, _, +, . for emails (EXCLUDING apostrophe per user request)
-    const matches = cleaned.match(/[a-zA-Z0-9\s\-&.@_+]+/g);
+    // 2. Keep only letters (including accented/international), numbers and basic punctuation
+    // Including @, _, +, . for emails and apostrophe for names like L'Oréal
+    const matches = cleaned.match(/[\p{L}\p{N}\s\-&.@_+']+/gu);
     if (!matches) return '';
     cleaned = matches.join(' ').replace(/\s+/g, ' ').trim();
 
@@ -92,8 +92,12 @@ export class TextUtils {
 
   static cleanName(name: string): string {
     if (!name) return '';
+    // Split by comma and take the first part (e.g. "Ofir Chen, Adv." -> "Ofir Chen")
+    // This is done early to avoid cleaning content that will be discarded.
+    let cleaned = name.split(',')[0].trim();
+
     // Normalize to NFC to handle combining characters (e.g., decomposed umlauts)
-    let cleaned = name.normalize('NFC');
+    cleaned = cleaned.normalize('NFC');
     // Remove Hebrew characters (including presentation forms)
     cleaned = cleaned.replace(/[\u0590-\u05FF\uFB1D-\uFB4F]/g, '');
     // Remove emojis
@@ -129,7 +133,14 @@ export class TextUtils {
     // Remove common quote/status openers at the end (e.g., "Be yourself...")
     cleaned = cleaned.replace(/\s+\b(be|always|looking|passionate|helping|is|everything)\s+[\w\s!&,.']{10,}$/gi, '');
     // Remove C-level titles, professional roles, and everything after them
-    const jobTitles = '(ceo|cfo|cto|cio|coo|cmo|ciso|cpo|vp|vice\\s+president|director|manager|head|lead|founder|owner|president|partner|specialist|expert|consultant|developer|engineer|architect|designer|hr|recruiter|recruiting|talent|acquisition|headhunter)';
+    const jobTitles = '(' +
+      'ceo|coo|cfo|cto|cio|ciso|cso|cdo|caio|cpo|cmo|cro|cco|cbdo|chro|clo|gc|cxo|cao|cico|' +
+      'vp|svp|evp|md|fd|vice\\s+president|director|manager|head|lead|founder|owner|president|partner|' +
+      'specialist|expert|consultant|developer|engineer|architect|designer|hr|hrbp|hrpb|' +
+      'recruiter|recruiting|talent|acquisition|headhunter|recruitment|' +
+      'software|frontend|backend|fullstack|devops|data|analyst|account|sales|marketing|product|design|ux|ui|' +
+      'investor|board|advisor|controller' +
+      ')';
     cleaned = cleaned.replace(new RegExp(`\\s+\\b${jobTitles}\\b.*$`, 'gi'), '');
 
     cleaned = cleaned.replace(/\b(hiring|[il][\s'’`]*m)\b/gi, '');

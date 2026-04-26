@@ -26,7 +26,6 @@ export function cleanCompany(company: string): string {
   let cleaned: string = company.trim();
   cleaned = removeParenthesesAndContents(cleaned);
   cleaned = cleaned.replace(/\s+at work\.?$/gi, '');
-  cleaned = cleaned.replace(/'/g, '');
   cleaned = cleaned.trim();
 
   // Pre-merge abbreviation-style "WORD. WORD" patterns before splitting.
