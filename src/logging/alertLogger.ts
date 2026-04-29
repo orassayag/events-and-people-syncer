@@ -128,14 +128,32 @@ export class AlertLogger {
     const validAlerts: Alert[] = [];
     const parseErrors: string[] = [];
     let corruptedEntries = 0;
-    const entryRegex =
-      /(?:\[(WARNING|ERROR|SKIPPED)\] === Alert Entry ===|=====(WARNING|ERROR|SKIPPED) START=====)([\s\S]*?)(?:\[\1\] === End Entry ===|=====\1 END=====)/gi;
+    
+    // Support three formats:
+    // 1. New: Index: 1 [WARNING], ... =======================
+    // 2. Old 1: =====WARNING START===== ... =====WARNING END=====
+    // 3. Old 2: [WARNING] === Alert Entry === ... [WARNING] === End Entry ===
+    const entryRegex = /(?:(Index: \d+ \[(WARNING|ERROR|SKIPPED)\],[\s\S]*?=======================)|=====(WARNING|ERROR|SKIPPED) START=====([\s\S]*?)=====\5 END=====|\[(WARNING|ERROR|SKIPPED)\] === Alert Entry ===([\s\S]*?)\[\7\] === End Entry ===)/gi;
+    
     let match;
     while ((match = entryRegex.exec(content)) !== null) {
-      const parsedTypeStr = match[1] || match[2];
-      if (!parsedTypeStr) continue;
-      const type = parsedTypeStr.toLowerCase() as AlertType;
-      const block = match[3];
+      let typeStr: string | undefined;
+      let block: string | undefined;
+
+      if (match[1]) {
+        typeStr = match[2];
+        block = match[1];
+      } else if (match[3]) {
+        typeStr = match[3];
+        block = match[4];
+      } else if (match[5]) {
+        typeStr = match[5];
+        block = match[6];
+      }
+
+      if (!typeStr || !block) continue;
+      
+      const type = typeStr.toLowerCase() as AlertType;
       try {
         const alert = this.parseAlertEntry(block, type);
         if (alert) {
@@ -144,7 +162,7 @@ export class AlertLogger {
       } catch (error: unknown) {
         corruptedEntries++;
         parseErrors.push(
-          `Entry: \${error instanceof Error ? error.message : 'Unknown error'}`
+          `Entry: ${error instanceof Error ? error.message : 'Unknown error'}`
         );
       }
     }
@@ -284,8 +302,7 @@ export class AlertLogger {
     const isNewFormat = true;
     if (isNewFormat && alert.type === 'warning') {
       const entry = [
-        `=====WARNING START=====`,
-        `Index: ${alert.index},`,
+        `Index: ${alert.index} [WARNING],`,
         `Timestamp: ${alert.timestamp}`,
         `👤 Full name: ${alert.contact.firstName} ${alert.contact.lastName || ''}`.trim() +
           (alert.contact.company?.startsWith('LinkedIn') 
@@ -312,15 +329,14 @@ export class AlertLogger {
           );
         });
       }
-      entry.push(`=====WARNING END=====`);
+      entry.push(`=======================`);
       return entry;
     }
 
     const typePrefix = alert.type.toUpperCase();
     const entry = [
-      `[${typePrefix}] === Alert Entry ===`,
-      `[${typePrefix}] Index: ${alert.index}`,
-      `[${typePrefix}] Timestamp: ${alert.timestamp}`,
+      `Index: ${alert.index} [${typePrefix}],`,
+      `Timestamp: ${alert.timestamp}`,
       `[${typePrefix}] Contact:`,
       `[${typePrefix}]   -FirstName: ${alert.contact.firstName}`,
       `[${typePrefix}]   -LastName: ${alert.contact.lastName || '(none)'}`,
@@ -337,7 +353,7 @@ export class AlertLogger {
       );
     }
     entry.push(`[${typePrefix}] Reason: ${alert.reason}`);
-    entry.push(`[${typePrefix}] === End Entry ===`);
+    entry.push(`=======================`);
     return entry;
   }
 

@@ -13,7 +13,7 @@ export class LogFormatter {
     updateDetails?: UpdateDetails
   ): string {
     const lines: string[] = [];
-    lines.push('=======================');
+
 
     const isLinkedIn = contact.type === 'linkedin';
     const formattedCompany = isLinkedIn

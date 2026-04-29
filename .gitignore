@@ -5,6 +5,7 @@ build
 node_modules
 sources
 dummy
+logs-before-fixes
 
 # Logs
 *.log*
