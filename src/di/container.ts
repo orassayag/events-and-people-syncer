@@ -2,21 +2,22 @@ import { Container } from 'inversify';
 import 'reflect-metadata';
 import { TYPES } from './identifiers';
 import { Logger } from '../logging';
-import { 
-  DuplicateDetector, 
-  ContactSyncer as ContactSyncService, 
-  ContactEditor, 
+import {
+  DuplicateDetector,
+  ContactSyncer as ContactSyncService,
+  ContactEditor,
   EventsContactEditor,
-  PhoneNormalizer
+  PhoneNormalizer,
 } from '../services/contacts';
-import { 
-  LinkedInExtractor, 
-  CompanyMatcher, 
-  ConnectionMatcher, 
-  ContactSyncer 
+import {
+  LinkedInExtractor,
+  CompanyMatcher,
+  ConnectionMatcher,
+  ContactSyncer,
 } from '../services/linkedin';
 import {
   LinkedInSyncScript,
+  LinkedInExporterScript,
   HibobSyncScript,
   ContactsSyncScript,
   EventsJobsSyncScript,
@@ -24,7 +25,7 @@ import {
   ClearCacheScript,
   ClearLogsScript,
   SmsWhatsappSyncScript,
-  OtherContactsSyncScript
+  OtherContactsSyncScript,
 } from '../scripts';
 import { HibobExtractor, HibobContactSyncer } from '../services/hibob';
 import { PathValidator } from '../validators';
@@ -32,12 +33,12 @@ import { FolderManager, FolderMatcher } from '../services/folders';
 import { NoteWriter } from '../services/notes';
 import { LabelResolver } from '../services/labels';
 import { StatisticsCollector } from '../services/statistics';
-import { 
-  HtmlSanitizer, 
-  HtmlSourceDetector, 
-  GoogleMessagesExtractor, 
-  WhatsAppWebExtractor, 
-  PhoneExtractor 
+import {
+  HtmlSanitizer,
+  HtmlSourceDetector,
+  GoogleMessagesExtractor,
+  WhatsAppWebExtractor,
+  PhoneExtractor,
 } from '../services/messaging';
 import { OtherContactsFetcher } from '../services/otherContacts';
 
@@ -50,6 +51,7 @@ container.bind(CompanyMatcher).toSelf();
 container.bind(ConnectionMatcher).toSelf();
 container.bind(ContactSyncer).toSelf();
 container.bind(LinkedInSyncScript).toSelf();
+container.bind(LinkedInExporterScript).toSelf();
 container.bind(HibobExtractor).toSelf();
 container.bind(HibobContactSyncer).toSelf();
 container.bind(HibobSyncScript).toSelf();

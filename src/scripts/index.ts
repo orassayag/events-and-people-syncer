@@ -1,6 +1,7 @@
 import type { Script } from '../types/script';
 import { hibobSyncScript } from './hibobSync';
 import { linkedInSyncScript } from './linkedinSync';
+import { linkedInExporterScript } from './linkedinExporter';
 import { contactsSyncScript } from './contactsSync';
 import { eventsJobsSyncScript } from './eventsJobsSync';
 import { otherContactsSyncScript } from './otherContactsSync';
@@ -10,6 +11,7 @@ import { clearCacheScript } from './clearCache';
 import { clearLogsScript } from './clearLogs';
 
 export { LinkedInSyncScript } from './linkedinSync';
+export { LinkedInExporterScript } from './linkedinExporter';
 export { HibobSyncScript } from './hibobSync';
 export { ContactsSyncScript } from './contactsSync';
 export { EventsJobsSyncScript } from './eventsJobsSync';
@@ -22,6 +24,7 @@ export { OtherContactsSyncScript } from './otherContactsSync';
 export const AVAILABLE_SCRIPTS: Record<string, Script> = {
   'hibob-sync': hibobSyncScript,
   'linkedin-sync': linkedInSyncScript,
+  'linkedin-exporter': linkedInExporterScript,
   'contacts-sync': contactsSyncScript,
   'events-jobs-sync': eventsJobsSyncScript,
   'other-contacts-sync': otherContactsSyncScript,

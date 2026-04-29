@@ -1,7 +1,4 @@
-import {
-  selectWithEscape,
-  confirmWithEscape,
-} from './utils';
+import { selectWithEscape, confirmWithEscape } from './utils';
 import { initiate } from './settings';
 import { AVAILABLE_SCRIPTS } from './scripts';
 import type { Script } from './types/script';
@@ -99,6 +96,7 @@ async function main(): Promise<void> {
       'contacts-sync',
       'events-jobs-sync',
       'linkedin-sync',
+      'linkedin-exporter',
       'hibob-sync',
       'other-contacts-sync',
       'sms-whatsapp-sync',
