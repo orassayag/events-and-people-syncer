@@ -1982,8 +1982,15 @@ export class EventsJobsSyncScript {
       }
 
       const timestamp = formatDateTimeDDMMYYYY_HHMMSS(new Date());
-      const updateNote = `\nUpdated by the events & jobs sync script - Last update: ${timestamp}`;
-      const finalNote = (contact.biography || '') + updateNote;
+      const updateNote = `Updated by the events & jobs sync script - Last update: ${timestamp}`;
+
+      let finalNote = '';
+      if (contact.biography) {
+        const trimmedBio = contact.biography.replace(/\n+$/, '');
+        finalNote = `${trimmedBio}\n${updateNote}`;
+      } else {
+        finalNote = updateNote;
+      }
 
       if (!contact.resourceName) {
         throw new Error('Contact resourceName is missing');

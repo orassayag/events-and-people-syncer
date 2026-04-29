@@ -19,7 +19,8 @@ export function buildUpdatedContactNote(
   if (!existingNote) {
     return `Updated by the people syncer script (${scriptName}) - Last update: ${formatDateTimeDDMMYYYY_HHMMSS(date)}`;
   }
-  return `${existingNote}\nUpdated by the people syncer script (${scriptName}) - Last update: ${formatDateTimeDDMMYYYY_HHMMSS(date)}`;
+  const trimmedNote = existingNote.replace(/\n+$/, '');
+  return `${trimmedNote}\nUpdated by the people syncer script (${scriptName}) - Last update: ${formatDateTimeDDMMYYYY_HHMMSS(date)}`;
 }
 
 export function extractDateFromNote(note: string): string | null {
@@ -68,7 +69,7 @@ export function determineNoteUpdate(
   }
   return {
     shouldUpdate: true,
-    newNoteValue: `${existingNote}\nUpdated by the people syncer script (${scriptName}) - Last update: ${currentDate}`,
+    newNoteValue: `${existingNote.replace(/\n+$/, '')}\nUpdated by the people syncer script (${scriptName}) - Last update: ${currentDate}`,
   };
 }
 
@@ -92,6 +93,6 @@ export function determineSyncNoteUpdate(
   }
   return {
     shouldUpdate: true,
-    newNoteValue: `${existingNote}\nUpdated by the contacts sync script - Last update: ${currentDate}`,
+    newNoteValue: `${existingNote.replace(/\n+$/, '')}\nUpdated by the contacts sync script - Last update: ${currentDate}`,
   };
 }

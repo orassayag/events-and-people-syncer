@@ -359,11 +359,20 @@ export class ContactsSyncScript {
       }
 
       const timestamp = formatDateTimeDDMMYYYY_HHMMSS(new Date());
-      const note = `Updated by the contacts sync script - Last update: ${timestamp}`;
+      const updateNote = `Updated by the contacts sync script - Last update: ${timestamp}`;
+      
+      let finalNote = '';
+      if (selectedContact.biography) {
+        const trimmedBio = selectedContact.biography.replace(/\n+$/, '');
+        finalNote = `${trimmedBio}\n${updateNote}`;
+      } else {
+        finalNote = updateNote;
+      }
+
       await this.contactEditor.updateExistingContact(
         selectedContact.resourceName,
         updatedData,
-        note
+        finalNote
       );
       this.stats.updated++;
     } catch (error) {
