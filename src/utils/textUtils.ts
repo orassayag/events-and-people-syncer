@@ -120,7 +120,8 @@ export class TextUtils {
 
     // Split by common separators used to append titles/suffixes ( - , | , • , / , ☆ , ★ , » , « , ● ) and take the first part
     // This handles cases like "Nava Avi - Tech Recruitment Director" or "Tal Fox-Honig ☆be yourself"
-    const separators = /[\s]+[-–—|•/][\s]+|[\s]*[☆★\u2605\u2606|»«●][\s]*/;
+    const separators =
+      /[\s]+[-–—|•/][\s]*|[\s]*[-–—|•/][\s]+|[\s]*[☆★\u2605\u2606|»«●][\s]*/;
     const segments = cleaned.split(separators);
     if (segments.length > 0) {
       cleaned = segments[0].trim();

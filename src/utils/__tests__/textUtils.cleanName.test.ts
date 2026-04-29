@@ -30,14 +30,14 @@ describe('TextUtils.cleanName - Regression Tests', () => {
   it('should handle "Shir Dror La Nefesh" with company "DrorLaNefesh" correctly', () => {
     const firstName = 'Shir';
     const lastName = 'Dror La Nefesh';
-    
+
     // Simulations LinkedInExtractor logic:
     const fullNameRaw = `${firstName} ${lastName}`.trim();
     const cleanedFullName = TextUtils.cleanName(fullNameRaw);
-    
+
     expect(cleanedFullName).toBe('Shir Dror');
   });
-  
+
   it('should remove "At [Company]" when preceded by a title', () => {
     const input = 'John Doe Director At Some Company';
     const cleaned = TextUtils.cleanName(input);
@@ -49,5 +49,10 @@ describe('TextUtils.cleanName - Regression Tests', () => {
     const cleaned = TextUtils.cleanName(input);
     expect(cleaned).toBe('Degel Ps');
   });
-});
 
+  it('should handle " - " correctly without ignoring spaces', () => {
+    const input = 'Maya Salemnia -MyHR';
+    const cleaned = TextUtils.cleanName(input);
+    expect(cleaned).toBe('Maya Salemnia');
+  });
+});
