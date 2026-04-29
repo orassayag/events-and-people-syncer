@@ -128,13 +128,14 @@ export class AlertLogger {
     const validAlerts: Alert[] = [];
     const parseErrors: string[] = [];
     let corruptedEntries = 0;
-    
+
     // Support three formats:
     // 1. New: Index: 1 [WARNING], ... =======================
     // 2. Old 1: =====WARNING START===== ... =====WARNING END=====
     // 3. Old 2: [WARNING] === Alert Entry === ... [WARNING] === End Entry ===
-    const entryRegex = /(?:(Index: \d+ \[(WARNING|ERROR|SKIPPED)\],[\s\S]*?=======================)|=====(WARNING|ERROR|SKIPPED) START=====([\s\S]*?)=====\5 END=====|\[(WARNING|ERROR|SKIPPED)\] === Alert Entry ===([\s\S]*?)\[\7\] === End Entry ===)/gi;
-    
+    const entryRegex =
+      /(?:(Index: \d+ \[(WARNING|ERROR|SKIPPED)\],[\s\S]*?=======================)|=====(WARNING|ERROR|SKIPPED) START=====([\s\S]*?)=====\3 END=====|\[(WARNING|ERROR|SKIPPED)\] === Alert Entry ===([\s\S]*?)\[\5\] === End Entry ===)/gi;
+
     let match;
     while ((match = entryRegex.exec(content)) !== null) {
       let typeStr: string | undefined;
@@ -152,7 +153,7 @@ export class AlertLogger {
       }
 
       if (!typeStr || !block) continue;
-      
+
       const type = typeStr.toLowerCase() as AlertType;
       try {
         const alert = this.parseAlertEntry(block, type);
@@ -305,8 +306,8 @@ export class AlertLogger {
         `Index: ${alert.index} [WARNING],`,
         `Timestamp: ${alert.timestamp}`,
         `👤 Full name: ${alert.contact.firstName} ${alert.contact.lastName || ''}`.trim() +
-          (alert.contact.company?.startsWith('LinkedIn') 
-            ? ` ${alert.contact.company}` 
+          (alert.contact.company?.startsWith('LinkedIn')
+            ? ` ${alert.contact.company}`
             : ` ${alert.contact.labels?.[0] || 'LinkedIn'}`),
         `🏷️  Labels: ${alert.contact.labels?.join(', ') || 'LinkedIn'}`,
         `🏢 Company: ${alert.contact.company || '(none)'}`,

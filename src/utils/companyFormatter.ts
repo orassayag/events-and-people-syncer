@@ -138,11 +138,33 @@ export function formatCompanyToPascalCase(company: string, maxWords?: number): s
   );
   if (maxWords && maxWords > 0) {
     let resultWords = words.slice(0, maxWords);
-    // If the last word included is a "joiner" (of, &), include the next word too
-    const joiners = ['of', '&', 'and', 'with', 'for', 'the', 'a', 'an', 'in', 'at', 'by', 'or', '+', 'co', 'co.', 'ben', 'hebrew', 'jewish'];
+    const joiners = ['of', '&', 'and', 'with', 'for', 'the', 'a', 'an', 'in', 'at', 'by', 'or', '+', 'co', 'co.', 'ben', 'hebrew', 'jewish', 'bar', 'israel', 'bet'];
+    const forceNextPrefixes = [
+      'TheOpen',
+      'BarIlan',
+      'IsraelNational',
+      'TheIsraeli',
+      'TheIsrael',
+      'BetShemesh',
+      'BenGurion',
+      'TheAcademic',
+      'TheADHD',
+      'Medical',
+    ];
+
     while (resultWords.length < words.length) {
-      const lastWord = resultWords[resultWords.length - 1].toLowerCase().replace(/[.,]$/, '');
-      if (joiners.includes(lastWord)) {
+      const lastWord = resultWords[resultWords.length - 1]
+        .toLowerCase()
+        .replace(/[.,]$/, '');
+      const currentPascal = resultWords
+        .map((w) => wordToPascalCaseSegment(w))
+        .join('');
+
+      const shouldForceNext = forceNextPrefixes.some((prefix) =>
+        currentPascal.endsWith(prefix)
+      );
+
+      if (joiners.includes(lastWord) || shouldForceNext) {
         resultWords.push(words[resultWords.length]);
       } else if (/\d$/.test(lastWord)) {
         let nextIdx = resultWords.length;
