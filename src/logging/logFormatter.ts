@@ -17,7 +17,12 @@ export class LogFormatter {
 
     const isLinkedIn = contact.type === 'linkedin';
     const formattedCompany = isLinkedIn
-      ? calculateFormattedCompany((contact as LinkedInConnection).company, 2)
+      ? calculateFormattedCompany(
+          (contact as LinkedInConnection).company,
+          2,
+          contact.firstName,
+          contact.lastName
+        )
       : '';
 
     // Logic matching the syncer's lastNameValue

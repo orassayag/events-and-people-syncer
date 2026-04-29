@@ -113,7 +113,7 @@ describe('LinkedIn ContactSyncer - Dry Mode', () => {
       ).toHaveBeenCalledWith(
         expect.objectContaining({
           firstName: 'Jane',
-          lastName: 'Doe',
+          lastName: 'Doe LinkedIn TechCorp',
           resourceName: expect.stringMatching(/^people\/dryMode_/),
           etag: expect.stringMatching(/^dryMode_etag_/),
         })

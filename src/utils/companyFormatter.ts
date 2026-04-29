@@ -225,17 +225,47 @@ export function formatCompanyToPascalCase(company: string, maxWords?: number): s
   return pascalCaseWords.join('');
 }
 
-export function calculateFormattedCompany(company: string, maxWords?: number): string {
+export function calculateFormattedCompany(
+  company: string,
+  maxWords?: number,
+  firstName?: string,
+  lastName?: string
+): string {
   const normalized = company?.trim().toLowerCase();
   if (!normalized || normalized === '(none)' || normalized === 'none') {
     return 'LinkedIn';
   }
 
   const cleanedCompany: string = cleanCompany(company);
+
+  // Check if company name matches the person's name (Self-Employed case)
+  const fName = typeof firstName === 'string' ? firstName : undefined;
+  const lName = typeof lastName === 'string' ? lastName : undefined;
+
+  if (fName?.trim() && lName?.trim()) {
+    const cleanStr = (s: string) => s.replace(/[^a-zA-Z0-9\u0590-\u05FF]/g, '').toLowerCase();
+    
+    // Remove "linkedin" from company name for the comparison
+    const compClean = cleanStr(cleanedCompany).replace(/^linkedin/, '').replace(/linkedin$/, '');
+    const fNameClean = cleanStr(fName);
+    const lNameClean = cleanStr(lName);
+    const name1Clean = fNameClean + lNameClean;
+    const name2Clean = lNameClean + fNameClean;
+
+    if (compClean && (
+        compClean === name1Clean || 
+        compClean === name2Clean || 
+        (compClean.length >= 4 && (name1Clean.includes(compClean) || compClean.includes(name1Clean))) ||
+        (compClean.length >= 3 && (compClean === fNameClean || compClean === lNameClean))
+    )) {
+      return 'LinkedIn SelfEmployed';
+    }
+  }
+
   const englishOnlyCompany: string = extractEnglishFromMixed(cleanedCompany);
   const noEmojis: string = TextUtils.removeEmojis(englishOnlyCompany);
   const formattedCompany: string = formatCompanyToPascalCase(noEmojis, maxWords);
-  
+
   return formattedCompany ? `LinkedIn ${formattedCompany}` : 'LinkedIn';
 }
 

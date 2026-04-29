@@ -47,7 +47,9 @@ export class ContactSyncer {
       const groupResourceName: string = await this.ensureGroupExists(label);
       const formattedCompany: string = calculateFormattedCompany(
         connection.company,
-        2
+        2,
+        connection.firstName,
+        connection.lastName
       );
       const emailLabel: string = formattedCompany.replace(/'/g, '').trim();
       const baseLastName: string = stripCompanyPrefixOverlapFromName(
@@ -271,9 +273,15 @@ export class ContactSyncer {
       }
       const formattedCompany: string = calculateFormattedCompany(
         connection.company,
-        2
+        2,
+        connection.firstName,
+        connection.lastName
       );
-      const emailLabel: string = formattedCompany.replace(/'/g, '').trim();
+      const emailLabel: string = [label, formattedCompany]
+        .filter((s) => s)
+        .join(' ')
+        .replace(/'/g, '')
+        .trim();
       const baseLastName: string = stripCompanyPrefixOverlapFromName(
         connection.lastName,
         connection.company
@@ -445,6 +453,7 @@ export class ContactSyncer {
           stack: error instanceof Error ? error.stack : undefined,
         }
       );
+      console.error('Update contact failed:', error);
       return {
         status: SyncStatusType.ERROR,
         error: {

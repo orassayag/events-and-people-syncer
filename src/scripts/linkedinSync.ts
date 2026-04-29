@@ -214,7 +214,9 @@ export class LinkedInSyncScript {
         let label: string = 'Unknown';
         const formattedCompany = calculateFormattedCompany(
           connection.company,
-          2
+          2,
+          connection.firstName,
+          connection.lastName
         );
         const alertContact = {
           firstName: connection.firstName,

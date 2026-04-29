@@ -223,7 +223,12 @@ export class SyncStatusBar {
         const label = this.currentLabel;
         const positionRaw = (linkedInConn.position ?? '').trim();
         const positionDisplay = positionRaw || '(none)';
-        const formattedCompany: string = calculateFormattedCompany(company, 2);
+        const formattedCompany: string = calculateFormattedCompany(
+          company,
+          2,
+          firstName,
+          lastName
+        );
         const emailSuffix = [
           positionRaw,
           formattedCompany ? `@ ${formattedCompany}` : '',

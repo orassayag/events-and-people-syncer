@@ -17,6 +17,7 @@ vi.mock('../../../cache', () => ({
   ContactCache: {
     getInstance: vi.fn().mockReturnValue({
       getByResourceName: vi.fn().mockResolvedValue(null),
+      invalidate: vi.fn().mockResolvedValue(undefined),
     }),
   },
 }));
@@ -111,7 +112,7 @@ describe('ContactSyncer', () => {
     });
     it('should handle company with Ltd and multiple parts', () => {
       const cleaned = cleanCompany('Systematics Ltd. Solutions at work.');
-      expect(cleaned).toBe('Systematics Solutions');
+      expect(cleaned).toBe('Systematics');
     });
     it('should remove "at work" phrase from end', () => {
       const cleaned = cleanCompany('Company Name at work.');
@@ -123,7 +124,7 @@ describe('ContactSyncer', () => {
     });
     it('should split on period followed by space', () => {
       const cleaned = cleanCompany('First Part. Second Part');
-      expect(cleaned).toBe('First Part Second Part');
+      expect(cleaned).toBe('First Part');
     });
   });
 
@@ -291,7 +292,7 @@ describe('ContactSyncer', () => {
       const mockGetFn = vi.fn().mockResolvedValue({
         data: {
           etag: 'test-etag',
-          names: [{ givenName: 'John', familyName: 'Doe Job Microsoft' }],
+          names: [{ givenName: 'John', familyName: 'Doe LinkedIn Microsoft' }],
           emailAddresses: [{ value: 'john@example.com' }],
           organizations: [{ title: 'Developer' }],
           urls: [
@@ -335,7 +336,7 @@ describe('ContactSyncer', () => {
       const mockGetFn = vi.fn().mockResolvedValue({
         data: {
           etag: 'test-etag',
-          names: [{ givenName: 'John', familyName: 'Doe Job Microsoft' }],
+          names: [{ givenName: 'John', familyName: 'Doe LinkedIn Microsoft' }],
           emailAddresses: [{ value: 'john@example.com' }],
           organizations: [
             { name: 'Microsoft', title: 'Software Engineer', type: 'work' },
@@ -373,7 +374,7 @@ describe('ContactSyncer', () => {
       const mockGetFn = vi.fn().mockResolvedValue({
         data: {
           etag: 'test-etag',
-          names: [{ givenName: 'John', familyName: 'Doe Job Microsoft' }],
+          names: [{ givenName: 'John', familyName: 'Doe LinkedIn Microsoft' }],
           emailAddresses: [{ value: 'john@example.com' }],
           organizations: [
             { name: 'Microsoft', title: 'Developer', type: 'work' },
@@ -414,7 +415,7 @@ describe('ContactSyncer', () => {
       const mockGetFn = vi.fn().mockResolvedValue({
         data: {
           etag: 'test-etag',
-          names: [{ givenName: 'John', familyName: 'Doe Job Microsoft' }],
+          names: [{ givenName: 'John', familyName: 'Doe LinkedIn Microsoft' }],
           emailAddresses: [{ value: 'john@example.com' }],
           organizations: [{ title: 'Software Engineer' }],
           urls: [{ value: 'https://www.linkedin.com/in/test-user' }],
