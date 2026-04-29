@@ -5,7 +5,18 @@ import { TextUtils } from './textUtils';
 function removeDomainsAndUrls(text: string): string {
   const urlRegex =
     /(?:https?:\/\/)?(?:www\.)?([\w-]+)\.(?:com|co\.il|net|org|io|ai|tech|app|dev|me|info|biz|co|il|org\.il|gov\.il|edu|ac\.il)\b[/\w-]*\b/gi;
-  let cleaned = text.replace(urlRegex, '$1').trim();
+  let cleaned = text
+    .replace(urlRegex, (match, domain) => {
+      if (
+        /^(?:https?:\/\/)?www\./i.test(match) ||
+        /\.co\.il\/?$/i.test(match)
+      ) {
+        return domain;
+      }
+      return match;
+    })
+    .trim();
+
   cleaned = cleaned.replace(/\bwww\.\b/gi, '');
   // If we removed everything, return the original
   return cleaned.length >= 2 ? cleaned : text;
@@ -331,7 +342,10 @@ const GENERIC_COMPANY_TOKENS: Set<string> = new Set([
 ]);
 
 function normalizeOverlapToken(token: string): string {
-  return token.toLowerCase().replace(/'/g, '');
+  return token
+    .toLowerCase()
+    .replace(/'/g, '')
+    .replace(/\.co\.il$/i, '');
 }
 
 function splitOverlapTokens(text: string): string[] {
