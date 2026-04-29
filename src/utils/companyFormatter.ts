@@ -76,6 +76,15 @@ export function cleanCompany(company: string): string {
     '$1.$2'
   );
 
+  // If there are multiple companies separated by "and" or "&" and contains a domain-like pattern (X.X),
+  // take only the first one.
+  if (/(?:\s+and\s+|\s+&\s+)/i.test(cleaned) && /\b\w+\.\w+\b/.test(cleaned)) {
+    const andParts = cleaned.split(/\s+(?:and|&)\s+/i);
+    if (andParts.length > 1) {
+      cleaned = andParts[0].trim();
+    }
+  }
+
   // Split on phrase-level separators and take only the FIRST valid segment
   // Handles: commas, pipes, spaced dashes/em-dashes, period+space, double+ spaces
   const parts: string[] = cleaned
