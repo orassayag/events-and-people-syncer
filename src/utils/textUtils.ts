@@ -100,6 +100,16 @@ export class TextUtils {
     cleaned = cleaned.normalize('NFC');
     // Remove Hebrew characters (including presentation forms)
     cleaned = cleaned.replace(/[\u0590-\u05FF\uFB1D-\uFB4F]/g, '');
+    // Remove Arabic characters
+    cleaned = cleaned.replace(
+      /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/g,
+      ''
+    );
+    // Remove Asian characters (CJK, Hiragana, Katakana, Hangul)
+    cleaned = cleaned.replace(
+      /[\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/g,
+      ''
+    );
     // Remove emojis
     cleaned = this.removeEmojis(cleaned);
 
@@ -225,11 +235,13 @@ export class TextUtils {
 
     // Title Case
     const result = cleaned
-      .toLowerCase()
       .split(' ')
-      .map((word) =>
-        word.length > 0 ? word.charAt(0).toUpperCase() + word.slice(1) : ''
-      )
+      .map((word) => {
+        if (word.length === 0) return '';
+        const lower = word.toLowerCase();
+        if (lower === 'linkedin') return 'LinkedIn';
+        return lower.charAt(0).toUpperCase() + lower.slice(1);
+      })
       .filter((word) => word.length > 0)
       .join(' ');
 
@@ -341,7 +353,9 @@ export class TextUtils {
     firstName: string,
     lastName: string
   ): { firstName: string; lastName: string } {
-    const extract = (text: string) => {
+    const extract = (
+      text: string
+    ): { cleaned: string; nicknames: string[] } => {
       const nicknames: string[] = [];
       const cleaned = text
         .replace(/\(([^)]+)\)/g, (_, nickname: string) => {
@@ -405,7 +419,7 @@ export class TextUtils {
     // If the company name is too short (e.g. 1-2 chars), don't remove it to avoid accidental matches
     if (cleanedCompany.length <= 2) return { firstName, lastName };
 
-    const removeMatch = (name: string) => {
+    const removeMatch = (name: string): string => {
       if (!name) return '';
       // Create a regex for the company name as a standalone phrase
       const escaped = this.escapeRegExp(cleanedCompany);
