@@ -2024,7 +2024,7 @@ export class EventsJobsSyncScript {
 
     console.log(`${EMOJIS.FIELDS.PERSON} Full name: ${fullName}`);
     console.log(
-      `${EMOJIS.FIELDS.LABEL}  Labels: ${formatMixedHebrewEnglish(contact.label || '')}`
+      `${EMOJIS.FIELDS.LABEL} Labels: ${formatMixedHebrewEnglish(contact.label || '')}`
     );
     console.log(
       `${EMOJIS.FIELDS.COMPANY} Company: ${formatMixedHebrewEnglish(contact.company || '')}`

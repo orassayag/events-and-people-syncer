@@ -606,7 +606,7 @@ export class OtherContactsSyncScript {
         );
         if (matchContact.label) {
           matchLines.push(
-            `${EMOJIS.FIELDS.LABEL}  Labels: ${TextUtils.reverseHebrewText(matchContact.label)}`
+            `${EMOJIS.FIELDS.LABEL} Labels: ${TextUtils.reverseHebrewText(matchContact.label)}`
           );
         }
         if (matchContact.company) {

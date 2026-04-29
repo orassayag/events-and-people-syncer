@@ -15,14 +15,9 @@ export class LogFormatter {
   ): string {
     const lines: string[] = [];
 
-    if (type === 'SKIP' || type === 'ERROR') {
-      lines.push('=======================');
-    }
+    lines.push('=======================');
 
-    const indexStr = FormatUtils.formatNumberWithLeadingZeros(index, 6).replace(
-      ',',
-      '.'
-    );
+    const indexStr = FormatUtils.formatNumberWithLeadingZeros(index, 6);
     lines.push(`📰 Index: ${indexStr}`);
 
     const isLinkedIn = contact.type === 'linkedin';
@@ -88,7 +83,7 @@ export class LogFormatter {
       return lines.join('\n');
     }
 
-    lines.push(`${EMOJIS.FIELDS.LABEL}  Labels: ${label.replace(/'/g, '')}`);
+    lines.push(`${EMOJIS.FIELDS.LABEL} Labels: ${label.replace(/'/g, '')}`);
 
     const companyDisplay = isLinkedIn ? formattedCompany : label;
     lines.push(`${EMOJIS.FIELDS.COMPANY} Company: ${companyDisplay}`);
@@ -124,7 +119,6 @@ export class LogFormatter {
     }
     lines.push(linkedInUrlStr);
 
-    lines.push('=======================');
     return lines.join('\n');
   }
 }

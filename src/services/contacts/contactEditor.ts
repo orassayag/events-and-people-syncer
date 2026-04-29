@@ -369,10 +369,10 @@ export class ContactEditor {
           TextUtils.reverseHebrewText(name)
         );
         console.log(
-          `${EMOJIS.FIELDS.LABEL}  Labels: ${displayLabelNames.join(' | ')}`
+          `${EMOJIS.FIELDS.LABEL} Labels: ${displayLabelNames.join(' | ')}`
         );
       } else {
-        console.log(`${EMOJIS.FIELDS.LABEL}  Labels: `);
+        console.log(`${EMOJIS.FIELDS.LABEL} Labels: `);
       }
 
       console.log(`${EMOJIS.FIELDS.COMPANY} Company: ${displaySuffix}`);

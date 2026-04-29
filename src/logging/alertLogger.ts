@@ -239,9 +239,9 @@ export class AlertLogger {
         } else if (cleanLine.startsWith('-LastName:')) {
           const lastName = cleanLine.replace('-LastName:', '').trim();
           target.lastName = lastName === '(none)' ? '' : lastName;
-        } else if (cleanLine.startsWith('🏷️  Labels:')) {
+        } else if (cleanLine.startsWith('🏷️ Labels:')) {
           const labelsStr = cleanLine
-            .replace('🏷️  Labels:', '')
+            .replace('🏷️ Labels:', '')
             .replace(/linkedin/i, '')
             .trim();
           target.labels =
@@ -309,7 +309,7 @@ export class AlertLogger {
           (alert.contact.company?.startsWith('LinkedIn')
             ? ` ${alert.contact.company}`
             : ` ${alert.contact.labels?.[0] || 'LinkedIn'}`),
-        `🏷️  Labels: ${alert.contact.labels?.join(', ') || 'LinkedIn'}`,
+        `🏷️ Labels: ${alert.contact.labels?.join(', ') || 'LinkedIn'}`,
         `🏢 Company: ${alert.contact.company || '(none)'}`,
         `💼 Job Title: ${alert.contact.jobTitle || '(none)'}`,
         `📧 Email: ${alert.contact.email || '(none)'}${alert.contact.email && (alert.contact.jobTitle || alert.contact.company) ? ` ${alert.contact.jobTitle || ''}${alert.contact.jobTitle && alert.contact.company ? ' @ ' : ''}${alert.contact.company || ''}` : ''}`,
@@ -471,7 +471,7 @@ export class AlertLogger {
       for (const file of alertFiles) {
         await fs.unlink(join(LOG_CONFIG.logDir, file));
       }
-    } catch (error: unknown) {
+    } catch {
       // Ignore errors if directory is empty
     }
 
