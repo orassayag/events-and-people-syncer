@@ -1,7 +1,15 @@
 import { injectable, inject } from 'inversify';
 import { google } from 'googleapis';
 import type { OAuth2Client, Script, ContactGroup, ContactData } from '../types';
-import { FolderType, FolderMapping, FolderCacheData, EventsJobsSyncStats, FolderType as FolderTypeEnum, MenuOption as MenuOptionEnum, ScriptState } from '../types';
+import {
+  FolderType,
+  FolderMapping,
+  FolderCacheData,
+  EventsJobsSyncStats,
+  FolderType as FolderTypeEnum,
+  MenuOption as MenuOptionEnum,
+  ScriptState,
+} from '../types';
 import {
   selectWithEscape,
   searchableSelectWithEscape,
@@ -75,7 +83,9 @@ export class EventsJobsSyncScript {
       const authService = new AuthService();
       this.auth = await authService.authorize();
       this.isAuthenticated = true;
-      await this.logger.logMain(`${EMOJIS.STATUS.SUCCESS} Google authentication successful`);
+      await this.logger.logMain(
+        `${EMOJIS.STATUS.SUCCESS} Google authentication successful`
+      );
     } catch (error) {
       await this.logger.logError(
         `Authentication failed: ${(error as Error).message}`
@@ -142,7 +152,9 @@ export class EventsJobsSyncScript {
       await clearClipboard();
       await this.logger.logMain(`${EMOJIS.STATUS.SUCCESS} Clipboard cleared`);
     } catch {
-      await this.logger.logMain(`${EMOJIS.STATUS.WARNING}  Failed to clear clipboard (non-critical)`);
+      await this.logger.logMain(
+        `${EMOJIS.STATUS.WARNING}  Failed to clear clipboard (non-critical)`
+      );
     }
   }
 
@@ -294,11 +306,26 @@ export class EventsJobsSyncScript {
   private async mainMenu(): Promise<void> {
     while (true) {
       const choices = [
-        { name: `${EMOJIS.MENU.WRITE_NOTES} Write notes`, value: MenuOptionEnum.WRITE_NOTES },
-        { name: `${EMOJIS.MENU.CREATE_NOTE} Write a note`, value: MenuOptionEnum.CREATE_NOTE },
-        { name: `${EMOJIS.MENU.CREATE_NOTE} Write a note with contact`, value: MenuOptionEnum.CREATE_NOTE_WITH_CONTACT },
-        { name: `${EMOJIS.MENU.CREATE_NOTE} Write a note with date`, value: MenuOptionEnum.CREATE_NOTE_WITH_DATE },
-        { name: `${EMOJIS.MENU.REWRITE_NOTE} Rewrite a note`, value: MenuOptionEnum.REWRITE_NOTE },
+        {
+          name: `${EMOJIS.MENU.WRITE_NOTES} Write notes`,
+          value: MenuOptionEnum.WRITE_NOTES,
+        },
+        {
+          name: `${EMOJIS.MENU.CREATE_NOTE} Write a note`,
+          value: MenuOptionEnum.CREATE_NOTE,
+        },
+        {
+          name: `${EMOJIS.MENU.CREATE_NOTE} Write a note with contact`,
+          value: MenuOptionEnum.CREATE_NOTE_WITH_CONTACT,
+        },
+        {
+          name: `${EMOJIS.MENU.CREATE_NOTE} Write a note with date`,
+          value: MenuOptionEnum.CREATE_NOTE_WITH_DATE,
+        },
+        {
+          name: `${EMOJIS.MENU.REWRITE_NOTE} Rewrite a note`,
+          value: MenuOptionEnum.REWRITE_NOTE,
+        },
       ];
       if (this.lastCreatedNotePath !== null) {
         choices.push({
@@ -311,9 +338,15 @@ export class EventsJobsSyncScript {
           name: `${EMOJIS.MENU.FOLDER} Delete all empty folders`,
           value: MenuOptionEnum.DELETE_EMPTY_FOLDER,
         },
-        { name: `${EMOJIS.ACTIONS.EDIT}  Rename a folder`, value: MenuOptionEnum.RENAME_FOLDER }
+        {
+          name: `${EMOJIS.ACTIONS.EDIT}  Rename a folder`,
+          value: MenuOptionEnum.RENAME_FOLDER,
+        }
       );
-      choices.push({ name: `${EMOJIS.NAVIGATION.EXIT} Exit`, value: MenuOptionEnum.EXIT });
+      choices.push({
+        name: `${EMOJIS.NAVIGATION.EXIT} Exit`,
+        value: MenuOptionEnum.EXIT,
+      });
       const result = await selectWithEscape<string>({
         message: 'What would you like to do now? (ESC to exit)',
         loop: false,
@@ -382,7 +415,9 @@ export class EventsJobsSyncScript {
       allFolders
     );
     if (exactMatch) {
-      await this.logger.logMain(`${EMOJIS.STATUS.SUCCESS} Exact match found: '${exactMatch.name}'`);
+      await this.logger.logMain(
+        `${EMOJIS.STATUS.SUCCESS} Exact match found: '${exactMatch.name}'`
+      );
       try {
         await fs.access(exactMatch.path);
       } catch {
@@ -455,7 +490,9 @@ export class EventsJobsSyncScript {
     }
     const selectedFolder = selectedFolderResult.value;
     if (selectedFolder === 'create_new') {
-      await this.logger.logMain(`User selected: ${EMOJIS.ACTIONS.ADD} Create new folder`);
+      await this.logger.logMain(
+        `User selected: ${EMOJIS.ACTIONS.ADD} Create new folder`
+      );
       return await this.createFolderFlow(trimmedInput, false);
     }
     const folder = selectedFolder as FolderMapping;
@@ -799,11 +836,17 @@ export class EventsJobsSyncScript {
       await FolderCache.getInstance().invalidate();
       await this.scanFolders();
       this.stats.createdFolders++;
-      await this.logger.logMain(`${EMOJIS.STATUS.SUCCESS} Folder created: '${folderPath}'`);
-      this.uiLogger.displaySuccess(`Folder created: ${finalFolderNameToCreate}`);
+      await this.logger.logMain(
+        `${EMOJIS.STATUS.SUCCESS} Folder created: '${folderPath}'`
+      );
+      this.uiLogger.displaySuccess(
+        `Folder created: ${finalFolderNameToCreate}`
+      );
       this.scriptState = ScriptState.FOLDER_SELECTED;
       const cache = await FolderCache.getInstance().get();
-      const folder = cache?.jobFolders.find((f) => f.name === finalFolderNameToCreate);
+      const folder = cache?.jobFolders.find(
+        (f) => f.name === finalFolderNameToCreate
+      );
       if (folder) {
         if (createNoteAfter) {
           await this.createNoteInFolder(folder);
@@ -817,7 +860,9 @@ export class EventsJobsSyncScript {
         this.uiLogger.displayWarning(
           'Folder already exists. Please choose a different name'
         );
-        await this.logger.logMain(`${EMOJIS.STATUS.WARNING}  Folder already exists (EEXIST)`);
+        await this.logger.logMain(
+          `${EMOJIS.STATUS.WARNING}  Folder already exists (EEXIST)`
+        );
         await FolderCache.getInstance().invalidate();
         await this.scanFolders();
       } else if ((error as any).code === 'ENOENT') {
@@ -844,7 +889,9 @@ export class EventsJobsSyncScript {
       const authService = new AuthService();
       await authService.authorize();
       this.isAuthenticated = true;
-      await this.logger.logMain(`${EMOJIS.STATUS.SUCCESS} Authentication successful`);
+      await this.logger.logMain(
+        `${EMOJIS.STATUS.SUCCESS} Authentication successful`
+      );
     }
     if (!this.cachedContactGroups || this.cachedContactGroups.length === 0) {
       await this.logger.logMain('Fetching contact groups...');
@@ -1016,8 +1063,12 @@ export class EventsJobsSyncScript {
       await FolderCache.getInstance().invalidate();
       await this.scanFolders();
       this.stats.createdFolders++;
-      await this.logger.logMain(`${EMOJIS.STATUS.SUCCESS} Folder created: '${folderPath}'`);
-      this.uiLogger.displaySuccess(`Folder created: ${finalFolderNameToCreate}`);
+      await this.logger.logMain(
+        `${EMOJIS.STATUS.SUCCESS} Folder created: '${folderPath}'`
+      );
+      this.uiLogger.displaySuccess(
+        `Folder created: ${finalFolderNameToCreate}`
+      );
       this.scriptState = ScriptState.FOLDER_SELECTED;
       const cache = await FolderCache.getInstance().get();
       const folder = cache?.lifeEventFolders.find(
@@ -1036,7 +1087,9 @@ export class EventsJobsSyncScript {
         this.uiLogger.displayWarning(
           'Folder already exists. Please choose a different name'
         );
-        await this.logger.logMain(`${EMOJIS.STATUS.WARNING}  Folder already exists (EEXIST)`);
+        await this.logger.logMain(
+          `${EMOJIS.STATUS.WARNING}  Folder already exists (EEXIST)`
+        );
         await FolderCache.getInstance().invalidate();
         await this.scanFolders();
       } else if ((error as any).code === 'ENOENT') {
@@ -1082,7 +1135,9 @@ export class EventsJobsSyncScript {
       if (!message.trim()) {
         if (options?.allowCancel) {
           this.uiLogger.displayWarning('Clipboard is empty');
-          await this.logger.logMain(`${EMOJIS.STATUS.WARNING}  Clipboard validation failed: empty`);
+          await this.logger.logMain(
+            `${EMOJIS.STATUS.WARNING}  Clipboard validation failed: empty`
+          );
           const exitResult = await confirmWithEscape({
             message: 'Exit?',
             default: true,
@@ -1094,7 +1149,9 @@ export class EventsJobsSyncScript {
           this.uiLogger.displayWarning(
             'Clipboard is empty. Please copy your message first'
           );
-          await this.logger.logMain(`${EMOJIS.STATUS.WARNING}  Clipboard validation failed: empty`);
+          await this.logger.logMain(
+            `${EMOJIS.STATUS.WARNING}  Clipboard validation failed: empty`
+          );
         }
       }
     }
@@ -1118,7 +1175,9 @@ export class EventsJobsSyncScript {
         trimmedMessage,
         options?.noteDate ?? new Date()
       );
-      await this.logger.logMain(`${EMOJIS.STATUS.SUCCESS} Note saved: '${filePath}'`);
+      await this.logger.logMain(
+        `${EMOJIS.STATUS.SUCCESS} Note saved: '${filePath}'`
+      );
       const fileName = basename(filePath);
       const basePath =
         folder.type === FolderTypeEnum.LIFE_EVENT
@@ -1224,7 +1283,9 @@ export class EventsJobsSyncScript {
         this.uiLogger.displayWarning(
           'Clipboard is empty. Please copy your message first'
         );
-        await this.logger.logMain(`${EMOJIS.STATUS.WARNING} Clipboard validation failed: empty`);
+        await this.logger.logMain(
+          `${EMOJIS.STATUS.WARNING} Clipboard validation failed: empty`
+        );
       }
     }
     const trimmedContent = newContent.trim();
@@ -1251,7 +1312,9 @@ export class EventsJobsSyncScript {
     }
     const noteFilePath = join(selectedFolder.path, selectedNote);
     await this.noteWriter.rewriteNote(noteFilePath, trimmedContent);
-    await this.logger.logMain(`${EMOJIS.STATUS.SUCCESS} Note rewritten: '${noteFilePath}'`);
+    await this.logger.logMain(
+      `${EMOJIS.STATUS.SUCCESS} Note rewritten: '${noteFilePath}'`
+    );
     this.uiLogger.displaySuccess(`Note rewritten: ${selectedNote}`);
     await this.clearClipboardInternal();
   }
@@ -1380,7 +1443,9 @@ export class EventsJobsSyncScript {
         }
         await this.folderManager.deleteFolder(folder.path);
         deletedCount++;
-        await this.logger.logMain(`${EMOJIS.STATUS.SUCCESS} Folder deleted: '${folder.path}'`);
+        await this.logger.logMain(
+          `${EMOJIS.STATUS.SUCCESS} Folder deleted: '${folder.path}'`
+        );
       } catch (error) {
         if ((error as any).code === 'ENOENT') {
           await this.logger.logMain(
@@ -1543,7 +1608,10 @@ export class EventsJobsSyncScript {
           )
           .sort((a, b) => a.localeCompare(b, 'en-US'))
           .map((label) => ({ name: label, value: label })),
-        { name: `${EMOJIS.NAVIGATION.SKIP}  Skip (no label change)`, value: 'SKIP' },
+        {
+          name: `${EMOJIS.NAVIGATION.SKIP}  Skip (no label change)`,
+          value: 'SKIP',
+        },
       ];
       const selectedLabelResult2 = await searchableSelectWithEscape<string>({
         message: 'Select label for folder (ESC to go back):',
@@ -1696,7 +1764,9 @@ export class EventsJobsSyncScript {
         const authService = new AuthService();
         await authService.authorize();
         this.isAuthenticated = true;
-        await this.logger.logMain(`${EMOJIS.STATUS.SUCCESS} Authentication successful`);
+        await this.logger.logMain(
+          `${EMOJIS.STATUS.SUCCESS} Authentication successful`
+        );
       }
       if (!this.cachedContactGroups || this.cachedContactGroups.length === 0) {
         await this.logger.logMain('Fetching contact groups...');
@@ -1763,7 +1833,9 @@ export class EventsJobsSyncScript {
             resourceName,
             name: labelString,
           });
-          await this.logger.logMain(`${EMOJIS.STATUS.SUCCESS} Created new label: '${labelString}'`);
+          await this.logger.logMain(
+            `${EMOJIS.STATUS.SUCCESS} Created new label: '${labelString}'`
+          );
           this.uiLogger.displaySuccess('Label created successfully');
         }
       }
@@ -1795,7 +1867,9 @@ export class EventsJobsSyncScript {
       const note = `Added by the events & jobs sync script - Last update: ${timestamp}`;
       await this.contactEditor.createContact(finalData, note);
       this.stats.contacts++;
-      await this.logger.logMain(`${EMOJIS.STATUS.SUCCESS} Contact created successfully`);
+      await this.logger.logMain(
+        `${EMOJIS.STATUS.SUCCESS} Contact created successfully`
+      );
       this.uiLogger.displaySuccess('Contact created');
       this.contactEditor.setApiLogging(false);
     } catch (error) {
@@ -1850,7 +1924,9 @@ export class EventsJobsSyncScript {
     return contactGroups.sort((a, b) => a.name.localeCompare(b.name, 'en-US'));
   }
 
-  private async handleExistingContactSelected(contact: ContactData): Promise<void> {
+  private async handleExistingContactSelected(
+    contact: ContactData
+  ): Promise<void> {
     const fullName = `${contact.firstName} ${contact.lastName}`.trim();
     this.uiLogger.displayInfo(`Selected existing contact: ${fullName}`);
     this.displayContactDetails(contact);
@@ -1868,24 +1944,38 @@ export class EventsJobsSyncScript {
 
     try {
       this.contactEditor.setApiLogging(true);
-      this.contactEditor.setLogCallback(async (msg: string) => await this.logger.logMain(msg));
+      this.contactEditor.setLogCallback(
+        async (msg: string) => await this.logger.logMain(msg)
+      );
 
       const editable = this.contactEditor.convertContactDataToEditable(contact);
-      
+
       // Auto-add current folder label
       let currentLabelResource = '';
       const labelString = this.lastSelectedFolder!.label;
       if (labelString) {
-        const result = this.labelResolver.resolveLabel(labelString, false, this.cachedContactGroups || []);
+        const result = this.labelResolver.resolveLabel(
+          labelString,
+          false,
+          this.cachedContactGroups || []
+        );
         currentLabelResource = result.resourceName;
       }
 
-      if (currentLabelResource && !editable.labelResourceNames.includes(currentLabelResource)) {
+      if (
+        currentLabelResource &&
+        !editable.labelResourceNames.includes(currentLabelResource)
+      ) {
         editable.labelResourceNames.push(currentLabelResource);
-        this.uiLogger.displayInfo(`Auto-added label: ${this.lastSelectedFolder!.label}`);
+        this.uiLogger.displayInfo(
+          `Auto-added label: ${this.lastSelectedFolder!.label}`
+        );
       }
 
-      const finalData = await this.contactEditor.showSummaryAndEdit(editable, 'Save');
+      const finalData = await this.contactEditor.showSummaryAndEdit(
+        editable,
+        'Save'
+      );
       if (finalData === null) {
         this.uiLogger.displayError('Update cancelled');
         return;
@@ -1899,13 +1989,21 @@ export class EventsJobsSyncScript {
         throw new Error('Contact resourceName is missing');
       }
 
-      await this.contactEditor.updateExistingContact(contact.resourceName, finalData, finalNote);
-      
+      await this.contactEditor.updateExistingContact(
+        contact.resourceName,
+        finalData,
+        finalNote
+      );
+
       this.stats.contacts++;
       this.uiLogger.displaySuccess('Contact updated successfully');
-      await this.logger.logMain(`${EMOJIS.STATUS.SUCCESS} Existing contact updated: ${fullName}`);
+      await this.logger.logMain(
+        `${EMOJIS.STATUS.SUCCESS} Existing contact updated: ${fullName}`
+      );
     } catch (err) {
-      await this.logger.logError(`Failed to update existing contact: ${(err as Error).message}`);
+      await this.logger.logError(
+        `Failed to update existing contact: ${(err as Error).message}`
+      );
       this.uiLogger.displayWarning(`Update failed: ${(err as Error).message}`);
     } finally {
       this.contactEditor.setApiLogging(false);
@@ -1916,18 +2014,26 @@ export class EventsJobsSyncScript {
     const first = formatMixedHebrewEnglish(contact.firstName);
     const last = formatMixedHebrewEnglish(contact.lastName);
     const fullName = `${first} ${last}`.trim();
-    
+
     console.log(`${EMOJIS.FIELDS.PERSON} Full name: ${fullName}`);
-    console.log(`${EMOJIS.FIELDS.LABEL}  Labels: ${formatMixedHebrewEnglish(contact.label || '')}`);
-    console.log(`${EMOJIS.FIELDS.COMPANY} Company: ${formatMixedHebrewEnglish(contact.company || '')}`);
-    console.log(`${EMOJIS.FIELDS.JOB_TITLE} Job Title: ${formatMixedHebrewEnglish(contact.jobTitle || '')}`);
-    
+    console.log(
+      `${EMOJIS.FIELDS.LABEL}  Labels: ${formatMixedHebrewEnglish(contact.label || '')}`
+    );
+    console.log(
+      `${EMOJIS.FIELDS.COMPANY} Company: ${formatMixedHebrewEnglish(contact.company || '')}`
+    );
+    console.log(
+      `${EMOJIS.FIELDS.JOB_TITLE} Job Title: ${formatMixedHebrewEnglish(contact.jobTitle || '')}`
+    );
+
     // Email(s)
     if (contact.emails.length === 0) {
       console.log(`${EMOJIS.FIELDS.EMAIL} Email: `);
     } else {
-      contact.emails.forEach(e => {
-        console.log(`${EMOJIS.FIELDS.EMAIL} Email: ${e.value} ${e.label ? formatMixedHebrewEnglish(e.label) : ''}`);
+      contact.emails.forEach((e) => {
+        console.log(
+          `${EMOJIS.FIELDS.EMAIL} Email: ${e.value} ${e.label ? formatMixedHebrewEnglish(e.label) : ''}`
+        );
       });
     }
 
@@ -1935,8 +2041,10 @@ export class EventsJobsSyncScript {
     if (contact.phones.length === 0) {
       console.log(`${EMOJIS.FIELDS.PHONE} Phone: `);
     } else {
-      contact.phones.forEach(p => {
-        console.log(`${EMOJIS.FIELDS.PHONE} Phone: ${p.number} ${p.label ? formatMixedHebrewEnglish(p.label) : ''}`);
+      contact.phones.forEach((p) => {
+        console.log(
+          `${EMOJIS.FIELDS.PHONE} Phone: ${p.number} ${p.label ? formatMixedHebrewEnglish(p.label) : ''}`
+        );
       });
     }
 
@@ -1947,9 +2055,11 @@ export class EventsJobsSyncScript {
         w.url.toLowerCase().includes('linkedin.com')
     );
     if (linkedIn) {
-      console.log(`${EMOJIS.FIELDS.LINKEDIN} LinkedIn URL: ${linkedIn.url} ${formatMixedHebrewEnglish(linkedIn.label)}`);
+      console.log(
+        `${EMOJIS.FIELDS.LINKEDIN} LinkedIn URL: ${linkedIn.url} ${formatMixedHebrewEnglish(linkedIn.label)}`
+      );
     } else {
-      // Also show other websites or at least the key as per user's "even if not exists, show the key" logic for phone, 
+      // Also show other websites or at least the key as per user's "even if not exists, show the key" logic for phone,
       // though user specifically mentioned LinkedIn URL for the key.
       console.log(`${EMOJIS.FIELDS.LINKEDIN} LinkedIn URL: `);
     }

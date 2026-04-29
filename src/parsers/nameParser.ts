@@ -1,12 +1,51 @@
 import { RegexPatterns } from '../regex/patterns';
 
 export class NameParser {
-  private static readonly PREFIXES = ['dr', 'mr', 'mrs', 'ms', 'miss', 'prof', 'rev', 'hon', 'sir', 'lady', 'lord', 'dame', 'capt', 'col', 'gen', 'maj'];
-  private static readonly SUFFIXES = ['jr', 'sr', 'ii', 'iii', 'iv', 'v', 'phd', 'md', 'esq', 'cpa', 'dds', 'jd', 'pe', 'rn', 'llm', 'mba'];
+  private static readonly PREFIXES = [
+    'dr',
+    'mr',
+    'mrs',
+    'ms',
+    'miss',
+    'prof',
+    'rev',
+    'hon',
+    'sir',
+    'lady',
+    'lord',
+    'dame',
+    'capt',
+    'col',
+    'gen',
+    'maj',
+  ];
+  private static readonly SUFFIXES = [
+    'jr',
+    'sr',
+    'ii',
+    'iii',
+    'iv',
+    'v',
+    'phd',
+    'md',
+    'esq',
+    'cpa',
+    'dds',
+    'jd',
+    'pe',
+    'rn',
+    'llm',
+    'mba',
+  ];
 
-  static parseFullName(fullName: string): { firstName: string; lastName: string } {
+  static parseFullName(fullName: string): {
+    firstName: string;
+    lastName: string;
+  } {
     const trimmed = fullName.trim();
-    const parts = trimmed.split(RegexPatterns.MULTIPLE_SPACES).filter((p: string) => p);
+    const parts = trimmed
+      .split(RegexPatterns.MULTIPLE_SPACES)
+      .filter((p: string) => p);
     if (parts.length === 0) {
       return { firstName: '', lastName: '' };
     }

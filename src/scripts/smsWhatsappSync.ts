@@ -12,12 +12,22 @@ import {
 } from '../utils';
 import { Logger, SyncLogger } from '../logging';
 import { AuthService } from '../services/auth';
-import { HtmlSanitizer, HtmlSourceDetector, PhoneExtractor } from '../services/messaging';
+import {
+  HtmlSanitizer,
+  HtmlSourceDetector,
+  PhoneExtractor,
+} from '../services/messaging';
 import { ContactEditor, DuplicateDetector } from '../services/contacts';
 import { ContactCache } from '../cache';
 import { FormatUtils, EMOJIS } from '../constants';
 import { SETTINGS } from '../settings';
-import type { Script, SmsWhatsappSyncStats, ExtractedContact, MessageSource, SelectorResult } from '../types';
+import type {
+  Script,
+  SmsWhatsappSyncStats,
+  ExtractedContact,
+  MessageSource,
+  SelectorResult,
+} from '../types';
 
 @injectable()
 export class SmsWhatsappSyncScript {
@@ -89,7 +99,9 @@ export class SmsWhatsappSyncScript {
 
   private async showImportantNotice(): Promise<boolean> {
     console.log('');
-    console.log(`${EMOJIS.STATUS.IMPORTANT} IMPORTANT ${EMOJIS.STATUS.IMPORTANT}`);
+    console.log(
+      `${EMOJIS.STATUS.IMPORTANT} IMPORTANT ${EMOJIS.STATUS.IMPORTANT}`
+    );
     console.log('When using this script you need to:');
     console.log('1. Scroll down and stay on the screen you want to fetch.');
     console.log('2. Copy the HTML.');
@@ -351,7 +363,10 @@ export class SmsWhatsappSyncScript {
       message: 'What would you like to do?',
       loop: false,
       choices: [
-        { name: `${EMOJIS.ACTIONS.SEARCH} Search in contacts`, value: 'search' },
+        {
+          name: `${EMOJIS.ACTIONS.SEARCH} Search in contacts`,
+          value: 'search',
+        },
         { name: `${EMOJIS.ACTIONS.ADD} Add a new contact`, value: 'add' },
         { name: `${EMOJIS.NAVIGATION.SKIP}  Skip this phone`, value: 'skip' },
       ],
@@ -404,7 +419,10 @@ export class SmsWhatsappSyncScript {
           choices: [
             { name: `${EMOJIS.ACTIONS.SEARCH} Search again`, value: 'search' },
             { name: `${EMOJIS.ACTIONS.ADD} Add a new contact`, value: 'add' },
-            { name: `${EMOJIS.NAVIGATION.SKIP}  Skip this phone`, value: 'skip' },
+            {
+              name: `${EMOJIS.NAVIGATION.SKIP}  Skip this phone`,
+              value: 'skip',
+            },
           ],
         });
         if (nextAction.escaped || nextAction.value === 'skip') {

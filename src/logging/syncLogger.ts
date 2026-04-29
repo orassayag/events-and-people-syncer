@@ -18,16 +18,22 @@ export class SyncLogger {
     this.dateStr = `${day}_${month}_${year}`;
     this.scriptName = scriptName;
     this.fileExtension = fileExtension;
-    
+
     const logDir: string = join(process.cwd(), 'logs');
-    this.logPath = join(logDir, `${this.scriptName}_${this.dateStr}-${this.currentCounter}.${this.fileExtension}`);
+    this.logPath = join(
+      logDir,
+      `${this.scriptName}_${this.dateStr}-${this.currentCounter}.${this.fileExtension}`
+    );
   }
 
   private async checkRotation(newLines: number): Promise<void> {
     if (this.lineCount + newLines > this.maxLines) {
       this.currentCounter++;
       const logDir: string = join(process.cwd(), 'logs');
-      this.logPath = join(logDir, `${this.scriptName}_${this.dateStr}-${this.currentCounter}.${this.fileExtension}`);
+      this.logPath = join(
+        logDir,
+        `${this.scriptName}_${this.dateStr}-${this.currentCounter}.${this.fileExtension}`
+      );
       this.lineCount = 0;
       await this.initialize();
     }
@@ -36,16 +42,22 @@ export class SyncLogger {
   async initialize(): Promise<void> {
     const logDir: string = dirname(this.logPath);
     await fs.mkdir(logDir, { recursive: true });
-    
+
     // Check if current file exists and if it exceeds max lines
-    let fileExists = await fs.access(this.logPath).then(() => true).catch(() => false);
-    
+    let fileExists = await fs
+      .access(this.logPath)
+      .then(() => true)
+      .catch(() => false);
+
     if (fileExists) {
       const content = await fs.readFile(this.logPath, 'utf-8');
       const lines = content.split('\n').length;
       if (lines >= this.maxLines) {
         this.currentCounter++;
-        this.logPath = join(logDir, `${this.scriptName}_${this.dateStr}-${this.currentCounter}.${this.fileExtension}`);
+        this.logPath = join(
+          logDir,
+          `${this.scriptName}_${this.dateStr}-${this.currentCounter}.${this.fileExtension}`
+        );
         fileExists = false;
       } else {
         this.lineCount = lines;

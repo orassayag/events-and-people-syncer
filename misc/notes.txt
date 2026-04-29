@@ -1,3 +1,33 @@
+New script:
+==========
+
+-Google Contacts Maintainer:
+-Find duplicate contacts.
+-Hebrew contact (Conatins hebrew in any field).
+-Find contacts without any label (Imported * is not considered a label).
+-Find contacts with Phones / Emails without label.
+-Find contacts with Phones / Emails with label of: "Home" / "Work" / "Other" / "Mobile" / "Main" / "Home Fax" / "Work Fax" / "Google Voice" / "Pager".
+-Find contacts with URL without label.
+-Find contacts with URL with label of: "Profie" / "Blog" / "Home Page" / "Work".
+-Empty name / null / undefined.
+-Check if any phone is duplicated.
+-Check if any email is duplicated.
+-Check if any URL is duplicated.
+-Check if have the same email / phone duplicate time in a single contact.
+-Also check if it contains one of the wrong company names which needs to be refactored.
+-Also check if the ones that match by URL - The name is identical from Linkedin, if not, needs to be fixed.
+-Also check the opposite - If mateched by name but the URL is not eqal - needs to be fixed.
+-If missing URL and have "Job" or "HR" labels - needs to be fixed.
+-Any URL label that it's not "LinkedIn".
+-Add execptions list, that if the contact name or URL there with the exepction reason, it will ignore and not list it in the report.
+-Finally we need to run this report automaticlly with a bat file which will generate a complete log on the desktop on each contact that needs to be fixed.
+
+-Another task to plan in the future and mark here - The update contacts logic. Not for now - Write it on the
+"ToDo" tasks.
+
+DONE & CANCELLED:
+================
+
 -Do a simple script on the Lenovo which delete all the content of all the folders, run it on copy of life events and job interviews, and make sure all works as expected.
 -Move the folder cleaner to the lenovo and bring a copy of all the dictionaries which are empty.
 -Also move back the contacts file from the Hibob.
@@ -20,7 +50,7 @@ This script will be placed above the “SMS & WhatsApp” script in the scripts 
 Index: 000,001 / 000,004
 email: test@test.com
 ═══════════════════════════════════════════════════════════════════
-? What would you like to do? … 
+? What would you like to do? …
 ❯ 🔍 Search in contacts
   ➕ Add a new contact
   ⏭️  Skip this phone
@@ -94,10 +124,6 @@ Validation happens in multiple places:
 
 =====================
 
-
-DONE & CANCELLED:
-================
-
 -All script should end like: *
 
 =================Contacts Sync Summary================== *
@@ -111,7 +137,7 @@ DONE & CANCELLED:
 
 -Make sure all console.log start and end with ===. on logger lever instead of in specific places, also add break lines between lines and avoid duplicate break lines. *
 -Do the cosmetics fixes for all scripts - Review all options. *
-ToDo: * 
+ToDo: *
 -Check how we can back on the steps. *
 ============================================ *
 
@@ -182,7 +208,7 @@ The goal of this script is simple: Sync emails, SMS, Linkedin, WhatsApp, and any
 
 -For Full flow:
 -Next step - Add person details? (Yes / No selection from drop down).
--Next step - If Yes was selected - 
+-Next step - If Yes was selected -
 
 -Select if to add new person / update existing person.
 
@@ -265,7 +291,7 @@ You will display the following:
 -Job Title: ajshd asd
 -Email: sadhgj@walla.com HR dsfds
 -Phone: 324234 HR dsfds
--LinkedIn URL: 
+-LinkedIn URL:
 
 The CLI will ask for the missing / English name for the HEBREW word that need to be replaces
 If have several, ask each time one thing.
@@ -350,7 +376,7 @@ We will run this script by “pnpm run linkedin-sync”
 -Inside the connections.csv you will have the following columns:
 First Name,Last Name,URL,Email Address,Company,Position,Connected On
 -We will use the end of the URL (postfix) as the unique indicator (instead of id).
--For example, from the URL: https://www.linkedin.com/in/gevit-azulay-hrdirector, the id will be: gevit-azulay-hrdirector 
+-For example, from the URL: https://www.linkedin.com/in/gevit-azulay-hrdirector, the id will be: gevit-azulay-hrdirector
 -We will load the entire connections by reading the entire file.
 
 -Validate People API credentials of needed.
@@ -396,7 +422,7 @@ So the logic is simple, if the company name matching (equal (slice words by capi
 UPDATE FLOW:
 ===========
 
-If in any case we have a matching - 
+If in any case we have a matching -
 -Update the missing data - Or change the data.
 -What does it mean to “change the data”?
 
@@ -421,7 +447,7 @@ Company: Vim
 First Name: Eleana
 Last Name: Moshe Haim Job Vim
 Job Title: Senior HR Manager, HRBP IL and International
-Email: 
+Email:
 elieana12345@gmail.com | Label: Job Vim
 eeisenstorg@gmail.com | Label: Job Vim
 Phone: 123456789 | Label: Job Vim
@@ -432,7 +458,7 @@ So, what we actually updated?
 -Job Title.
 -Email (added a new one).
 
-Notes: 
+Notes:
 -We will NEVER delete an email, we will always add a new one it it’s not exists
 -We will NEVER change the first name, company name, labels, Website URL, Phone.
 
@@ -475,16 +501,16 @@ Tests: *
   Create contact *
   Edit labels  *
   Create new label *
-  Remove label * 
+  Remove label *
   Edit company *
   Remove company *
   Edit first name *
   Edit last name *
   Edit job title *
-  Remove job title * 
+  Remove job title *
   Edit email *
   Add email *
-  Remove email * 
+  Remove email *
   Edit phone *
   Add phone *
   Remove phone *

@@ -1,11 +1,22 @@
 import { google } from 'googleapis';
 import ora from 'ora';
 import { injectable, inject } from 'inversify';
-import type { ContactData, OAuth2Client, EditableContactData, SyncableContact, ContactGroup } from '../../types';
+import type {
+  ContactData,
+  OAuth2Client,
+  EditableContactData,
+  SyncableContact,
+  ContactGroup,
+} from '../../types';
 import { RegexPatterns } from '../../regex';
 import { ApiTracker } from '../api';
 import { SETTINGS } from '../../settings';
-import { retryWithBackoff, formatDateTimeDDMMYYYY_HHMMSS, DryModeChecker, DryModeMocks } from '../../utils';
+import {
+  retryWithBackoff,
+  formatDateTimeDDMMYYYY_HHMMSS,
+  DryModeChecker,
+  DryModeMocks,
+} from '../../utils';
 import { Logger } from '../../logging';
 import { determineSyncNoteUpdate } from '../linkedin/noteParser';
 import { ContactCache } from '../../cache';
@@ -372,9 +383,10 @@ export class ContactSyncer {
     const originalJobTitle = originalData.jobTitle;
     const originalEmails = originalData.emails.map((e) => e.value);
     const originalPhones = originalData.phones.map((p) => p.number);
-    const originalLinkedInUrl = originalData.websites.find((w) =>
-      w.label.toLowerCase().includes('linkedin') ||
-      w.url.toLowerCase().includes('linkedin.com')
+    const originalLinkedInUrl = originalData.websites.find(
+      (w) =>
+        w.label.toLowerCase().includes('linkedin') ||
+        w.url.toLowerCase().includes('linkedin.com')
     )?.url;
     const firstNameChanged = updatedData.firstName !== originalFirstName;
     const lastNameChanged = updatedData.lastName !== originalLastName;

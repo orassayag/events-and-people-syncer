@@ -30,7 +30,7 @@ export class ClearLogsScript {
     }
     this.logger.info(`Found ${allItems.length} item(s) in logs folder.`);
     this.logger.info('Clearing everything in logs folder...');
-    
+
     let count = 0;
     allItems.forEach((item: string) => {
       const fullPath = path.join(this.logsDir, item);
@@ -38,11 +38,15 @@ export class ClearLogsScript {
         fs.rmSync(fullPath, { recursive: true, force: true });
         count++;
       } catch (error) {
-        this.logger.error(`Failed to delete ${item}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        this.logger.error(
+          `Failed to delete ${item}: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
       }
     });
-    
-    this.logger.info(`${EMOJIS.STATUS.SUCCESS} Successfully cleared ${count} item(s) from logs folder`);
+
+    this.logger.info(
+      `${EMOJIS.STATUS.SUCCESS} Successfully cleared ${count} item(s) from logs folder`
+    );
   }
 }
 

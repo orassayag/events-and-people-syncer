@@ -1,10 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import type { OtherContactEntry, OtherContactsSyncStats } from '../../types/otherContactsSync';
+import type {
+  OtherContactEntry,
+  OtherContactsSyncStats,
+} from '../../types/otherContactsSync';
 import { SETTINGS } from '../../settings';
 
 const emailNormalize = (email: string): string => email.toLowerCase().trim();
 
-const deduplicateEmails = (entries: OtherContactEntry[]): OtherContactEntry[] => {
+const deduplicateEmails = (
+  entries: OtherContactEntry[]
+): OtherContactEntry[] => {
   const seenEmails = new Set<string>();
   return entries
     .map((entry) => {
@@ -25,9 +30,24 @@ describe('OtherContactsSync - Email Deduplication', () => {
   describe('deduplicateEmails', () => {
     it('should remove duplicate emails across entries', () => {
       const entries: OtherContactEntry[] = [
-        { emails: ['shared@example.com'], phones: [], resourceName: 'oc/1', displayName: 'First' },
-        { emails: ['shared@example.com'], phones: [], resourceName: 'oc/2', displayName: 'Second' },
-        { emails: ['unique@example.com'], phones: [], resourceName: 'oc/3', displayName: 'Third' },
+        {
+          emails: ['shared@example.com'],
+          phones: [],
+          resourceName: 'oc/1',
+          displayName: 'First',
+        },
+        {
+          emails: ['shared@example.com'],
+          phones: [],
+          resourceName: 'oc/2',
+          displayName: 'Second',
+        },
+        {
+          emails: ['unique@example.com'],
+          phones: [],
+          resourceName: 'oc/3',
+          displayName: 'Third',
+        },
       ];
       const result = deduplicateEmails(entries);
       expect(result).toHaveLength(3);
@@ -38,8 +58,18 @@ describe('OtherContactsSync - Email Deduplication', () => {
 
     it('should keep entries with no emails but with displayName', () => {
       const entries: OtherContactEntry[] = [
-        { emails: ['test@example.com'], phones: [], resourceName: 'oc/1', displayName: 'First' },
-        { emails: ['test@example.com'], phones: [], resourceName: 'oc/2', displayName: 'Second' },
+        {
+          emails: ['test@example.com'],
+          phones: [],
+          resourceName: 'oc/1',
+          displayName: 'First',
+        },
+        {
+          emails: ['test@example.com'],
+          phones: [],
+          resourceName: 'oc/2',
+          displayName: 'Second',
+        },
       ];
       const result = deduplicateEmails(entries);
       expect(result).toHaveLength(2);
@@ -49,7 +79,12 @@ describe('OtherContactsSync - Email Deduplication', () => {
 
     it('should filter out entries with no emails and no displayName', () => {
       const entries: OtherContactEntry[] = [
-        { emails: ['test@example.com'], phones: [], resourceName: 'oc/1', displayName: 'First' },
+        {
+          emails: ['test@example.com'],
+          phones: [],
+          resourceName: 'oc/1',
+          displayName: 'First',
+        },
         { emails: ['test@example.com'], phones: [], resourceName: 'oc/2' },
       ];
       const result = deduplicateEmails(entries);
@@ -59,8 +94,18 @@ describe('OtherContactsSync - Email Deduplication', () => {
 
     it('should handle case-insensitive email matching', () => {
       const entries: OtherContactEntry[] = [
-        { emails: ['John@Example.COM'], phones: [], resourceName: 'oc/1', displayName: 'First' },
-        { emails: ['john@example.com'], phones: [], resourceName: 'oc/2', displayName: 'Second' },
+        {
+          emails: ['John@Example.COM'],
+          phones: [],
+          resourceName: 'oc/1',
+          displayName: 'First',
+        },
+        {
+          emails: ['john@example.com'],
+          phones: [],
+          resourceName: 'oc/2',
+          displayName: 'Second',
+        },
       ];
       const result = deduplicateEmails(entries);
       expect(result[0].emails).toEqual(['John@Example.COM']);
@@ -69,8 +114,18 @@ describe('OtherContactsSync - Email Deduplication', () => {
 
     it('should deduplicate multiple emails within same entry', () => {
       const entries: OtherContactEntry[] = [
-        { emails: ['a@test.com', 'b@test.com'], phones: [], resourceName: 'oc/1', displayName: 'First' },
-        { emails: ['b@test.com', 'c@test.com'], phones: [], resourceName: 'oc/2', displayName: 'Second' },
+        {
+          emails: ['a@test.com', 'b@test.com'],
+          phones: [],
+          resourceName: 'oc/1',
+          displayName: 'First',
+        },
+        {
+          emails: ['b@test.com', 'c@test.com'],
+          phones: [],
+          resourceName: 'oc/2',
+          displayName: 'Second',
+        },
       ];
       const result = deduplicateEmails(entries);
       expect(result[0].emails).toEqual(['a@test.com', 'b@test.com']);
@@ -85,8 +140,18 @@ describe('OtherContactsSync - Email Deduplication', () => {
 
     it('should preserve order of first occurrence', () => {
       const entries: OtherContactEntry[] = [
-        { emails: ['second@test.com'], phones: [], resourceName: 'oc/1', displayName: 'First Entry' },
-        { emails: ['first@test.com', 'second@test.com'], phones: [], resourceName: 'oc/2', displayName: 'Second Entry' },
+        {
+          emails: ['second@test.com'],
+          phones: [],
+          resourceName: 'oc/1',
+          displayName: 'First Entry',
+        },
+        {
+          emails: ['first@test.com', 'second@test.com'],
+          phones: [],
+          resourceName: 'oc/2',
+          displayName: 'Second Entry',
+        },
       ];
       const result = deduplicateEmails(entries);
       expect(result[0].emails).toEqual(['second@test.com']);
@@ -95,8 +160,18 @@ describe('OtherContactsSync - Email Deduplication', () => {
 
     it('should preserve phones even when emails are deduplicated', () => {
       const entries: OtherContactEntry[] = [
-        { emails: ['shared@test.com'], phones: ['+1-555-111-1111'], resourceName: 'oc/1', displayName: 'First' },
-        { emails: ['shared@test.com'], phones: ['+1-555-222-2222'], resourceName: 'oc/2', displayName: 'Second' },
+        {
+          emails: ['shared@test.com'],
+          phones: ['+1-555-111-1111'],
+          resourceName: 'oc/1',
+          displayName: 'First',
+        },
+        {
+          emails: ['shared@test.com'],
+          phones: ['+1-555-222-2222'],
+          resourceName: 'oc/2',
+          displayName: 'Second',
+        },
       ];
       const result = deduplicateEmails(entries);
       expect(result[0].phones).toEqual(['+1-555-111-1111']);
@@ -105,8 +180,18 @@ describe('OtherContactsSync - Email Deduplication', () => {
 
     it('should handle whitespace in emails', () => {
       const entries: OtherContactEntry[] = [
-        { emails: ['  test@example.com  '], phones: [], resourceName: 'oc/1', displayName: 'First' },
-        { emails: ['test@example.com'], phones: [], resourceName: 'oc/2', displayName: 'Second' },
+        {
+          emails: ['  test@example.com  '],
+          phones: [],
+          resourceName: 'oc/1',
+          displayName: 'First',
+        },
+        {
+          emails: ['test@example.com'],
+          phones: [],
+          resourceName: 'oc/2',
+          displayName: 'Second',
+        },
       ];
       const result = deduplicateEmails(entries);
       expect(result[0].emails).toEqual(['  test@example.com  ']);
@@ -116,8 +201,12 @@ describe('OtherContactsSync - Email Deduplication', () => {
 });
 
 describe('OtherContactsSync - Entry Filtering', () => {
-  const filterProcessableEntries = (entries: OtherContactEntry[]): OtherContactEntry[] => {
-    return entries.filter((entry) => entry.emails.length > 0 || entry.displayName);
+  const filterProcessableEntries = (
+    entries: OtherContactEntry[]
+  ): OtherContactEntry[] => {
+    return entries.filter(
+      (entry) => entry.emails.length > 0 || entry.displayName
+    );
   };
 
   it('should keep entries with emails', () => {
@@ -130,7 +219,12 @@ describe('OtherContactsSync - Entry Filtering', () => {
 
   it('should keep entries with displayName only', () => {
     const entries: OtherContactEntry[] = [
-      { emails: [], phones: ['+1-555-123-4567'], resourceName: 'oc/1', displayName: 'John Doe' },
+      {
+        emails: [],
+        phones: ['+1-555-123-4567'],
+        resourceName: 'oc/1',
+        displayName: 'John Doe',
+      },
     ];
     const result = filterProcessableEntries(entries);
     expect(result).toHaveLength(1);
@@ -149,7 +243,12 @@ describe('OtherContactsSync - Entry Filtering', () => {
       { emails: ['test@example.com'], phones: [], resourceName: 'oc/1' },
       { emails: [], phones: [], resourceName: 'oc/2', displayName: 'Has Name' },
       { emails: [], phones: ['+1-555-123-4567'], resourceName: 'oc/3' },
-      { emails: ['another@test.com'], phones: ['+1-555-999-9999'], resourceName: 'oc/4', displayName: 'Full' },
+      {
+        emails: ['another@test.com'],
+        phones: ['+1-555-999-9999'],
+        resourceName: 'oc/4',
+        displayName: 'Full',
+      },
     ];
     const result = filterProcessableEntries(entries);
     expect(result).toHaveLength(3);
@@ -157,7 +256,10 @@ describe('OtherContactsSync - Entry Filtering', () => {
 });
 
 describe('OtherContactsSync - Display Name Truncation', () => {
-  const truncateDisplayName = (name: string, maxLength: number = 100): string => {
+  const truncateDisplayName = (
+    name: string,
+    maxLength: number = 100
+  ): string => {
     if (name.length <= maxLength) {
       return name;
     }
@@ -244,7 +346,7 @@ describe('OtherContactsSync - Stats Tracking', () => {
 
 describe('OtherContactsSync - Dry-Mode Integration', () => {
   const originalDryMode = SETTINGS.dryMode;
-  
+
   it('should respect dry-mode setting from SETTINGS', () => {
     expect(typeof SETTINGS.dryMode).toBe('boolean');
   });

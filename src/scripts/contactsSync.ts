@@ -1,7 +1,17 @@
 import { injectable, inject } from 'inversify';
 import type { OAuth2Client, Script, Stats } from '../types';
-import { selectWithEscape, formatDateTimeDDMMYYYY_HHMMSS, TextUtils, inputWithEscape } from '../utils';
-import { ContactSyncer, ContactDisplay, ContactEditor, DuplicateDetector } from '../services/contacts';
+import {
+  selectWithEscape,
+  formatDateTimeDDMMYYYY_HHMMSS,
+  TextUtils,
+  inputWithEscape,
+} from '../utils';
+import {
+  ContactSyncer,
+  ContactDisplay,
+  ContactEditor,
+  DuplicateDetector,
+} from '../services/contacts';
 import { Logger, SyncLogger } from '../logging';
 import { AuthService } from '../services/auth';
 import { EMOJIS } from '../constants';
@@ -29,7 +39,9 @@ export class ContactsSyncScript {
     await this.logger.logMain('Contacts Sync started');
     try {
       await this.validateAuth();
-      await this.logger.logMain(`====${EMOJIS.STATUS.SUCCESS}  Authentication validated===`);
+      await this.logger.logMain(
+        `====${EMOJIS.STATUS.SUCCESS}  Authentication validated===`
+      );
       await this.mainMenu();
     } catch (error) {
       if (error instanceof Error && error.message !== 'User cancelled') {
@@ -107,15 +119,21 @@ export class ContactsSyncScript {
       }
       const action = result.value;
       if (action === 'exit') {
-        await this.logger.logMain(`User selected: ${EMOJIS.NAVIGATION.EXIT} Exit`);
+        await this.logger.logMain(
+          `User selected: ${EMOJIS.NAVIGATION.EXIT} Exit`
+        );
         this.displayFinalSummary();
         this.uiLogger.displayExit();
         process.exit(0);
       } else if (action === 'sync') {
-        await this.logger.logMain(`User selected: ${EMOJIS.ACTIONS.SYNC} Sync contacts`);
+        await this.logger.logMain(
+          `User selected: ${EMOJIS.ACTIONS.SYNC} Sync contacts`
+        );
         await this.syncContactsFlow();
       } else if (action === 'add') {
-        await this.logger.logMain(`User selected: ${EMOJIS.ACTIONS.ADD} Add contacts`);
+        await this.logger.logMain(
+          `User selected: ${EMOJIS.ACTIONS.ADD} Add contacts`
+        );
         this.contactEditor.setApiLogging(true);
         this.contactEditor.setLogCallback(async (msg: string) => {
           await this.logger.logMain(msg);
@@ -123,7 +141,9 @@ export class ContactsSyncScript {
         await this.addContactFlow();
         this.contactEditor.setApiLogging(false);
       } else if (action === 'edit') {
-        await this.logger.logMain(`User selected: ${EMOJIS.ACTIONS.EDIT} Edit a contact`);
+        await this.logger.logMain(
+          `User selected: ${EMOJIS.ACTIONS.EDIT} Edit a contact`
+        );
         this.contactEditor.setApiLogging(true);
         this.contactEditor.setLogCallback(async (msg: string) => {
           await this.logger.logMain(msg);
@@ -135,7 +155,9 @@ export class ContactsSyncScript {
   }
 
   private async syncContactsFlow(): Promise<void> {
-    const syncableContacts = await this.contactSyncer.fetchContactsForSyncing(this.uiLogger);
+    const syncableContacts = await this.contactSyncer.fetchContactsForSyncing(
+      this.uiLogger
+    );
     await this.logger.logMain(
       `Found ${syncableContacts.length} contacts available for syncing`
     );
@@ -167,7 +189,7 @@ export class ContactsSyncScript {
             reason: syncableContact.reasons.join(', '),
             currentIndex: i + 1,
             totalCount: syncableContacts.length,
-            resourceName: syncableContact.resourceName
+            resourceName: syncableContact.resourceName,
           }
         );
         if (updatedData === null) {
@@ -200,7 +222,9 @@ export class ContactsSyncScript {
           await this.logger.logError(
             `Failed to update contact: ${error instanceof Error ? error.message : 'Unknown error'}`
           );
-          this.uiLogger.displayError(`Failed to update contact: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          this.uiLogger.displayError(
+            `Failed to update contact: ${error instanceof Error ? error.message : 'Unknown error'}`
+          );
           this.stats.error++;
         }
       }
@@ -231,11 +255,18 @@ export class ContactsSyncScript {
         this.displayFinalSummary();
         this.uiLogger.displayExit();
         process.exit(0);
-      } else if (error instanceof Error && error.message.includes('duplicate')) {
-        this.uiLogger.displayError('Contact creation cancelled - duplicate detected');
+      } else if (
+        error instanceof Error &&
+        error.message.includes('duplicate')
+      ) {
+        this.uiLogger.displayError(
+          'Contact creation cancelled - duplicate detected'
+        );
       } else {
         this.uiLogger.error('Failed to create contact', error as Error);
-        this.uiLogger.displayError(`Failed to create contact: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        this.uiLogger.displayError(
+          `Failed to create contact: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
       }
     }
   }
@@ -259,17 +290,24 @@ export class ContactsSyncScript {
       const fullName = fullNameResult.value;
       const { firstName, lastName } = TextUtils.parseFullName(fullName);
 
-      const matches = await this.duplicateDetector.checkDuplicateName(firstName, lastName);
+      const matches = await this.duplicateDetector.checkDuplicateName(
+        firstName,
+        lastName
+      );
 
       if (matches.length === 0) {
-        this.uiLogger.displayWarning(`No contacts found matching "${fullName}"`);
+        this.uiLogger.displayWarning(
+          `No contacts found matching "${fullName}"`
+        );
         return;
       }
 
       const choices = matches.map((match, i) => {
         const first = TextUtils.reverseHebrewText(match.contact.firstName);
         const last = TextUtils.reverseHebrewText(match.contact.lastName);
-        const email = match.contact.emails[0]?.value ? ` (${match.contact.emails[0].value})` : '';
+        const email = match.contact.emails[0]?.value
+          ? ` (${match.contact.emails[0].value})`
+          : '';
         return {
           name: `🔍 ${`${first} ${last}`.trim()}${email}`,
           value: i,
@@ -278,10 +316,7 @@ export class ContactsSyncScript {
 
       const selectedMatchResult = await selectWithEscape<number>({
         message: 'Select contact to update:',
-        choices: [
-          ...choices,
-          { name: '❌ Cancel', value: -1 }
-        ],
+        choices: [...choices, { name: '❌ Cancel', value: -1 }],
         loop: false,
       });
 
@@ -291,11 +326,14 @@ export class ContactsSyncScript {
 
       const selectedContact = matches[selectedMatchResult.value].contact;
       if (!selectedContact.resourceName) {
-        this.uiLogger.displayError('Selected contact does not have a resource name');
+        this.uiLogger.displayError(
+          'Selected contact does not have a resource name'
+        );
         return;
       }
 
-      const editableData = this.contactEditor.convertContactDataToEditable(selectedContact);
+      const editableData =
+        this.contactEditor.convertContactDataToEditable(selectedContact);
 
       // Populate labelResourceNames
       const allGroups = await this.contactEditor.fetchContactGroups();
@@ -333,7 +371,9 @@ export class ContactsSyncScript {
         await this.logger.logMain('User cancelled edit contact flow');
       } else {
         this.uiLogger.error('Failed to update contact', error as Error);
-        this.uiLogger.displayError(`Failed to update contact: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        this.uiLogger.displayError(
+          `Failed to update contact: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
       }
     }
   }

@@ -16,7 +16,12 @@ import {
 import { Logger, SyncLogger } from '../logging';
 import { AuthService } from '../services/auth';
 import { OtherContactsFetcher } from '../services/otherContacts';
-import { ContactEditor, DuplicateDetector, EmailNormalizer, PhoneNormalizer } from '../services/contacts';
+import {
+  ContactEditor,
+  DuplicateDetector,
+  EmailNormalizer,
+  PhoneNormalizer,
+} from '../services/contacts';
 import { ContactCache, OtherContactsCache } from '../cache';
 import { FormatUtils, EMOJIS } from '../constants';
 import type { Script, ContactData, MatchedContactInfo } from '../types';
@@ -127,7 +132,10 @@ export class OtherContactsSyncScript {
       message: 'What would you like to do?',
       loop: false,
       choices: [
-        { name: `${EMOJIS.ACTIONS.PROCESS}  Process Other Contacts`, value: 'process' },
+        {
+          name: `${EMOJIS.ACTIONS.PROCESS}  Process Other Contacts`,
+          value: 'process',
+        },
         { name: `${EMOJIS.ACTIONS.DELETE}  Clear Cache`, value: 'clear_cache' },
         { name: `${EMOJIS.NAVIGATION.EXIT} Exit`, value: 'exit' },
       ],
@@ -181,7 +189,9 @@ export class OtherContactsSyncScript {
     this.uiLogger.displayInfo('Google Contacts cache not found, fetching...');
     await this.duplicateDetector.ensureCachePopulated();
     const contacts = (await cache.get()) || [];
-    this.uiLogger.displayInfo(`Cached ${FormatUtils.formatNumberWithLeadingZeros(contacts.length)} Google Contacts`);
+    this.uiLogger.displayInfo(
+      `Cached ${FormatUtils.formatNumberWithLeadingZeros(contacts.length)} Google Contacts`
+    );
     return contacts;
   }
 
@@ -217,7 +227,8 @@ export class OtherContactsSyncScript {
     console.log = function (...args: unknown[]): void {
       if (
         self.uiLogger &&
-        (self.uiLogger as unknown as { isDisplayMethod: boolean }).isDisplayMethod
+        (self.uiLogger as unknown as { isDisplayMethod: boolean })
+          .isDisplayMethod
       ) {
         originalLog.apply(console, args);
         return;
@@ -231,7 +242,8 @@ export class OtherContactsSyncScript {
     console.error = function (...args: unknown[]): void {
       if (
         self.uiLogger &&
-        (self.uiLogger as unknown as { isDisplayMethod: boolean }).isDisplayMethod
+        (self.uiLogger as unknown as { isDisplayMethod: boolean })
+          .isDisplayMethod
       ) {
         originalError.apply(console, args);
         return;
@@ -261,7 +273,9 @@ export class OtherContactsSyncScript {
         }
       }
     );
-    spinner.succeed(`Fetched ${entries.length.toLocaleString()} Other Contacts`);
+    spinner.succeed(
+      `Fetched ${entries.length.toLocaleString()} Other Contacts`
+    );
     return entries;
   }
 
@@ -333,10 +347,14 @@ export class OtherContactsSyncScript {
     fetchSpinner.succeed(
       `Google Contacts loaded (${FormatUtils.formatNumberWithLeadingZeros(contactCount)} contacts)`
     );
-    const filterSpinner = ora('Filtering entries already in contacts...').start();
+    const filterSpinner = ora(
+      'Filtering entries already in contacts...'
+    ).start();
     let emailToContact = this.buildEmailToContactMap(allContacts);
-    const autoSkipped: Array<{ entry: OtherContactEntry; contactName: string }> =
-      [];
+    const autoSkipped: Array<{
+      entry: OtherContactEntry;
+      contactName: string;
+    }> = [];
     const phonesAdded: Array<{
       entry: OtherContactEntry;
       contactName: string;
@@ -419,7 +437,13 @@ export class OtherContactsSyncScript {
       }
       const { entry, unmatchedEmails, matchedEmails } = toProcess[i];
       const currentIndex = i + 1;
-      this.displayEntry(entry, currentIndex, total, unmatchedEmails, matchedEmails);
+      this.displayEntry(
+        entry,
+        currentIndex,
+        total,
+        unmatchedEmails,
+        matchedEmails
+      );
       const action = await this.promptForAction();
       if (action === 'escape' || this.isCancelled) {
         break;
@@ -457,7 +481,9 @@ export class OtherContactsSyncScript {
       const displayMatched = matchedEmails
         .map((e) => TextUtils.reverseHebrewText(e))
         .join(', ');
-      console.log(`${EMOJIS.FIELDS.EMAIL} Emails (already in contacts): ${displayMatched}`);
+      console.log(
+        `${EMOJIS.FIELDS.EMAIL} Emails (already in contacts): ${displayMatched}`
+      );
     }
     if (unmatchedEmails.length === 0 && matchedEmails.length === 0) {
       console.log(`${EMOJIS.FIELDS.EMAIL} Emails: (none)`);
@@ -486,7 +512,10 @@ export class OtherContactsSyncScript {
       message: 'What would you like to do?',
       loop: false,
       choices: [
-        { name: `${EMOJIS.ACTIONS.SEARCH} Search in contacts`, value: 'search' },
+        {
+          name: `${EMOJIS.ACTIONS.SEARCH} Search in contacts`,
+          value: 'search',
+        },
         { name: `${EMOJIS.ACTIONS.ADD} Add a new contact`, value: 'add' },
         { name: `${EMOJIS.NAVIGATION.SKIP}  Skip this entry`, value: 'skip' },
       ],
@@ -543,7 +572,10 @@ export class OtherContactsSyncScript {
           choices: [
             { name: `${EMOJIS.ACTIONS.SEARCH} Search again`, value: 'search' },
             { name: `${EMOJIS.ACTIONS.ADD} Add a new contact`, value: 'add' },
-            { name: `${EMOJIS.NAVIGATION.SKIP}  Skip this entry`, value: 'skip' },
+            {
+              name: `${EMOJIS.NAVIGATION.SKIP}  Skip this entry`,
+              value: 'skip',
+            },
           ],
         });
         if (nextAction.escaped || nextAction.value === 'skip') {
@@ -561,11 +593,17 @@ export class OtherContactsSyncScript {
         const { contact: matchContact, similarityType } = matches[i];
         const matchNumber = (i + 1).toString().padStart(3, '0');
         const matchLines: string[] = [];
-        matchLines.push(`=================Match ${matchNumber}:==================`);
-        matchLines.push(`${EMOJIS.FIELDS.GROUP} Similarity Type: ${similarityType}`);
+        matchLines.push(
+          `=================Match ${matchNumber}:==================`
+        );
+        matchLines.push(
+          `${EMOJIS.FIELDS.GROUP} Similarity Type: ${similarityType}`
+        );
         const fullName =
           `${matchContact.firstName} ${matchContact.lastName}`.trim();
-        matchLines.push(`${EMOJIS.FIELDS.PERSON} Full Name: ${TextUtils.reverseHebrewText(fullName)}`);
+        matchLines.push(
+          `${EMOJIS.FIELDS.PERSON} Full Name: ${TextUtils.reverseHebrewText(fullName)}`
+        );
         if (matchContact.label) {
           matchLines.push(
             `${EMOJIS.FIELDS.LABEL}  Labels: ${TextUtils.reverseHebrewText(matchContact.label)}`
@@ -577,11 +615,15 @@ export class OtherContactsSyncScript {
           );
         }
         if (matchContact.emails.length > 0) {
-          const emailValues = matchContact.emails.map((e) => e.value).join(', ');
+          const emailValues = matchContact.emails
+            .map((e) => e.value)
+            .join(', ');
           matchLines.push(`${EMOJIS.FIELDS.EMAIL} Email: ${emailValues}`);
         }
         if (matchContact.phones.length > 0) {
-          const phoneValues = matchContact.phones.map((p) => p.number).join(', ');
+          const phoneValues = matchContact.phones
+            .map((p) => p.number)
+            .join(', ');
           matchLines.push(`${EMOJIS.FIELDS.PHONE} Phone: ${phoneValues}`);
         }
         if (matchContact.etag) {
@@ -655,7 +697,8 @@ export class OtherContactsSyncScript {
       this.stats.error++;
       return;
     }
-    const contactDisplayName = `${selectedContact.firstName} ${selectedContact.lastName} ${selectedContact.label}`.trim();
+    const contactDisplayName =
+      `${selectedContact.firstName} ${selectedContact.lastName} ${selectedContact.label}`.trim();
     let anyUpdated = false;
     for (const email of unmatchedEmails) {
       const updateSpinner = ora(`Adding email ${email} to contact...`).start();

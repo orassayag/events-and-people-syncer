@@ -10,7 +10,13 @@ import {
 } from '../../utils';
 import ora from 'ora';
 import { injectable, inject } from 'inversify';
-import type { ContactData, OAuth2Client, ContactGroup, CreateContactRequest, EditableContactData } from '../../types';
+import type {
+  ContactData,
+  OAuth2Client,
+  ContactGroup,
+  CreateContactRequest,
+  EditableContactData,
+} from '../../types';
 import { ApiTracker } from '../api';
 import { DuplicateDetector } from './duplicateDetector';
 import { PhoneNormalizer } from './phoneNormalizer';
@@ -66,40 +72,62 @@ export class ContactEditor {
     lastName: string
   ): Promise<boolean> {
     if (!firstName || !lastName) return true;
-    const nameDuplicates = await this.duplicateDetector.checkDuplicateName(firstName, lastName);
-    const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(nameDuplicates, this.uiLogger);
-    if (result === null) return false;                          // user escaped
-    if (result.action === 'use_existing') throw new ExistingContactSelected(result.contact);
-    return true;                                               // 'create_new'
+    const nameDuplicates = await this.duplicateDetector.checkDuplicateName(
+      firstName,
+      lastName
+    );
+    const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(
+      nameDuplicates,
+      this.uiLogger
+    );
+    if (result === null) return false; // user escaped
+    if (result.action === 'use_existing')
+      throw new ExistingContactSelected(result.contact);
+    return true; // 'create_new'
   }
 
   protected async checkAndHandleEmailDuplicate(
     email: string
   ): Promise<boolean> {
-    const emailDuplicates = await this.duplicateDetector.checkDuplicateEmail(email);
-    const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(emailDuplicates, this.uiLogger);
+    const emailDuplicates =
+      await this.duplicateDetector.checkDuplicateEmail(email);
+    const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(
+      emailDuplicates,
+      this.uiLogger
+    );
     if (result === null) return false;
-    if (result.action === 'use_existing') throw new ExistingContactSelected(result.contact);
+    if (result.action === 'use_existing')
+      throw new ExistingContactSelected(result.contact);
     return true;
   }
 
   protected async checkAndHandlePhoneDuplicate(
     phone: string
   ): Promise<boolean> {
-    const phoneDuplicates = await this.duplicateDetector.checkDuplicatePhone(phone);
-    const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(phoneDuplicates, this.uiLogger);
+    const phoneDuplicates =
+      await this.duplicateDetector.checkDuplicatePhone(phone);
+    const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(
+      phoneDuplicates,
+      this.uiLogger
+    );
     if (result === null) return false;
-    if (result.action === 'use_existing') throw new ExistingContactSelected(result.contact);
+    if (result.action === 'use_existing')
+      throw new ExistingContactSelected(result.contact);
     return true;
   }
 
   protected async checkAndHandleLinkedInDuplicate(
     url: string
   ): Promise<boolean> {
-    const linkedInDuplicates = await this.duplicateDetector.checkDuplicateLinkedInUrl(url);
-    const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(linkedInDuplicates, this.uiLogger);
+    const linkedInDuplicates =
+      await this.duplicateDetector.checkDuplicateLinkedInUrl(url);
+    const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(
+      linkedInDuplicates,
+      this.uiLogger
+    );
     if (result === null) return false;
-    if (result.action === 'use_existing') throw new ExistingContactSelected(result.contact);
+    if (result.action === 'use_existing')
+      throw new ExistingContactSelected(result.contact);
     return true;
   }
 
@@ -182,10 +210,11 @@ export class ContactEditor {
         const trimmedEmail = emailValue.trim();
         const emailDuplicates =
           await this.duplicateDetector.checkDuplicateEmail(trimmedEmail);
-        const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(
-          emailDuplicates,
-          this.uiLogger
-        );
+        const result =
+          await this.duplicateDetector.promptDuplicateSelectOrCreate(
+            emailDuplicates,
+            this.uiLogger
+          );
         if (result === null) {
           throw new Error('User cancelled');
         }
@@ -210,10 +239,11 @@ export class ContactEditor {
         const trimmedPhone = phoneNumber.trim();
         const phoneDuplicates =
           await this.duplicateDetector.checkDuplicatePhone(trimmedPhone);
-        const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(
-          phoneDuplicates,
-          this.uiLogger
-        );
+        const result =
+          await this.duplicateDetector.promptDuplicateSelectOrCreate(
+            phoneDuplicates,
+            this.uiLogger
+          );
         if (result === null) {
           throw new Error('User cancelled');
         }
@@ -238,10 +268,11 @@ export class ContactEditor {
         linkedInUrl = InputValidator.normalizeLinkedInUrl(linkedInUrlInput);
         const linkedInDuplicates =
           await this.duplicateDetector.checkDuplicateLinkedInUrl(linkedInUrl);
-        const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(
-          linkedInDuplicates,
-          this.uiLogger
-        );
+        const result =
+          await this.duplicateDetector.promptDuplicateSelectOrCreate(
+            linkedInDuplicates,
+            this.uiLogger
+          );
         if (result === null) {
           throw new Error('User cancelled');
         }
@@ -291,9 +322,12 @@ export class ContactEditor {
           : '';
 
       // Intelligent composite suffix for display
-      const compositeSuffix = (editableData.company && firstLabelName && editableData.company.startsWith(firstLabelName))
-        ? editableData.company
-        : [firstLabelName, editableData.company].filter(s => s).join(' ');
+      const compositeSuffix =
+        editableData.company &&
+        firstLabelName &&
+        editableData.company.startsWith(firstLabelName)
+          ? editableData.company
+          : [firstLabelName, editableData.company].filter((s) => s).join(' ');
 
       const displaySuffix = compositeSuffix
         ? TextUtils.reverseHebrewText(compositeSuffix)
@@ -301,9 +335,15 @@ export class ContactEditor {
       const displayFirstName = editableData.firstName
         ? TextUtils.reverseHebrewText(editableData.firstName)
         : '';
-      
-      const baseLastName = this.extractBaseLastName(editableData.lastName, firstLabelName, editableData.company);
-      const displayBaseLastName = baseLastName ? TextUtils.reverseHebrewText(baseLastName) : '';
+
+      const baseLastName = this.extractBaseLastName(
+        editableData.lastName,
+        firstLabelName,
+        editableData.company
+      );
+      const displayBaseLastName = baseLastName
+        ? TextUtils.reverseHebrewText(baseLastName)
+        : '';
       const cleanFullName = `${displayFirstName} ${displayBaseLastName}`.trim();
 
       const fullNameWithLabel = cleanFullName
@@ -334,18 +374,20 @@ export class ContactEditor {
       } else {
         console.log(`${EMOJIS.FIELDS.LABEL}  Labels: `);
       }
-      
+
       console.log(`${EMOJIS.FIELDS.COMPANY} Company: ${displaySuffix}`);
       const displayJobTitle = editableData.jobTitle
         ? TextUtils.reverseHebrewText(editableData.jobTitle)
         : '';
       console.log(`${EMOJIS.FIELDS.JOB_TITLE} Job Title: ${displayJobTitle}`);
-      
+
       if (editableData.emails.length === 1) {
         const displayEmail = TextUtils.reverseHebrewText(
           editableData.emails[0]
         );
-        console.log(`${EMOJIS.FIELDS.EMAIL} Email: ${displayEmail} ${displaySuffix}`);
+        console.log(
+          `${EMOJIS.FIELDS.EMAIL} Email: ${displayEmail} ${displaySuffix}`
+        );
       } else if (editableData.emails.length > 1) {
         console.log(`${EMOJIS.FIELDS.EMAIL} Emails:`);
         editableData.emails.forEach((email) => {
@@ -359,7 +401,9 @@ export class ContactEditor {
         const displayPhone = TextUtils.reverseHebrewText(
           editableData.phones[0]
         );
-        console.log(`${EMOJIS.FIELDS.PHONE} Phone: ${displayPhone} ${displaySuffix}`);
+        console.log(
+          `${EMOJIS.FIELDS.PHONE} Phone: ${displayPhone} ${displaySuffix}`
+        );
       } else if (editableData.phones.length > 1) {
         console.log(`${EMOJIS.FIELDS.PHONE} Phones:`);
         editableData.phones.forEach((phone) => {
@@ -635,10 +679,11 @@ export class ContactEditor {
           const trimmedEmail = updatedEmail.trim();
           const emailDuplicates =
             await this.duplicateDetector.checkDuplicateEmail(trimmedEmail);
-          const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(
-            emailDuplicates,
-            this.uiLogger
-          );
+          const result =
+            await this.duplicateDetector.promptDuplicateSelectOrCreate(
+              emailDuplicates,
+              this.uiLogger
+            );
           if (result === null) return newData;
           if (result.action === 'use_existing') {
             throw new ExistingContactSelected(result.contact);
@@ -674,10 +719,11 @@ export class ContactEditor {
         const trimmedEmail = newEmail.trim();
         const emailDuplicates =
           await this.duplicateDetector.checkDuplicateEmail(trimmedEmail);
-        const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(
-          emailDuplicates,
-          this.uiLogger
-        );
+        const result =
+          await this.duplicateDetector.promptDuplicateSelectOrCreate(
+            emailDuplicates,
+            this.uiLogger
+          );
         if (result === null) return newData;
         if (result.action === 'use_existing') {
           throw new ExistingContactSelected(result.contact);
@@ -729,10 +775,11 @@ export class ContactEditor {
           const trimmedPhone = updatedPhone.trim();
           const phoneDuplicates =
             await this.duplicateDetector.checkDuplicatePhone(trimmedPhone);
-          const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(
-            phoneDuplicates,
-            this.uiLogger
-          );
+          const result =
+            await this.duplicateDetector.promptDuplicateSelectOrCreate(
+              phoneDuplicates,
+              this.uiLogger
+            );
           if (result === null) return newData;
           if (result.action === 'use_existing') {
             throw new ExistingContactSelected(result.contact);
@@ -763,10 +810,11 @@ export class ContactEditor {
         const trimmedPhone = newPhone.trim();
         const phoneDuplicates =
           await this.duplicateDetector.checkDuplicatePhone(trimmedPhone);
-        const result = await this.duplicateDetector.promptDuplicateSelectOrCreate(
-          phoneDuplicates,
-          this.uiLogger
-        );
+        const result =
+          await this.duplicateDetector.promptDuplicateSelectOrCreate(
+            phoneDuplicates,
+            this.uiLogger
+          );
         if (result === null) return newData;
         if (result.action === 'use_existing') {
           throw new ExistingContactSelected(result.contact);
@@ -1017,11 +1065,12 @@ export class ContactEditor {
 
     const firstLabelName =
       finalSelectedLabelNames.length > 0 ? finalSelectedLabelNames[0] : '';
-    
+
     // Construct compositeSuffix intelligently to avoid 'HR HR Huntiq'
-    const compositeSuffix = (data.company && firstLabelName && data.company.startsWith(firstLabelName))
-      ? data.company
-      : [firstLabelName, data.company].filter(s => s).join(' ');
+    const compositeSuffix =
+      data.company && firstLabelName && data.company.startsWith(firstLabelName)
+        ? data.company
+        : [firstLabelName, data.company].filter((s) => s).join(' ');
 
     const { requestBody } = this.buildContactRequestBody(data, note);
 
@@ -1197,9 +1246,10 @@ export class ContactEditor {
   convertContactDataToEditable(contact: ContactData): EditableContactData {
     const emailValues = contact.emails.map((e) => e.value);
     const phoneValues = contact.phones.map((p) => p.number);
-    const linkedInWebsite = contact.websites.find((w) =>
-      w.label.toLowerCase().includes('linkedin') ||
-      w.url.toLowerCase().includes('linkedin.com')
+    const linkedInWebsite = contact.websites.find(
+      (w) =>
+        w.label.toLowerCase().includes('linkedin') ||
+        w.url.toLowerCase().includes('linkedin.com')
     );
     const labelResourceNames: string[] = [];
     return {
@@ -1239,17 +1289,24 @@ export class ContactEditor {
         possibleSuffixes.push(formatted);
       }
     }
-    
+
     // Sort suffixes by length descending to match longest first
-    const sorted = [...new Set(possibleSuffixes)].sort((a, b) => b.length - a.length);
+    const sorted = [...new Set(possibleSuffixes)].sort(
+      (a, b) => b.length - a.length
+    );
 
     // Iteratively strip from the end
     let changed = true;
     while (changed) {
       changed = false;
       for (const suffix of sorted) {
-        if (suffix && current.toLowerCase().endsWith(' ' + suffix.toLowerCase())) {
-          current = current.substring(0, current.length - suffix.length - 1).trim();
+        if (
+          suffix &&
+          current.toLowerCase().endsWith(' ' + suffix.toLowerCase())
+        ) {
+          current = current
+            .substring(0, current.length - suffix.length - 1)
+            .trim();
           changed = true;
           break; // restart loop after a change to check all suffixes again
         }
@@ -1298,7 +1355,7 @@ export class ContactEditor {
       name: group.name,
       value: group.resourceName,
     }));
-    
+
     // Add "Create a new label" option
     choices.unshift({
       name: '✨ Create a new label',
@@ -1320,12 +1377,14 @@ export class ContactEditor {
     if (selectedLabelsResult.escaped) {
       throw new Error('User cancelled');
     }
-    
+
     selectedResourceNames = selectedLabelsResult.value;
 
     if (selectedResourceNames.includes('CREATE_NEW')) {
       // Remove CREATE_NEW from the selected array
-      selectedResourceNames = selectedResourceNames.filter((r) => r !== 'CREATE_NEW');
+      selectedResourceNames = selectedResourceNames.filter(
+        (r) => r !== 'CREATE_NEW'
+      );
 
       const labelNameResult = await inputWithEscape({
         message: 'Enter new label name:',
@@ -1351,14 +1410,14 @@ export class ContactEditor {
       spinner.clear();
       this.uiLogger.resetState('spinner');
       this.uiLogger.displaySuccess(`Label created: ${trimmedLabelName}`);
-      
+
       // Update local existingGroups cache
       existingGroups = await this.fetchContactGroups(true);
 
       // Add the new label's resource name to the selected labels
       selectedResourceNames.push(newResourceName);
     }
-    
+
     // Safety check again since CREATE_NEW could theoretically have been the only option
     if (selectedResourceNames.length === 0) {
       throw new Error('At least one label must be selected');
@@ -1367,7 +1426,9 @@ export class ContactEditor {
     return selectedResourceNames;
   }
 
-  async fetchContactGroups(forceRefresh: boolean = false): Promise<ContactGroup[]> {
+  async fetchContactGroups(
+    forceRefresh: boolean = false
+  ): Promise<ContactGroup[]> {
     if (!forceRefresh && this.cachedContactGroups) {
       this.uiLogger.debug('Contact groups cache hit');
       return this.cachedContactGroups;
@@ -1376,10 +1437,9 @@ export class ContactEditor {
       return this.fetchInProgress;
     }
     this.uiLogger.debug('Contact groups cache miss, fetching from API');
-    this.fetchInProgress = this._fetchContactGroupsImpl()
-      .finally(() => {
-        this.fetchInProgress = null;
-      });
+    this.fetchInProgress = this._fetchContactGroupsImpl().finally(() => {
+      this.fetchInProgress = null;
+    });
     const result = await this.fetchInProgress;
     return result;
   }
@@ -1418,7 +1478,7 @@ export class ContactEditor {
     } while (pageToken);
     try {
       if (contactGroups.length > 0) {
-        const resourceNames = contactGroups.map(g => g.resourceName);
+        const resourceNames = contactGroups.map((g) => g.resourceName);
         if (SETTINGS.dryMode) {
           DryModeChecker.logApiCall(
             'service.contactGroups.batchGet()',
@@ -1447,7 +1507,11 @@ export class ContactEditor {
             const responses = batchResponse.data.responses || [];
             for (const resp of responses) {
               const memberCount = resp.contactGroup?.memberCount;
-              if (resp.contactGroup?.resourceName && memberCount !== undefined && memberCount !== null) {
+              if (
+                resp.contactGroup?.resourceName &&
+                memberCount !== undefined &&
+                memberCount !== null
+              ) {
                 memberCountMap.set(resp.contactGroup.resourceName, memberCount);
               }
             }
@@ -1458,16 +1522,20 @@ export class ContactEditor {
         }
       }
     } catch (error: unknown) {
-      const isQuota = error instanceof Error && 
+      const isQuota =
+        error instanceof Error &&
         (error.message.includes('quota') || error.message.includes('429'));
       if (isQuota) {
         this.uiLogger.displayWarning(
           'API quota exceeded - using alphabetical order. Try again in a few minutes.'
         );
       } else {
-        this.uiLogger.displayWarning('Failed to fetch label popularity, using alphabetical order');
+        this.uiLogger.displayWarning(
+          'Failed to fetch label popularity, using alphabetical order'
+        );
       }
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       this.uiLogger.displayError(`Error: ${errorMessage}`);
     }
     const sortedGroups = contactGroups.sort((a, b) => {
@@ -1718,14 +1786,17 @@ export class ContactEditor {
     const current = await retryWithBackoff(async () =>
       service.people.get({
         resourceName,
-        personFields: 'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies,metadata',
+        personFields:
+          'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies,metadata',
       })
     );
     await apiTracker.trackRead();
 
     if (resourceName.startsWith('people/d')) {
       if (this.logCallback) {
-        await this.logCallback(`WARNING: Targeted contact ${resourceName} looks like a Directory contact. Updates may trigger 'Save Contact' prompt.`);
+        await this.logCallback(
+          `WARNING: Targeted contact ${resourceName} looks like a Directory contact. Updates may trigger 'Save Contact' prompt.`
+        );
       }
     }
 
@@ -1887,9 +1958,9 @@ export class ContactEditor {
       (m: any) => {
         const rn = m.contactGroupMembership?.contactGroupResourceName;
         if (!rn) return true; // Keep domainMembership etc.
-        
+
         // Keep memberships that are NOT in our manageable user groups list (e.g. 'myContacts', 'starred')
-        return !userManageableGroups.some(g => g.resourceName === rn);
+        return !userManageableGroups.some((g) => g.resourceName === rn);
       }
     );
 

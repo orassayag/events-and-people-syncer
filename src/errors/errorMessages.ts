@@ -28,9 +28,11 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   [ErrorCode.LINKEDIN_ZIP_PASSWORD_PROTECTED]: 'ZIP file is password protected',
   [ErrorCode.LINKEDIN_CSV_ENCODING_ERROR]: 'CSV encoding error',
   [ErrorCode.CONTACTS_SYNC_NO_CONTACTS]: 'No contacts available to sync',
-  [ErrorCode.CONTACTS_SYNC_TOO_MANY_CONTACTS]: 'Too many contacts (exceeds limit)',
+  [ErrorCode.CONTACTS_SYNC_TOO_MANY_CONTACTS]:
+    'Too many contacts (exceeds limit)',
   [ErrorCode.CONTACTS_SYNC_INVALID_CONTACT_DATA]: 'Invalid contact data',
-  [ErrorCode.CONTACTS_SYNC_MISSING_RESOURCE_NAME]: 'Contact missing resource name',
+  [ErrorCode.CONTACTS_SYNC_MISSING_RESOURCE_NAME]:
+    'Contact missing resource name',
   [ErrorCode.CONTACTS_SYNC_VALIDATION_FAILED]: 'Contact validation failed',
   [ErrorCode.SYSTEM_FILE_NOT_FOUND]: 'Required file not found',
   [ErrorCode.SYSTEM_PORT_IN_USE]: 'Specified port is already in use',

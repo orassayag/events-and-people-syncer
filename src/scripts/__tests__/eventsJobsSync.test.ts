@@ -10,12 +10,12 @@ import type {
 } from '../../types/eventsJobsSync';
 import { FolderType as FolderTypeEnum } from '../../types/eventsJobsSync';
 import { spawn as spawnActual } from 'child_process';
-import { 
-  selectWithEscape, 
-  inputWithEscape, 
-  confirmWithEscape, 
-  EscapeSignal, 
-  resetEscapeManagerForTesting 
+import {
+  selectWithEscape,
+  inputWithEscape,
+  confirmWithEscape,
+  EscapeSignal,
+  resetEscapeManagerForTesting,
 } from '../../utils';
 import { EMOJIS } from '../../constants';
 import { SETTINGS } from '../../settings';
@@ -24,7 +24,8 @@ vi.mock('fs/promises');
 vi.mock('../../cache/folderCache');
 vi.mock('child_process');
 vi.mock('../../utils', async () => {
-  const actual = await vi.importActual<typeof import('../../utils')>('../../utils');
+  const actual =
+    await vi.importActual<typeof import('../../utils')>('../../utils');
   return {
     ...actual,
     selectWithEscape: vi.fn(),
@@ -112,7 +113,9 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
       collectInitialInput: vi.fn(),
       showSummaryAndEdit: vi.fn(),
       createContact: vi.fn(),
-      createContactGroup: vi.fn().mockResolvedValue('contactGroups/mock-new-group'),
+      createContactGroup: vi
+        .fn()
+        .mockResolvedValue('contactGroups/mock-new-group'),
     };
     mockPathValidator = {
       validatePathsExist: vi.fn().mockResolvedValue([
@@ -200,7 +203,10 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
 
     it('should return exact match when folder exists', async () => {
       mockFolderMatcher.findExactMatch.mockReturnValue(mockJobFolder);
-      mockInputWithEscape.mockResolvedValue({ escaped: false, value: 'HR_AddedValue' });
+      mockInputWithEscape.mockResolvedValue({
+        escaped: false,
+        value: 'HR_AddedValue',
+      });
 
       const result = await script.selectOrCreateFolder();
 
@@ -214,7 +220,10 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
     it('should handle folder deleted externally during exact match', async () => {
       mockFolderMatcher.findExactMatch.mockReturnValue(mockJobFolder);
       (fs.access as any) = vi.fn().mockRejectedValueOnce({ code: 'ENOENT' });
-      mockInputWithEscape.mockResolvedValue({ escaped: false, value: 'HR_AddedValue' });
+      mockInputWithEscape.mockResolvedValue({
+        escaped: false,
+        value: 'HR_AddedValue',
+      });
 
       const result = await script.selectOrCreateFolder();
 
@@ -225,8 +234,14 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
     it('should prompt to create folder when no matches found', async () => {
       mockFolderMatcher.findExactMatch.mockReturnValue(null);
       mockFolderMatcher.searchFolders.mockReturnValue([]);
-      mockInputWithEscape.mockResolvedValueOnce({ escaped: false, value: 'NewCompany' });
-      mockConfirmWithEscape.mockResolvedValueOnce({ escaped: false, value: false });
+      mockInputWithEscape.mockResolvedValueOnce({
+        escaped: false,
+        value: 'NewCompany',
+      });
+      mockConfirmWithEscape.mockResolvedValueOnce({
+        escaped: false,
+        value: false,
+      });
 
       const result = await script.selectOrCreateFolder();
 
@@ -257,7 +272,10 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
       mockSelectWithEscape
         .mockResolvedValueOnce({ escaped: false, value: 'job' })
         .mockResolvedValueOnce({ escaped: false, value: 'HR' });
-      mockConfirmWithEscape.mockResolvedValueOnce({ escaped: false, value: true });
+      mockConfirmWithEscape.mockResolvedValueOnce({
+        escaped: false,
+        value: true,
+      });
 
       const newFolder = createMockFolder(
         'HR_TestCompany',
@@ -296,7 +314,10 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
       mockSelectWithEscape
         .mockResolvedValueOnce({ escaped: false, value: 'job' })
         .mockResolvedValueOnce({ escaped: false, value: 'HR' });
-      mockConfirmWithEscape.mockResolvedValueOnce({ escaped: false, value: false });
+      mockConfirmWithEscape.mockResolvedValueOnce({
+        escaped: false,
+        value: false,
+      });
 
       const result = await script.createFolderFlow('TestCompany', false);
 
@@ -311,7 +332,9 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       await script.createNoteInFolder(mockJobFolder);
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining(`${EMOJIS.DATA.CLIPBOARD} Copy your message now and press <enter>`)
+        expect.stringContaining(
+          `${EMOJIS.DATA.CLIPBOARD} Copy your message now and press <enter>`
+        )
       );
       consoleSpy.mockRestore();
     });
@@ -331,7 +354,10 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
     it('should throw EscapeSignal when allowCancel=true and user declines retry on empty clipboard', async () => {
       mockSpawn.mockReturnValue(createMockSpawnProc('', 0) as any);
       mockInputWithEscape.mockResolvedValueOnce({ escaped: false, value: '' });
-      mockConfirmWithEscape.mockResolvedValueOnce({ escaped: false, value: false });
+      mockConfirmWithEscape.mockResolvedValueOnce({
+        escaped: false,
+        value: false,
+      });
 
       await expect(
         script.createNoteInFolder(mockJobFolder, {
@@ -353,7 +379,10 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
       mockInputWithEscape
         .mockResolvedValueOnce({ escaped: false, value: '' })
         .mockResolvedValueOnce({ escaped: false, value: '' });
-      mockConfirmWithEscape.mockResolvedValueOnce({ escaped: false, value: true });
+      mockConfirmWithEscape.mockResolvedValueOnce({
+        escaped: false,
+        value: true,
+      });
 
       await script.createNoteInFolder(mockJobFolder, {
         noteCount: 0,
@@ -443,7 +472,9 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
       mockInputWithEscape.mockResolvedValue({ escaped: false, value: '' });
       const explicitDate = new Date(2011, 4, 12);
 
-      await script.createNoteInFolder(mockJobFolder, { noteDate: explicitDate });
+      await script.createNoteInFolder(mockJobFolder, {
+        noteDate: explicitDate,
+      });
 
       expect(mockNoteWriter.writeNote).toHaveBeenCalledWith(
         mockJobFolder.path,
@@ -456,7 +487,10 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
   describe('createNoteWithDateFlow', () => {
     it('should create note with parsed ddMMyyyy date', async () => {
       vi.spyOn(script, 'selectOrCreateFolder').mockResolvedValue(mockJobFolder);
-      mockInputWithEscape.mockResolvedValueOnce({ escaped: false, value: '12052011' });
+      mockInputWithEscape.mockResolvedValueOnce({
+        escaped: false,
+        value: '12052011',
+      });
       const createNoteInFolderSpy = vi
         .spyOn(script, 'createNoteInFolder')
         .mockResolvedValue(true);
@@ -654,7 +688,10 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
         return true;
       });
 
-      mockConfirmWithEscape.mockResolvedValueOnce({ escaped: false, value: true });
+      mockConfirmWithEscape.mockResolvedValueOnce({
+        escaped: false,
+        value: true,
+      });
 
       await script.writeNotesFlow();
 
@@ -673,7 +710,10 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
           throw new Error('Permission denied');
         });
 
-      mockConfirmWithEscape.mockResolvedValueOnce({ escaped: false, value: false });
+      mockConfirmWithEscape.mockResolvedValueOnce({
+        escaped: false,
+        value: false,
+      });
 
       await script.writeNotesFlow();
 
@@ -683,7 +723,8 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
     it('should not increment noteCount when error occurs', async () => {
       vi.spyOn(script, 'selectOrCreateFolder').mockResolvedValue(mockJobFolder);
       let callCount = 0;
-      vi.spyOn(script, 'createNoteInFolder').mockImplementation(async (_folder, _options) => {
+      vi.spyOn(script, 'createNoteInFolder').mockImplementation(
+        async (_folder, _options) => {
           callCount++;
           if (callCount === 2) {
             throw new Error('Permission denied');
@@ -694,8 +735,12 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
             throw error;
           }
           return true;
-        });
-      mockConfirmWithEscape.mockResolvedValueOnce({ escaped: false, value: true });
+        }
+      );
+      mockConfirmWithEscape.mockResolvedValueOnce({
+        escaped: false,
+        value: true,
+      });
       await script.writeNotesFlow();
       expect(callCount).toBe(3);
     }, 10000);
@@ -722,8 +767,12 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
 
   describe('createNoteFlow integration with selectOrCreateFolder', () => {
     it('should use selectOrCreateFolder helper', async () => {
-      const selectOrCreateFolderSpy = vi.spyOn(script, 'selectOrCreateFolder').mockResolvedValue(mockJobFolder);
-      const createNoteInFolderSpy = vi.spyOn(script, 'createNoteInFolder').mockResolvedValue(true);
+      const selectOrCreateFolderSpy = vi
+        .spyOn(script, 'selectOrCreateFolder')
+        .mockResolvedValue(mockJobFolder);
+      const createNoteInFolderSpy = vi
+        .spyOn(script, 'createNoteInFolder')
+        .mockResolvedValue(true);
       await script.createNoteFlow();
       expect(selectOrCreateFolderSpy).toHaveBeenCalled();
       expect(createNoteInFolderSpy).toHaveBeenCalledWith(mockJobFolder);
@@ -796,8 +845,16 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
         timestamp: Date.now(),
         jobFolders: [],
         lifeEventFolders: [
-          createMockFolder('Existing Event OSR', FolderTypeEnum.LIFE_EVENT, 'OSR'),
-          createMockFolder('Another Event Test', FolderTypeEnum.LIFE_EVENT, 'Test'),
+          createMockFolder(
+            'Existing Event OSR',
+            FolderTypeEnum.LIFE_EVENT,
+            'OSR'
+          ),
+          createMockFolder(
+            'Another Event Test',
+            FolderTypeEnum.LIFE_EVENT,
+            'Test'
+          ),
         ],
       };
       vi.mocked(FolderCache.getInstance).mockReturnValue({
@@ -816,7 +873,10 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
       mockSelectWithEscape
         .mockResolvedValueOnce({ escaped: false, value: 'life' })
         .mockResolvedValueOnce({ escaped: false, value: 'TestLabel1' });
-      mockConfirmWithEscape.mockResolvedValueOnce({ escaped: false, value: true });
+      mockConfirmWithEscape.mockResolvedValueOnce({
+        escaped: false,
+        value: true,
+      });
       mockSpawn.mockReturnValue(createMockSpawnProc('test content', 0) as any);
 
       await script.createFolderFlow('Airbnb Stay', false);
@@ -836,7 +896,10 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
       mockSelectWithEscape
         .mockResolvedValueOnce({ escaped: false, value: 'life' })
         .mockResolvedValueOnce({ escaped: false, value: 'osr' });
-      mockConfirmWithEscape.mockResolvedValueOnce({ escaped: false, value: true });
+      mockConfirmWithEscape.mockResolvedValueOnce({
+        escaped: false,
+        value: true,
+      });
       mockSpawn.mockReturnValue(createMockSpawnProc('test content', 0) as any);
 
       await script.createFolderFlow('Airbnb Stay', false);
@@ -848,7 +911,10 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
       mockSelectWithEscape
         .mockResolvedValueOnce({ escaped: false, value: 'life' })
         .mockResolvedValueOnce({ escaped: false, value: 'SKIP' });
-      mockConfirmWithEscape.mockResolvedValueOnce({ escaped: false, value: true });
+      mockConfirmWithEscape.mockResolvedValueOnce({
+        escaped: false,
+        value: true,
+      });
       mockSpawn.mockReturnValue(createMockSpawnProc('test content', 0) as any);
       await script.createFolderFlow('Airbnb Stay', false);
       expect(mockFolderManager.createFolder).toHaveBeenCalled();
@@ -858,7 +924,10 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
       mockSelectWithEscape
         .mockResolvedValueOnce({ escaped: false, value: 'life' })
         .mockResolvedValueOnce({ escaped: false, value: 'CREATE_NEW' });
-      mockInputWithEscape.mockResolvedValueOnce({ escaped: false, value: 'NewLabel' });
+      mockInputWithEscape.mockResolvedValueOnce({
+        escaped: false,
+        value: 'NewLabel',
+      });
       mockConfirmWithEscape
         .mockResolvedValueOnce({ escaped: false, value: true })
         .mockResolvedValueOnce({ escaped: false, value: true });
@@ -866,7 +935,9 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
 
       await script.createFolderFlow('Airbnb Stay', false);
 
-      expect(mockContactEditor.createContactGroup).toHaveBeenCalledWith('NewLabel');
+      expect(mockContactEditor.createContactGroup).toHaveBeenCalledWith(
+        'NewLabel'
+      );
       expect(mockFolderManager.createFolder).toHaveBeenCalled();
     });
 
@@ -874,7 +945,10 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
       mockSelectWithEscape
         .mockResolvedValueOnce({ escaped: false, value: 'life' })
         .mockResolvedValueOnce({ escaped: false, value: 'CREATE_NEW' });
-      mockInputWithEscape.mockResolvedValueOnce({ escaped: false, value: 'NewLabel' });
+      mockInputWithEscape.mockResolvedValueOnce({
+        escaped: false,
+        value: 'NewLabel',
+      });
       mockConfirmWithEscape
         .mockResolvedValueOnce({ escaped: false, value: false })
         .mockResolvedValueOnce({ escaped: false, value: true });
@@ -890,7 +964,10 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
       mockSelectWithEscape
         .mockResolvedValueOnce({ escaped: false, value: 'life' })
         .mockResolvedValueOnce({ escaped: false, value: 'CREATE_NEW' });
-      mockInputWithEscape.mockResolvedValueOnce({ escaped: false, value: 'cancel' });
+      mockInputWithEscape.mockResolvedValueOnce({
+        escaped: false,
+        value: 'cancel',
+      });
 
       const result = await script.createFolderFlow('Airbnb Stay', false);
 
@@ -905,8 +982,14 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
       mockSelectWithEscape
         .mockResolvedValueOnce({ escaped: false, value: 'life' })
         .mockResolvedValueOnce({ escaped: false, value: 'CREATE_NEW' });
-      mockInputWithEscape.mockResolvedValueOnce({ escaped: false, value: 'ExistingLabel' });
-      mockConfirmWithEscape.mockResolvedValueOnce({ escaped: false, value: true });
+      mockInputWithEscape.mockResolvedValueOnce({
+        escaped: false,
+        value: 'ExistingLabel',
+      });
+      mockConfirmWithEscape.mockResolvedValueOnce({
+        escaped: false,
+        value: true,
+      });
       mockSpawn.mockReturnValue(createMockSpawnProc('test content', 0) as any);
 
       await script.createFolderFlow('Airbnb Stay', false);
@@ -920,7 +1003,10 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
         .mockResolvedValueOnce({ escaped: false, value: 'life' })
         .mockResolvedValueOnce({ escaped: false, value: 'CREATE_NEW' });
       mockInputWithEscape.mockResolvedValueOnce({ escaped: false, value: 'A' });
-      mockConfirmWithEscape.mockResolvedValueOnce({ escaped: false, value: true });
+      mockConfirmWithEscape.mockResolvedValueOnce({
+        escaped: false,
+        value: true,
+      });
 
       await script.createFolderFlow('Airbnb Stay', false);
 
@@ -934,7 +1020,10 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
       mockSelectWithEscape
         .mockResolvedValueOnce({ escaped: false, value: 'life' })
         .mockResolvedValueOnce({ escaped: false, value: 'Airbnb' });
-      mockConfirmWithEscape.mockResolvedValueOnce({ escaped: false, value: true });
+      mockConfirmWithEscape.mockResolvedValueOnce({
+        escaped: false,
+        value: true,
+      });
       mockSpawn.mockReturnValue(createMockSpawnProc('test content', 0) as any);
 
       await script.createFolderFlow('Airbnb Stay', false);
@@ -949,7 +1038,10 @@ describe('EventsJobsSyncScript - Write Notes Feature', () => {
       mockSelectWithEscape
         .mockResolvedValueOnce({ escaped: false, value: 'life' })
         .mockResolvedValueOnce({ escaped: false, value: 'TestLabel1' });
-      mockConfirmWithEscape.mockResolvedValueOnce({ escaped: false, value: true });
+      mockConfirmWithEscape.mockResolvedValueOnce({
+        escaped: false,
+        value: true,
+      });
       mockSpawn.mockReturnValue(createMockSpawnProc('test content', 0) as any);
 
       await script.createFolderFlow('Airbnb Stay', false);

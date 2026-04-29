@@ -104,7 +104,8 @@ export class TextUtils {
     cleaned = this.removeEmojis(cleaned);
 
     // Remove prefacing professional titles (e.g. "Dr. Michal", "Prof Dr Smith")
-    const titleRegex = /^(?:(?:dr|mr|mrs|ms|miss|prof|professor|sir|dame|rev|hon|adv|advocate|eng|engineer|rabbi)\b\.?\s*)+/i;
+    const titleRegex =
+      /^(?:(?:dr|mr|mrs|ms|miss|prof|professor|sir|dame|rev|hon|adv|advocate|eng|engineer|rabbi)\b\.?\s*)+/i;
     cleaned = cleaned.replace(titleRegex, '');
 
     // Split by common separators used to append titles/suffixes ( - , | , • , / , ☆ , ★ , » , « , ● ) and take the first part
@@ -114,12 +115,22 @@ export class TextUtils {
     if (segments.length > 0) {
       cleaned = segments[0].trim();
     }
-    
+
     // Remove status phrases like "I am hiring", "We're recruiting", etc. (ignore case)
     // We target common status prefixes followed by status keywords to avoid removing legitimate content like "LinkedIn"
-    const statusPrefixes = "([il]['’`\\s]*m|[il]\\s+am|we['’`\\s]*re|we\\s+are)";
-    const statusKeywords = "(hiring|recruiting|looking|seeking|building|helping|passionate|expert|specialist)";
-    cleaned = cleaned.replace(new RegExp(`\\b${statusPrefixes}\\s+${statusKeywords}\\b[\\w\\s!&-]*`, 'gi'), '');
+    const statusPrefixes =
+      "([il]['’`\\s]*m|[il]\\s+am|we['’`\\s]*re|we\\s+are)";
+    const statusKeywords =
+      '(hiring|recruiting|looking|seeking|building|helping|passionate|expert|specialist|la\\s+nefesh)';
+    cleaned = cleaned.replace(
+      new RegExp(
+        `\\b${statusPrefixes}\\s+${statusKeywords}\\b[\\w\\s!&-]*`,
+        'gi'
+      ),
+      ''
+    );
+    // Also remove these keywords even without the "I am" prefix if they are clearly noise
+    cleaned = cleaned.replace(/\b(la\s+nefesh)\b/gi, '');
     // Remove everything starting from "The " to the end of the string (e.g., "The Corporate Recruiter")
     cleaned = cleaned.replace(/\bthe\b.*$/gi, '');
     // Remove "Hr with X" phrases (more flexible than end-anchored)
@@ -127,13 +138,23 @@ export class TextUtils {
     // Remove everything starting from "Executive" or "Always" at the end
     cleaned = cleaned.replace(/\s+\b(executive|always)\b.*$/gi, '');
     // Remove pronouns (e.g., "She/Her", "He/Him", "They/Them", "(She/They)")
-    cleaned = cleaned.replace(/\s*\(?(she|he|they|ze|zir)\s*[/./\s-]\s*(her|him|them|zir|they|any)\b\)?/gi, '');
+    cleaned = cleaned.replace(
+      /\s*\(?(she|he|they|ze|zir)\s*[/./\s-]\s*(her|him|them|zir|they|any)\b\)?/gi,
+      ''
+    );
     // Remove specific phrase "Be yourself everyone else is already taken" anywhere (handle optional comma)
-    cleaned = cleaned.replace(/\bbe\s+yourself[,\s]*everyone\s+else\s+is\s+already\s+taken\b/gi, '');
+    cleaned = cleaned.replace(
+      /\bbe\s+yourself[,\s]*everyone\s+else\s+is\s+already\s+taken\b/gi,
+      ''
+    );
     // Remove common quote/status openers at the end (e.g., "Be yourself...")
-    cleaned = cleaned.replace(/\s+\b(be|always|looking|passionate|helping|is|everything)\s+[\w\s!&,.']{10,}$/gi, '');
+    cleaned = cleaned.replace(
+      /\s+\b(be|always|looking|passionate|helping|is|everything)\s+[\w\s!&,.']{10,}$/gi,
+      ''
+    );
     // Remove C-level titles, professional roles, and everything after them
-    const jobTitles = '(' +
+    const jobTitles =
+      '(' +
       'ceo|coo|cfo|cto|cio|ciso|cso|cdo|caio|cpo|cmo|cro|cco|cbdo|chro|clo|gc|cxo|cao|cico|' +
       'vp|svp|evp|md|fd|vice\\s+president|director|manager|head|lead|founder|owner|president|partner|' +
       'specialist|expert|consultant|developer|engineer|architect|designer|hr|hrbp|hrpb|' +
@@ -141,7 +162,16 @@ export class TextUtils {
       'software|frontend|backend|fullstack|devops|data|analyst|account|sales|marketing|product|design|ux|ui|' +
       'investor|board|advisor|controller' +
       ')';
-    cleaned = cleaned.replace(new RegExp(`\\s+\\b${jobTitles}\\b.*$`, 'gi'), '');
+    // If title is in the middle/end (has space before), remove it and everything after
+    cleaned = cleaned.replace(
+      new RegExp(`\\s+\\b${jobTitles}\\b.*$`, 'gi'),
+      ''
+    );
+    // If title is at the very start, remove only the title and common joiners
+    cleaned = cleaned.replace(
+      new RegExp(`^\\b${jobTitles}\\b\\s*(at|of|in|the)?\\s*`, 'gi'),
+      ''
+    );
 
     cleaned = cleaned.replace(/\b(hiring|[il][\s'’`]*m)\b/gi, '');
 
@@ -149,21 +179,28 @@ export class TextUtils {
     cleaned = cleaned.replace(/\b\d+[km]\b/gi, '');
 
     // Remove URLs, domains, and sub-domains (even if attached to words)
-    const urlRegex = /(?:https?:\/\/)?(?:www\.)?[\w-]+\.(?:com|co\.il|net|org|io|ai|tech|app|dev|me|info|biz|co|il|org\.il|gov\.il|edu|ac\.il)\b[/\w-]*\b/gi;
+    const urlRegex =
+      /(?:https?:\/\/)?(?:www\.)?[\w-]+\.(?:com|co\.il|net|org|io|ai|tech|app|dev|me|info|biz|co|il|org\.il|gov\.il|edu|ac\.il)\b[/\w-]*\b/gi;
     cleaned = cleaned.replace(urlRegex, '');
     cleaned = cleaned.replace(/\bwww\.\b/gi, '');
 
     // Remove dotted academic degrees BEFORE the alphanumeric filter strips their dots
     // e.g. "Ph.D." → removed here so it doesn't become "Ph D" and slip through
-    cleaned = cleaned.replace(/\b(ph\.\s*d|m\.\s*d|ll\.\s*m|m\.\s*b\.\s*a|m\.\s*s|b\.\s*s|m\.\s*a)\.?\b.*$/gi, '');
+    cleaned = cleaned.replace(
+      /\b(ph\.\s*d|m\.\s*d|ll\.\s*m|m\.\s*b\.\s*a|m\.\s*s|b\.\s*s|m\.\s*a)\.?\b.*$/gi,
+      ''
+    );
 
     // Remove specific degrees/abbreviations/certifications and everything after them
-    cleaned = cleaned.replace(/\b(gdc|assoc|chartered|mcipd|fcipd|llm|mba|hr|shrm|cp|phr|sphr|gphr|cipd|pmp|mha|phd|md|chfp|cpa|cfa|cfp|cfe|cia|cisa|cism|crisc|cissp|rhia|rhit|cpc|ccs|cdip|chda|chps|cphi|hcispp|cphims|cphq|lcsw|lpc|rn|np|pa|dds|dmd|psyd|edd|jd|do|dna)\b.*$/gi, '');
+    cleaned = cleaned.replace(
+      /\b(gdc|assoc|chartered|mcipd|fcipd|llm|mba|hr|shrm|cp|phr|sphr|gphr|cipd|pmp|mha|phd|md|chfp|cpa|cfa|cfp|cfe|cia|cisa|cism|crisc|cissp|rhia|rhit|cpc|ccs|cdip|chda|chps|cphi|hcispp|cphims|cphq|lcsw|lpc|rn|np|pa|dds|dmd|psyd|edd|jd|do|dna)\b.*$/gi,
+      ''
+    );
 
     // Remove apostrophes before the alphanumeric filter so they don't become spaces
     cleaned = cleaned.replace(/'/g, '');
 
-    // 2. Keep only letters (including accented/German/international), numbers and spaces 
+    // 2. Keep only letters (including accented/German/international), numbers and spaces
     // (excluding hyphen and apostrophe per user preference)
     const matches = cleaned.match(/[\p{L}\p{N}\s]+/gu);
     if (!matches) return '';
@@ -267,9 +304,15 @@ export class TextUtils {
     const n: string = raw.replace(/\s+/g, ' ').trim();
     let chunks: string[];
     if (n.includes('/')) {
-      chunks = n.split(/\s*\/\s*/).map((s: string) => s.trim()).filter(Boolean);
+      chunks = n
+        .split(/\s*\/\s*/)
+        .map((s: string) => s.trim())
+        .filter(Boolean);
     } else if (n.includes(',')) {
-      chunks = n.split(/\s*,\s*/).map((s: string) => s.trim()).filter(Boolean);
+      chunks = n
+        .split(/\s*,\s*/)
+        .map((s: string) => s.trim())
+        .filter(Boolean);
     } else {
       chunks = [n];
     }
@@ -293,15 +336,20 @@ export class TextUtils {
    * Moves any content in parentheses (nicknames) to the end of the last name field,
    * while removing the parentheses themselves.
    */
-  static handleNicknames(firstName: string, lastName: string): { firstName: string, lastName: string } {
+  static handleNicknames(
+    firstName: string,
+    lastName: string
+  ): { firstName: string; lastName: string } {
     const extract = (text: string) => {
       const nicknames: string[] = [];
-      const cleaned = text.replace(/\(([^)]+)\)/g, (_, nickname: string) => {
-        if (!TextUtils.isLikelyPronounOnlyParenthetical(nickname)) {
-          nicknames.push(nickname);
-        }
-        return '';
-      }).trim();
+      const cleaned = text
+        .replace(/\(([^)]+)\)/g, (_, nickname: string) => {
+          if (!TextUtils.isLikelyPronounOnlyParenthetical(nickname)) {
+            nicknames.push(nickname);
+          }
+          return '';
+        })
+        .trim();
       return { cleaned, nicknames };
     };
 
@@ -320,14 +368,19 @@ export class TextUtils {
       }
     });
 
-    const deduplicatedNicknames = allNicknames.map((nn) => {
-      // Split the nickname into words, keep only those that are not already present in the core name
-      const nnWords = nn.split(/\s+/);
-      const filtered = nnWords.filter((w) => !nameWords.has(w.toLowerCase()));
-      return filtered.join(' ');
-    }).filter((nn) => nn.trim().length > 0);
+    const deduplicatedNicknames = allNicknames
+      .map((nn) => {
+        // Split the nickname into words, keep only those that are not already present in the core name
+        const nnWords = nn.split(/\s+/);
+        const filtered = nnWords.filter((w) => !nameWords.has(w.toLowerCase()));
+        return filtered.join(' ');
+      })
+      .filter((nn) => nn.trim().length > 0);
 
-    const finalLastName = [baseLastName, ...deduplicatedNicknames].filter(Boolean).join(' ').trim();
+    const finalLastName = [baseLastName, ...deduplicatedNicknames]
+      .filter(Boolean)
+      .join(' ')
+      .trim();
 
     return { firstName: finalFirstName, lastName: finalLastName };
   }
@@ -335,15 +388,19 @@ export class TextUtils {
   /**
    * Removes the company name from name fields if it appears as a standalone phrase.
    */
-  static removeCompanyFromName(firstName: string, lastName: string, company: string): { firstName: string, lastName: string } {
+  static removeCompanyFromName(
+    firstName: string,
+    lastName: string,
+    company: string
+  ): { firstName: string; lastName: string } {
     if (!company || !company.trim()) return { firstName, lastName };
-    
+
     // Clean company name for comparison - remove "LinkedIn " prefix if present in the provided string
     let cleanedCompany = company.trim().toLowerCase();
     if (cleanedCompany.startsWith('linkedin ')) {
       cleanedCompany = cleanedCompany.substring(9).trim();
     }
-    
+
     // If the company name is too short (e.g. 1-2 chars), don't remove it to avoid accidental matches
     if (cleanedCompany.length <= 2) return { firstName, lastName };
 
@@ -357,7 +414,7 @@ export class TextUtils {
 
     return {
       firstName: removeMatch(firstName),
-      lastName: removeMatch(lastName)
+      lastName: removeMatch(lastName),
     };
   }
 

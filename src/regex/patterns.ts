@@ -25,16 +25,24 @@ export class RegexPatterns {
   static readonly PHONE_NORMALIZE = /[\s\-()#*]/g;
   static readonly ISO_TIMESTAMP_COLONS = /[:.]/g;
   static readonly PORT_PID_WINDOWS = /\s+(\d+)\s*$/;
-  static readonly SYNCER_ADDED_NOTE = /Added (by the people syncer script|via)( \([^)]+\))?/;
-  static readonly SYNCER_UPDATED_NOTE = /Updated (by the people syncer script|via)( \([^)]+\))?/;
-  static readonly SYNC_ADDED_NOTE = /Added (by the |via )(contacts sync|events & jobs sync)( script)?/;
-  static readonly SYNC_UPDATED_NOTE = /Updated (by the |via )(contacts sync|events & jobs sync)( script)?/;
-  static readonly SYNCER_NOTE_DATE = /Last update: (\d{2}\/\d{2}\/\d{4}(?: \d{2}:\d{2}:\d{2})?)/;
-  static readonly DATE_DD_MM_YYYY = /(\d{2})\/(\d{2})\/(\d{4})(?: (\d{2}):(\d{2}):(\d{2}))?/;
+  static readonly SYNCER_ADDED_NOTE =
+    /Added (by the people syncer script|via)( \([^)]+\))?/;
+  static readonly SYNCER_UPDATED_NOTE =
+    /Updated (by the people syncer script|via)( \([^)]+\))?/;
+  static readonly SYNC_ADDED_NOTE =
+    /Added (by the |via )(contacts sync|events & jobs sync)( script)?/;
+  static readonly SYNC_UPDATED_NOTE =
+    /Updated (by the |via )(contacts sync|events & jobs sync)( script)?/;
+  static readonly SYNCER_NOTE_DATE =
+    /Last update: (\d{2}\/\d{2}\/\d{4}(?: \d{2}:\d{2}:\d{2})?)/;
+  static readonly DATE_DD_MM_YYYY =
+    /(\d{2})\/(\d{2})\/(\d{4})(?: (\d{2}):(\d{2}):(\d{2}))?/;
   static readonly PHONE_UNIVERSAL = /^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]*$/;
-  static readonly PHONE_EXTRACTION = /\+?\d{1,4}[\s\-.]?\(?\d{1,4}\)?[\s\-.]?\d{1,4}[\s\-.]?\d{1,9}(?:\s*(?:ext|x|extension)\.?\s*\d+)?/gi;
+  static readonly PHONE_EXTRACTION =
+    /\+?\d{1,4}[\s\-.]?\(?\d{1,4}\)?[\s\-.]?\d{1,4}[\s\-.]?\d{1,9}(?:\s*(?:ext|x|extension)\.?\s*\d+)?/gi;
   static readonly PHONE_SHORT_CODE = /^[*#]\d{2,6}$/;
-  static readonly PHONE_VANITY = /\d{3,}[A-Za-z]+|\+?\d[\d\-\s()]*[A-Za-z]+[\d\-\s()A-Za-z]*/;
+  static readonly PHONE_VANITY =
+    /\d{3,}[A-Za-z]+|\+?\d[\d\-\s()]*[A-Za-z]+[\d\-\s()A-Za-z]*/;
   static readonly PHONE_WITH_EXTENSION = /(?:ext|x|extension)\.?\s*\d+/i;
   static readonly PHONE_INTERNATIONAL = /^\+[\d\s\-]{8,20}$/;
   static readonly PHONE_LOCAL_GENERAL = /^[\d\s\-\(\)]{7,20}$/;
@@ -54,16 +62,23 @@ export class RegexPatterns {
   static readonly CSS_VW = /^\d+vw$/;
   static readonly SCRIPT_TAG = /<script[\s\S]*?<\/script>/gi;
   static readonly STYLE_TAG = /<style[\s\S]*?<\/style>/gi;
-  static readonly GOOGLE_MESSAGES_CONVERSATION_NAME = /data-e2e-conversation-name="">([^<]+)<\/span>/g;
-  static readonly GOOGLE_MESSAGES_SENDER = /data-e2e-conversation-name="">([^<]+)<\/span>/g;
-  static readonly GOOGLE_MESSAGES_MESSAGE = /<mws-conversation-snippet[^>]*>(?:<!-*->)*<span[^>]*dir="auto"[^>]*class="[^"]*ng-star-inserted[^"]*"[^>]*>([\s\S]*?)<\/span>(?:<!-*->)*<\/mws-conversation-snippet>/g;
+  static readonly GOOGLE_MESSAGES_CONVERSATION_NAME =
+    /data-e2e-conversation-name="">([^<]+)<\/span>/g;
+  static readonly GOOGLE_MESSAGES_SENDER =
+    /data-e2e-conversation-name="">([^<]+)<\/span>/g;
+  static readonly GOOGLE_MESSAGES_MESSAGE =
+    /<mws-conversation-snippet[^>]*>(?:<!-*->)*<span[^>]*dir="auto"[^>]*class="[^"]*ng-star-inserted[^"]*"[^>]*>([\s\S]*?)<\/span>(?:<!-*->)*<\/mws-conversation-snippet>/g;
   static readonly WHATSAPP_MAYBE_NAME = /^Maybe\s+(.+)$/i;
   static readonly WHATSAPP_TILDE_NAME = /^~\s*(.+)$/;
-  static readonly WHATSAPP_ROW = /<div[^>]*role="row"[^>]*style="[^"]*z-index: \d+[^"]*"[^>]*>([\s\S]*?)(?=<div[^>]*role="row"|<script)/g;
-  static readonly WHATSAPP_CONTACT_TITLE = /<span[^>]*title="([^"]+)"[^>]*class="[^"]*_ao3e[^"]*"[^>]*>/;
+  static readonly WHATSAPP_ROW =
+    /<div[^>]*role="row"[^>]*style="[^"]*z-index: \d+[^"]*"[^>]*>([\s\S]*?)(?=<div[^>]*role="row"|<script)/g;
+  static readonly WHATSAPP_CONTACT_TITLE =
+    /<span[^>]*title="([^"]+)"[^>]*class="[^"]*_ao3e[^"]*"[^>]*>/;
   static readonly WHATSAPP_ALL_TITLES = /title="([^"]+)"/g;
-  static readonly WHATSAPP_GROUP_SENDER = /<span[^>]*class="[^"]*_ao3e[^"]*"[^>]*>[^<]+<\/span><\/div><\/div><span>:&nbsp;<\/span>/;
-  static readonly HIBOB_NAME_WITH_NICKNAME = /^(.+?)\s+(\([^)]+\))\s+(.+?)\s*\(([^)]+@[^)]+)\)$/;
+  static readonly WHATSAPP_GROUP_SENDER =
+    /<span[^>]*class="[^"]*_ao3e[^"]*"[^>]*>[^<]+<\/span><\/div><\/div><span>:&nbsp;<\/span>/;
+  static readonly HIBOB_NAME_WITH_NICKNAME =
+    /^(.+?)\s+(\([^)]+\))\s+(.+?)\s*\(([^)]+@[^)]+)\)$/;
   static readonly HIBOB_NAME_WITH_PARENS_EMAIL = /^(.+?)\s*\(([^)]+@[^)]+)\)$/;
   static readonly HIBOB_NAME_WITH_SPACE_EMAIL = /^(.+?)\s+([^\s]+@[^\s]+)$/;
   static readonly HIBOB_EMAIL_IN_STRING = /([^\s]+@[^\s]+)/;

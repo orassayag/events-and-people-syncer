@@ -1,5 +1,10 @@
 import ora, { Ora } from 'ora';
-import { SyncStatus, SupportedContact, LinkedInConnection, ContactType } from '../types';
+import {
+  SyncStatus,
+  SupportedContact,
+  LinkedInConnection,
+  ContactType,
+} from '../types';
 import { Logger } from '../logging';
 import { FormatUtils, EMOJIS } from '../constants';
 import {
@@ -22,7 +27,11 @@ export class SyncStatusBar {
   private logger: Logger = new Logger('SyncStatusBar');
   private static instance: SyncStatusBar | null = null;
   private filePath: string = '';
-  private previousCounts: Partial<SyncStatus> = { warning: 0, error: 0, skipped: 0 };
+  private previousCounts: Partial<SyncStatus> = {
+    warning: 0,
+    error: 0,
+    skipped: 0,
+  };
 
   constructor() {
     this.status = {
@@ -80,7 +89,10 @@ export class SyncStatusBar {
     console.log('');
   }
 
-  startProcessPhase(totalConnections: number, initialCounts?: Partial<SyncStatus>): void {
+  startProcessPhase(
+    totalConnections: number,
+    initialCounts?: Partial<SyncStatus>
+  ): void {
     this.phase = 'process';
     this.totalConnections = totalConnections;
     this.previousCounts = initialCounts || { warning: 0, error: 0, skipped: 0 };
@@ -168,9 +180,12 @@ export class SyncStatusBar {
     const skipped = FormatUtils.formatNumberWithLeadingZeros(
       this.status.skipped
     );
-    const percentage: string = this.totalConnections > 0
-      ? ((this.status.processed / this.totalConnections) * 100).toFixed(2).padStart(5, '0')
-      : '00.00';
+    const percentage: string =
+      this.totalConnections > 0
+        ? ((this.status.processed / this.totalConnections) * 100)
+            .toFixed(2)
+            .padStart(5, '0')
+        : '00.00';
     const elapsedSeconds: number = Math.floor(
       (Date.now() - this.startTime) / 1000
     );
@@ -211,9 +226,17 @@ export class SyncStatusBar {
         const formattedCompany: string = calculateFormattedCompany(company, 2);
         const emailSuffix = [
           positionRaw,
-          formattedCompany ? `@ ${formattedCompany}` : '', 
-          (label && formattedCompany && formattedCompany.toLowerCase().startsWith(label.toLowerCase())) ? '' : (label ? `(${label})` : '')
-        ].filter(Boolean).join(' ');
+          formattedCompany ? `@ ${formattedCompany}` : '',
+          label &&
+          formattedCompany &&
+          formattedCompany.toLowerCase().startsWith(label.toLowerCase())
+            ? ''
+            : label
+              ? `(${label})`
+              : '',
+        ]
+          .filter(Boolean)
+          .join(' ');
         result += `\n${spinnerPadding}Current:`;
         const companyLabel = formattedCompany || 'LinkedIn';
         result += `\n${spinnerPadding}${EMOJIS.FIELDS.PERSON} Full name: ${firstName} ${lastName} ${companyLabel}`;

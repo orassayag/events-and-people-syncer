@@ -1,8 +1,19 @@
 import { google } from 'googleapis';
-import { confirmWithEscape, selectWithEscape, retryWithBackoff, formatMixedHebrewEnglish } from '../../utils';
+import {
+  confirmWithEscape,
+  selectWithEscape,
+  retryWithBackoff,
+  formatMixedHebrewEnglish,
+} from '../../utils';
 import Fuse from 'fuse.js';
 import { injectable, inject } from 'inversify';
-import type { ContactData, OAuth2Client, SimilarityType, DuplicateMatch, DuplicatePromptResult } from '../../types';
+import type {
+  ContactData,
+  OAuth2Client,
+  SimilarityType,
+  DuplicateMatch,
+  DuplicatePromptResult,
+} from '../../types';
 import { ApiTracker } from '../api';
 import { ContactCache } from '../../cache';
 import { SETTINGS } from '../../settings';
@@ -115,7 +126,8 @@ export class DuplicateDetector {
         .trim();
       return {
         ...contact,
-        fullName: `${cleanFirstName} ${this.extractCleanLastName(contact)}`.trim(),
+        fullName:
+          `${cleanFirstName} ${this.extractCleanLastName(contact)}`.trim(),
       };
     });
     const searchName: string = `${firstName} ${lastName}`.trim();
@@ -305,13 +317,27 @@ export class DuplicateDetector {
       const firstName = formatMixedHebrewEnglish(contact.firstName);
       const lastName = formatMixedHebrewEnglish(contact.lastName);
       console.log(`-Full Name: ${`${firstName} ${lastName}`.trim()}`);
-      if (contact.label) console.log(`-Labels: ${formatMixedHebrewEnglish(contact.label)}`);
-      if (contact.company) console.log(`-Company Name: ${formatMixedHebrewEnglish(contact.company)}`);
-      if (contact.emails.length === 1) console.log(`-Email: ${contact.emails[0].value}`);
-      else if (contact.emails.length > 1) console.log(`-Emails: ${contact.emails.map(e => e.value).join(', ')}`);
-      if (contact.phones.length === 1) console.log(`-Phone: ${contact.phones[0].number}`);
-      else if (contact.phones.length > 1) console.log(`-Phones: ${contact.phones.map(p => p.number).join(', ')}`);
-      const linkedin = contact.websites.find(w => w.label.toLowerCase().includes('linkedin'));
+      if (contact.label)
+        console.log(`-Labels: ${formatMixedHebrewEnglish(contact.label)}`);
+      if (contact.company)
+        console.log(
+          `-Company Name: ${formatMixedHebrewEnglish(contact.company)}`
+        );
+      if (contact.emails.length === 1)
+        console.log(`-Email: ${contact.emails[0].value}`);
+      else if (contact.emails.length > 1)
+        console.log(
+          `-Emails: ${contact.emails.map((e) => e.value).join(', ')}`
+        );
+      if (contact.phones.length === 1)
+        console.log(`-Phone: ${contact.phones[0].number}`);
+      else if (contact.phones.length > 1)
+        console.log(
+          `-Phones: ${contact.phones.map((p) => p.number).join(', ')}`
+        );
+      const linkedin = contact.websites.find((w) =>
+        w.label.toLowerCase().includes('linkedin')
+      );
       if (linkedin) console.log(`-LinkedIn URL: ${linkedin.url} LinkedIn`);
       if (contact.etag) console.log(`-ETag: ${contact.etag}`);
       console.log('');
@@ -322,7 +348,9 @@ export class DuplicateDetector {
       ...duplicates.map((match, i) => {
         const first = formatMixedHebrewEnglish(match.contact.firstName);
         const last = formatMixedHebrewEnglish(match.contact.lastName);
-        const email = match.contact.emails[0]?.value ? ` (${match.contact.emails[0].value})` : '';
+        const email = match.contact.emails[0]?.value
+          ? ` (${match.contact.emails[0].value})`
+          : '';
         return {
           name: `🔍 ${`${first} ${last}`.trim()}${email}`,
           value: `existing_${i}`,
@@ -349,7 +377,9 @@ export class DuplicateDetector {
 
     const index = parseInt(result.value.replace('existing_', ''), 10);
     const selected = duplicates[index].contact;
-    await this.log(`User selected existing contact: ${selected.firstName} ${selected.lastName}`);
+    await this.log(
+      `User selected existing contact: ${selected.firstName} ${selected.lastName}`
+    );
     return { action: 'use_existing', contact: selected };
   }
 

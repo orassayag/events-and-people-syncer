@@ -10,7 +10,7 @@ describe('SMS/WhatsApp Sync - All Phones Already Synced', () => {
     ];
     const existingPhones = new Set(['+972501234567', '+15559876543']);
     const phonesToProcess = extractedPhones.filter(
-      p => !existingPhones.has(p.normalizedPhone)
+      (p) => !existingPhones.has(p.normalizedPhone)
     );
     expect(phonesToProcess).toHaveLength(0);
   });
@@ -23,7 +23,7 @@ describe('SMS/WhatsApp Sync - All Phones Already Synced', () => {
     ];
     const existingPhones = new Set(['+972501234567']);
     const phonesToProcess = extractedPhones.filter(
-      p => !existingPhones.has(p.normalizedPhone)
+      (p) => !existingPhones.has(p.normalizedPhone)
     );
     expect(phonesToProcess).toHaveLength(2);
   });
@@ -48,7 +48,7 @@ describe('SMS/WhatsApp Sync - Stats Tracking', () => {
 
 describe('SMS/WhatsApp Sync - Dry-Mode Integration', () => {
   const originalDryMode = SETTINGS.dryMode;
-  
+
   it('should respect dry-mode setting from SETTINGS', () => {
     expect(typeof SETTINGS.dryMode).toBe('boolean');
   });

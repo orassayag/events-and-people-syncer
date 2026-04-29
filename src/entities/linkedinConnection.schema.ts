@@ -21,7 +21,8 @@ export const linkedInConnectionSchema = z.object({
   type: z.literal(ContactType.LINKEDIN).default(ContactType.LINKEDIN),
   id: z.string().trim().min(1),
   firstName: z.string().trim().min(1),
-  lastName: z.string().trim().min(1),
+  lastName: z.string().trim(),
+
   email: z.string().trim().optional().default(''),
   company: z.string().trim().optional().default(''),
   position: z.string().trim().optional().default(''),

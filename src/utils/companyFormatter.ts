@@ -277,8 +277,13 @@ export function stripCompanyPrefixOverlapFromName(
         ...nameTokens.slice(0, matchStartIndex),
         ...nameTokens.slice(matchEndIndex + 1)
       ];
+      // PROTECTION: Never strip the entire name if it leaves the result empty
+      if (kept.length === 0 && nameTokens.length > 0) {
+        return name.trim();
+      }
       return kept.join(' ').trim();
     }
+
   }
 
   // 2. Check for overlapping trailing prefix (existing logic)
@@ -319,5 +324,10 @@ export function stripCompanyPrefixOverlapFromName(
     return name.trim();
   }
   const kept: string[] = nameTokens.slice(0, nameTokens.length - bestK);
+  // PROTECTION: If stripping would leave the name empty, and it's a single token match, skip it
+  if (kept.length === 0 && nameTokens.length > 0 && bestK === 1) {
+    return name.trim();
+  }
   return kept.join(' ');
 }
+

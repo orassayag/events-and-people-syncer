@@ -39,14 +39,17 @@ export class ClearCacheScript {
       const filePath = path.join(this.cacheDir, file);
       fs.unlinkSync(filePath);
     });
-    this.logger.info(`${EMOJIS.STATUS.SUCCESS} Successfully cleared ${files.length} files from cache`);
+    this.logger.info(
+      `${EMOJIS.STATUS.SUCCESS} Successfully cleared ${files.length} files from cache`
+    );
   }
 }
 
 export const clearCacheScript: Script = {
   metadata: {
     name: 'Clear Cache',
-    description: 'Clear all cached data (company mappings, folder mappings, contacts)',
+    description:
+      'Clear all cached data (company mappings, folder mappings, contacts)',
     version: '1.0.0',
     category: 'maintenance',
     requiresAuth: false,

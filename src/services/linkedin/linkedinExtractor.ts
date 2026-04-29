@@ -5,20 +5,21 @@ import { parse } from 'csv-parse/sync';
 import { injectable } from 'inversify';
 import { SETTINGS } from '../../settings';
 import { LinkedInConnection } from '../../types';
-import {
-  linkedInConnectionSchema,
-  linkedInUrlSchema,
-} from '../../entities';
+import { linkedInConnectionSchema, linkedInUrlSchema } from '../../entities';
 import { ErrorCode } from '../../errors';
 import { UrlNormalizer } from './urlNormalizer';
 import { Logger, SyncLogger } from '../../logging';
 import { TextUtils, stripCompanyPrefixOverlapFromName } from '../../utils';
+import { NameParser } from '../../parsers/nameParser';
 
 @injectable()
 export class LinkedInExtractor {
   private readonly sourcesPath: string;
   private logger: Logger = new Logger('LinkedInExtractor');
-  private errorLogger: SyncLogger = new SyncLogger('linkedin-sync_errors', 'log');
+  private errorLogger: SyncLogger = new SyncLogger(
+    'linkedin-sync_errors',
+    'log'
+  );
 
   constructor() {
     this.sourcesPath = SETTINGS.linkedin.sourcesPath;
@@ -150,13 +151,22 @@ export class LinkedInExtractor {
         try {
           const firstNameRaw: string = (record['First Name'] || '').trim();
           const lastNameRaw: string = (record['Last Name'] || '').trim();
-          const { firstName: fn, lastName: ln } = TextUtils.handleNicknames(firstNameRaw, lastNameRaw);
-          const firstName: string = TextUtils.cleanName(fn);
-          const lastName: string = TextUtils.cleanName(ln);
+          const { firstName: fn, lastName: ln } = TextUtils.handleNicknames(
+            firstNameRaw,
+            lastNameRaw
+          );
+          const fullNameRaw = `${fn} ${ln}`.trim();
+          const cleanedFullName = TextUtils.cleanName(fullNameRaw);
+          const { firstName, lastName } =
+            NameParser.parseFullName(cleanedFullName);
+
           const url: string = (record['URL'] || '').trim();
-          if (!firstName || !lastName || !url) {
-            this.logger.debug(
-              `Skipped: Missing required fields - firstName: "${firstName}", lastName: "${lastName}", url: "${url}"`
+          if (!firstName || !url) {
+            const reason = !firstName
+              ? 'Cleaned name is empty'
+              : 'URL is missing';
+            await this.errorLogger.logRaw(
+              `[SKIPPED - ${reason}] Original: "${firstNameRaw} ${lastNameRaw}" | URL: ${url}`
             );
             continue;
           }
@@ -177,7 +187,9 @@ export class LinkedInExtractor {
           }
           processedUrls.add(normalizedUrl);
           const profileSlug: string = UrlNormalizer.extractProfileSlug(url);
-          const company: string = TextUtils.removeHebrew((record['Company'] || '').trim());
+          const company: string = TextUtils.removeHebrew(
+            (record['Company'] || '').trim()
+          );
           const { firstName: fnAfterPhrase, lastName: lnAfterPhrase } =
             TextUtils.removeCompanyFromName(firstName, lastName, company);
           const finalFirstName: string = stripCompanyPrefixOverlapFromName(
@@ -189,10 +201,12 @@ export class LinkedInExtractor {
             company
           );
 
-          const nameWordsCount = (finalFirstName + ' ' + finalLastName).trim().split(/\s+/).length;
+          const nameWordsCount = (finalFirstName + ' ' + finalLastName)
+            .trim()
+            .split(/\s+/).length;
           if (nameWordsCount > 7) {
             await this.errorLogger.logRaw(
-               `[SKIPPED - Name too long] Original: "${firstNameRaw} ${lastNameRaw}" -> Cleaned: "${finalFirstName} ${finalLastName}" (${nameWordsCount} words) | URL: ${url}`
+              `[SKIPPED - Name too long] Original: "${firstNameRaw} ${lastNameRaw}" -> Cleaned: "${finalFirstName} ${finalLastName}" (${nameWordsCount} words) | URL: ${url}`
             );
             continue;
           }
@@ -202,9 +216,13 @@ export class LinkedInExtractor {
               id: profileSlug,
               firstName: finalFirstName,
               lastName: finalLastName,
-              email: TextUtils.removeHebrew((record['Email Address'] || '').trim()),
+              email: TextUtils.removeHebrew(
+                (record['Email Address'] || '').trim()
+              ),
               company,
-              position: TextUtils.removeHebrew((record['Position'] || '').trim()),
+              position: TextUtils.removeHebrew(
+                (record['Position'] || '').trim()
+              ),
               url: UrlNormalizer.formatLinkedInUrl(url),
               connectedOn: (record['Connected On'] || '').trim(),
             }

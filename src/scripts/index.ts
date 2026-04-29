@@ -26,7 +26,7 @@ export const AVAILABLE_SCRIPTS: Record<string, Script> = {
   'events-jobs-sync': eventsJobsSyncScript,
   'other-contacts-sync': otherContactsSyncScript,
   'sms-whatsapp-sync': smsWhatsappSyncScript,
-  'statistics': statisticsScript,
+  statistics: statisticsScript,
   'clear-cache': clearCacheScript,
   'clear-logs': clearLogsScript,
 };

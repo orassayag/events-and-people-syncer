@@ -21,4 +21,8 @@ export const smsWhatsappSyncStatsSchema = z.object({
   error: z.number().int().nonnegative(),
 });
 
-export type { ExtractedContactSchema, DetectionResultSchema, SmsWhatsappSyncStatsSchema } from '../types/entities';
+export type {
+  ExtractedContactSchema,
+  DetectionResultSchema,
+  SmsWhatsappSyncStatsSchema,
+} from '../types/entities';

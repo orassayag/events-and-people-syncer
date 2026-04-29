@@ -227,8 +227,13 @@ export class LinkedInSyncScript {
         };
         try {
           label = await this.companyMatcher.getLabel(connection.company);
+          // If no specific company folder is found, use 'LinkedIn' instead of the generic 'Job'
+          if (label === SETTINGS.linkedin.defaultLabel) {
+            label = 'LinkedIn';
+          }
           // Update labels if needed after finding it
           alertContact.labels = [label];
+
           const matchResult: MatchResult =
             await this.connectionMatcher.match(connection);
 

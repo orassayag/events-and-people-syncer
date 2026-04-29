@@ -72,7 +72,7 @@ export class StatisticsScript {
       ? formatDateDDMMYYYY(stats.activity.newestNoteDate)
       : 'N/A';
     const storage = this.formatStorage(stats.activity.totalStorageBytes);
-    const mostActive = stats.activity.mostActiveFolder 
+    const mostActive = stats.activity.mostActiveFolder
       ? `${stats.activity.mostActiveFolder} (${stats.activity.mostActiveFolderCount} notes)`
       : 'N/A';
     const labels = [
@@ -97,9 +97,10 @@ export class StatisticsScript {
       'Newest',
       'Storage',
     ];
-    const maxLabelLength = Math.max(...labels.map(label => label.length));
-    const padLabel = (label: string): string => label.padEnd(maxLabelLength + 2);
-    const formatValue = (num: number, suffix: string): string => 
+    const maxLabelLength = Math.max(...labels.map((label) => label.length));
+    const padLabel = (label: string): string =>
+      label.padEnd(maxLabelLength + 2);
+    const formatValue = (num: number, suffix: string): string =>
       `${formatNumber(num)} ${suffix}`;
     const formatContactValue = (display: string, suffix: string): string =>
       `${display} ${suffix}`;
@@ -125,7 +126,7 @@ export class StatisticsScript {
       newestDate,
       storage,
     ];
-    const maxValueLength = Math.max(...allValueParts.map(val => val.length));
+    const maxValueLength = Math.max(...allValueParts.map((val) => val.length));
     const padValue = (value: string): string => value.padEnd(maxValueLength);
     const allLines = [
       'Statistics',
@@ -150,28 +151,82 @@ export class StatisticsScript {
       `${padLabel('Newest')}${padValue(newestDate)}`,
       `${padLabel('Storage')}${padValue(storage)}`,
     ];
-    const maxContentLength = Math.max(...allLines.map(line => line.length));
+    const maxContentLength = Math.max(...allLines.map((line) => line.length));
     const minWidth = SETTINGS.statistics.displayWidth;
     const width = Math.max(maxContentLength + 4, minWidth);
     const padLine = (content: string): string =>
       FormatUtils.padLineWithEquals(content, width);
     console.log('\n' + padLine('Statistics'));
-    console.log(padLine(`${padLabel('Contacts')}${padValue(formatContactValue(contactDisplay, 'contacts'))}`));
-    console.log(padLine(`${padLabel('Contacts to Sync')}${padValue(formatContactValue(contactsToSyncDisplay, 'contacts'))}`));
-    console.log(padLine(`${padLabel('Other to Sync')}${padValue(formatContactValue(otherContactsToSyncDisplay, 'entries'))}`));
-    console.log(padLine(`${padLabel('Notes')}${padValue(formatValue(stats.notes.totalNotes, 'notes'))}`));
-    console.log(padLine(`${padLabel('Job')}${padValue(formatValue(stats.notes.jobNotes, 'notes'))}`));
-    console.log(padLine(`${padLabel('HR')}${padValue(formatValue(stats.notes.hrNotes, 'notes'))}`));
-    console.log(padLine(`${padLabel('Event')}${padValue(formatValue(stats.notes.eventNotes, 'notes'))}`));
-    console.log(padLine(`${padLabel('Jobs')}${padValue(formatValue(stats.folders.jobFolders, 'folders'))}`));
-    console.log(padLine(`${padLabel('HR')}${padValue(formatValue(stats.folders.hrFolders, 'folders'))}`));
-    console.log(padLine(`${padLabel('Events')}${padValue(formatValue(stats.folders.eventFolders, 'folders'))}`));
-    console.log(padLine(`${padLabel('Notes Today')}${padValue(formatValue(stats.notes.notesToday, 'notes'))}`));
-    console.log(padLine(`${padLabel('Notes Week')}${padValue(formatValue(stats.notes.notesThisWeek, 'notes'))}`));
-    console.log(padLine(`${padLabel('Empty Folders')}${padValue(formatValue(stats.folders.emptyFolders, 'folders'))}`));
+    console.log(
+      padLine(
+        `${padLabel('Contacts')}${padValue(formatContactValue(contactDisplay, 'contacts'))}`
+      )
+    );
+    console.log(
+      padLine(
+        `${padLabel('Contacts to Sync')}${padValue(formatContactValue(contactsToSyncDisplay, 'contacts'))}`
+      )
+    );
+    console.log(
+      padLine(
+        `${padLabel('Other to Sync')}${padValue(formatContactValue(otherContactsToSyncDisplay, 'entries'))}`
+      )
+    );
+    console.log(
+      padLine(
+        `${padLabel('Notes')}${padValue(formatValue(stats.notes.totalNotes, 'notes'))}`
+      )
+    );
+    console.log(
+      padLine(
+        `${padLabel('Job')}${padValue(formatValue(stats.notes.jobNotes, 'notes'))}`
+      )
+    );
+    console.log(
+      padLine(
+        `${padLabel('HR')}${padValue(formatValue(stats.notes.hrNotes, 'notes'))}`
+      )
+    );
+    console.log(
+      padLine(
+        `${padLabel('Event')}${padValue(formatValue(stats.notes.eventNotes, 'notes'))}`
+      )
+    );
+    console.log(
+      padLine(
+        `${padLabel('Jobs')}${padValue(formatValue(stats.folders.jobFolders, 'folders'))}`
+      )
+    );
+    console.log(
+      padLine(
+        `${padLabel('HR')}${padValue(formatValue(stats.folders.hrFolders, 'folders'))}`
+      )
+    );
+    console.log(
+      padLine(
+        `${padLabel('Events')}${padValue(formatValue(stats.folders.eventFolders, 'folders'))}`
+      )
+    );
+    console.log(
+      padLine(
+        `${padLabel('Notes Today')}${padValue(formatValue(stats.notes.notesToday, 'notes'))}`
+      )
+    );
+    console.log(
+      padLine(
+        `${padLabel('Notes Week')}${padValue(formatValue(stats.notes.notesThisWeek, 'notes'))}`
+      )
+    );
+    console.log(
+      padLine(
+        `${padLabel('Empty Folders')}${padValue(formatValue(stats.folders.emptyFolders, 'folders'))}`
+      )
+    );
     console.log(padLine(`${padLabel('Avg Job')}${padValue(avgJobDisplay)}`));
     console.log(padLine(`${padLabel('Avg HR')}${padValue(avgHRDisplay)}`));
-    console.log(padLine(`${padLabel('Avg Event')}${padValue(avgEventDisplay)}`));
+    console.log(
+      padLine(`${padLabel('Avg Event')}${padValue(avgEventDisplay)}`)
+    );
     console.log(padLine(`${padLabel('Most Active')}${padValue(mostActive)}`));
     console.log(padLine(`${padLabel('Oldest')}${padValue(oldestDate)}`));
     console.log(padLine(`${padLabel('Newest')}${padValue(newestDate)}`));
@@ -202,7 +257,8 @@ export class StatisticsScript {
         `Statistics inconsistency: notesThisWeek (${notes.notesThisWeek}) < notesToday (${notes.notesToday})`
       );
     }
-    const calculatedTotalFolders = folders.jobFolders + folders.hrFolders + folders.eventFolders;
+    const calculatedTotalFolders =
+      folders.jobFolders + folders.hrFolders + folders.eventFolders;
     if (folders.totalFolders !== calculatedTotalFolders) {
       this.logger.warn(
         `Statistics inconsistency: totalFolders (${folders.totalFolders}) does not match sum (${calculatedTotalFolders})`
@@ -219,7 +275,8 @@ export class StatisticsScript {
 export const statisticsScript: Script = {
   metadata: {
     name: 'Statistics',
-    description: 'Display comprehensive statistics about jobs, HR, events, notes, and contacts',
+    description:
+      'Display comprehensive statistics about jobs, HR, events, notes, and contacts',
     version: '1.0.0',
     category: 'maintenance',
     requiresAuth: false,

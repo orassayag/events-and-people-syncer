@@ -1,10 +1,11 @@
-import {
-  confirmWithEscape,
-  inputWithEscape,
-  TextUtils,
-} from '../../utils';
+import { confirmWithEscape, inputWithEscape, TextUtils } from '../../utils';
 import { injectable, inject } from 'inversify';
-import type { OAuth2Client, EditableContactData, ContactGroup, PrePopulatedData } from '../../types';
+import type {
+  OAuth2Client,
+  EditableContactData,
+  ContactGroup,
+  PrePopulatedData,
+} from '../../types';
 import { ContactEditor } from './contactEditor';
 import { DuplicateDetector } from './duplicateDetector';
 import { InputValidator } from '../../validators';
@@ -74,7 +75,7 @@ export class EventsContactEditor extends ContactEditor {
     }
     const fullName = fullNameResult.value;
     const { firstName, lastName } = TextUtils.parseFullName(fullName);
-    
+
     // This will throw ExistingContactSelected if user selects an existing contact
     await this.checkAndHandleNameDuplicate(firstName, lastName);
 

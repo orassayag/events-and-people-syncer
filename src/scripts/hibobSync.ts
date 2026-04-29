@@ -2,13 +2,37 @@ import { injectable, inject } from 'inversify';
 import readline from 'readline';
 import path from 'path';
 import type { OAuth2Client, ContactGroup, Script } from '../types';
-import { MatchType, MatchResult, SyncStatusType, SyncStatus, SyncResult, HibobContact, Alert, ALERT_REASONS } from '../types';
-import { inputWithEscape, confirmWithEscape, selectWithEscape, TextUtils } from '../utils';
+import {
+  MatchType,
+  MatchResult,
+  SyncStatusType,
+  SyncStatus,
+  SyncResult,
+  HibobContact,
+  Alert,
+  ALERT_REASONS,
+} from '../types';
+import {
+  inputWithEscape,
+  confirmWithEscape,
+  selectWithEscape,
+  TextUtils,
+} from '../utils';
 import { SETTINGS } from '../settings';
 import { HibobExtractor, HibobContactSyncer } from '../services/hibob';
-import { DuplicateDetector, DuplicateMatch, ContactEditor } from '../services/contacts';
+import {
+  DuplicateDetector,
+  DuplicateMatch,
+  ContactEditor,
+} from '../services/contacts';
 import { SyncStatusBar } from '../flow/syncStatusBar';
-import { SyncLogger, Logger, LogCleanup, AlertLogger, LogFormatter } from '../logging';
+import {
+  SyncLogger,
+  Logger,
+  LogCleanup,
+  AlertLogger,
+  LogFormatter,
+} from '../logging';
 import { FormatUtils, EMOJIS } from '../constants';
 import { ApiTracker } from '../services/api';
 
@@ -76,9 +100,7 @@ export class HibobSyncScript {
       this.uiLogger.display('Extracting HiBob contacts from file');
       const contacts: HibobContact[] = await this.extractor.extract();
       this.uiLogger.breakline();
-      await logger.logMain(
-        `Extracted ${contacts.length} HiBob contacts`
-      );
+      await logger.logMain(`Extracted ${contacts.length} HiBob contacts`);
       if (contacts.length === 0) {
         throw new Error('No contacts found in HiBob file after deduplication');
       }
@@ -109,21 +131,32 @@ export class HibobSyncScript {
             throw new Error('User cancelled');
           }
           if (!companyResult.value || companyResult.value.trim().length < 2) {
-            this.uiLogger.displayError('Company name must be at least 2 characters');
+            this.uiLogger.displayError(
+              'Company name must be at least 2 characters'
+            );
             continue;
           }
-          companyName = TextUtils.formatCompanyToPascalCase(companyResult.value.trim());
+          companyName = TextUtils.formatCompanyToPascalCase(
+            companyResult.value.trim()
+          );
         }
         await logger.logMain(`Company name: ${companyName}`);
-        const existingGroups: ContactGroup[] = await this.contactEditor.fetchContactGroups();
+        const existingGroups: ContactGroup[] =
+          await this.contactEditor.fetchContactGroups();
         labelResourceName = '';
-        const existingGroup = existingGroups.find(g => g.name.toLowerCase() === companyName.toLowerCase());
+        const existingGroup = existingGroups.find(
+          (g) => g.name.toLowerCase() === companyName.toLowerCase()
+        );
         if (existingGroup) {
           labelResourceName = existingGroup.resourceName;
-          this.uiLogger.display(`${EMOJIS.STATUS.SUCCESS} Found label "${companyName}"`);
+          this.uiLogger.display(
+            `${EMOJIS.STATUS.SUCCESS} Found label "${companyName}"`
+          );
           await logger.logMain(`Using existing label: ${companyName}`);
         } else {
-          this.uiLogger.display(`The company "${companyName}" does not exist as a Label in Google Contacts.`);
+          this.uiLogger.display(
+            `The company "${companyName}" does not exist as a Label in Google Contacts.`
+          );
           const shouldCreateResult = await confirmWithEscape({
             message: 'Should we create this label? (y/n)',
             default: true,
@@ -131,13 +164,16 @@ export class HibobSyncScript {
           if (shouldCreateResult.escaped || !shouldCreateResult.value) {
             continue;
           }
-          labelResourceName = await this.contactEditor.createContactGroup(companyName);
+          labelResourceName =
+            await this.contactEditor.createContactGroup(companyName);
           this.uiLogger.display(`Created new label: ${companyName}`);
           await logger.logMain(`Created new label: ${companyName}`);
         }
         this.uiLogger.breakline();
         this.uiLogger.display(`${EMOJIS.FIELDS.LABEL}  Label: ${companyName}`);
-        this.uiLogger.display(`Total contacts to sync: ${FormatUtils.formatNumberWithLeadingZeros(contactsToProcess.length)}`);
+        this.uiLogger.display(
+          `Total contacts to sync: ${FormatUtils.formatNumberWithLeadingZeros(contactsToProcess.length)}`
+        );
         this.uiLogger.breakline();
         const confirmResult = await confirmWithEscape({
           message: `Proceed with syncing contacts to Google with label "${companyName}"?`,
@@ -156,7 +192,9 @@ export class HibobSyncScript {
       const originalFetch = this.duplicateDetector['fetchAllContacts'].bind(
         this.duplicateDetector
       );
-      this.duplicateDetector['fetchAllContacts'] = async (onProgress?: (count: number) => void): Promise<any> => {
+      this.duplicateDetector['fetchAllContacts'] = async (
+        onProgress?: (count: number) => void
+      ): Promise<any> => {
         const contacts = await originalFetch((count: number) => {
           statusBar.updateFetchProgress(count);
           if (onProgress) {
@@ -188,7 +226,9 @@ export class HibobSyncScript {
       for (const contact of contactsToProcess) {
         if (this.isCancelled) {
           statusBar.cancel();
-          this.uiLogger.displayWarning('Cancelling HiBob Sync - stopping at current position');
+          this.uiLogger.displayWarning(
+            'Cancelling HiBob Sync - stopping at current position'
+          );
           await logger.logMain('Sync cancelled by user');
           break;
         }
@@ -201,7 +241,7 @@ export class HibobSyncScript {
           firstName: contact.firstName,
           lastName: contact.lastName || '',
           email: contact.email,
-          labels: [companyName]
+          labels: [companyName],
         };
         try {
           let nameMatches: DuplicateMatch[] = [];
@@ -220,29 +260,35 @@ export class HibobSyncScript {
           const matchType = hasExactEmailMatch
             ? MatchType.EXACT
             : hasNameMatch && nameMatches.length === 1
-            ? MatchType.FUZZY
-            : hasNameMatch
-            ? MatchType.UNCERTAIN
-            : MatchType.NONE;
+              ? MatchType.FUZZY
+              : hasNameMatch
+                ? MatchType.UNCERTAIN
+                : MatchType.NONE;
           const matchResult: MatchResult = {
             matchType,
             resourceName: hasExactEmailMatch
               ? emailMatches[0].contact.resourceName
               : hasNameMatch && nameMatches.length === 1
-              ? nameMatches[0].contact.resourceName
-              : undefined,
+                ? nameMatches[0].contact.resourceName
+                : undefined,
             score: hasNameMatch ? nameMatches[0].score : undefined,
           };
 
-
-        if (matchResult.matchType === MatchType.UNCERTAIN) {
+          if (matchResult.matchType === MatchType.UNCERTAIN) {
             if (!alertLogger.checkForDuplicateAlert(alertContact)) {
               status.warning++;
-              await alertLogger.writeAlert('warning', alertContact, ALERT_REASONS.WARNING.UNCERTAIN_MATCH);
+              await alertLogger.writeAlert(
+                'warning',
+                alertContact,
+                ALERT_REASONS.WARNING.UNCERTAIN_MATCH
+              );
             }
           } else if (matchResult.matchType === MatchType.NONE) {
-            const syncResult: SyncResult =
-              await this.contactSyncer.addContact(contact, labelResourceName, companyName);
+            const syncResult: SyncResult = await this.contactSyncer.addContact(
+              contact,
+              labelResourceName,
+              companyName
+            );
             if (syncResult.status === SyncStatusType.NEW) {
               status.new++;
               await logger.logRaw(
@@ -251,7 +297,11 @@ export class HibobSyncScript {
             } else if (syncResult.status === SyncStatusType.SKIPPED) {
               if (!alertLogger.checkForDuplicateAlert(alertContact)) {
                 status.skipped++;
-                await alertLogger.writeAlert('skipped', alertContact, ALERT_REASONS.SKIPPED.MISSING_REQUIRED_DATA);
+                await alertLogger.writeAlert(
+                  'skipped',
+                  alertContact,
+                  ALERT_REASONS.SKIPPED.MISSING_REQUIRED_DATA
+                );
               }
               await logger.logMain(
                 `Skipped contact: ${contact.firstName} ${contact.lastName || ''} - Missing required data`
@@ -262,7 +312,11 @@ export class HibobSyncScript {
                 const errorMessage = syncResult.error
                   ? `Failed to create contact via Google API: ${syncResult.error.message}${syncResult.error.stack ? `\n\nStack trace:\n${syncResult.error.stack}` : ''}`
                   : ALERT_REASONS.ERROR.API_CREATE_FAILED;
-                await alertLogger.writeAlert('error', alertContact, errorMessage);
+                await alertLogger.writeAlert(
+                  'error',
+                  alertContact,
+                  errorMessage
+                );
               }
               await logger.logError(
                 `Error adding contact: ${contact.firstName} ${contact.lastName || ''} (${contact.email || 'No email'})${syncResult.error ? `: ${syncResult.error.message}` : ''}`
@@ -275,21 +329,28 @@ export class HibobSyncScript {
             if (!matchResult.resourceName) {
               if (!alertLogger.checkForDuplicateAlert(alertContact)) {
                 status.error++;
-                await alertLogger.writeAlert('error', alertContact, ALERT_REASONS.ERROR.MISSING_RESOURCE_NAME);
+                await alertLogger.writeAlert(
+                  'error',
+                  alertContact,
+                  ALERT_REASONS.ERROR.MISSING_RESOURCE_NAME
+                );
               }
               await logger.logError(
                 `Match found but no resourceName for ${contact.firstName} ${contact.lastName || ''} (${contact.email || 'No email'})`
               );
             } else {
-              const syncResult =
-                await this.contactSyncer.updateContact(
-                  matchResult.resourceName,
-                  labelResourceName
-                );
+              const syncResult = await this.contactSyncer.updateContact(
+                matchResult.resourceName,
+                labelResourceName
+              );
               if (syncResult.status === SyncStatusType.UPDATED) {
                 status.updated++;
                 await logger.logRaw(
-                  LogFormatter.formatContactBlock('UPDATE', contact, companyName)
+                  LogFormatter.formatContactBlock(
+                    'UPDATE',
+                    contact,
+                    companyName
+                  )
                 );
               } else if (syncResult.status === SyncStatusType.UP_TO_DATE) {
                 status.upToDate++;
@@ -302,7 +363,11 @@ export class HibobSyncScript {
                   const errorMessage = syncResult.error
                     ? `Failed to update contact via Google API: ${syncResult.error.message}${syncResult.error.stack ? `\n\nStack trace:\n${syncResult.error.stack}` : ''}`
                     : ALERT_REASONS.ERROR.API_UPDATE_FAILED;
-                  await alertLogger.writeAlert('error', alertContact, errorMessage);
+                  await alertLogger.writeAlert(
+                    'error',
+                    alertContact,
+                    errorMessage
+                  );
                 }
                 await logger.logError(
                   `Error updating contact: ${contact.firstName} ${contact.lastName || ''} (${contact.email || 'No email'})${syncResult.error ? `: ${syncResult.error.message}` : ''}`
@@ -315,7 +380,13 @@ export class HibobSyncScript {
         } catch (error: unknown) {
           if (!alertLogger.checkForDuplicateAlert(alertContact)) {
             status.error++;
-            await alertLogger.writeAlert('error', alertContact, error instanceof Error ? error.message : ALERT_REASONS.ERROR.UNEXPECTED_ERROR);
+            await alertLogger.writeAlert(
+              'error',
+              alertContact,
+              error instanceof Error
+                ? error.message
+                : ALERT_REASONS.ERROR.UNEXPECTED_ERROR
+            );
           }
           status.processed++;
           await logger.logError(
@@ -344,7 +415,7 @@ export class HibobSyncScript {
         googleContactsAfter
       );
       await this.postSyncMenu(status, alertLogger);
-          } catch (error: unknown) {
+    } catch (error: unknown) {
       statusBar.fail('HiBob Sync failed');
       if (error instanceof Error && error.message === 'User cancelled') {
         this.uiLogger.displayWarning('User cancelled operation');
@@ -357,7 +428,7 @@ export class HibobSyncScript {
           `Sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`
         );
       }
-          } finally {
+    } finally {
       this.restoreConsole();
       if (process.stdin.isTTY) {
         process.stdin.setRawMode(false);
@@ -418,16 +489,31 @@ export class HibobSyncScript {
     googleContactsBefore: number,
     googleContactsAfter: number
   ): void {
-    const totalFormatted = FormatUtils.formatNumberWithLeadingZeros(totalContacts);
+    const totalFormatted =
+      FormatUtils.formatNumberWithLeadingZeros(totalContacts);
     const newFormatted = FormatUtils.formatNumberWithLeadingZeros(status.new);
-    const updatedFormatted = FormatUtils.formatNumberWithLeadingZeros(status.updated);
-    const processedFormatted = FormatUtils.formatNumberWithLeadingZeros(status.processed);
-    const upToDateFormatted = FormatUtils.formatNumberWithLeadingZeros(status.upToDate);
-    const warningFormatted = FormatUtils.formatNumberWithLeadingZeros(status.warning);
-    const errorFormatted = FormatUtils.formatNumberWithLeadingZeros(status.error);
-    const skippedFormatted = FormatUtils.formatNumberWithLeadingZeros(status.skipped);
-    const beforeFormatted = FormatUtils.formatNumberWithLeadingZeros(googleContactsBefore);
-    const afterFormatted = FormatUtils.formatNumberWithLeadingZeros(googleContactsAfter);
+    const updatedFormatted = FormatUtils.formatNumberWithLeadingZeros(
+      status.updated
+    );
+    const processedFormatted = FormatUtils.formatNumberWithLeadingZeros(
+      status.processed
+    );
+    const upToDateFormatted = FormatUtils.formatNumberWithLeadingZeros(
+      status.upToDate
+    );
+    const warningFormatted = FormatUtils.formatNumberWithLeadingZeros(
+      status.warning
+    );
+    const errorFormatted = FormatUtils.formatNumberWithLeadingZeros(
+      status.error
+    );
+    const skippedFormatted = FormatUtils.formatNumberWithLeadingZeros(
+      status.skipped
+    );
+    const beforeFormatted =
+      FormatUtils.formatNumberWithLeadingZeros(googleContactsBefore);
+    const afterFormatted =
+      FormatUtils.formatNumberWithLeadingZeros(googleContactsAfter);
     const lineWidth = 55;
     this.uiLogger.info(
       FormatUtils.padLineWithEquals('Hibob Sync Summary', lineWidth),
@@ -538,7 +624,8 @@ export class HibobSyncScript {
       }
       if (result.value === 'delete_file') {
         const confirmed = await confirmWithEscape({
-          message: 'Are you sure you want to delete the entire alert file? This cannot be undone.',
+          message:
+            'Are you sure you want to delete the entire alert file? This cannot be undone.',
           default: false,
         });
         if (!confirmed.escaped && confirmed.value) {
@@ -555,13 +642,27 @@ export class HibobSyncScript {
     }
   }
 
-  private async displayAlertsWithPagination(alertLogger: AlertLogger): Promise<void> {
+  private async displayAlertsWithPagination(
+    alertLogger: AlertLogger
+  ): Promise<void> {
     const allAlerts = alertLogger.getAllAlerts();
     const counts = alertLogger.getAlertCounts();
     this.uiLogger.breakline();
-    await this.displayAlertTypeWithPagination('warning', allAlerts.warnings, counts.warning);
-    await this.displayAlertTypeWithPagination('skipped', allAlerts.skipped, counts.skipped);
-    await this.displayAlertTypeWithPagination('error', allAlerts.errors, counts.error);
+    await this.displayAlertTypeWithPagination(
+      'warning',
+      allAlerts.warnings,
+      counts.warning
+    );
+    await this.displayAlertTypeWithPagination(
+      'skipped',
+      allAlerts.skipped,
+      counts.skipped
+    );
+    await this.displayAlertTypeWithPagination(
+      'error',
+      allAlerts.errors,
+      counts.error
+    );
   }
 
   private async displayAlertTypeWithPagination(
@@ -572,12 +673,18 @@ export class HibobSyncScript {
     if (count === 0) {
       return;
     }
-    const emoji = type === 'warning' ? EMOJIS.STATUS.WARNING : 
-                  type === 'skipped' ? EMOJIS.NAVIGATION.SKIP : 
-                  EMOJIS.STATUS.ERROR;
-    const title = type === 'warning' ? 'Warnings' : 
-                  type === 'skipped' ? 'Skipped' : 
-                  'Errors';
+    const emoji =
+      type === 'warning'
+        ? EMOJIS.STATUS.WARNING
+        : type === 'skipped'
+          ? EMOJIS.NAVIGATION.SKIP
+          : EMOJIS.STATUS.ERROR;
+    const title =
+      type === 'warning'
+        ? 'Warnings'
+        : type === 'skipped'
+          ? 'Skipped'
+          : 'Errors';
     let offset = 0;
     const pageSize = 10;
     while (true) {
@@ -624,8 +731,16 @@ export class HibobSyncScript {
 
   private displayAlertEntry(alert: Alert, index: number): void {
     const personNumber = FormatUtils.formatNumberWithLeadingZeros(index);
-    this.uiLogger.info(`  Alert ${personNumber} (Index: ${alert.index}):`, {}, false);
-    this.uiLogger.info(`    -Name: ${alert.contact.firstName} ${alert.contact.lastName || ''}`, {}, false);
+    this.uiLogger.info(
+      `  Alert ${personNumber} (Index: ${alert.index}):`,
+      {},
+      false
+    );
+    this.uiLogger.info(
+      `    -Name: ${alert.contact.firstName} ${alert.contact.lastName || ''}`,
+      {},
+      false
+    );
     if (alert.contact.email) {
       this.uiLogger.info(`    -Email: ${alert.contact.email}`, {}, false);
     }
@@ -655,9 +770,12 @@ export class HibobSyncScript {
       const pageAlerts = allAlertsList.slice(offset, offset + pageSize);
       const choices: Array<{ name: string; value: string }> = [];
       for (const alert of pageAlerts) {
-        const typeEmoji = alert.type === 'warning' ? EMOJIS.STATUS.WARNING :
-                          alert.type === 'skipped' ? EMOJIS.NAVIGATION.SKIP :
-                          EMOJIS.STATUS.ERROR;
+        const typeEmoji =
+          alert.type === 'warning'
+            ? EMOJIS.STATUS.WARNING
+            : alert.type === 'skipped'
+              ? EMOJIS.NAVIGATION.SKIP
+              : EMOJIS.STATUS.ERROR;
         const name = `${typeEmoji} Index ${alert.index}: ${alert.contact.firstName} ${alert.contact.lastName || ''} - ${alert.reason}`;
         choices.push({ name, value: String(alert.index) });
       }
@@ -685,7 +803,10 @@ export class HibobSyncScript {
     }
   }
 
-  private async postSyncMenu(status: SyncStatus, alertLogger: AlertLogger): Promise<void> {
+  private async postSyncMenu(
+    status: SyncStatus,
+    alertLogger: AlertLogger
+  ): Promise<void> {
     if (status.warning === 0 && status.error === 0 && status.skipped === 0) {
       return;
     }
@@ -712,7 +833,10 @@ export class HibobSyncScript {
           value: 'skipped',
         });
       }
-      choices.push({ name: `${EMOJIS.NAVIGATION.BACK} Back to Main Menu`, value: 'main' });
+      choices.push({
+        name: `${EMOJIS.NAVIGATION.BACK} Back to Main Menu`,
+        value: 'main',
+      });
       choices.push({ name: `${EMOJIS.NAVIGATION.EXIT} Exit`, value: 'exit' });
       this.uiLogger.resetState('menu');
       const result = await selectWithEscape<string>({
@@ -756,7 +880,11 @@ export class HibobSyncScript {
         false
       );
       if (alert.reason) {
-        this.uiLogger.info(`${EMOJIS.DATA.REASON}  Reason: ${alert.reason}`, {}, false);
+        this.uiLogger.info(
+          `${EMOJIS.DATA.REASON}  Reason: ${alert.reason}`,
+          {},
+          false
+        );
       }
       this.uiLogger.info(
         `${EMOJIS.FIELDS.PERSON} Name: ${alert.contact.firstName} ${alert.contact.lastName || ''}`,
@@ -764,7 +892,11 @@ export class HibobSyncScript {
         false
       );
       if (alert.contact.email) {
-        this.uiLogger.info(`${EMOJIS.FIELDS.EMAIL} Email: ${alert.contact.email}`, {}, false);
+        this.uiLogger.info(
+          `${EMOJIS.FIELDS.EMAIL} Email: ${alert.contact.email}`,
+          {},
+          false
+        );
       }
       console.log('');
     }

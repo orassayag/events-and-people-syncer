@@ -5,7 +5,13 @@ import { createServer, IncomingMessage, ServerResponse, Server } from 'http';
 import { parse } from 'url';
 import { exec } from 'child_process';
 import { injectable } from 'inversify';
-import type { GoogleCredentials, TokenData, OAuth2Client, TokenValidationStatus, ScopeValidationResult } from '../../types';
+import type {
+  GoogleCredentials,
+  TokenData,
+  OAuth2Client,
+  TokenValidationStatus,
+  ScopeValidationResult,
+} from '../../types';
 import { SETTINGS } from '../../settings';
 import { PortManager } from '../../managers';
 import { Logger } from '../../logging';

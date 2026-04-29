@@ -16,15 +16,22 @@ export class LogFormatter {
     lines.push('=======================');
 
     const isLinkedIn = contact.type === 'linkedin';
-    const formattedCompany = isLinkedIn ? calculateFormattedCompany((contact as LinkedInConnection).company, 2) : '';
-    
+    const formattedCompany = isLinkedIn
+      ? calculateFormattedCompany((contact as LinkedInConnection).company, 2)
+      : '';
+
     // Logic matching the syncer's lastNameValue
-    const getEnrichedFullName = (firstName: string, lastName: string | undefined, lbl: string, company: string) => {
-        const enrichedLastName = [
-          lastName,
-          company
-        ].filter(s => s).join(' ').replace(/'/g, '').trim();
-        return `${firstName} ${enrichedLastName}`.trim();
+    const getEnrichedFullName = (
+      firstName: string,
+      lastName: string | undefined,
+      company: string
+    ) => {
+      const enrichedLastName = [lastName, company]
+        .filter((s) => s)
+        .join(' ')
+        .replace(/'/g, '')
+        .trim();
+      return `${firstName} ${enrichedLastName}`.trim();
     };
 
     const calculatedLabel = formattedCompany.replace(/'/g, '');
@@ -37,10 +44,9 @@ export class LogFormatter {
     const currentFullName = getEnrichedFullName(
       contact.firstName,
       lastNameForDisplay,
-      label.replace(/'/g, ''),
       formattedCompany
     );
-    
+
     let fullNameStr = `${EMOJIS.FIELDS.PERSON} Full name: ${currentFullName}`;
     if (type === 'UPDATE' && updateDetails?.lastName) {
       const oldFullName = `${contact.firstName} ${updateDetails.lastName.from}`;
@@ -48,9 +54,10 @@ export class LogFormatter {
       fullNameStr = `${EMOJIS.FIELDS.PERSON} Full name: ${currentFullName} (${oldFullName} => ${currentFullName})`;
     }
     lines.push(fullNameStr);
-    
+
     if (type === 'SKIP') {
-      const reason = updateDetails?.skipReason || 'Existing match found - skipping update';
+      const reason =
+        updateDetails?.skipReason || 'Existing match found - skipping update';
       lines.push(`${EMOJIS.NAVIGATION.SKIP}  Reason: ${reason}`);
       lines.push('=======================');
       return lines.join('\n');
@@ -62,13 +69,12 @@ export class LogFormatter {
     lines.push(`${EMOJIS.FIELDS.COMPANY} Company: ${companyDisplay}`);
 
     const positionRaw = isLinkedIn
-      ? (contact as LinkedInConnection).position?.trim() ?? ''
+      ? ((contact as LinkedInConnection).position?.trim() ?? '')
       : '';
     const jobTitle = isLinkedIn ? positionRaw || '(none)' : '(none)';
     let jobTitleStr = `${EMOJIS.FIELDS.JOB_TITLE} Job Title: ${jobTitle}`;
     if (type === 'UPDATE' && updateDetails?.jobTitle) {
-      const toDisplay =
-        updateDetails.jobTitle.to.trim() || '(none)';
+      const toDisplay = updateDetails.jobTitle.to.trim() || '(none)';
       jobTitleStr = `${EMOJIS.FIELDS.JOB_TITLE} Job Title: ${toDisplay} (${updateDetails.jobTitle.from} => ${toDisplay})`;
     }
     lines.push(jobTitleStr);
@@ -76,7 +82,7 @@ export class LogFormatter {
     const email = contact.email || '(none)';
     let emailStr = `${EMOJIS.FIELDS.EMAIL} Email: ${email}${email !== '(none)' && calculatedLabel ? ` ${calculatedLabel}` : ''}`;
     if (type === 'UPDATE' && updateDetails?.emailAdded) {
-        emailStr = `${EMOJIS.FIELDS.EMAIL} Email: ${updateDetails.emailAdded} ${calculatedLabel} (Added)`;
+      emailStr = `${EMOJIS.FIELDS.EMAIL} Email: ${updateDetails.emailAdded} ${calculatedLabel} (Added)`;
     }
     lines.push(emailStr);
 
@@ -84,10 +90,12 @@ export class LogFormatter {
     let phoneStr = `${EMOJIS.FIELDS.PHONE} Phone: ${phone}${phone !== '(none)' && calculatedLabel ? ` ${calculatedLabel}` : ''}`;
     lines.push(phoneStr);
 
-    const linkedInUrl = isLinkedIn ? (contact as LinkedInConnection).url : '(none)';
+    const linkedInUrl = isLinkedIn
+      ? (contact as LinkedInConnection).url
+      : '(none)';
     let linkedInUrlStr = `${EMOJIS.FIELDS.LINKEDIN} LinkedIn URL: ${linkedInUrl}`;
     if (type === 'UPDATE' && updateDetails?.linkedInUrlAdded) {
-        linkedInUrlStr += ' (Added)';
+      linkedInUrlStr += ' (Added)';
     }
     lines.push(linkedInUrlStr);
 
