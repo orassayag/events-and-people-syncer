@@ -57,6 +57,15 @@ export function cleanCompany(company: string): string {
 
   cleaned = removeParenthesesAndContents(cleaned);
   cleaned = cleaned.replace(/\s+at work\.?$/gi, '');
+  cleaned = cleaned.replace(/'/g, '');
+
+  // Remove profession if it starts with it and is followed by "At" or similar
+  const jobTitles = TextUtils.getJobTitlesRegex(false);
+  cleaned = cleaned.replace(
+    new RegExp(`^\\b${jobTitles}\\b\\s*(at|of|in|the)?\\s*`, 'gi'),
+    ''
+  );
+
   cleaned = cleaned.trim();
 
   // Pre-merge abbreviation-style "WORD. WORD" patterns before splitting.

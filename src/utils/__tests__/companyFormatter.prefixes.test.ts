@@ -82,4 +82,16 @@ describe('formatCompanyToPascalCase prefixes', () => {
       'LinkedIn LogOn'
     );
   });
+
+  it('should format Partner at Net&Work correctly', () => {
+    expect(calculateFormattedCompany('Partner at Net&Work')).toBe(
+      'LinkedIn Net&Work'
+    );
+  });
+
+  it("should format We'reInCommunity correctly without quotes", () => {
+    expect(calculateFormattedCompany("We'reInCommunity")).toBe(
+      'LinkedIn WereInCommunity'
+    );
+  });
 });

@@ -61,6 +61,24 @@ export class TextUtils {
     return pascalCaseWords.join('');
   }
 
+  static getJobTitlesRegex(includeCompanySuffixes: boolean = true): string {
+    const professions =
+      'ceo|coo|cfo|cto|cio|ciso|cso|cdo|caio|cpo|cmo|cro|cco|cbdo|chro|clo|gc|cxo|cao|cico|' +
+      'vp|svp|evp|md|fd|vice\\s+president|director|manager|head|lead|founder|owner|president|partner|' +
+      'specialist|expert|consultant|developer|engineer|architect|designer|hr|hrbp|hrpb|' +
+      'recruiter|recruiting|talent|acquisition|headhunter|recruitment|' +
+      'software|frontend|backend|fullstack|devops|data|analyst|account|sales|marketing|product|design|ux|ui|' +
+      'investor|board|advisor|controller';
+
+    const companySuffixes =
+      'ltd|inc|llc|gmbh|corp|corporation|co|company|limited';
+
+    if (includeCompanySuffixes) {
+      return '(' + professions + '|' + companySuffixes + ')';
+    }
+    return '(' + professions + ')';
+  }
+
   static removeEmojis(str: string): string {
     if (!str) return '';
     return str
@@ -164,16 +182,7 @@ export class TextUtils {
       ''
     );
     // Remove C-level titles, professional roles, and everything after them
-    const jobTitles =
-      '(' +
-      'ceo|coo|cfo|cto|cio|ciso|cso|cdo|caio|cpo|cmo|cro|cco|cbdo|chro|clo|gc|cxo|cao|cico|' +
-      'vp|svp|evp|md|fd|vice\\s+president|director|manager|head|lead|founder|owner|president|partner|' +
-      'specialist|expert|consultant|developer|engineer|architect|designer|hr|hrbp|hrpb|' +
-      'recruiter|recruiting|talent|acquisition|headhunter|recruitment|' +
-      'software|frontend|backend|fullstack|devops|data|analyst|account|sales|marketing|product|design|ux|ui|' +
-      'investor|board|advisor|controller|' +
-      'ltd|inc|llc|gmbh|corp|corporation|co|company|limited' +
-      ')';
+    const jobTitles = TextUtils.getJobTitlesRegex();
     // If title is in the middle/end (has space before), remove it and everything after
     cleaned = cleaned.replace(
       new RegExp(`\\s+\\b${jobTitles}\\b.*$`, 'gi'),
