@@ -315,9 +315,17 @@ export class LinkedInSyncScript {
           } else {
             // Exact or Fuzzy match found - skip update as per new requirements
             status.skipped++;
+            
+            let existingFullName = undefined;
+            if (matchResult.matches && matchResult.matches.length > 0) {
+              const contact = matchResult.matches[0].contact;
+              existingFullName = `${contact.firstName || ''} ${contact.lastName || ''}`.trim();
+            }
+
             await skipLogger.logRaw(
               LogFormatter.formatContactBlock('SKIP', connection, label, {
-                skipReason: `Existing match found - By ${matchResult.matchReason || 'Match'}`,
+                skipReason: `Matched Existing (By ${matchResult.matchReason || 'Match'})`,
+                existingFullName
               })
             );
           }

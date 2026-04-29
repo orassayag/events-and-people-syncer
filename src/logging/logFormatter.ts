@@ -14,6 +14,9 @@ export class LogFormatter {
   ): string {
     const lines: string[] = [];
 
+    if (type === 'SKIP') {
+      lines.push('=======================');
+    }
 
     const isLinkedIn = contact.type === 'linkedin';
     const formattedCompany = isLinkedIn
@@ -30,7 +33,7 @@ export class LogFormatter {
       firstName: string,
       lastName: string | undefined,
       company: string
-    ) => {
+    ): string => {
       const enrichedLastName = [lastName, company]
         .filter((s) => s)
         .join(' ')
@@ -53,6 +56,9 @@ export class LogFormatter {
     );
 
     let fullNameStr = `${EMOJIS.FIELDS.PERSON} Full name: ${currentFullName}`;
+    if (type === 'SKIP') {
+      fullNameStr = `${EMOJIS.FIELDS.PERSON} ${isLinkedIn ? 'LinkedIn' : 'Hibob'} Full name: ${currentFullName}`;
+    }
     if (type === 'UPDATE' && updateDetails?.lastName) {
       const oldFullName = `${contact.firstName} ${updateDetails.lastName.from}`;
       // In updateDetails.lastName.to, the label and company are already included because of how lastNameValue is calculated in updateContact
@@ -61,10 +67,13 @@ export class LogFormatter {
     lines.push(fullNameStr);
 
     if (type === 'SKIP') {
-      const reason =
-        updateDetails?.skipReason || 'Existing match found - skipping update';
-      lines.push(`${EMOJIS.NAVIGATION.SKIP}  Reason: ${reason}`);
-      lines.push('=======================');
+      if (updateDetails?.existingFullName) {
+        lines.push(
+          `${EMOJIS.FIELDS.PERSON} Existing Full name: ${updateDetails.existingFullName}`
+        );
+      }
+      const reason = updateDetails?.skipReason || 'Matched Existing';
+      lines.push(`${EMOJIS.NAVIGATION.SKIP} Reason: ${reason}`);
       return lines.join('\n');
     }
 

@@ -1,13 +1,6 @@
 import { injectable, inject } from 'inversify';
-import {
-  LinkedInConnection,
-  MatchType,
-  MatchResult,
-} from '../../types';
-import {
-  DuplicateDetector,
-  DuplicateMatch,
-} from '../contacts';
+import { LinkedInConnection, MatchType, MatchResult } from '../../types';
+import { DuplicateDetector, DuplicateMatch } from '../contacts';
 import { UrlNormalizer } from './urlNormalizer';
 
 @injectable()
@@ -52,11 +45,16 @@ export class ConnectionMatcher {
       return null;
     }
     if (matches.length > 1) {
-      return { matchType: MatchType.UNCERTAIN, matches, exactMatchMessage: `Exact value of LinkedIn URL matches multiple contacts` };
+      return {
+        matchType: MatchType.UNCERTAIN,
+        matches,
+        exactMatchMessage: `Exact value of LinkedIn URL matches multiple contacts`,
+      };
     }
     return {
       matchType: MatchType.EXACT,
       resourceName: matches[0].contact.resourceName,
+      matches,
       matchReason: 'URL',
     };
   }
@@ -68,11 +66,16 @@ export class ConnectionMatcher {
       return null;
     }
     if (matches.length > 1) {
-      return { matchType: MatchType.UNCERTAIN, matches, exactMatchMessage: `Exact value of Email matches multiple contacts` };
+      return {
+        matchType: MatchType.UNCERTAIN,
+        matches,
+        exactMatchMessage: `Exact value of Email matches multiple contacts`,
+      };
     }
     return {
       matchType: MatchType.EXACT,
       resourceName: matches[0].contact.resourceName,
+      matches,
       matchReason: 'Email',
     };
   }

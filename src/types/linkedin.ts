@@ -71,6 +71,7 @@ export interface UpdateDetails {
   linkedInUrlLabelFixed?: boolean;
   noteUpdated?: { from: string; to: string };
   skipReason?: string;
+  existingFullName?: string;
 }
 
 export interface SyncResult {
