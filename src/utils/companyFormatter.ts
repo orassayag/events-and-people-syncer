@@ -5,8 +5,9 @@ import { TextUtils } from './textUtils';
 
 
 function removeDomainsAndUrls(text: string): string {
-  const urlRegex = /(?:https?:\/\/)?(?:www\.)?[\w-]+\.(?:com|co\.il|net|org|io|ai|tech|app|dev|me|info|biz|co|il|org\.il|gov\.il|edu|ac\.il)\b[/\w-]*\b/gi;
-  let cleaned = text.replace(urlRegex, '').trim();
+  const urlRegex =
+    /(?:https?:\/\/)?(?:www\.)?([\w-]+)\.(?:com|co\.il|net|org|io|ai|tech|app|dev|me|info|biz|co|il|org\.il|gov\.il|edu|ac\.il)\b[/\w-]*\b/gi;
+  let cleaned = text.replace(urlRegex, '$1').trim();
   cleaned = cleaned.replace(/\bwww\.\b/gi, '');
   // If we removed everything, return the original
   return cleaned.length >= 2 ? cleaned : text;
@@ -24,6 +25,20 @@ export function cleanCompany(company: string): string {
     return '';
   }
   let cleaned: string = company.trim();
+  
+  // Specific rule: Truncate if contains ",", " - ", or "- "
+  const separators = [',', ' - ', '- '];
+  let firstIndex = -1;
+  for (const sep of separators) {
+    const idx = cleaned.indexOf(sep);
+    if (idx !== -1 && (firstIndex === -1 || idx < firstIndex)) {
+      firstIndex = idx;
+    }
+  }
+  if (firstIndex !== -1) {
+    cleaned = cleaned.substring(0, firstIndex).trim();
+  }
+
   cleaned = removeParenthesesAndContents(cleaned);
   cleaned = cleaned.replace(/\s+at work\.?$/gi, '');
   cleaned = cleaned.trim();
@@ -35,7 +50,9 @@ export function cleanCompany(company: string): string {
 
   // Split on phrase-level separators and take only the FIRST valid segment
   // Handles: commas, pipes, spaced dashes/em-dashes, period+space, double+ spaces
-  const parts: string[] = cleaned.split(/\s*[,|]\s*|\s+[-–—]\s+|\.\s+|\s{2,}/).filter(p => p.trim());
+  const parts: string[] = cleaned
+    .split(/\s*[,|]\s*|[-–—]\s+|\s+[-–—]|\.\s+|\s{2,}/)
+    .filter((p) => p.trim());
   if (parts.length > 0) {
     cleaned = parts[0].trim();
   }
@@ -138,7 +155,7 @@ export function formatCompanyToPascalCase(company: string, maxWords?: number): s
   );
   if (maxWords && maxWords > 0) {
     let resultWords = words.slice(0, maxWords);
-    const joiners = ['of', '&', 'and', 'with', 'for', 'the', 'a', 'an', 'in', 'at', 'by', 'or', '+', 'co', 'co.', 'ben', 'hebrew', 'jewish', 'bar', 'israel', 'bet'];
+    const joiners = ['of', '&', 'and', 'with', 'for', 'the', 'a', 'an', 'in', 'at', 'by', 'or', '+', 'co', 'co.', 'ben', 'hebrew', 'jewish', 'bar', 'israel', 'bet', 'house'];
     const forceNextPrefixes = [
       'TheOpen',
       'BarIlan',
@@ -150,6 +167,8 @@ export function formatCompanyToPascalCase(company: string, maxWords?: number): s
       'TheAcademic',
       'TheADHD',
       'Medical',
+      'HouseOf',
+      'Houseof',
     ];
 
     while (resultWords.length < words.length) {

@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { TextUtils } from '../textUtils';
-import { stripCompanyPrefixOverlapFromName } from '../companyFormatter';
 
 describe('TextUtils.cleanName - Regression Tests', () => {
   it('should clean "Orna Dreman Ceo At Hitech" correctly', () => {
@@ -31,7 +30,6 @@ describe('TextUtils.cleanName - Regression Tests', () => {
   it('should handle "Shir Dror La Nefesh" with company "DrorLaNefesh" correctly', () => {
     const firstName = 'Shir';
     const lastName = 'Dror La Nefesh';
-    const company = 'DrorLaNefesh';
     
     // Simulations LinkedInExtractor logic:
     const fullNameRaw = `${firstName} ${lastName}`.trim();
@@ -44,6 +42,12 @@ describe('TextUtils.cleanName - Regression Tests', () => {
     const input = 'John Doe Director At Some Company';
     const cleaned = TextUtils.cleanName(input);
     expect(cleaned).toBe('John Doe');
+  });
+
+  it('should remove company suffixes like "Ltd" from names', () => {
+    const input = 'Degel Ps Ltd';
+    const cleaned = TextUtils.cleanName(input);
+    expect(cleaned).toBe('Degel Ps');
   });
 });
 

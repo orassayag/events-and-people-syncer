@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatCompanyToPascalCase } from '../companyFormatter';
+import { formatCompanyToPascalCase, calculateFormattedCompany } from '../companyFormatter';
 
 describe('formatCompanyToPascalCase prefixes', () => {
   it('should pull next word for "The Open"', () => {
@@ -36,5 +36,17 @@ describe('formatCompanyToPascalCase prefixes', () => {
 
   it('should pull next word for "The ADHD"', () => {
     expect(formatCompanyToPascalCase('The ADHD Center', 1)).toBe('TheADHDCenter');
+  });
+
+  it('should pull next word for "House Of"', () => {
+    expect(formatCompanyToPascalCase('House Of Coulture', 2)).toBe('HouseOfCoulture');
+    expect(calculateFormattedCompany('House Of Products.AI', 2)).toBe('LinkedIn HouseOfProducts');
+  });
+
+  it('should truncate after comma or dash-space using calculateFormattedCompany', () => {
+    expect(calculateFormattedCompany('Perimeter 81, a Check Point Company', 2)).toBe('LinkedIn Perimeter81');
+    expect(calculateFormattedCompany('Perimeter 81 - a Check Point Company', 2)).toBe('LinkedIn Perimeter81');
+    expect(calculateFormattedCompany('Perimeter 81- a Check Point Company', 2)).toBe('LinkedIn Perimeter81');
+    expect(calculateFormattedCompany('Log-On Software', 2)).toBe('LinkedIn LogOn');
   });
 });

@@ -77,7 +77,7 @@ export class TextUtils {
 
     // 2. Keep only letters (including accented/international), numbers and basic punctuation
     // Including @, _, +, . for emails and apostrophe for names like L'Oréal
-    const matches = cleaned.match(/[\p{L}\p{N}\s\-&.@_+']+/gu);
+    const matches = cleaned.match(/[\p{L}\p{N}\s\-&.@_+',|()]+/gu);
     if (!matches) return '';
     cleaned = matches.join(' ').replace(/\s+/g, ' ').trim();
 
@@ -160,7 +160,8 @@ export class TextUtils {
       'specialist|expert|consultant|developer|engineer|architect|designer|hr|hrbp|hrpb|' +
       'recruiter|recruiting|talent|acquisition|headhunter|recruitment|' +
       'software|frontend|backend|fullstack|devops|data|analyst|account|sales|marketing|product|design|ux|ui|' +
-      'investor|board|advisor|controller' +
+      'investor|board|advisor|controller|' +
+      'ltd|inc|llc|gmbh|corp|corporation|co|company|limited' +
       ')';
     // If title is in the middle/end (has space before), remove it and everything after
     cleaned = cleaned.replace(
