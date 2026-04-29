@@ -55,4 +55,17 @@ describe('TextUtils.cleanName - Regression Tests', () => {
     const cleaned = TextUtils.cleanName(input);
     expect(cleaned).toBe('Maya Salemnia');
   });
+
+  it('should clean names with emojis and stars correctly', () => {
+    expect(TextUtils.cleanName('★ Liat Kurlender ★')).toBe('Liat Kurlender');
+    expect(TextUtils.cleanName('★Sari Cohen')).toBe('Sari Cohen');
+    expect(TextUtils.cleanName('★ Gal Ben David ★')).toBe('Gal Ben David');
+    expect(TextUtils.cleanName('☆ Neta Goldberg Levi ☆ I M HIRING')).toBe('Neta Goldberg Levi');
+    expect(TextUtils.cleanName('★Mor Barki★')).toBe('Mor Barki');
+  });
+
+  it('should format hyphenated names with spaces instead of truncating them', () => {
+    expect(TextUtils.cleanName('Or Assa-ayag')).toBe('Or Assa Ayag');
+    expect(TextUtils.cleanName('Tal Fox-Honig')).toBe('Tal Fox Honig');
+  });
 });

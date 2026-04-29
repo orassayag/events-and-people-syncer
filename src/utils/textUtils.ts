@@ -136,11 +136,14 @@ export class TextUtils {
       /^(?:(?:dr|mr|mrs|ms|miss|prof|professor|sir|dame|rev|hon|adv|advocate|eng|engineer|rabbi)\b\.?\s*)+/i;
     cleaned = cleaned.replace(titleRegex, '');
 
-    // Split by common separators used to append titles/suffixes ( - , | , • , / , ☆ , ★ , » , « , ● ) and take the first part
-    // This handles cases like "Nava Avi - Tech Recruitment Director" or "Tal Fox-Honig ☆be yourself"
+    // Split by common separators used to append titles/suffixes ( - , | , • , / , ☆ , ★ , » , « , ● )
+    // This handles cases like "Nava Avi - Tech Recruitment Director", "Tal Fox-Honig ☆be yourself", or "★Sari Cohen"
+    // By taking the first non-empty segment, we naturally ignore leading separators as well.
     const separators =
       /[\s]+[-–—|•/][\s]*|[\s]*[-–—|•/][\s]+|[\s]*[☆★\u2605\u2606|»«●][\s]*/;
-    const segments = cleaned.split(separators);
+    const segments = cleaned
+      .split(separators)
+      .filter((s) => s.trim().length > 0);
     if (segments.length > 0) {
       cleaned = segments[0].trim();
     }
