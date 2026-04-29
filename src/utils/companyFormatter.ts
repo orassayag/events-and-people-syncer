@@ -2,8 +2,6 @@ import { SETTINGS } from '../settings';
 import { extractEnglishFromMixed } from './hebrewFormatter';
 import { TextUtils } from './textUtils';
 
-
-
 function removeDomainsAndUrls(text: string): string {
   const urlRegex =
     /(?:https?:\/\/)?(?:www\.)?([\w-]+)\.(?:com|co\.il|net|org|io|ai|tech|app|dev|me|info|biz|co|il|org\.il|gov\.il|edu|ac\.il)\b[/\w-]*\b/gi;
@@ -17,6 +15,7 @@ function removeParenthesesAndContents(text: string): string {
   return text
     .replace(/\([^)]*\)/g, '')
     .replace(/\)[^)]*$/g, '')
+    .replace(/\([^)]*$/, '')
     .trim();
 }
 
@@ -25,7 +24,7 @@ export function cleanCompany(company: string): string {
     return '';
   }
   let cleaned: string = company.trim();
-  
+
   // Specific rule: Truncate if contains ",", " - ", or "- "
   const separators = [',', ' - ', '- '];
   let firstIndex = -1;
@@ -39,6 +38,12 @@ export function cleanCompany(company: string): string {
     cleaned = cleaned.substring(0, firstIndex).trim();
   }
 
+  // Truncate everything from the word "formerly" onwards (case-insensitive)
+  const formerlyMatch = cleaned.match(/\bformerly\b/i);
+  if (formerlyMatch && formerlyMatch.index !== undefined) {
+    cleaned = cleaned.substring(0, formerlyMatch.index).trim();
+  }
+
   cleaned = removeParenthesesAndContents(cleaned);
   cleaned = cleaned.replace(/\s+at work\.?$/gi, '');
   cleaned = cleaned.trim();
@@ -46,7 +51,10 @@ export function cleanCompany(company: string): string {
   // Pre-merge abbreviation-style "WORD. WORD" patterns before splitting.
   // e.g. "EX. CO" → "EX.CO" so the dot-space splitter doesn't chop off the second part.
   // We only merge when the word before the dot is short (≤5 chars) — a hallmark of abbreviations.
-  cleaned = cleaned.replace(/\b([A-Za-z]{1,5})\.\s+([A-Za-z]{1,5})\b/g, '$1.$2');
+  cleaned = cleaned.replace(
+    /\b([A-Za-z]{1,5})\.\s+([A-Za-z]{1,5})\b/g,
+    '$1.$2'
+  );
 
   // Split on phrase-level separators and take only the FIRST valid segment
   // Handles: commas, pipes, spaced dashes/em-dashes, period+space, double+ spaces
@@ -146,7 +154,10 @@ function wordToPascalCaseSegment(word: string): string {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
-export function formatCompanyToPascalCase(company: string, maxWords?: number): string {
+export function formatCompanyToPascalCase(
+  company: string,
+  maxWords?: number
+): string {
   if (!company || !company.trim()) {
     return '';
   }
@@ -155,7 +166,30 @@ export function formatCompanyToPascalCase(company: string, maxWords?: number): s
   );
   if (maxWords && maxWords > 0) {
     let resultWords = words.slice(0, maxWords);
-    const joiners = ['of', '&', 'and', 'with', 'for', 'the', 'a', 'an', 'in', 'at', 'by', 'or', '+', 'co', 'co.', 'ben', 'hebrew', 'jewish', 'bar', 'israel', 'bet', 'house'];
+    const joiners = [
+      'of',
+      '&',
+      'and',
+      'with',
+      'for',
+      'the',
+      'a',
+      'an',
+      'in',
+      'at',
+      'by',
+      'or',
+      '+',
+      'co',
+      'co.',
+      'ben',
+      'hebrew',
+      'jewish',
+      'bar',
+      'israel',
+      'bet',
+      'house',
+    ];
     const forceNextPrefixes = [
       'TheOpen',
       'BarIlan',
@@ -205,8 +239,13 @@ export function formatCompanyToPascalCase(company: string, maxWords?: number): s
     // If the final word is a joiner and we can't pull more, remove it if it's a symbol
     // OR if it's the only word left after a joiner (like "Something &")
     while (resultWords.length > 0) {
-      const lastWord = resultWords[resultWords.length - 1].toLowerCase().replace(/[.,]$/, '');
-      if (joiners.includes(lastWord) && resultWords.length < words.length === false) {
+      const lastWord = resultWords[resultWords.length - 1]
+        .toLowerCase()
+        .replace(/[.,]$/, '');
+      if (
+        joiners.includes(lastWord) &&
+        resultWords.length < words.length === false
+      ) {
         // If it's a symbol like '&' or '+', always remove if at the end
         if (lastWord === '&' || lastWord === '+') {
           resultWords.pop();
@@ -243,28 +282,37 @@ export function calculateFormattedCompany(
   const lName = typeof lastName === 'string' ? lastName : undefined;
 
   if (fName?.trim() && lName?.trim()) {
-    const cleanStr = (s: string) => s.replace(/[^a-zA-Z0-9\u0590-\u05FF]/g, '').toLowerCase();
-    
+    const cleanStr = (s: string): string =>
+      s.replace(/[^a-zA-Z0-9\u0590-\u05FF]/g, '').toLowerCase();
+
     // Remove "linkedin" from company name for the comparison
-    const compClean = cleanStr(cleanedCompany).replace(/^linkedin/, '').replace(/linkedin$/, '');
+    const compClean = cleanStr(cleanedCompany)
+      .replace(/^linkedin/, '')
+      .replace(/linkedin$/, '');
     const fNameClean = cleanStr(fName);
     const lNameClean = cleanStr(lName);
     const name1Clean = fNameClean + lNameClean;
     const name2Clean = lNameClean + fNameClean;
 
-    if (compClean && (
-        compClean === name1Clean || 
-        compClean === name2Clean || 
-        (compClean.length >= 4 && (name1Clean.includes(compClean) || compClean.includes(name1Clean))) ||
-        (compClean.length >= 3 && (compClean === fNameClean || compClean === lNameClean))
-    )) {
+    if (
+      compClean &&
+      (compClean === name1Clean ||
+        compClean === name2Clean ||
+        (compClean.length >= 4 &&
+          (name1Clean.includes(compClean) || compClean.includes(name1Clean))) ||
+        (compClean.length >= 3 &&
+          (compClean === fNameClean || compClean === lNameClean)))
+    ) {
       return 'LinkedIn SelfEmployed';
     }
   }
 
   const englishOnlyCompany: string = extractEnglishFromMixed(cleanedCompany);
   const noEmojis: string = TextUtils.removeEmojis(englishOnlyCompany);
-  const formattedCompany: string = formatCompanyToPascalCase(noEmojis, maxWords);
+  const formattedCompany: string = formatCompanyToPascalCase(
+    noEmojis,
+    maxWords
+  );
 
   return formattedCompany ? `LinkedIn ${formattedCompany}` : 'LinkedIn';
 }
@@ -287,7 +335,10 @@ function normalizeOverlapToken(token: string): string {
 }
 
 function splitOverlapTokens(text: string): string[] {
-  return text.trim().split(/[\s-]+/).filter((t) => t.length > 0);
+  return text
+    .trim()
+    .split(/[\s-]+/)
+    .filter((t) => t.length > 0);
 }
 
 /**
@@ -346,7 +397,7 @@ export function stripCompanyPrefixOverlapFromName(
     if (matchStartIndex !== -1) {
       const kept = [
         ...nameTokens.slice(0, matchStartIndex),
-        ...nameTokens.slice(matchEndIndex + 1)
+        ...nameTokens.slice(matchEndIndex + 1),
       ];
       // PROTECTION: Never strip the entire name if it leaves the result empty
       if (kept.length === 0 && nameTokens.length > 0) {
@@ -354,7 +405,6 @@ export function stripCompanyPrefixOverlapFromName(
       }
       return kept.join(' ').trim();
     }
-
   }
 
   // 2. Check for overlapping trailing prefix (existing logic)
@@ -401,4 +451,3 @@ export function stripCompanyPrefixOverlapFromName(
   }
   return kept.join(' ');
 }
-
