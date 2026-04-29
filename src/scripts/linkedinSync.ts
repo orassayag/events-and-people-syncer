@@ -74,10 +74,12 @@ export class LinkedInSyncScript {
     const logger = new SyncLogger('linkedin-sync');
     const addLogger = new SyncLogger('linkedin-sync-add', 'txt');
     const skipLogger = new SyncLogger('linkedin-sync-skip', 'txt');
+    const errorLogger = new SyncLogger('linkedin-sync_errors', 'txt');
     const statusBar = new SyncStatusBar();
     await logger.initialize();
     await addLogger.initialize();
     await skipLogger.initialize();
+    await errorLogger.initialize();
     this.setupConsoleCapture(logger);
     let escapeHandlerCalled = false;
     const escapeHandler = (): void => {
@@ -201,6 +203,7 @@ export class LinkedInSyncScript {
         skipped: 0,
         previouslyAlerted: 0,
       };
+      let currentIndex = 1;
       for (const connection of connectionsToProcess) {
         if (this.isCancelled) {
           await logger.logMain('Sync cancelled by user');
@@ -209,6 +212,7 @@ export class LinkedInSyncScript {
         if (alertLogger.isAlertedContact(connection)) {
           status.previouslyAlerted++;
           statusBar.updateStatus(status);
+          currentIndex++;
           continue;
         }
         let label: string = 'Unknown';
@@ -282,7 +286,12 @@ export class LinkedInSyncScript {
             if (syncResult.status === SyncStatusType.NEW) {
               status.new++;
               await addLogger.logRaw(
-                LogFormatter.formatContactBlock('ADD', connection, label)
+                LogFormatter.formatContactBlock(
+                  'ADD',
+                  connection,
+                  label,
+                  currentIndex
+                )
               );
             } else if (syncResult.status === SyncStatusType.SKIPPED) {
               if (!alertLogger.checkForDuplicateAlert(alertContact)) {
@@ -293,6 +302,17 @@ export class LinkedInSyncScript {
                   ALERT_REASONS.SKIPPED.MISSING_REQUIRED_DATA
                 );
               }
+              await skipLogger.logRaw(
+                LogFormatter.formatContactBlock(
+                  'SKIP',
+                  connection,
+                  label,
+                  currentIndex,
+                  {
+                    skipReason: ALERT_REASONS.SKIPPED.MISSING_REQUIRED_DATA,
+                  }
+                )
+              );
               await logger.logMain(
                 `Skipped contact: ${connection.firstName} ${connection.lastName} (${formattedCompany}) - Missing required data`
               );
@@ -308,6 +328,19 @@ export class LinkedInSyncScript {
                   errorMessage
                 );
               }
+              await errorLogger.logRaw(
+                LogFormatter.formatContactBlock(
+                  'ERROR',
+                  connection,
+                  label,
+                  currentIndex,
+                  {
+                    skipReason: syncResult.error
+                      ? syncResult.error.message
+                      : ALERT_REASONS.ERROR.API_CREATE_FAILED,
+                  }
+                )
+              );
               await logger.logError(
                 `Failed to create contact: ${connection.firstName} ${connection.lastName} (${formattedCompany})${syncResult.error ? `: ${syncResult.error.message}` : ''}`
               );
@@ -315,22 +348,30 @@ export class LinkedInSyncScript {
           } else {
             // Exact or Fuzzy match found - skip update as per new requirements
             status.skipped++;
-            
+
             let existingFullName = undefined;
             if (matchResult.matches && matchResult.matches.length > 0) {
               const contact = matchResult.matches[0].contact;
-              existingFullName = `${contact.firstName || ''} ${contact.lastName || ''}`.trim();
+              existingFullName =
+                `${contact.firstName || ''} ${contact.lastName || ''}`.trim();
             }
 
             await skipLogger.logRaw(
-              LogFormatter.formatContactBlock('SKIP', connection, label, {
-                skipReason: `Matched Existing (By ${matchResult.matchReason || 'Match'})`,
-                existingFullName
-              })
+              LogFormatter.formatContactBlock(
+                'SKIP',
+                connection,
+                label,
+                currentIndex,
+                {
+                  skipReason: `Matched Existing (By ${matchResult.matchReason || 'Match'})`,
+                  existingFullName,
+                }
+              )
             );
           }
           status.processed++;
           statusBar.updateStatus(status, connection, label);
+          currentIndex++;
         } catch (error: unknown) {
           if (!alertLogger.checkForDuplicateAlert(alertContact)) {
             status.error++;
@@ -342,11 +383,26 @@ export class LinkedInSyncScript {
                 : ALERT_REASONS.ERROR.UNEXPECTED_ERROR
             );
           }
+          await errorLogger.logRaw(
+            LogFormatter.formatContactBlock(
+              'ERROR',
+              connection,
+              label,
+              currentIndex,
+              {
+                skipReason:
+                  error instanceof Error
+                    ? error.message
+                    : ALERT_REASONS.ERROR.UNEXPECTED_ERROR,
+              }
+            )
+          );
           status.processed++;
           await logger.logError(
             `Error processing connection ${connection.firstName} ${connection.lastName} (${formattedCompany}): ${error instanceof Error ? error.message : 'Unknown error'}`
           );
           statusBar.updateStatus(status, connection, label);
+          currentIndex++;
         }
       }
       // Removed redundant warning log finalization

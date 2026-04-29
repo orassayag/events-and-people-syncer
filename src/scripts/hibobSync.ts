@@ -223,6 +223,7 @@ export class HibobSyncScript {
         skipped: 0,
         previouslyAlerted: 0,
       };
+      let currentIndex = 1;
       for (const contact of contactsToProcess) {
         if (this.isCancelled) {
           statusBar.cancel();
@@ -235,6 +236,7 @@ export class HibobSyncScript {
         if (alertLogger.isAlertedContact(contact)) {
           status.previouslyAlerted++;
           statusBar.updateStatus(status);
+          currentIndex++;
           continue;
         }
         const alertContact = {
@@ -292,7 +294,12 @@ export class HibobSyncScript {
             if (syncResult.status === SyncStatusType.NEW) {
               status.new++;
               await logger.logRaw(
-                LogFormatter.formatContactBlock('ADD', contact, companyName)
+                LogFormatter.formatContactBlock(
+                  'ADD',
+                  contact,
+                  companyName,
+                  currentIndex
+                )
               );
             } else if (syncResult.status === SyncStatusType.SKIPPED) {
               if (!alertLogger.checkForDuplicateAlert(alertContact)) {
@@ -349,7 +356,8 @@ export class HibobSyncScript {
                   LogFormatter.formatContactBlock(
                     'UPDATE',
                     contact,
-                    companyName
+                    companyName,
+                    currentIndex
                   )
                 );
               } else if (syncResult.status === SyncStatusType.UP_TO_DATE) {
@@ -377,6 +385,7 @@ export class HibobSyncScript {
           }
           status.processed++;
           statusBar.updateStatus(status, contact, companyName);
+          currentIndex++;
         } catch (error: unknown) {
           if (!alertLogger.checkForDuplicateAlert(alertContact)) {
             status.error++;
@@ -393,6 +402,7 @@ export class HibobSyncScript {
             `Error processing contact ${contact.firstName} ${contact.lastName || ''}: ${error instanceof Error ? error.message : 'Unknown error'}`
           );
           statusBar.updateStatus(status);
+          currentIndex++;
         }
       }
       statusBar.complete();

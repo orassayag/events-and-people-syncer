@@ -1,4 +1,4 @@
-import { EMOJIS } from '../constants';
+import { EMOJIS, FormatUtils } from '../constants';
 import { LinkedInConnection, UpdateDetails, HibobContact } from '../types';
 import {
   calculateFormattedCompany,
@@ -7,16 +7,23 @@ import {
 
 export class LogFormatter {
   static formatContactBlock(
-    type: 'ADD' | 'UPDATE' | 'SKIP',
+    type: 'ADD' | 'UPDATE' | 'SKIP' | 'ERROR',
     contact: LinkedInConnection | HibobContact,
     label: string,
+    index: number,
     updateDetails?: UpdateDetails
   ): string {
     const lines: string[] = [];
 
-    if (type === 'SKIP') {
+    if (type === 'SKIP' || type === 'ERROR') {
       lines.push('=======================');
     }
+
+    const indexStr = FormatUtils.formatNumberWithLeadingZeros(index, 6).replace(
+      ',',
+      '.'
+    );
+    lines.push(`📰 Index: ${indexStr}`);
 
     const isLinkedIn = contact.type === 'linkedin';
     const formattedCompany = isLinkedIn
@@ -56,7 +63,7 @@ export class LogFormatter {
     );
 
     let fullNameStr = `${EMOJIS.FIELDS.PERSON} Full name: ${currentFullName}`;
-    if (type === 'SKIP') {
+    if (type === 'SKIP' || type === 'ERROR') {
       fullNameStr = `${EMOJIS.FIELDS.PERSON} ${isLinkedIn ? 'LinkedIn' : 'Hibob'} Full name: ${currentFullName}`;
     }
     if (type === 'UPDATE' && updateDetails?.lastName) {
@@ -66,14 +73,18 @@ export class LogFormatter {
     }
     lines.push(fullNameStr);
 
-    if (type === 'SKIP') {
+    if (type === 'SKIP' || type === 'ERROR') {
       if (updateDetails?.existingFullName) {
         lines.push(
           `${EMOJIS.FIELDS.PERSON} Existing Full name: ${updateDetails.existingFullName}`
         );
       }
-      const reason = updateDetails?.skipReason || 'Matched Existing';
-      lines.push(`${EMOJIS.NAVIGATION.SKIP} Reason: ${reason}`);
+      const reason =
+        updateDetails?.skipReason ||
+        (type === 'SKIP' ? 'Matched Existing' : 'Unknown Error');
+      const icon =
+        type === 'ERROR' ? EMOJIS.STATUS.ERROR : EMOJIS.NAVIGATION.SKIP;
+      lines.push(`${icon} Reason: ${reason}`);
       return lines.join('\n');
     }
 
