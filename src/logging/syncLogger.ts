@@ -10,7 +10,7 @@ export class SyncLogger {
   private dateStr: string;
   private fileExtension: string;
 
-  constructor(scriptName: string, fileExtension: string = 'log') {
+  constructor(scriptName: string, fileExtension: string = 'txt') {
     const now = new Date();
     const day = String(now.getDate()).padStart(2, '0');
     const month = String(now.getMonth() + 1).padStart(2, '0');

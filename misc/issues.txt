@@ -7,11 +7,6 @@ Index: 1 [WARNING], => 📰 Index: 000,001
 
 > ⚠️ Display Warnings (704) - Add another space.
 
-Check the path on the progress bar. It say:
-  Path: C:\Or\web\projects\events-and-people-syncer\sources\Basic_LinkedInDataExport_03-11-2026.zip
-but the actual file name is Basic_LinkedInDataExport_04-22-2026.zip.zip
-The path file name needs to be updated.
-
 -Fix the "Esc" issue:
 -if pressing "Esc" on Linkedin Sync i see this when I'm trying to press "Esc":
 ? Select a script to run (ESC to exit): ... ^[[B^[[B^[[B^[
@@ -28,6 +23,10 @@ Google Contacts - Sub-label - Job + Where.
 
 DONE & CANCELLED:
 =================
+Check the path on the progress bar. It say: *
+  Path: C:\Or\web\projects\events-and-people-syncer\sources\Basic_LinkedInDataExport_03-11-2026.zip *
+but the actual file name is Basic_LinkedInDataExport_04-22-2026.zip.zip *
+The path file name needs to be updated. *
 Change the repos mainliner to have a different report name: "SCAN_REPOS_REPORT.txt". *
 👤 Full name: Degel Ps Ltd LinkedIn DegelPS - Need to remove "ltd" it exists in the name. *
 👤 Full name: Mor Hajbi LinkedIn HouseOf - Check how its possible. *

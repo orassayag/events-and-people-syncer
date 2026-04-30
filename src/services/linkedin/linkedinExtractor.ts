@@ -18,14 +18,17 @@ export class LinkedInExtractor {
   private logger: Logger = new Logger('LinkedInExtractor');
   private errorLogger: SyncLogger = new SyncLogger(
     'linkedin-sync_errors',
-    'log'
+    'txt'
   );
 
   constructor() {
     this.sourcesPath = SETTINGS.linkedin.sourcesPath;
   }
 
-  async extract(): Promise<{ connections: LinkedInConnection[]; filePath: string }> {
+  async extract(): Promise<{
+    connections: LinkedInConnection[];
+    filePath: string;
+  }> {
     await this.errorLogger.initialize();
     const zipPath: string = await this.findZipFile();
     const csvContent: string = await this.extractCsvFromZip(zipPath);

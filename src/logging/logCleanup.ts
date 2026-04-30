@@ -26,7 +26,7 @@ export class LogCleanup {
         if (file === '.health-check') {
           continue;
         }
-        if (file.endsWith('_ALERTS.log')) {
+        if (file.endsWith('_ALERTS.log') || file.endsWith('_ALERTS.txt')) {
           continue;
         }
         const filePath: string = join(dirPath, file);

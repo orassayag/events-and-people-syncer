@@ -22,7 +22,7 @@ export class AlertLogger {
 
   constructor(scriptName: string) {
     this.scriptName = scriptName;
-    this.filePath = join(LOG_CONFIG.logDir, `${this.scriptName}_alerts-1.log`);
+    this.filePath = join(LOG_CONFIG.logDir, `${this.scriptName}_alerts-1.txt`);
   }
 
   async initialize(): Promise<void> {
@@ -34,16 +34,16 @@ export class AlertLogger {
       );
     }
 
-    // Migration logic: Rename old *_ALERTS.log to *_alerts-1.log if it exists and no alerts-*.log files exist
+    // Migration logic: Rename old *_ALERTS.log to *_alerts-1.txt if it exists and no alerts-*.txt files exist
     const oldPath = join(LOG_CONFIG.logDir, `${this.scriptName}_ALERTS.log`);
-    const newPath1 = join(LOG_CONFIG.logDir, `${this.scriptName}_alerts-1.log`);
+    const newPath1 = join(LOG_CONFIG.logDir, `${this.scriptName}_alerts-1.txt`);
 
     try {
       await fs.access(oldPath);
-      // It exists. Check if any alerts-*.log files already exist
+      // It exists. Check if any alerts-*.txt files already exist
       const files = await fs.readdir(LOG_CONFIG.logDir);
       const hasNewFormat = files.some(
-        (f) => f.startsWith(`${this.scriptName}_alerts-`) && f.endsWith('.log')
+        (f) => f.startsWith(`${this.scriptName}_alerts-`) && f.endsWith('.txt')
       );
       if (!hasNewFormat) {
         await fs.rename(oldPath, newPath1);
@@ -57,11 +57,11 @@ export class AlertLogger {
       const alertFiles = allFiles
         .filter(
           (f) =>
-            f.startsWith(`${this.scriptName}_alerts-`) && f.endsWith('.log')
+            f.startsWith(`${this.scriptName}_alerts-`) && f.endsWith('.txt')
         )
         .sort((a, b) => {
-          const numA = parseInt(a.match(/alerts-(\d+)\.log/)?.[1] || '0', 10);
-          const numB = parseInt(b.match(/alerts-(\d+)\.log/)?.[1] || '0', 10);
+          const numA = parseInt(a.match(/alerts-(\d+)\.txt/)?.[1] || '0', 10);
+          const numB = parseInt(b.match(/alerts-(\d+)\.txt/)?.[1] || '0', 10);
           return numA - numB;
         });
 
@@ -84,7 +84,7 @@ export class AlertLogger {
         totalCorrupted += parseResult.corruptedEntries;
 
         const counter = parseInt(
-          file.match(/alerts-(\d+)\.log/)?.[1] || '1',
+          file.match(/alerts-(\d+)\.txt/)?.[1] || '1',
           10
         );
         if (counter >= this.currentCounter) {
@@ -129,12 +129,13 @@ export class AlertLogger {
     const parseErrors: string[] = [];
     let corruptedEntries = 0;
 
-    // Support three formats:
-    // 1. New: Index: 1 [WARNING], ... =======================
-    // 2. Old 1: =====WARNING START===== ... =====WARNING END=====
-    // 3. Old 2: [WARNING] === Alert Entry === ... [WARNING] === End Entry ===
+    // Support four formats:
+    // 1. Newest: 📰 Index: 000,001 ... =======================
+    // 2. New: Index: 1 [WARNING], ... =======================
+    // 3. Old 1: =====WARNING START===== ... =====WARNING END=====
+    // 4. Old 2: [WARNING] === Alert Entry === ... [WARNING] === End Entry ===
     const entryRegex =
-      /(?:(Index: \d+ \[(WARNING|ERROR|SKIPPED)\],[\s\S]*?=======================)|=====(WARNING|ERROR|SKIPPED) START=====([\s\S]*?)=====\3 END=====|\[(WARNING|ERROR|SKIPPED)\] === Alert Entry ===([\s\S]*?)\[\5\] === End Entry ===)/gi;
+      /(?:(📰 Index: \d{3},\d{3}[\s\S]*?=======================)|(Index: \d+ \[(WARNING|ERROR|SKIPPED)\],[\s\S]*?=======================)|=====(WARNING|ERROR|SKIPPED) START=====([\s\S]*?)=====\4 END=====|\[(WARNING|ERROR|SKIPPED)\] === Alert Entry ===([\s\S]*?)\[\6\] === End Entry ===)/gi;
 
     let match;
     while ((match = entryRegex.exec(content)) !== null) {
@@ -142,14 +143,23 @@ export class AlertLogger {
       let block: string | undefined;
 
       if (match[1]) {
-        typeStr = match[2];
+        // Newest format: 📰 Index: 000,001
         block = match[1];
-      } else if (match[3]) {
+        if (block.includes('[ERROR]')) typeStr = 'ERROR';
+        else if (block.includes('[SKIPPED]')) typeStr = 'SKIPPED';
+        else typeStr = 'WARNING';
+      } else if (match[2]) {
+        // New format: Index: 1 [WARNING],
+        block = match[2];
         typeStr = match[3];
-        block = match[4];
-      } else if (match[5]) {
-        typeStr = match[5];
-        block = match[6];
+      } else if (match[4]) {
+        // Old 1: =====WARNING START=====
+        block = match[0];
+        typeStr = match[4];
+      } else if (match[6]) {
+        // Old 2: [WARNING] === Alert Entry ===
+        block = match[0];
+        typeStr = match[6];
       }
 
       if (!typeStr || !block) continue;
@@ -188,6 +198,7 @@ export class AlertLogger {
 
     for (const line of lines) {
       const cleanLine = line
+        .replace(/^📰\s*/, '')
         .replace(/^\[(WARNING|ERROR|SKIPPED)\]\s*/, '')
         .replace(/^=====(WARNING|ERROR|SKIPPED) START=====\s*/, '');
       if (cleanLine.startsWith('Index:')) {
@@ -301,9 +312,13 @@ export class AlertLogger {
 
   private formatAlertEntry(alert: Alert): string[] {
     const isNewFormat = true;
+    const formattedIndex = alert.index
+      .toString()
+      .padStart(6, '0')
+      .replace(/(\d{3})(\d{3})/, '$1,$2');
     if (isNewFormat && alert.type === 'warning') {
       const entry = [
-        `Index: ${alert.index} [WARNING],`,
+        `📰 Index: ${formattedIndex}`,
         `Timestamp: ${alert.timestamp}`,
         `👤 Full name: ${alert.contact.firstName} ${alert.contact.lastName || ''}`.trim() +
           (alert.contact.company?.startsWith('LinkedIn')
@@ -336,7 +351,7 @@ export class AlertLogger {
 
     const typePrefix = alert.type.toUpperCase();
     const entry = [
-      `Index: ${alert.index} [${typePrefix}],`,
+      `📰 Index: ${formattedIndex}`,
       `Timestamp: ${alert.timestamp}`,
       `[${typePrefix}] Contact:`,
       `[${typePrefix}]   -FirstName: ${alert.contact.firstName}`,
@@ -385,7 +400,7 @@ export class AlertLogger {
       this.currentCounter++;
       this.filePath = join(
         LOG_CONFIG.logDir,
-        `${this.scriptName}_alerts-${this.currentCounter}.log`
+        `${this.scriptName}_alerts-${this.currentCounter}.txt`
       );
     }
 
@@ -416,7 +431,7 @@ export class AlertLogger {
     try {
       const files = await fs.readdir(LOG_CONFIG.logDir);
       const alertFiles = files.filter(
-        (f) => f.startsWith(`${this.scriptName}_alerts-`) && f.endsWith('.log')
+        (f) => f.startsWith(`${this.scriptName}_alerts-`) && f.endsWith('.txt')
       );
 
       for (const file of alertFiles) {
@@ -429,7 +444,7 @@ export class AlertLogger {
       this.currentCounter = 1;
       this.filePath = join(
         LOG_CONFIG.logDir,
-        `${this.scriptName}_alerts-1.log`
+        `${this.scriptName}_alerts-1.txt`
       );
       this.previouslyAlertedCount = 0;
     } catch (error: unknown) {
@@ -466,7 +481,7 @@ export class AlertLogger {
     try {
       const files = await fs.readdir(LOG_CONFIG.logDir);
       const alertFiles = files.filter(
-        (f) => f.startsWith(`${this.scriptName}_alerts-`) && f.endsWith('.log')
+        (f) => f.startsWith(`${this.scriptName}_alerts-`) && f.endsWith('.txt')
       );
       for (const file of alertFiles) {
         await fs.unlink(join(LOG_CONFIG.logDir, file));
@@ -479,7 +494,7 @@ export class AlertLogger {
       this.currentCounter = 1;
       this.filePath = join(
         LOG_CONFIG.logDir,
-        `${this.scriptName}_alerts-1.log`
+        `${this.scriptName}_alerts-1.txt`
       );
       return;
     }
@@ -490,7 +505,7 @@ export class AlertLogger {
       const counter = Math.floor(i / this.maxAlertsPerFile) + 1;
       const fullPath = join(
         LOG_CONFIG.logDir,
-        `${this.scriptName}_alerts-${counter}.log`
+        `${this.scriptName}_alerts-${counter}.txt`
       );
 
       const entries: string[] = [];

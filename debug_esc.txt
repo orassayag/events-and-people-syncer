@@ -1,0 +1,80 @@
+[2026-04-30T16:12:14.563Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T16:12:15.178Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T16:12:15.178Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:12:15.179Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:12:15.181Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T16:12:17.269Z] [prompts] runPrompt: prompt.run() resolved — "♻️  Clear Cache         - Clear all cached data (company mappings, folder mappings, contacts)"
+[2026-04-30T16:12:17.270Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:12:17.271Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:12:17.276Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T16:12:18.146Z] [prompts] runPrompt: prompt.run() resolved — "♻️  Clear Logs          - Clear all log files from the logs folder"
+[2026-04-30T16:12:18.146Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:12:18.147Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:12:18.152Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T16:12:20.328Z] [prompts] runPrompt: prompt.run() resolved — "🔗 LinkedIn Sync       - Syncs LinkedIn connections from exported CSV to Google Contacts"
+[2026-04-30T16:12:20.329Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:12:20.330Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:12:44.136Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T16:18:36.487Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-04-30T16:18:36.488Z] [prompts] recordEsc: t=1777565916488
+[2026-04-30T16:18:36.493Z] [prompts] runPrompt: prompt.run() rejected — 
+[2026-04-30T16:18:36.493Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:18:36.495Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:18:41.077Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T16:18:41.925Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T16:18:41.926Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:18:41.926Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:18:41.928Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T16:18:42.915Z] [prompts] runPrompt: prompt.run() resolved — "♻️  Clear Logs          - Clear all log files from the logs folder"
+[2026-04-30T16:18:42.915Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:18:42.916Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:18:42.920Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T16:18:43.926Z] [prompts] runPrompt: prompt.run() resolved — "♻️  Clear Cache         - Clear all cached data (company mappings, folder mappings, contacts)"
+[2026-04-30T16:18:43.926Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:18:43.927Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:18:43.930Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T16:18:52.837Z] [prompts] runPrompt: prompt.run() resolved — "🔗 LinkedIn Sync       - Syncs LinkedIn connections from exported CSV to Google Contacts"
+[2026-04-30T16:18:52.837Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:18:52.838Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:19:29.701Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T16:23:19.872Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-04-30T16:23:19.873Z] [prompts] recordEsc: t=1777566199873
+[2026-04-30T16:23:19.877Z] [prompts] runPrompt: prompt.run() rejected — 
+[2026-04-30T16:23:19.877Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:23:19.878Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:23:26.250Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T16:23:26.662Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T16:23:26.662Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:23:26.664Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:23:26.666Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T16:23:27.716Z] [prompts] runPrompt: prompt.run() resolved — "♻️  Clear Logs          - Clear all log files from the logs folder"
+[2026-04-30T16:23:27.717Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:23:27.717Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:23:27.721Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T16:23:28.636Z] [prompts] runPrompt: prompt.run() resolved — "♻️  Clear Cache         - Clear all cached data (company mappings, folder mappings, contacts)"
+[2026-04-30T16:23:28.637Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:23:28.637Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:23:28.640Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T16:23:30.910Z] [prompts] runPrompt: prompt.run() resolved — "📝 Events & Jobs Sync  - Create notes and contacts for job interviews and life events"
+[2026-04-30T16:23:30.910Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:23:30.911Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:23:31.105Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T16:23:32.314Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-04-30T16:23:32.314Z] [prompts] recordEsc: t=1777566212314
+[2026-04-30T16:23:32.318Z] [prompts] runPrompt: prompt.run() rejected — 
+[2026-04-30T16:23:32.319Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:23:32.320Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:23:36.758Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T16:23:38.132Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T16:23:38.133Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:23:38.134Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:23:38.135Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T16:23:39.146Z] [prompts] runPrompt: prompt.run() resolved — "🔗 LinkedIn Sync       - Syncs LinkedIn connections from exported CSV to Google Contacts"
+[2026-04-30T16:23:39.146Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:23:39.146Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:23:57.093Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T16:24:27.015Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-04-30T16:24:27.016Z] [prompts] recordEsc: t=1777566267016
+[2026-04-30T16:24:27.017Z] [prompts] runPrompt: prompt.run() rejected — 
+[2026-04-30T16:24:27.018Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:24:27.018Z] [prompts] runPrompt: cleanup finished

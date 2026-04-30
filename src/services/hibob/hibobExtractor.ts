@@ -1,5 +1,6 @@
 import { injectable } from 'inversify';
-import { readFile } from 'fs/promises';
+import { readFile, readdir } from 'fs/promises';
+import { join } from 'path';
 import { HibobContact, ContactType } from '../../types';
 import { SETTINGS } from '../../settings';
 import { Logger } from '../../logging';
@@ -10,8 +11,14 @@ import { FormatUtils } from '../../constants';
 @injectable()
 export class HibobExtractor {
   private logger: Logger = new Logger('HibobExtractor');
-  async extract(): Promise<HibobContact[]> {
-    const filePath = await validateAndResolveFilePath(SETTINGS.hibob.filePath);
+  private readonly sourcesPath: string;
+
+  constructor() {
+    this.sourcesPath = SETTINGS.linkedin.sourcesPath; // Reuse same sources path
+  }
+
+  async extract(): Promise<{ contacts: HibobContact[]; filePath: string }> {
+    const filePath = await this.findHibobFile();
     this.logger.info(`Reading HiBob file: ${filePath}`);
     const fileContent = await readFile(filePath, 'utf-8');
     if (fileContent.startsWith('\uFEFF')) {
@@ -54,7 +61,39 @@ export class HibobExtractor {
     this.logger.info(
       `After deduplication: ${FormatUtils.formatNumberWithLeadingZeros(uniqueContacts.length)} unique contacts`
     );
-    return uniqueContacts;
+    return { contacts: uniqueContacts, filePath };
+  }
+
+  private async findHibobFile(): Promise<string> {
+    try {
+      const files: string[] = await readdir(this.sourcesPath);
+      const hibobFiles: string[] = files.filter((file: string) => {
+        const lower: string = file.toLowerCase();
+        return (
+          (lower.endsWith('.txt') || lower.endsWith('.json')) &&
+          lower.includes('hibob')
+        );
+      });
+
+      if (hibobFiles.length === 0) {
+        throw new Error(
+          `HiBob file not found in ${this.sourcesPath}. Expected a .txt or .json file containing "hibob" in the filename`
+        );
+      }
+
+      if (hibobFiles.length > 1) {
+        throw new Error(
+          `Multiple HiBob files found in ${this.sourcesPath}: ${hibobFiles.join(', ')}. Please keep only one HiBob file`
+        );
+      }
+
+      const foundPath = join(this.sourcesPath, hibobFiles[0]);
+      return await validateAndResolveFilePath(foundPath);
+    } catch (error: unknown) {
+      const errorMessage: string =
+        error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to find HiBob file: ${errorMessage}`);
+    }
   }
 
   private parseSimpleLine(line: string, lineNumber: number): HibobContact[] {

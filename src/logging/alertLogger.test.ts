@@ -7,35 +7,22 @@ import { LOG_CONFIG } from './logConfig';
 const TEST_SCRIPT_NAME = 'test-script';
 const TEST_FILE_PATH = join(
   LOG_CONFIG.logDir,
-  `${TEST_SCRIPT_NAME}_alerts-1.log`
-);
-const OLD_TEST_FILE_PATH = join(
-  LOG_CONFIG.logDir,
-  `${TEST_SCRIPT_NAME}_ALERTS.log`
+  `${TEST_SCRIPT_NAME}_alerts-1.txt`
 );
 
 async function cleanupTestFile(): Promise<void> {
   try {
-    await fs.unlink(TEST_FILE_PATH);
-  } catch (error: unknown) {
-    if (
-      error instanceof Error &&
-      'code' in error &&
-      (error as any).code !== 'ENOENT'
-    ) {
-      throw error;
+    const files = await fs.readdir(LOG_CONFIG.logDir);
+    for (const file of files) {
+      if (
+        file.startsWith(TEST_SCRIPT_NAME) &&
+        (file.endsWith('.log') || file.endsWith('.txt'))
+      ) {
+        await fs.unlink(join(LOG_CONFIG.logDir, file));
+      }
     }
-  }
-  try {
-    await fs.unlink(OLD_TEST_FILE_PATH);
-  } catch (error: unknown) {
-    if (
-      error instanceof Error &&
-      'code' in error &&
-      (error as any).code !== 'ENOENT'
-    ) {
-      throw error;
-    }
+  } catch {
+    // Ignore error if directory doesn't exist
   }
 }
 
@@ -116,7 +103,7 @@ describe.sequential('AlertLogger', () => {
       );
       expect(logger.hasAlerts()).toBe(true);
       const content = await fs.readFile(TEST_FILE_PATH, 'utf-8');
-      expect(content).toContain('[WARNING]');
+      expect(content).toContain('📰 Index: 000,001');
       expect(content).toContain('Jane');
       expect(content).toContain('Smith');
       expect(content).toContain('jane@example.com');
@@ -136,6 +123,7 @@ describe.sequential('AlertLogger', () => {
         'API failure'
       );
       const content = await fs.readFile(TEST_FILE_PATH, 'utf-8');
+      expect(content).toContain('📰 Index: 000,001');
       expect(content).toContain('[ERROR]');
       expect(content).toContain('Bob');
       expect(content).toContain('API failure');
@@ -153,6 +141,7 @@ describe.sequential('AlertLogger', () => {
         'Missing email'
       );
       const content = await fs.readFile(TEST_FILE_PATH, 'utf-8');
+      expect(content).toContain('📰 Index: 000,001');
       expect(content).toContain('[SKIPPED]');
       expect(content).toContain('Alice');
       expect(content).toContain('Missing email');
@@ -641,7 +630,7 @@ ALSO CORRUPTED
       await fs.writeFile(TEST_FILE_PATH, content, 'utf-8');
       const logger = new AlertLogger(TEST_SCRIPT_NAME);
       await expect(logger.initialize()).rejects.toThrow(
-        /Alert file is fully corrupted/
+        /Alert files are fully corrupted/
       );
     });
   });

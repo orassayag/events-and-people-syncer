@@ -9,12 +9,13 @@ import {
 
 vi.mock('fs', () => ({
   promises: {
-    readdir: vi.fn(),
-    stat: vi.fn(),
-    access: vi.fn(),
-    readFile: vi.fn(),
-    writeFile: vi.fn(),
-    mkdir: vi.fn(),
+    readdir: vi.fn().mockResolvedValue([]),
+    stat: vi.fn().mockResolvedValue({ isFile: () => true }),
+    access: vi.fn().mockResolvedValue(undefined),
+    readFile: vi.fn().mockResolvedValue(''),
+    writeFile: vi.fn().mockResolvedValue(undefined),
+    appendFile: vi.fn().mockResolvedValue(undefined),
+    mkdir: vi.fn().mockResolvedValue(undefined),
   },
 }));
 
@@ -23,7 +24,6 @@ vi.mock('../../../settings', () => ({
     linkedin: {
       sourcesPath: '/tmp/sources',
       cachePath: '/tmp/cache',
-      zipFileName: 'test.zip',
       cacheExpirationDays: 1,
     },
   },
@@ -31,14 +31,15 @@ vi.mock('../../../settings', () => ({
 
 vi.mock('adm-zip', () => {
   return {
-    default: vi.fn().mockImplementation(() => ({
-      getEntries: vi.fn().mockReturnValue([
+    default: vi.fn().mockImplementation(function () {
+      this.getEntries = vi.fn().mockReturnValue([
         {
           entryName: 'connections.csv',
           getData: vi.fn().mockReturnValue(Buffer.from(MOCK_CSV_CONTENT)),
         },
-      ]),
-    })),
+      ]);
+      return this;
+    }),
   };
 });
 
@@ -47,6 +48,42 @@ describe('LinkedInExtractor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     extractor = new LinkedInExtractor();
+  });
+
+  describe('extract', () => {
+    it('should extract connections and return file path', async () => {
+      const fs = await import('fs');
+      vi.mocked(fs.promises.readdir).mockResolvedValue([
+        'LinkedInData.zip',
+      ] as any);
+      vi.mocked(fs.promises.readFile).mockResolvedValue(MOCK_CSV_CONTENT);
+
+      const result = await extractor.extract();
+      expect(result.connections).toBeDefined();
+      expect(result.connections.length).toBeGreaterThan(0);
+      expect(result.filePath).toContain('LinkedInData.zip');
+    });
+
+    it('should throw error if no ZIP file found', async () => {
+      const fs = await import('fs');
+      vi.mocked(fs.promises.readdir).mockResolvedValue([]);
+
+      await expect(extractor.extract()).rejects.toThrow(
+        /LinkedIn ZIP file not found/
+      );
+    });
+
+    it('should throw error if multiple ZIP files found', async () => {
+      const fs = await import('fs');
+      vi.mocked(fs.promises.readdir).mockResolvedValue([
+        'linkedin_export_1.zip',
+        'linkedin_export_2.zip',
+      ] as any);
+
+      await expect(extractor.extract()).rejects.toThrow(
+        /Multiple LinkedIn ZIP files found/
+      );
+    });
   });
 
   describe('CSV parsing', () => {
@@ -62,13 +99,19 @@ describe('LinkedInExtractor', () => {
       });
     });
     it('should skip rows with missing required fields', async () => {
-      await expect((extractor as any).parseCsv(MOCK_INVALID_CSV_MISSING_REQUIRED)).rejects.toThrow();
+      await expect(
+        (extractor as any).parseCsv(MOCK_INVALID_CSV_MISSING_REQUIRED)
+      ).rejects.toThrow();
     });
     it('should skip rows with company URLs', async () => {
-      await expect((extractor as any).parseCsv(MOCK_INVALID_CSV_COMPANY_URL)).rejects.toThrow();
+      await expect(
+        (extractor as any).parseCsv(MOCK_INVALID_CSV_COMPANY_URL)
+      ).rejects.toThrow();
     });
     it('should detect duplicate URLs within CSV', async () => {
-      const connections = await (extractor as any).parseCsv(MOCK_DUPLICATE_URL_CSV);
+      const connections = await (extractor as any).parseCsv(
+        MOCK_DUPLICATE_URL_CSV
+      );
       expect(connections).toHaveLength(1);
     });
     it('should trim all field values', async () => {

@@ -28,7 +28,6 @@ export interface Settings {
     tokenFile: string;
   };
   linkedin: {
-    zipFileName: string;
     sourcesPath: string;
     cachePath: string;
     companyFoldersPath: string;
@@ -41,7 +40,6 @@ export interface Settings {
     testConnectionLimit: number | null;
   };
   hibob: {
-    filePath: string;
     writeDelayMs: number;
     testContactLimit: number | null;
   };
@@ -100,8 +98,6 @@ export const SETTINGS: Settings = {
     tokenFile: join(__dirname, '..', '..', 'token.json'),
   },
   linkedin: {
-    // Current ZIP file name for reference (script finds it dynamically)
-    zipFileName: 'Basic_LinkedInDataExport_04-22-2026.zip.zip',
     sourcesPath: join(__dirname, '..', '..', 'sources'),
     cachePath: join(__dirname, '..', '..', 'sources', '.cache'),
     companyFoldersPath: 'C:\\Or\\job-interviews',
@@ -126,7 +122,6 @@ export const SETTINGS: Settings = {
       : null,
   },
   hibob: {
-    filePath: join(__dirname, '..', '..', 'sources', 'hibob.txt'),
     writeDelayMs: 2500,
     testContactLimit: null,
   },

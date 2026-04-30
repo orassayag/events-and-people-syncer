@@ -37,8 +37,8 @@ Jane,Smith,https://www.linkedin.com/in/jane-smith-456,,Google Inc,Product Manage
 Bob,Johnson,https://www.linkedin.com/in/bob-johnson-789,bob@startup.io,,CEO,20 Mar 2024`;
 
 export const MOCK_INVALID_CSV_MISSING_REQUIRED = `First Name,Last Name,URL,Email Address,Company,Position,Connected On
-John,,https://www.linkedin.com/in/john-doe,,Microsoft,Engineer,01 Jan 2024
-,Smith,https://www.linkedin.com/in/jane-smith,jane@test.com,Google,PM,15 Feb 2024`;
+,,https://www.linkedin.com/in/john-doe,,Microsoft,Engineer,01 Jan 2024
+John,Doe,,,Google,PM,15 Feb 2024`;
 
 export const MOCK_INVALID_CSV_COMPANY_URL = `First Name,Last Name,URL,Email Address,Company,Position,Connected On
 John,Doe,https://www.linkedin.com/company/microsoft,john@test.com,Microsoft,Engineer,01 Jan 2024`;

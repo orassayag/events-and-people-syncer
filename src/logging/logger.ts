@@ -198,7 +198,7 @@ export class Logger {
   }
 
   private async writeToFile(entry: LogEntry): Promise<void> {
-    const logFilePath: string = join(LOG_CONFIG.logDir, 'app.log');
+    const logFilePath: string = join(LOG_CONFIG.logDir, 'app.txt');
     const logLine: string = JSON.stringify(entry) + '\n';
     try {
       await fs.mkdir(LOG_CONFIG.logDir, { recursive: true });

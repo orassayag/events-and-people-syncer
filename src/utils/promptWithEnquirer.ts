@@ -14,7 +14,7 @@ import { SearchableMultiSelect } from './searchableMultiselect';
 
 function dlog(msg: string) {
   const timestamp = new Date().toISOString();
-  fs.appendFileSync('debug_esc.log', `[${timestamp}] [prompts] ${msg}\n`);
+  fs.appendFileSync('debug_esc.txt', `[${timestamp}] [prompts] ${msg}\n`);
 }
 
 export {

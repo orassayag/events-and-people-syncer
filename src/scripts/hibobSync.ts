@@ -1,6 +1,5 @@
 import { injectable, inject } from 'inversify';
 import readline from 'readline';
-import path from 'path';
 import type { OAuth2Client, ContactGroup, Script } from '../types';
 import {
   MatchType,
@@ -8,7 +7,6 @@ import {
   SyncStatusType,
   SyncStatus,
   SyncResult,
-  HibobContact,
   Alert,
   ALERT_REASONS,
 } from '../types';
@@ -94,11 +92,10 @@ export class HibobSyncScript {
     try {
       this.uiLogger.display('Starting HiBob Sync');
       await logger.logMain('HiBob Sync started');
-      const filePath = path.resolve(SETTINGS.hibob.filePath);
+      this.uiLogger.display('Extracting HiBob contacts from file');
+      const { contacts, filePath } = await this.extractor.extract();
       this.uiLogger.display(`File path: ${filePath}`);
       await logger.logMain(`File path: ${filePath}`);
-      this.uiLogger.display('Extracting HiBob contacts from file');
-      const contacts: HibobContact[] = await this.extractor.extract();
       this.uiLogger.breakline();
       await logger.logMain(`Extracted ${contacts.length} HiBob contacts`);
       if (contacts.length === 0) {
