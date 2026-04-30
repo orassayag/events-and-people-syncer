@@ -1,9 +1,7 @@
 import { injectable, inject } from 'inversify';
 import readline from 'readline';
-import path from 'path';
 import type { OAuth2Client, Script } from '../types';
 import {
-  LinkedInConnection,
   MatchType,
   MatchResult,
   SyncStatusType,
@@ -125,9 +123,9 @@ export class LinkedInSyncScript {
       this.uiLogger.display('Starting LinkedIn Sync');
       await logger.logMain('LinkedIn Sync started');
       this.uiLogger.display('Extracting LinkedIn connections from ZIP');
-      const connections: LinkedInConnection[] = await this.extractor.extract();
+      const { connections, filePath } = await this.extractor.extract();
       await logger.logMain(
-        `Extracted ${connections.length} LinkedIn connections`
+        `Extracted ${connections.length} LinkedIn connections from ${filePath}`
       );
       this.uiLogger.display(
         `LinkedIn CSV: Found ${FormatUtils.formatNumberWithLeadingZeros(connections.length)} connections`
@@ -185,11 +183,7 @@ export class LinkedInSyncScript {
       this.duplicateDetector['fetchAllContacts'] = originalFetch;
       await this.contactSyncer.initialize();
       await logger.logMain('Contact syncer initialized');
-      const zipPath = path.join(
-        SETTINGS.linkedin.sourcesPath,
-        SETTINGS.linkedin.zipFileName
-      );
-      statusBar.setFilePath(zipPath);
+      statusBar.setFilePath(filePath);
       const previousCounts = alertLogger.getAlertCounts();
       statusBar.startProcessPhase(connectionsToProcess.length, previousCounts);
       const status: SyncStatus = {

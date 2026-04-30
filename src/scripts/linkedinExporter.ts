@@ -22,7 +22,8 @@ export class LinkedInExporterScript {
 
     let connections: LinkedInConnection[];
     try {
-      connections = await this.extractor.extract();
+      const result = await this.extractor.extract();
+      connections = result.connections;
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';

@@ -100,7 +100,8 @@ export const SETTINGS: Settings = {
     tokenFile: join(__dirname, '..', '..', 'token.json'),
   },
   linkedin: {
-    zipFileName: 'Basic_LinkedInDataExport_03-11-2026.zip',
+    // Current ZIP file name for reference (script finds it dynamically)
+    zipFileName: 'Basic_LinkedInDataExport_04-22-2026.zip.zip',
     sourcesPath: join(__dirname, '..', '..', 'sources'),
     cachePath: join(__dirname, '..', '..', 'sources', '.cache'),
     companyFoldersPath: 'C:\\Or\\job-interviews',

@@ -25,11 +25,12 @@ export class LinkedInExtractor {
     this.sourcesPath = SETTINGS.linkedin.sourcesPath;
   }
 
-  async extract(): Promise<LinkedInConnection[]> {
+  async extract(): Promise<{ connections: LinkedInConnection[]; filePath: string }> {
     await this.errorLogger.initialize();
     const zipPath: string = await this.findZipFile();
     const csvContent: string = await this.extractCsvFromZip(zipPath);
-    return await this.parseCsv(csvContent);
+    const connections = await this.parseCsv(csvContent);
+    return { connections, filePath: zipPath };
   }
 
   private async findZipFile(): Promise<string> {
