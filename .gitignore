@@ -30,3 +30,6 @@ api-stats.json
 
 # Tests
 coverage
+
+# Sensitive Data
+misc/plan-sources/Connections-*.csv
