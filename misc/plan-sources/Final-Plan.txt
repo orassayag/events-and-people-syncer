@@ -1,0 +1,350 @@
+I'm working on a custom manual script to take backup from LinkedIn and add the contacts into my Google contacts (using Google people api).
+I cleaned the company names and format them to capital letter on each start of word and remove white spaces.
+For example:
+Applied Metirials will be clean and formatted to:  AppliedMetirials
+
+Most of the companies from Israel and minority from aborad.
+
+The challange is the ones that have long names and i want to focus making them short by don't hurt the main name of the company.
+
+This is the complete and final plan of the company name refactoring:
+
+0. Keep the existing company name formatting. Once you finish with the cleanup, call a new function called "refactorCompanyName", which will do the following.
+1.1. Let's make sure we remove these from the names:  Ltd, Limited, Inc, LLC, Corp, Co, Holdings, Group, Technologies, Systems, International, Israel, Ltd, Inc, LLC, Ltd, LTD, Inc, LLC, Group, Israel, Technologies, Systems, Solutions, R&D, International, A (as in "A Salesforce Company").
+1.2. Handle special characters: & → And, é → e (Nestlé → Nestle).
+1.3. Known rebrands/acquisitions: Devalore → Abra, etc.
+1.4. Keep suffixes that are part of the brand: .com, .ai, .io, .fm, J.P., AT&T, eBay, SVT.Jobs, GlassesUSA.com
+
+
+2. I made a list of all the companies to make them even shorter. Here is a list of companies which need to be refactored:
+
+YouCCTechnologies = YouCC
+RafaelAdvanced = Rafael
+IsraelDefense = IDF
+IDFHome = IDF
+IsraeliMilitary = IDF
+StraussGroup = Strauss
+StraussWater = Strauss
+Monday = Monday.com
+StealthAI = Stealth
+StealthStartup = Stealth
+StealthCybersecurity = Stealth
+SodaStreamInternational = SodaStream
+Jobtime.israel = Jobtime
+InfinityLabsR&D = InfinityLabs
+DecathlonIsrael = Decathlon
+DecathlonInternational = Decathlon
+Wix.com = Wix
+AllJobs' = AllJobs
+DatoramaASalesforce = Datorama
+ExperisIsrael = Experis
+OSRR&D = OSR
+OSREnterprises = OSR
+MorningByGreen = Morning
+Www.leonid.co.il = Leonid
+AmazonWeb = Amazon
+DemocratechIsrael = Democratech
+SelfEmployes = SelfEmployed
+Self = SelfEmployed
+HarelFinance = Harel
+HarelInsurance = Harel
+PhoenixFinancial = Phoenix
+PhoenixInvestment = Phoenix
+PhoenixHoldings = Phoenix
+MigdalGroup = Migdal
+MigdalCapital = Migdal
+IsraeliAir = IDF
+ManpowerIsrael = Manpower
+ManpowerTBO = Manpower
+ManpowerGroupTalent = Manpower
+ManpowerGroupIsrael = Manpower
+TidharGroup = Tidhar
+NishaGroup = Nisha
+IPcom.co.il = IPcom
+Ofek324Unit = IDF
+Viz = Viz.ai
+SolarEdgeTechnologies = SolarEdge
+FreelanceIndependent = Freelance
+FreelanceRecruiting = Freelance
+FreelanceActing = Freelance
+IsraeliArmy = IDF
+GlassesUSA = GlassesUSA.com
+GOLFGROUP = GolfGroup
+FreelanceSelf = Freelance
+Hms = hms
+HMS = hms
+IsraeliNavy = IDF
+ManpowerCare = Manpower
+MercantileDiscount = DiscountBank
+AgoraRE = Agora
+DentsuIsrael = Dentsu
+PartnerIsrael = Partner
+HackerUThriveDX = ThriveDX
+DellTechnologies = Dell
+MatrixR&D = Matrix
+QualitestIsrael = Qualitest
+EToro = eToro
+AbraR&D = Abra
+NestléNespresso = Nestlé
+NetafimIsrael = Netafim
+IntuitiveIsrael = Intuitive
+PAPAYA = PapayaGlobal
+Papaya = PapayaGlobal
+Shift4Europe = Shift4
+SVTJobs = SVT.Jobs
+Svt.jobsRecruitment = SVT.Jobs
+TomerAGovernment = Tomer
+Mend = Mend.io
+AkamaiTechnologies = Akamai
+Anyclip.com = Anyclip
+COMBLACK = Comblack
+EBay = eBay
+RemitlyIsrael = Remitly
+BUYMETechnologies = BUYME
+TevaPharmaceuticals = Teva
+MALAM = MalamTeam
+ZIMIntegrated = ZIM
+Riverside = Riverside.fm
+REEAutomotive = REE
+MaofMe = Maof
+MaofHR = Maof
+ShebaTel = ShebaMedical
+PwCIsrael = PwC
+KPMGIsrael = KPMG
+SQLinkGroup = SQLink
+AT&TIsrael = AT&T
+CybereasonALevelBlue = Cybereason
+HH+ByIlan = HH+
+MamdaIDF = IDF
+J.P = J.P. Morgan
+EShop = eShop
+NICE = NiCE
+EricssonGlobal = Ericsson
+TheCenter = CET
+CompieTechnologies = Compie
+CompiePro = Compie
+InvencoByGVR = Invenco
+Unit9900 = IDF
+Unit8200 = IDF
+CalIsrael = Cal
+RafaelAdvancedDefenseSystems = Rafael
+RafaelAdvancedDefenseSystemsCareer = Rafael
+StraussWaterLtd = Strauss
+MercantileDiscountBankLtd = DiscountBank
+ManpowerTboIsrael = Manpower
+ManpowergroupIsrael = Manpower
+ManpowergroupTalentSolutions = Manpower
+ManpowergroupTalentSolutionsIsrael = Manpower
+ZimIntegratedShippingServices = ZIM
+SodastreamInternationalLtd = SodaStream
+AbraRDSolutionsFormerlyDevalore = Abra
+MatrixRDServices = Matrix
+ElbitSystemsIsrael = Elbit
+ElbitSystemsLtd = Elbit
+ElbitSystems = Elbit
+HarelInsuranceFinance = Harel
+MigdalCapitalMarkets = Migdal
+ClalInsurance = Clal
+ClalInsuranceFinance = Clal
+MertensHoffmanMalamTeam = MalamTeam
+SolaredgeTechnologies = SolarEdge
+NiceLtd = NiCE
+IntuitiveIsrael = Intuitive
+RemitlyIsraelFormerlyRewire = Remitly
+CheckPointSoftware = CheckPoint
+IaiIsraelAerospaceIndustries = IAI
+ElAlIsraelAirlines = ElAl
+IecIsraelElectricCorporation = IEC
+ClalitHealthServices = Clalit
+MaccabiHealthCareServices = Maccabi
+BankHapoalim = BankHapoalim
+BankHapoalimTechnologyDivision = BankHapoalim
+BankLeumi = BankLeumi
+IntelCorporation = Intel
+AmazonWebServicesAws = Amazon
+AmazonWeb = Amazon
+AWS = Amazon
+IclGroup = ICL
+BdoIsrael = BDO
+MenoraMivtachimGroup = Menora
+HewlettPackardEnterprise = HPE
+NessTechnologies = Ness
+CyberArkSoftware = CyberArk
+AmdocsIsrael = Amdocs
+NvidiaIsrael = NVIDIA
+IntelIsrael = Intel
+MetaIsrael = Meta
+GoogleIsrael = Google
+MicrosoftIsrael = Microsoft
+AbraRDSolutionsFormerlyDevalore = Abra
+AccentureArgentina = Accenture
+AppliedMaterialsIsrael = AppliedMaterials
+BankHapoalimTechnologyDivision = BankHapoalim
+CheckPointSoftwareTechnologiesLtd = CheckPoint
+ClalitHealthServices = Clalit
+ClalitInnovation = Clalit
+ElbitSystemsIsrael = Elbit
+ElbitSystemsLtd = Elbit
+IsraelAerospaceIndustries = IAI
+Iai = IAI
+IsraeliIntelligenceCorps = IDF
+Unit8200... = IDF
+MicrosoftR&D = Microsoft
+PaloAltoNetworks = PaloAlto
+SamsungResearchIsrael = Samsung
+TelAvivUniversity = TAU
+BenGurionUniversity → BGU
+Isracard → Isracard
+Cal (you have CalIsrael) → Cal
+Leumit Health Services / LeumitGroup → Leumit
+Clalit Health Services / Clalit → Clalit
+Maccabi Health / MaccabiHealthcare → Maccabi
+Meuhedet → Meuhedet
+Israel Electric Corporation → IEC
+IAI / Israel Aerospace Industries → IAI
+Elbit Systems / ElbitSystems → Elbit
+Israel Railways → IsraelRailways
+Israel Police / Israeli Police → IsraelPolice
+Ministry of Health → MOH
+Check Point Software / CheckPoint → CheckPoint
+Mobileye → keep Mobileye (already short)
+Amdocs → keep Amdocs
+JFrog → JFrog
+monday.com → Monday.com (as you did)
+SolarEdge → SolarEdge
+Teva → Teva
+Strauss → Strauss
+ElbitSystemsLtd / ElbitSystemsIsrael → Elbit
+All variations of Manpower → already covered
+Maof / MaofGroup → Maof (you have)
+HOT / HOTmobile → HOT
+Partner / PartnerCommunications → Partner
+Cellcom → Cellcom
+Bezeq → Bezeq
+Shufersal → Shufersal
+Osem / OsemNestle → Osem
+Tempo / TempoBeverages → Tempo
+Applied Materials Israel → AppliedMaterials
+Bank Hapoalim Technology Division → BankHapoalim
+Bank Mizrahi Tefahot → BankMizrahiTefahot
+Bank Otsar Ha-Hayal / Otsar Ha-Hayal → BankOtsarHaHayal
+Bank of Israel → BankOfIsrael
+Clal Insurance Finance → Clal
+Clalit Health Services / Clalit Innovation / Clalit IT Digital Division → Clalit
+Elbit Systems Israel / Elbit Systems Ltd → Elbit
+El Al Israel Airlines → El Al
+Israel Aerospace Industries / IAI → IAI
+Israel Electric Corporation / IEC → IEC
+Israel Railways → IsraelRailways
+Israel Post → IsraelPost
+Monday.com / monday.com → Monday.com.
+NICE / NICE Ltd / NICE Actimize → NiCE
+Payoneer → Payoneer
+Playtika → Playtika
+Taboola → Taboola
+Teva Pharmaceutical Industries / Teva Active Pharmaceutical Ingredients / Teva Pharmaceuticals → Teva
+WalkMe → WalkMe
+Wix.com → Wix
+Zerto → Zerto
+eToro → eToro
+Similarweb → Similarweb
+SolarEdge Technologies → SolarEdge
+
+
+3. One general note: your normalization will convert abra → Abra and matrix → Matrix due to title-casing, so make sure your comparison logic is case-insensitive when matching.
+4. Let's address Stealth by a rule:
+You already mapped:
+Stealth Variations: Your list covers several, but I found StealthModeStartup and StartupInStealthMode in the file. 
+A catch-all for any word containing Stealth mapping to Stealth would be efficient.
+
+StealthAI
+StealthStartup
+StealthCybersecurity
+
+👉 Replace all with rule:
+
+if (name.toLowerCase().includes('stealth')) return 'Stealth';
+
+5. Let's address Freelance by a rule:
+
+🧠 C. Freelance normalization (you did well, but can simplify)
+
+Instead of:
+
+FreelanceIndependent
+FreelanceRecruiting
+FreelanceActing
+FreelanceSelf
+
+👉 Rule:
+
+if (name.toLowerCase().includes('freelance')) return 'Freelance';
+
+Let's do the same for the words "Independent" and "SelfEmployed" (or just "Self" = "SelfEmployed")
+
+6. Let's address IDF / Unit detection rule:
+
+🧠 D. IDF / Unit detection (very useful in Israel data)
+
+You already handle:
+
+Unit8200
+Unit9900
+Ofek324Unit
+MamdaIDF
+
+👉 Better rule:
+
+if (/unit\s?\d{3,4}/i.test(name)) return 'IDF';
+if (name.toLowerCase().includes('idf')) return 'IDF';
+
+Israel Ministry of Defense / Israeli Defense Forces / Israeli Army / Israeli Navy / Israeli Air Force / Unit 8200 / Unit 9900 → IDF
+Israeli defense units: Anything with 8200, 9900, Mamram, Lotem, etc. → IDF
+
+7. Acquired companies:
+
+🧠 E. Salesforce / acquired companies
+
+Example:
+
+DatoramaASalesforce → Datorama
+
+👉 You can generalize:
+
+name.split('A').shift()
+
+Or detect:
+
+by
+a
+@
+via
+
+8. Consider Structural suggestion
+
+Instead of only mapping strings → strings, use:
+
+type Company = {
+  normalized: string;
+  original: string;
+  confidence?: number;
+};
+
+This helps when:
+
+mapping is uncertain
+you want to improve later
+
+9. Wix:
+
+You mapped Wix.com to Wix, but your script will format Wix.com as Wix.com (Capitalized).
+You should ensure your refactor list includes Wix.com (with the dot) if your cleaning script doesn't remove periods.
+
+10. SVT Jobs:
+SVTJobs and Svt.jobsRecruitment are mapped to SVT.Jobs. For a cleaner contact list, SVT.Jobs is often preferred over using a period.
+
+11. Removed the "Israel" in the end.
+-If the comany name ends with "Israel" remove the "israel" word.
+
+12. Legal/Consulting: 
+Many entries end in LawOffice, Co, or Ltd. You can programmatically strip these if they appear at the end of the string.

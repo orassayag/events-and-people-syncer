@@ -1,0 +1,155 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.wrap { padding: 1rem 0; }
+.section { margin-bottom: 2rem; }
+.section-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.section-desc { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 0.75rem; line-height: 1.5; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; padding: 8px 10px; font-weight: 500; font-size: 12px; color: var(--color-text-secondary); background: var(--color-background-secondary); border-bottom: 0.5px solid var(--color-border-tertiary); }
+td { padding: 7px 10px; border-bottom: 0.5px solid var(--color-border-tertiary); vertical-align: top; line-height: 1.5; }
+tr:last-child td { border-bottom: none; }
+.badge { display: inline-block; font-size: 11px; padding: 2px 7px; border-radius: 99px; font-weight: 500; }
+.b-ok { background: var(--color-background-success); color: var(--color-text-success); }
+.b-fix { background: var(--color-background-warning); color: var(--color-text-warning); }
+.b-new { background: var(--color-background-info); color: var(--color-text-info); }
+.b-q { background: var(--color-background-secondary); color: var(--color-text-secondary); }
+.orig { color: var(--color-text-secondary); font-size: 12px; }
+.arrow { color: var(--color-text-tertiary); margin: 0 4px; }
+.suggested { font-weight: 500; color: var(--color-text-primary); }
+.note { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+.filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+button.filter-btn { font-size: 12px; padding: 4px 12px; border-radius: 99px; border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-secondary); cursor: pointer; }
+button.filter-btn.active { background: var(--color-background-info); color: var(--color-text-info); border-color: var(--color-border-info); }
+.count-badge { font-size: 11px; background: var(--color-background-secondary); color: var(--color-text-tertiary); padding: 1px 6px; border-radius: 99px; margin-left: 4px; }
+</style>
+
+<div class="wrap">
+<h2 class="sr-only">Company name mapping review — corrections and suggestions</h2>
+
+<div class="filter-row">
+  <button class="filter-btn active" onclick="filter('all', this)">All <span class="count-badge" id="cnt-all">0</span></button>
+  <button class="filter-btn" onclick="filter('fix', this)">Corrections <span class="count-badge" id="cnt-fix">0</span></button>
+  <button class="filter-btn" onclick="filter('new', this)">New suggestions <span class="count-badge" id="cnt-new">0</span></button>
+  <button class="filter-btn" onclick="filter('ok', this)">Confirmed ok <span class="count-badge" id="cnt-ok">0</span></button>
+  <button class="filter-btn" onclick="filter('q', this)">Questions <span class="count-badge" id="cnt-q">0</span></button>
+</div>
+
+<table id="main-table">
+<thead><tr>
+  <th style="width:36%">Normalized name (from CSV)</th>
+  <th style="width:22%">Your mapping</th>
+  <th style="width:22%">Verdict / suggestion</th>
+  <th style="width:20%">Notes</th>
+</tr></thead>
+<tbody id="tbody"></tbody>
+</table>
+</div>
+
+<script>
+const rows = [
+
+  { type:"fix", orig:"RafaelAdvancedDefenseSystems", yours:"Rafael", suggest:"Rafael", note:"CSV also has 'Rafael Advanced Defense Systems Career' — both → Rafael" },
+  { type:"fix", orig:"RafaelAdvancedDefenseSystemsCareer", yours:"(missing)", suggest:"Rafael", note:"Variant in your CSV not in your list" },
+
+  { type:"fix", orig:"StraussWaterLtd", yours:"Strauss (via StraussWater)", suggest:"Strauss", note:"CSV version has 'Ltd' appended — add StraussWaterLtd → Strauss" },
+  { type:"fix", orig:"MercantileDiscountBankLtd", yours:"DiscountBank (via MercantileDiscount)", suggest:"DiscountBank", note:"CSV has full 'Mercantile Discount Bank Ltd' — update key" },
+  { type:"fix", orig:"ManpowerTboIsrael", yours:"Manpower (via ManpowerTBO)", suggest:"Manpower", note:"CSV is 'Manpower TBO Israel' → ManpowerTboIsrael" },
+  { type:"fix", orig:"ManpowergroupIsrael", yours:"Manpower (via ManpowerGroupIsrael)", suggest:"Manpower", note:"CSV: ManpowerGroup Israel — casing differs" },
+  { type:"fix", orig:"ManpowergroupTalentSolutions", yours:"(missing)", suggest:"Manpower", note:"'ManpowerGroup Talent Solutions' not in your list" },
+  { type:"fix", orig:"ManpowergroupTalentSolutionsIsrael", yours:"(missing)", suggest:"Manpower", note:"'ManpowerGroup Talent solutions Israel' variant missing" },
+  { type:"fix", orig:"ZimIntegratedShippingServices", yours:"ZIM (via ZIMIntegrated)", suggest:"ZIM", note:"Full name in CSV is 'ZIM Integrated Shipping Services'" },
+  { type:"fix", orig:"SodastreamInternationalLtd", yours:"SodaStream (via SodaStreamInternational)", suggest:"SodaStream", note:"CSV appends 'Ltd'" },
+  { type:"fix", orig:"AbraRDSolutionsFormerlyDevalore", yours:"Abra (via AbraR&D)", suggest:"Abra", note:"CSV version is 'abra R D Solutions formerly Devalore'" },
+  { type:"fix", orig:"MatrixRDServices", yours:"Matrix (via MatrixR&D)", suggest:"Matrix", note:"CSV: 'matrix R D Services'" },
+  { type:"fix", orig:"ElbitSystemsIsrael", yours:"(missing)", suggest:"Elbit", note:"Three Elbit variants in CSV: ElbitSystems, ElbitSystemsIsrael, ElbitSystemsLtd" },
+  { type:"fix", orig:"ElbitSystemsLtd", yours:"(missing)", suggest:"Elbit", note:"See above" },
+  { type:"fix", orig:"ElbitSystems", yours:"(missing)", suggest:"Elbit", note:"See above" },
+  { type:"fix", orig:"HarelInsuranceFinance", yours:"Harel (via HarelInsurance + HarelFinance)", suggest:"Harel", note:"'Harel Insurance Finance' is a combined variant not in your list" },
+  { type:"fix", orig:"MigdalCapitalMarkets", yours:"Migdal (via MigdalCapital)", suggest:"Migdal", note:"CSV is 'Migdal Capital Markets', not just 'Migdal Capital'" },
+  { type:"fix", orig:"ClalInsurance", yours:"(missing)", suggest:"Clal", note:"Clal Insurance + Clal Insurance Finance both in CSV — new company to add" },
+  { type:"fix", orig:"ClalInsuranceFinance", yours:"(missing)", suggest:"Clal", note:"See above" },
+  { type:"fix", orig:"MertensHoffmanMalamTeam", yours:"MalamTeam (via MALAM)", suggest:"MalamTeam", note:"'Mertens Hoffman Malam Team' is another variant" },
+  { type:"fix", orig:"SolaredgeTechnologies", yours:"SolarEdge (via SolarEdgeTechnologies)", suggest:"SolarEdge", note:"Confirm casing: CSV becomes SolaredgeTechnologies (titlecase)" },
+  { type:"fix", orig:"NiceLtd", yours:"NiCE (via NICE)", suggest:"NiCE", note:"'NICE Ltd' in CSV — add this variant" },
+  { type:"fix", orig:"IntuitiveIsrael", yours:"Intuitive (via IntuitiveIsrael)", suggest:"Intuitive", note:"Also 'Intuitive Solutions' in CSV — different company, don't conflate" },
+  { type:"fix", orig:"RemitlyIsraelFormerlyRewire", yours:"Remitly (via RemitlyIsrael)", suggest:"Remitly", note:"CSV has longer form 'Remitly Israel formerly Rewire'" },
+
+  { type:"new", orig:"CheckPointSoftware", yours:"(missing)", suggest:"CheckPoint", note:"'Check Point Software' and 'Check Point Software Technologies Ltd' both in CSV" },
+  { type:"new", orig:"IaiIsraelAerospaceIndustries", yours:"(missing)", suggest:"IAI", note:"Key Israeli defense company — in CSV" },
+  { type:"new", orig:"ElAlIsraelAirlines", yours:"(missing)", suggest:"ElAl", note:"National airline — in CSV" },
+  { type:"new", orig:"IecIsraelElectricCorporation", yours:"(missing)", suggest:"IEC", note:"In CSV" },
+  { type:"new", orig:"ClalitHealthServices", yours:"(missing)", suggest:"Clalit", note:"Major Israeli HMO — in CSV" },
+  { type:"new", orig:"MaccabiHealthCareServices", yours:"(missing)", suggest:"Maccabi", note:"Second major Israeli HMO — in CSV" },
+  { type:"new", orig:"BankHapoalim / BankHapoalimTechnologyDivision", yours:"(missing)", suggest:"BankHapoalim", note:"Both variants in CSV" },
+  { type:"new", orig:"BankLeumi", yours:"(missing)", suggest:"BankLeumi", note:"In CSV" },
+  { type:"new", orig:"IntelCorporation", yours:"(missing)", suggest:"Intel", note:"In CSV" },
+  { type:"new", orig:"AmazonWebServicesAws", yours:"AmazonWeb → Amazon", suggest:"Amazon (or AWS)", note:"Full form in CSV is 'Amazon Web Services AWS'" },
+  { type:"new", orig:"IclGroup", yours:"(missing)", suggest:"ICL", note:"Israel Chemicals — in CSV" },
+  { type:"new", orig:"BdoIsrael", yours:"(missing)", suggest:"BDO", note:"Accounting firm — in CSV" },
+  { type:"new", orig:"MenoraMivtachimGroup", yours:"(missing)", suggest:"Menora", note:"Major Israeli insurer — in CSV" },
+  { type:"new", orig:"HewlettPackardEnterprise", yours:"(missing)", suggest:"HPE", note:"In CSV; note: distinct from HP consumer" },
+  { type:"new", orig:"NessTechnologies", yours:"(missing)", suggest:"Ness", note:"IT firm in CSV" },
+
+  { type:"q", orig:"MorningByGreen", yours:"Morning", suggest:"Morning?", note:"Confirm this is 'Morning' the Israeli grocery delivery app — or a different company" },
+  { type:"q", orig:"TheCenter → CET", yours:"CET", suggest:"CET", note:"Is this the Center for Educational Technology (מרכז לטכנולוגיה חינוכית)? If so CET is correct" },
+  { type:"q", orig:"NICE → NiCE", yours:"NiCE", suggest:"NiCE vs NICE", note:"Official brand is 'NICE' (all caps). NiCE is non-standard — confirm intentional" },
+  { type:"q", orig:"EToro → eToro", yours:"eToro", suggest:"eToro", note:"Correct — official branding is eToro lowercase e" },
+  { type:"q", orig:"Papaya / PapayaGlobal → PAPAYA", yours:"PAPAYA", suggest:"PAPAYA", note:"Official brand is 'Papaya Global' — all-caps PAPAYA is non-standard, confirm" },
+  { type:"q", orig:"J.P → J.PMorgan", yours:"J.PMorgan", suggest:"JPMorgan", note:"Standard shortening is 'JPMorgan', not J.PMorgan" },
+  { type:"q", orig:"REE → REEAutomotive", yours:"REEAutomotive", suggest:"REE", note:"Company brand is just 'REE' — REEAutomotive is redundant; or keep if needed for disambiguation" },
+
+  { type:"ok", orig:"YouCCTechnologies → YouCC", yours:"YouCC", suggest:"✓", note:"Good" },
+  { type:"ok", orig:"IsraelDefense / IDFHome / IsraeliMilitary / IsraeliAir / IsraeliArmy / IsraeliNavy → IDF", yours:"IDF", suggest:"✓", note:"Consistent. Also: 'Israeli Defense Forces IDF', 'Israeli Military Intelligence' in CSV" },
+  { type:"ok", orig:"StraussGroup → Strauss", yours:"Strauss", suggest:"✓", note:"Good — also handle StraussWaterLtd (see Corrections)" },
+  { type:"ok", orig:"SodaStreamInternational → SodaStream", yours:"SodaStream", suggest:"✓", note:"Good — see note about Ltd variant" },
+  { type:"ok", orig:"DellTechnologies → Dell", yours:"Dell", suggest:"✓", note:"Good" },
+  { type:"ok", orig:"AkamaiTechnologies → Akamai", yours:"Akamai", suggest:"✓", note:"Good" },
+  { type:"ok", orig:"TevaPharmaceuticals → Teva", yours:"Teva", suggest:"✓", note:"Good" },
+  { type:"ok", orig:"PwCIsrael → PwC", yours:"PwC", suggest:"✓", note:"Good" },
+  { type:"ok", orig:"KPMGIsrael → KPMG", yours:"KPMG", suggest:"✓", note:"Good" },
+  { type:"ok", orig:"HackerUThriveDX → ThriveDX", yours:"ThriveDX", suggest:"✓", note:"Good — HackerU rebranded to ThriveDX" },
+  { type:"ok", orig:"EBay → eBay", yours:"eBay", suggest:"✓", note:"Correct casing" },
+  { type:"ok", orig:"BUYMETechnologies → BUYME", yours:"BUYME", suggest:"✓", note:"Good" },
+  { type:"ok", orig:"PhoenixFinancial / PhoenixHoldings → Phoenix", yours:"Phoenix", suggest:"✓", note:"Good" },
+  { type:"ok", orig:"MigdalGroup → Migdal", yours:"Migdal", suggest:"✓", note:"Good — see MigdalCapitalMarkets correction" },
+];
+
+const tbody = document.getElementById('tbody');
+const counts = { all:0, fix:0, new:0, ok:0, q:0 };
+
+function renderRow(r) {
+  const tr = document.createElement('tr');
+  tr.dataset.type = r.type;
+  const badgeMap = { fix: ['b-fix','correction'], new: ['b-new','new suggestion'], ok: ['b-ok','confirmed'], q: ['b-q','question'] };
+  const [cls, label] = badgeMap[r.type];
+  tr.innerHTML = `
+    <td><span class="orig">${r.orig}</span></td>
+    <td>${r.yours}</td>
+    <td><span class="badge ${cls}">${label}</span> <span class="suggested">${r.suggest}</span></td>
+    <td><span class="note">${r.note}</span></td>
+  `;
+  return tr;
+}
+
+rows.forEach(r => {
+  counts.all++;
+  counts[r.type]++;
+  tbody.appendChild(renderRow(r));
+});
+
+document.getElementById('cnt-all').textContent = counts.all;
+document.getElementById('cnt-fix').textContent = counts.fix;
+document.getElementById('cnt-new').textContent = counts.new;
+document.getElementById('cnt-ok').textContent = counts.ok;
+document.getElementById('cnt-q').textContent = counts.q;
+
+function filter(type, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#tbody tr').forEach(tr => {
+    tr.style.display = (type === 'all' || tr.dataset.type === type) ? '' : 'none';
+  });
+}
+</script>

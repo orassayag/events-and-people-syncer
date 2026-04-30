@@ -1,0 +1,240 @@
+Change the repos maintiner to have a different report name: "SCAN_REPOS_REPORT.txt".
+
+Why have both linkedin-sync_errors_30_04_2026-1.log and linkedin-sync_errors_30_04_2026-1.txt
+Let's allign all the files to be ".txt" in the end.
+
+alerts log:
+All indexs needs to be formatted with leading zeros and remove label and comma:
+Index: 1 [WARNING], => 📰 Index: 000,001
+
+> ⚠️ Display Warnings (704) - Add another space.
+
+Check the path on the progress bar. It say:
+  Path: C:\Or\web\projects\events-and-people-syncer\sources\Basic_LinkedInDataExport_03-11-2026.zip
+but the actual file name is Basic_LinkedInDataExport_04-22-2026.zip.zip
+The path file name needs to be updated.
+
+-Fix the "Esc" issue:
+-if pressing "Esc" on Linkedin Sync i see this when I'm trying to press "Esc":
+? Select a script to run (ESC to exit): ... ^[[B^[[B^[[B^[
+-On Events & Jobs when pressing "Esc" and re-select this option, the cursor disaaper and the input ignored by the cli, only when pressing enter and see the validation message the cursor back again.
+
+-Fix all the faild unit tests (pnpm run test). - Only after a complete dry run mode which appears to be OK.
+
+-Check (Ask Grook) if there is a place if there is a place to suggest fixes:
+Linkedin - Connections Export - Empty values
+Google - Review for each date.
+Google Contacts - Sub-label - Job + Where.
+
+===================
+
+DONE & CANCELLED:
+=================
+👤 Full name: Degel Ps Ltd LinkedIn DegelPS - Need to remove "ltd" it exists in the name. *
+👤 Full name: Mor Hajbi LinkedIn HouseOf - Check how its possible. *
+👤 Full name: Amit Ofeck LinkedIn Perimeter81ACheck - Original: Perimeter 81, a Check Point Company - Remove all after "," or " - ", or "- ". *
+-Fix "add" logs to single "=======================" between contacts. *
+-Also in "alerts" logs - no need for "=====WARNING END=====" and "=====WARNING START=====" *
+-Just a single "=======================" between contacts. *
+-Same in the "skip" logs. *
+-If ends with "TheOpen", "BarIlan", "IsraelNational", "TheIsraeli", "TheIsrael",  "BetShemesh", "BenGurion", "TheAcademic", "TheADHD" it should take the next word if exists. *
+-If it ends with "Medical" take the next word if exists. *
+Let's fix of the company name as the contact name. *
+If the combination of the last name and the first name is equal to the company name, *
+we should just set the company name to SelfEmployed. *
+For example: *
+👤 Full name: Yonit Klinger LinkedIn YonitKlinger *
+🏢 Company: LinkedIn YonitKlinger *
+shoule be: *
+👤 Full name: Yonit Klinger LinkedIn SelfEmployed *
+🏢 Company: LinkedIn SelfEmployed *
+Another example: *
+👤 Full name: Yana Weiss LinkedIn YANAWEISS *
+🏢 Company: LinkedIn YANAWEISS *
+shoule be: *
+👤 Full name: Yana Weiss LinkedIn SelfEmployed *
+🏢 Company: LinkedIn SelfEmployed *
+if the company name start with "Www.goldjobs.co.il" (only if it start with www.). *
+it should be extracted the base domain and be the company name. *
+Example: Www.goldjobs.co.il => goldjobs *
+If company name ends with ".co.il" extract only the domain name. *
+For example: *
+👤 Full name: Oren Wassersprung LinkedIn JoomlaIsrael.co.il *
+Will become: *
+👤 Full name: Oren Wassersprung LinkedIn JoomlaIsrael *
+Original: Malak Masalha ملاك مصالحه *
+👤 Full name: Malak Masalha ملاك مصالحه LinkedIn Hive *
+Expect to see: *
+Malak Masalha LinkedIn Hive *
+-Remove all arabic characters from name. *
+-👤 Full name: Tomer Kun 林墨 LinkedIn NVIDIA - We need to remove any asian characters in the name. *
+-If company name ends with "Formerly" it should be removed. *
+👤 Full name: Maya Salemnia Myhr LinkedIn Cyrus. *
+Original was: Maya Salemnia -MyHR. *
+If contains " - " in the name - Remove it and what comes all after it. *
+👤 Full name: Lilac Reinisch LinkedIn PartnerAtNet&Work - Original: Partner at Net&Work - Need to do the same with the prffesion logic - If start with CEO, CICO, Partner with the followed word "At" - Remove the 2 words. *
+👤 Full name: Adi Kovalyo LinkedIn WereInCommunity *
+🏷️  Labels: LinkedIn *
+🏢 Company: LinkedIn We'reInCommunity *
+💼 Job Title: LinkedIn Growth Expert & Personal Branding *
+📧 Email: adikovalyo@gmail.com LinkedIn WereInCommunity *
+📞 Phone: (none) *
+🔗 LinkedIn URL: linkedin.com/in/adi-kovalyo *
+Company needs to be identical in all places, need to investigate how we have both: *
+WereInCommunity and We'reInCommunity, should be only WereInCommunity. *
+Company name: *
+Original: Skyhoo.live and Trafficschwartz.com *
+What i see in the logs: 👤 Full name: Shaul Schwartz LinkedIn Skyhoo.liveAnd. *
+if there are 2 "X.X" in the company, just take the first one.
+I expected to see only: Skyhoo.live. *
+Original name was: stor.ai (formerly self point). *
+👤 Full name: Mor Ratzabi LinkedIn FormerlySelf. *
+How it get to be FormerlySelf?. *
+-Need to fix the skipped ones - linkedin-sync_errors_27_04_2026-1.log. *
+★ Liat,Kurlender ★ *
+★Sari,Cohen *
+★ Gal,Ben David ★ *
+☆ Neta Goldberg,Levi ☆ I M HIRING *
+★Mor,Barki★ *
+-In skip no need for duplicate spaces:. *
+⏭️  Reason: Existing match found - By Name => ⏭️ Reason: Existing match found - By Name. *
+-Also we can make it short:. *
+Instaed of ⏭️  Reason: Existing match found - By Name => ⏭️ Reason: Reason: Matched Existing (By Name/URL/Email). *
+-I expect to see (This is just an example!):. *
+👤 LinkedIn Full name: Idan Atiya LinkedIn CylusTheRail. *
+👤 Existing Full name: Idan Atiya Job. *
+⏭️ Reason: Matched Existing (By Name). *
+-Add index row number (all logs). *
+Notes:. *
+Position: HR and Recruiting Manager. *
+Connected On: 28 Jul 2019. *
+Updated by the events & jobs sync script - Last update: 07/04/2026 17:13:39. *
+Fix the "add" logs: *
+-🏷️  Labels: LinkedIn => 🏷️ Labels: LinkedIn *
+
+A new script called "Linkedin Exporter". *
+A dropdown will let you select for now "Companies". *
+Generate a script to pull all company names distinct alfabetic order and within this list, ask the 4 AIs if it have more suggestions. *
+
+=========
+
+I'm working on a custom manual script to take backup from LinkedIn and add the contacts into my Google contacts (using Google people api). I cleaned the company names and format them to capital letter on each start of word and remove white spaces.
+For example:
+Applied Metirials will be clean and formatted to:  AppliedMetirials
+
+Most of the companies from Israel and minority from aborad.
+
+The challange is the ones that have long names and i want to focus making them short by don't hurt the main name of the company. I made a list of all the companies to make them even shorter, List of companies which need to be refactored:
+
+YouCCTechnologies = YouCC
+RafaelAdvanced = Rafael
+IsraelDefense = IDF
+IDFHome = IDF
+IsraeliMilitary = IDF
+StraussGroup = Strauss
+StraussWater = Strauss
+Monday = Monday.com
+StealthAI = Stealth
+StealthStartup = Stealth
+StealthCybersecurity = Stealth
+SodaStreamInternational = SodaStream
+Jobtime.israel = Jobtime
+InfinityLabsR&D = InfinityLabs
+DecathlonIsrael = Decathlon
+DecathlonInternational = Decathlon
+Wix.com = Wix
+AllJobs' = AllJobs
+DatoramaASalesforce = Datorama
+ExperisIsrael = Experis
+OSRR&D = OSR
+OSREnterprises = OSR
+MorningByGreen = Morning
+Www.leonid.co.il = Leonid
+AmazonWeb = Amazon
+DemocratechIsrael = Democratech
+SelfEmployes = SelfEmployed
+Self = SelfEmployed
+HarelFinance = Harel
+HarelInsurance = Harel
+PhoenixFinancial = Phoenix
+PhoenixInvestment = Phoenix
+PhoenixHoldings = Phoenix
+KPMGIsrael = KPMG
+MigdalGroup = Migdal
+MigdalCapital = Migdal
+IsraeliAir = IDF
+ManpowerIsrael = Manpower
+ManpowerTBO = Manpower
+ManpowerGroupTalent = Manpower
+ManpowerGroupIsrael = Manpower
+TidharGroup = Tidhar
+NishaGroup = Nisha
+IPcom.co.il = IPcom
+Ofek324Unit = IDF
+Viz = Viz.ai
+SolarEdgeTechnologies = SolarEdge
+FreelanceIndependent = Freelance
+FreelanceRecruiting = Freelance
+FreelanceActing = Freelance
+IsraeliArmy = IDF
+GlassesUSA = GlassesUSA.com
+GOLFGROUP = GolfGroup
+FreelanceSelf = Freelance
+Hms = hms
+HMS = hms
+IsraeliNavy = IDF
+ManpowerCare = Manpower
+MercantileDiscount = DiscountBank
+AgoraRE = Agora
+DentsuIsrael = Dentsu
+PartnerIsrael = Partner
+HackerUThriveDX = ThriveDX
+DellTechnologies = Dell
+MatrixR&D = Matrix
+QualitestIsrael = Qualitest
+EToro = eToro
+AbraR&D = Abra
+NestléNespresso = Nestlé
+NetafimIsrael = Netafim
+IntuitiveIsrael = Intuitive
+PapayaGlobal = PAPAYA
+Papaya = PAPAYA
+Shift4Europe = Shift4
+SVTJobs = SVT.Jobs
+Svt.jobsRecruitment = SVT.Jobs
+TomerAGovernment = Tomer
+Mend = Mend.io
+AkamaiTechnologies = Akamai
+Anyclip.com = Anyclip
+COMBLACK = Comblack
+EBay = eBay
+RemitlyIsrael = Remitly
+BUYMETechnologies = BUYME
+TevaPharmaceuticals = Teva
+MALAM = MalamTeam
+ZIMIntegrated = ZIM
+Riverside = Riverside.fm
+REE = REEAutomotive
+MaofMe = Maof
+MaofHR = Maof
+ShebaTel = ShebaMedical
+PwCIsrael = PwC
+KPMGIsrael = KPMG
+SQLinkGroup = SQLink
+AT&TIsrael = AT&T
+CybereasonALevelBlue = Cybereason
+HH+ByIlan = HH+
+MamdaIDF = IDF
+J.P = J.PMorgan
+EShop = eShop
+NICE = NiCE
+EricssonGlobal = Ericsson
+TheCenter = CET
+CompieTechnologies = Compie
+CompiePro = Compie
+InvencoByGVR = Invenco
+Unit9900 = IDF
+Unit8200 = IDF
+CalIsrael = Cal
+
+I exported all the company names of all the connections i have - Based on a research you will conduct, can you please verify my formatting? did i missed anything? do you have any suggestion to other names i forgot?

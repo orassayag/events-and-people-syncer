@@ -1,0 +1,45 @@
+
+Based on an analysis of the companyNames.csv file and your provided list, your formatting logic is solid, but there are several opportunities to refine the "Main Name" mapping.
+
+Many entries in your CSV include legacy names (e.g., "Formerly X") or specific department details that can be consolidated further.
+
+1. Refinement of Your Existing List
+Based on common naming conventions in the Israeli tech sector found in your file, I suggest these minor tweaks to your existing mappings for better consistency:
+
+Case Sensitivity: You have Hms and HMS mapping to hms. Usually, professional contacts look better with HMS or Hms.
+
+Wix: You mapped Wix.com to Wix, but your script will format Wix.com as Wix.com (Capitalized). You should ensure your refactor list includes Wix.com (with the dot) if your cleaning script doesn't remove periods.
+
+SVT Jobs: SVTJobs and Svt.jobsRecruitment are mapped to SVT.Jobs. For a cleaner contact list, SVTJobs is often preferred over using a period.
+
+2. Suggested Additions (Found in companyNames.csv)
+I identified several common patterns in your CSV that would benefit from your "short name" refactoring logic:
+
+Original Cleaned Name	Suggested Refactor	Reason
+AbraRDSolutionsFormerlyDevalore	Abra	Removes "Formerly" legacy text.
+AccentureArgentina	Accenture	Removes geographic location.
+AppliedMaterialsIsrael	AppliedMaterials	Consolidates with global branch.
+BankHapoalimTechnologyDivision	BankHapoalim	Removes department detail.
+CheckPointSoftwareTechnologiesLtd	CheckPoint	Focuses on the core brand.
+ClalitHealthServices / ClalitInnovation	Clalit	Consolidates medical/tech branches.
+ElbitSystemsIsrael / ElbitSystemsLtd	Elbit	Standardizes major defense firm.
+IsraelAerospaceIndustries / Iai	IAI	Standardizes acronyms.
+IsraeliIntelligenceCorps / Unit8200...	IDF	Consistent with your other military mappings.
+MicrosoftR&D	Microsoft	Removes department.
+PaloAltoNetworks	PaloAlto	Common shorthand in the industry.
+SamsungResearchIsrael	Samsung	Simplifies to parent brand.
+3. Missing Patterns to Consider
+Looking at the data trends in companyNames.csv, you might want to add a "Global Filter" to your script to catch these common suffixes automatically:
+
+University/Academic: TelAvivUniversity → TAU, BenGurionUniversity... → BGU.
+
+Legal/Consulting: Many entries end in LawOffice, Co, or Ltd. You can programmatically strip these if they appear at the end of the string.
+
+Stealth Variations: Your list covers several, but I found StealthModeStartup and StartupInStealthMode in the file. A catch-all for any word containing Stealth mapping to Stealth would be efficient.
+
+Self-Employed: You have SelfEmployes and Self. I found FreelanceSelfEmployed and IndependentConsultant. Mapping all variations of "Independent", "Freelance", and "SelfEmployed" to a single tag (like Freelance) will make your Google Contacts much easier to search.
+
+4. Technical Tip for your Script
+Since you are using the Google People API, remember that the organizations field has both a name and a title.
+
+Strategy: Put your "Refactored Short Name" in the Company Name field, but keep the "Original Cleaned Name" in the Notes or Job Title field. This way, if you ever forget who "Abra" was, you'll still have the "Formerly Devalore" context saved in the contact details.

@@ -1,0 +1,33 @@
+Now I have a thorough picture. Let me compile the analysis:Great, now I have everything I need for a thorough review. Let me put together the full analysis:Here's a summary of what I found after reading all 4,258 companies in your CSV:
+
+**Corrections (24)** — these are cases where your mapping key doesn't exactly match what the CSV produces after normalization. The most common issues:
+- CSV entries have extra words like `Ltd`, `Israel`, `formerly...` that your key doesn't account for (e.g. `SodaStream International Ltd`, `ZIM Integrated Shipping Services`, `Remitly Israel formerly Rewire`)
+- Manpower has 4+ variants in the CSV, only 2 of which are in your list
+- Clal Insurance (major insurer) is completely absent from your list despite having two variants
+
+**New suggestions (15)** — companies in your CSV that clearly need shortening but aren't in your list yet. The most important ones: Check Point, IAI, El Al, IEC, Clalit, Maccabi, Bank Hapoalim, Bank Leumi, Intel. These are all very prominent Israeli institutions.
+
+**Questions (7)** — a few mappings worth double-checking:
+- `NICE → NiCE`: the official brand is all-caps NICE, so NiCE is non-standard
+- `J.P → J.PMorgan`: standard form is `JPMorgan`
+- `Papaya/PapayaGlobal → PAPAYA`: official brand is `Papaya Global`, all-caps is non-standard
+- `TheCenter → CET`: fine if it's the educational technology center, but worth confirming
+
+One general note: your normalization will convert `abra` → `Abra` and `matrix` → `Matrix` due to title-casing, so make sure your comparison logic is case-insensitive when matching.
+
+Now I have a thorough picture. Let me compile the analysis:Great, now I have everything I need for a thorough review. Let me put together the full analysis:Here's a summary of what I found after reading all 4,258 companies in your CSV:
+
+**Corrections (24)** — these are cases where your mapping key doesn't exactly match what the CSV produces after normalization. The most common issues:
+- CSV entries have extra words like `Ltd`, `Israel`, `formerly...` that your key doesn't account for (e.g. `SodaStream International Ltd`, `ZIM Integrated Shipping Services`, `Remitly Israel formerly Rewire`)
+- Manpower has 4+ variants in the CSV, only 2 of which are in your list
+- Clal Insurance (major insurer) is completely absent from your list despite having two variants
+
+**New suggestions (15)** — companies in your CSV that clearly need shortening but aren't in your list yet. The most important ones: Check Point, IAI, El Al, IEC, Clalit, Maccabi, Bank Hapoalim, Bank Leumi, Intel. These are all very prominent Israeli institutions.
+
+**Questions (7)** — a few mappings worth double-checking:
+- `NICE → NiCE`: the official brand is all-caps NICE, so NiCE is non-standard
+- `J.P → J.PMorgan`: standard form is `JPMorgan`
+- `Papaya/PapayaGlobal → PAPAYA`: official brand is `Papaya Global`, all-caps is non-standard
+- `TheCenter → CET`: fine if it's the educational technology center, but worth confirming
+
+One general note: your normalization will convert `abra` → `Abra` and `matrix` → `Matrix` due to title-casing, so make sure your comparison logic is case-insensitive when matching.

@@ -1,6 +1,11 @@
 import { SETTINGS } from '../settings';
 import { extractEnglishFromMixed } from './hebrewFormatter';
 import { TextUtils } from './textUtils';
+import {
+  MANUAL_COMPANY_MAPPINGS,
+  PROTECTED_SUFFIXES,
+  COMPANY_SUFFIXES_TO_REMOVE,
+} from './companyMappings';
 
 function removeDomainsAndUrls(text: string): string {
   const urlRegex =
@@ -343,7 +348,98 @@ export function calculateFormattedCompany(
     maxWords
   );
 
-  return formattedCompany ? `LinkedIn ${formattedCompany}` : 'LinkedIn';
+  const refactoredCompany = refactorCompanyName(formattedCompany);
+
+  return refactoredCompany ? `LinkedIn ${refactoredCompany}` : 'LinkedIn';
+}
+
+/**
+ * Refactors a cleaned and formatted company name into a short brand name.
+ * Based on the Final Company Name Refactoring Plan.
+ */
+export function refactorCompanyName(formattedCompany: string): string {
+  if (!formattedCompany || formattedCompany === 'LinkedIn') {
+    return formattedCompany;
+  }
+
+  let refactored = formattedCompany;
+
+  // 1. Handle Special Characters: & -> And, é -> e
+  refactored = refactored.replace(/&/g, 'And').replace(/é/g, 'e');
+
+  // 2. Manual Refactor List (Check FIRST to prioritize explicit mappings)
+  // Whitespace-agnostic and case-insensitive matching
+  const normKey = (s: string): string =>
+    s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const targetNorm = normKey(refactored);
+
+  for (const [key, value] of Object.entries(MANUAL_COMPANY_MAPPINGS)) {
+    if (normKey(key) === targetNorm) {
+      return value;
+    }
+  }
+
+  // 3. IDF / Unit Rule
+  if (
+    /unit\s?\d{3,4}/i.test(refactored) ||
+    /ofek\s?\d{3,4}/i.test(refactored) ||
+    [
+      'idf',
+      'israeldefense',
+      'israelimilitary',
+      'israeliarmy',
+      'israelinavy',
+      'israeliairforce',
+      'mamram',
+      'lotem',
+    ].some((k) => refactored.toLowerCase().includes(k))
+  ) {
+    return 'IDF';
+  }
+
+  // 4. Stealth Rule
+  if (refactored.toLowerCase().includes('stealth')) {
+    return 'Stealth';
+  }
+
+  // 5. Freelance / Self Rule
+  const freelanceKeywords = [
+    'freelance',
+    'independent',
+    'selfemployed',
+    'self',
+  ];
+  if (freelanceKeywords.some((k) => refactored.toLowerCase().includes(k))) {
+    return 'Freelance';
+  }
+
+  // 6. Known rebrands/acquisitions & Acquired companies
+  const acquisitionRegex = /(?:ASalesforce|A\s+Salesforce|Formerly|by|via|@)/i;
+  const acquisitionParts = refactored.split(acquisitionRegex);
+  if (acquisitionParts.length > 1) {
+    refactored = acquisitionParts[0].trim();
+  }
+
+  // 7. Strip noise from the end
+  const noiseToRemove = [
+    ...COMPANY_SUFFIXES_TO_REMOVE,
+    'Israel', // Rule 11: Remove "Israel" in the end
+  ];
+
+  for (const noise of noiseToRemove) {
+    // Only remove if it's NOT a protected brand suffix
+    if (
+      PROTECTED_SUFFIXES.some((p) =>
+        p.toLowerCase().includes(noise.toLowerCase())
+      )
+    ) {
+      continue;
+    }
+    const regex = new RegExp(`${noise}$`, 'i');
+    refactored = refactored.replace(regex, '');
+  }
+
+  return refactored;
 }
 
 const GENERIC_COMPANY_TOKENS: Set<string> = new Set([

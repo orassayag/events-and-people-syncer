@@ -1,26 +1,50 @@
-New script:
+New script: Google Contacts Maintainer
 ==========
 
--Google Contacts Maintainer:
--Find duplicate contacts.
--Hebrew contact (Conatins hebrew in any field).
--Find contacts without any label (Imported * is not considered a label).
--Find contacts with Phones / Emails without label.
--Find contacts with Phones / Emails with label of: "Home" / "Work" / "Other" / "Mobile" / "Main" / "Home Fax" / "Work Fax" / "Google Voice" / "Pager".
--Find contacts with URL without label.
--Find contacts with URL with label of: "Profie" / "Blog" / "Home Page" / "Work".
--Empty name / null / undefined.
--Check if any phone is duplicated.
--Check if any email is duplicated.
--Check if any URL is duplicated.
--Check if have the same email / phone duplicate time in a single contact.
--Also check if it contains one of the wrong company names which needs to be refactored.
--Also check if the ones that match by URL - The name is identical from Linkedin, if not, needs to be fixed.
--Also check the opposite - If mateched by name but the URL is not eqal - needs to be fixed.
--If missing URL and have "Job" or "HR" labels - needs to be fixed.
--Any URL label that it's not "LinkedIn".
--Add execptions list, that if the contact name or URL there with the exepction reason, it will ignore and not list it in the report.
--Finally we need to run this report automaticlly with a bat file which will generate a complete log on the desktop on each contact that needs to be fixed.
+Let's build a new script called "Google Contacts Maintainer".
+1. It will be placed under the "🔄 Contacts Sync       - Manually sync and complete Google contacts data" option.
+2. Once selected, it will do all the existing validations from the google people api perspective, like we have today when selecting to run the "Linkedin sync" script.
+3. Once all the validations passed successfully, like in the "Linkedin sync" script, we will fetch all the google contacts (reuse this logic from the script).
+4. Now the logic part will start, once all google contacts will be scanned, it will be reported:
+4.1. Find duplicate contacts. (For enum: DUPLICATE CONTACTS).
+4.2. Hebrew contact (Contains hebrew in any field). (For enum: CONTAINS HEBREW).
+4.3. Find contacts without any label (Labels of "Imported In *" is not considered a label). (For enum: MISSING LABEL).
+4.4. Find contacts with Phones / Emails without label. (For enum: MISSING PHONE/EMAIL LABEL).
+4.5. Find contacts with Phones / Emails with label of: "Home" / "Work" / "Other" / "Mobile" / "Main" / "Home Fax" / "Work Fax" / "Google Voice" / "Pager". (For enum: INVALID PHONE/EMAIL LABEL).
+4.6. Find contacts with URL without label. (For enum: MISSING URL LABEL).
+4.7. Find contacts with URL with label of: "Profile" / "Blog" / "Home Page" / "Work". (For enum: INVALID URL LABEL).
+4.8. Empty name / null / undefined. (For enum: EMPTY NAME).
+4.9. Check if any phone is duplicated (in entire contacts and on a single contact). (For enum: DUPLICATE PHONE - GLOBAL/SINGLE).
+4.10. Check if any email is duplicated (in entire contacts and on a single contact). (For enum: DUPLICATE EMAIL - GLOBAL/SINGLE).
+4.11. Check if any URL is duplicated (in entire contacts and on a single contact). (For enum: DUPLICATE URL - GLOBAL/SINGLE).
+4.12. Also check if it contains one of the wrong company names which needs to be refactored. (For enum: OUTDATED COMPANY NAME - SHOULD BE: #FIXED#).
+4.13. Also check if the ones that match by URL - The name is identical from Linkedin, if not, needs to be fixed. (For enum: OUTDATED NAME - SHOULD BE: #FIXED#).
+4.14. Also check the opposite - If matched by name but the URL is not equal - needs to be fixed. (For enum: OUTDATED URL - SHOULD BE: #FIXED#).
+4.15. If missing URL and have "Job" or "HR" labels and have full name that have both first name and family name that more than 1 character, and the family name not equal to the label name - needs to be fixed. (For enum: MISSING REQUIRED URL FOR HR/JOB LABEL).
+4.16. Any URL label that it's not "LinkedIn". (For enum: INVALID URL LABEL).
+4.17. Any URL that not matched the linkedin url (not contains linkedin.com/in or contains https://www.linkedin.com (with https and www)). (For enum: INVALID URL).
+4.18. If the company name (Either the company name in the label company name or in the last name) can be fixed by the new logic ("refactorCompanyName") - Notify which needs to be fixed.
+4.19. Have break empty lines in the notes. (For enum: OUTDATED COMPANY NAME - SHOULD BE: #FIXED#).
+4.20. Trailing white space before or after any field. (For enum: CONTAINS WHITE SPACES IN FIELDS: #FIELDS#).
+5. We will add exceptions list, that if the contact name or URL there with the exception reason, it will ignore and not list it in the report.
+6. A contact can be with several issues, so we will list them all in the report.
+7. The report should be saved to the desktop: C:\Users\Or Assayag\Desktop within the name:
+"SCAN_CONTACTS_REPORT.txt" file.
+8. Finally we need to run this report automatically with a bat file which will generate a complete log on the desktop on each contact that needs to be fixed. See project that already implemented this logic - C:\Or\web\projects\repos-maintainer.
+8.1. IMPORTANT 1: logic needs to be added - Each time the scripts run automatically, the first thing needs to be done is to refresh the access token using the refresh token, in order to always have a freshed token to use the API. - C:\Or\web\projects\events-and-people-syncer\token.json
+8.2. IMPORTANT 2: logic needs to be added - If the file report already exists on the desktop, we will abort the run. We shell not override the existing file. This logic is only effected if the script run automatically, not manually from selected option from the menu.
+9. This is an example of how the "SCAN_CONTACTS_REPORT.txt" file should look like:
+
+=======================
+📰 Index: 000,001
+👤 Full name: Ilana Mitsevich LinkedIn PureTech
+⏭️ Reasons:
+-MISSING PHONE/EMAIL LABEL
+-INVALID URL
+-CONTAINS HEBREW
+=======================
+
+========
 
 -Another task to plan in the future and mark here - The update contacts logic. Not for now - Write it on the
 "ToDo" tasks.
@@ -337,7 +361,7 @@ Once you understand it completely, do the following:
 2. Add / Update the INSTRUCTIONS.md file - See ref from: /Users/orassayag/Repos/event-dates-calendar/event-dates-calendar-ts-github
 3. Add / Update the README.md file - See ref from: /Users/orassayag/Repos/event-dates-calendar/event-dates-calendar-ts-github
     1. Also update to MIT license
-    2. Add also mermarid diagram for each README.md
+    2. Add also mermaid diagram for each README.md
 4. Add / Update the LICENSE file - See ref from: /Users/orassayag/Repos/event-dates-calendar/event-dates-calendar-ts-github
 5. Update the package.json file:
     1. Update to "license": "MIT",
@@ -371,7 +395,7 @@ We will run this script by “pnpm run linkedin-sync”
 -If there are no connections inside this file, throw an error.
 
 -We need to do this logic in a smart way, so that in the next time we will run this script, we will first search if we already have the connections.csv file instead of just unziping again and searching for the connections.csv file.
--Delete all the unziped content (exclude the connections.csv file).
+-Delete all the unzipped content (exclude the connections.csv file).
 
 -Inside the connections.csv you will have the following columns:
 First Name,Last Name,URL,Email Address,Company,Position,Connected On
@@ -410,7 +434,7 @@ Website URL: https://www.linkedin.com/in/elena-ohayon-b22b583 | HR Planview
 
 Matching Logic:
 -In the begging of the script, we will scan the “dummy/job-interviews” path (Of course that in the real world we will take the path from settings.ts) and create the entities of all the company names by category of HR or Job.
--It’s pretty straight fawoard, for example:
+-It’s pretty straight froward, for example:
 Job_ElbitSystems -> Label: Job | Company name: ElbitSystems
 HR_AddedValue -> Label: HR | Company name: AddedValue
 

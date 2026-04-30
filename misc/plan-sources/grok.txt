@@ -1,0 +1,153 @@
+Your formatting approach is solid overall: **Title Case** (capitalizing the start of each word) + removing most spaces/punctuation for compactness works well for Google Contacts deduplication and search. It keeps the core brand recognizable while shortening long names.
+
+### Verification of Your Mappings
+Your list is quite comprehensive and accurate for the most common cases in the provided CSV. Here's a quick validation with minor notes/suggestions:
+
+| Your Original → Your Short | Status | Comments / Suggestions |
+|---------------------------|--------|------------------------|
+| YouCCTechnologies → YouCC | Good | Fine as-is (or YouCCTechnologies if you want to preserve more). |
+| RafaelAdvanced → Rafael | Excellent | Common shorthand for **Rafael Advanced Defense Systems**. |
+| IsraelDefense / IDFHome / IsraeliMilitary / IsraeliArmy / IsraeliAir / IsraeliNavy / Ofek324Unit / Unit9900 / Unit8200 / MamdaIDF → IDF | Excellent | Standard in Israeli LinkedIn profiles for military/government service. |
+| StraussGroup / StraussWater → Strauss | Good | Strauss Group is the parent; Strauss is widely used. |
+| monday → Monday.com | Good | Preserve the `.com` for clarity (many people list it that way). |
+| StealthAI / StealthStartup / StealthCybersecurity → Stealth | Good | Common for stealth-mode startups. |
+| SodaStreamInternational → SodaStream | Good |  |
+| Jobtime.israel → Jobtime | Good |  |
+| InfinityLabsR&D → InfinityLabs | Good |  |
+| DecathlonIsrael / DecathlonInternational → Decathlon | Good |  |
+| Wix.com → Wix | Good |  |
+| AllJobs' → AllJobs | Good |  |
+| DatoramaASalesforce → Datorama | Good |  |
+| ExperisIsrael → Experis | Good |  |
+| OSRR&D / OSREnterprises → OSR | Good |  |
+| MorningByGreen → Morning | Good |  |
+| Www.leonid.co.il → Leonid | Good |  |
+| AmazonWeb → Amazon | Good |  |
+| DemocratechIsrael → Democratech | Good |  |
+| SelfEmployes / Self / FreelanceIndependent / FreelanceRecruiting / FreelanceActing / FreelanceSelf → SelfEmployed / Freelance | Good | **SelfEmployed** is clearer than "Self". |
+| HarelFinance / HarelInsurance → Harel | Good | Harel Group / Harel Insurance is standard. |
+| PhoenixFinancial / PhoenixInvestment / PhoenixHoldings → Phoenix | Good | The Phoenix Holdings / Phoenix Insurance. |
+| KPMGIsrael → KPMG | Good |  |
+| MigdalGroup / MigdalCapital → Migdal | Good | Migdal Group / Migdal Insurance. |
+| ManpowerIsrael / ManpowerTBO / ManpowerGroupTalent / ManpowerGroupIsrael / ManpowerCare → Manpower | Good |  |
+| TidharGroup → Tidhar | Good |  |
+| NishaGroup → Nisha | Good |  |
+| IPcom.co.il → IPcom | Good |  |
+| Viz → Viz.ai | Good (keep `.ai`) |  |
+| SolarEdgeTechnologies → SolarEdge | Good |  |
+| GlassesUSA → GlassesUSA.com | Good |  |
+| GOLFGROUP → GolfGroup | Good |  |
+| HMS / Hms → hms | Good (or HMS) | Keep consistent casing. |
+| MercantileDiscount → DiscountBank | Good | Mercantile Discount Bank. |
+| AgoraRE → Agora | Good |  |
+| DentsuIsrael → Dentsu | Good |  |
+| PartnerIsrael → Partner | Good |  |
+| HackerUThriveDX → ThriveDX | Good |  |
+| DellTechnologies → Dell | Good |  |
+| MatrixR&D → Matrix | Good |  |
+| QualitestIsrael → Qualitest | Good |  |
+| EToro → eToro | Good | Preserve the lowercase `e`. |
+| AbraR&D → Abra | Good |  |
+| NestléNespresso → Nestlé | Good | Or **NestleNespresso** if you want to distinguish the subsidiary. |
+| NetafimIsrael → Netafim | Good |  |
+| IntuitiveIsrael → Intuitive | Good | (Intuitive Surgical) |
+| PapayaGlobal / Papaya → PAPAYA | Good | Consistent. |
+| Shift4Europe → Shift4 | Good |  |
+| SVTJobs / Svt.jobsRecruitment → SVT.Jobs | Good |  |
+| TomerAGovernment → Tomer | Good |  |
+| Mend → Mend.io | Good |  |
+| AkamaiTechnologies → Akamai | Good |  |
+| Anyclip.com → Anyclip | Good |  |
+| COMBLACK → Comblack | Good |  |
+| EBay → eBay | Good | Preserve `e`. |
+| RemitlyIsrael → Remitly | Good |  |
+| BUYMETechnologies → BUYME | Good |  |
+| TevaPharmaceuticals → Teva | Good | Very common. |
+| MALAM → MalamTeam | Good | Malam-Team is the common branding. |
+| ZIMIntegrated → ZIM | Good |  |
+| Riverside → Riverside.fm | Good |  |
+| REE → REEAutomotive | Good |  |
+| MaofMe / MaofHR → Maof | Good |  |
+| ShebaTel → ShebaMedical | Good | Sheba Medical Center. |
+| PwCIsrael → PwC | Good |  |
+| SQLinkGroup → SQLink | Good |  |
+| AT&TIsrael → AT&T | Good |  |
+| CybereasonALevelBlue → Cybereason | Good |  |
+| J.P → J.PMorgan | Good | Or **JPMorgan**. |
+| EShop → eShop | Good |  |
+| NICE → NiCE | Good (or NICE) | Official branding is often **NICE** (all caps). |
+| EricssonGlobal → Ericsson | Good |  |
+| TheCenter → CET | Good | Center for Educational Technology. |
+| CompieTechnologies / CompiePro → Compie | Good |  |
+| InvencoByGVR → Invenco | Good |  |
+
+### Additional Suggestions (Missed or Worth Adding)
+Here are more patterns I recommend based on the full CSV and common Israeli LinkedIn usage:
+
+- **Banks & Big Institutions** (very frequent):
+  - Bank Hapoalim / BankHapoalim → **Hapoalim**
+  - Bank Leumi / BankLeumi → **Leumi**
+  - Discount Bank / MercantileDiscount (you already have) → **DiscountBank** or **Discount**
+  - Isracard → **Isracard**
+  - Cal (you have CalIsrael) → **Cal**
+  - Leumit Health Services / LeumitGroup → **Leumit**
+  - Clalit Health Services / Clalit → **Clalit**
+  - Maccabi Health / MaccabiHealthcare → **Maccabi**
+  - Meuhedet → **Meuhedet**
+  - Ministry of Defense / Israeli Ministry of Defense → **MOD** or **DefenseMinistry**
+  - Israel Electric Corporation → **IEC**
+
+- **Defense & Government**:
+  - IAI / Israel Aerospace Industries → **IAI**
+  - Elbit Systems / ElbitSystems → **Elbit**
+  - Israel Railways → **IsraelRailways**
+  - Israel Police / Israeli Police → **IsraelPolice**
+  - Ministry of Health → **MOH**
+
+- **Tech & Known Brands**:
+  - Check Point Software / CheckPoint → **CheckPoint**
+  - Mobileye → keep **Mobileye** (already short)
+  - Amdocs → keep **Amdocs**
+  - Nice (you have) → **NICE**
+  - JFrog → **JFrog**
+  - monday.com → **Monday.com** (as you did)
+  - Wix → **Wix**
+  - eToro → **eToro**
+  - Papaya Global → **Papaya**
+  - SolarEdge → **SolarEdge**
+  - Teva → **Teva**
+  - Strauss → **Strauss**
+  - ElbitSystemsLtd / ElbitSystemsIsrael → **Elbit**
+
+- **Recruitment/HR Agencies** (common duplicates):
+  - All variations of Manpower → already covered
+  - Danel / DanelGroup / DanelHR → **Danel**
+  - Maof / MaofGroup → **Maof** (you have)
+  - HR agencies with "Head Hunting" / "Recruitment" → normalize to the core name (e.g., **Hunter**, **Talent**, etc.)
+
+- **Other Frequent Ones**:
+  - HOT / HOTmobile → **HOT**
+  - Partner / PartnerCommunications → **Partner**
+  - Cellcom → **Cellcom**
+  - Bezeq → **Bezeq**
+  - Shufersal → **Shufersal**
+  - Osem / OsemNestle → **Osem**
+  - Tempo / TempoBeverages → **Tempo**
+  - Any "Stealth" / "Confidential" / "Private Company" → **Stealth** or **Confidential**
+  - "Self employed" / "Freelance" / "Independent" → standardize to **Freelance** or **SelfEmployed**
+  - "Various Companies" / "Multiple Organizations" → **Various** or leave as-is / map to **Other**
+
+- **General Rules to Add to Your Script**:
+  1. Remove common suffixes/prefixes: `Ltd`, `LTD`, `Inc`, `LLC`, `Group`, `Israel`, `Technologies`, `Systems`, `Solutions`, `R&D`, `International`, `.com`, `.co.il`, `A ` (as in "A Salesforce Company").
+  2. Handle special characters: `&` → `And`, `é` → `e` (Nestlé → Nestle).
+  3. Known rebrands/acquisitions: Devalore → Abra, etc.
+  4. Israeli defense units: Anything with 8200, 9900, Mamram, Lotem, etc. → **IDF** or specific unit if important.
+  5. Keep `.com`/`.ai`/`.fm` only when it’s part of the core brand (Monday.com, Viz.ai, Riverside.fm).
+
+### Final Recommendations
+- **Your list is 90%+ there** — you caught the biggest offenders (defense → IDF, big insurance/finance groups, Manpower variations, stealth, etc.).
+- Add a small dictionary for the most frequent 20–30 entries above so your script normalizes them automatically.
+- After cleaning, run a quick deduplication pass on the final list (case-insensitive) to catch any remaining variants.
+- For Google Contacts: These short, consistent names will greatly reduce duplicates and make searching easier.
+
+Would you like me to generate a full Python dictionary/snippet with all the mappings (yours + my suggestions) that you can drop into your script? Just say the word and I'll provide it in a clean, ready-to-use format.
