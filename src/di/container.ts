@@ -27,6 +27,7 @@ import {
   SmsWhatsappSyncScript,
   OtherContactsSyncScript,
 } from '../scripts';
+import { GoogleContactsMaintainerScript as MaintainerService } from '../scripts/googleContactsMaintainer';
 import { HibobExtractor, HibobContactSyncer } from '../services/hibob';
 import { PathValidator } from '../validators';
 import { FolderManager, FolderMatcher } from '../services/folders';
@@ -78,3 +79,5 @@ container.bind(PhoneNormalizer).toSelf();
 container.bind(SmsWhatsappSyncScript).toSelf();
 container.bind(OtherContactsFetcher).toSelf();
 container.bind(OtherContactsSyncScript).toSelf();
+container.bind(MaintainerService).toSelf();
+container.bind(TYPES.GoogleContactsMaintainerScript).to(MaintainerService);

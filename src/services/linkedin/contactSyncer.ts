@@ -58,7 +58,10 @@ export class ContactSyncer {
       );
       const lastNameValue: string = [
         baseLastName,
-        formattedCompany,
+        label,
+        formattedCompany.startsWith('LinkedIn ')
+          ? formattedCompany.substring(9)
+          : formattedCompany,
       ]
         .filter((s: string) => s)
         .join(' ')

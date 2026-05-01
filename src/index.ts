@@ -51,7 +51,9 @@ async function main(): Promise<void> {
   initiate();
   await initializeAuth();
   const flags = process.argv.slice(2);
-  const skipPrompt = flags.includes('--yes') || flags.includes('-y');
+  const skipPrompt = flags.some((f) =>
+    ['--yes', '-y', '--auto', 'AUTO', 'auto', '-auto'].includes(f)
+  );
   if (SETTINGS.dryMode && !skipPrompt) {
     console.log('');
     console.log(`${EMOJIS.STATUS.WARNING}  You are running in DRY MODE`);
@@ -81,7 +83,7 @@ async function main(): Promise<void> {
     console.log('');
   } else if (SETTINGS.dryMode && skipPrompt) {
     console.log(
-      `${EMOJIS.STATUS.WARNING} Running in DRY MODE (prompt skipped with --yes flag)`
+      `${EMOJIS.STATUS.WARNING} Running in DRY MODE (prompt skipped via flag)`
     );
     console.log('');
   }
@@ -94,6 +96,7 @@ async function main(): Promise<void> {
     uiLogger.display(header);
     const scriptOrder = [
       'contacts-sync',
+      'google-contacts-maintainer',
       'events-jobs-sync',
       'linkedin-sync',
       'linkedin-exporter',
@@ -121,23 +124,39 @@ async function main(): Promise<void> {
       name: `${EMOJIS.NAVIGATION.EXIT} Exit`,
       value: 'exit',
     });
-    const result = await selectWithEscape<string>({
-      message: 'Select a script to run (ESC to exit):',
-      loop: false,
-      choices: scriptChoices,
-      pageSize: scriptChoices.length,
-    });
-    if (result.escaped) {
-      uiLogger.displayExit();
+
+    let choice: string;
+    const isAuto = flags.some((f) =>
+      ['--auto', 'AUTO', 'auto', '-auto'].includes(f)
+    );
+
+    if (isAuto) {
+      uiLogger.displayInfo('Auto-selecting Google Contacts Maintainer...');
+      choice = 'google-contacts-maintainer';
       continueRunning = false;
-      break;
+    } else {
+      const result = await selectWithEscape<string>({
+        message: 'Select a script to run (ESC to exit):',
+        loop: false,
+        choices: scriptChoices,
+        pageSize: scriptChoices.length,
+      });
+
+      if (result.escaped) {
+        uiLogger.displayExit();
+        continueRunning = false;
+        break;
+      }
+
+      choice = result.value;
+
+      if (choice === 'exit') {
+        uiLogger.displayExit();
+        continueRunning = false;
+        break;
+      }
     }
-    const choice = result.value;
-    if (choice === 'exit') {
-      uiLogger.displayExit();
-      continueRunning = false;
-      break;
-    }
+
     try {
       const script: Script = AVAILABLE_SCRIPTS[choice];
       await script.run();

@@ -20,3 +20,4 @@ export * from './alert';
 export * from './otherContactsSync';
 export * from './smsWhatsappSync';
 export * from './statistics';
+export * from './maintainer';

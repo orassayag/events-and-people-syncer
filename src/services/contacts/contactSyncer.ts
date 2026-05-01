@@ -14,6 +14,7 @@ import { SETTINGS } from '../../settings';
 import {
   retryWithBackoff,
   formatDateTimeDDMMYYYY_HHMMSS,
+  formatCompanyToPascalCase,
   DryModeChecker,
   DryModeMocks,
 } from '../../utils';
@@ -408,7 +409,7 @@ export class ContactSyncer {
     );
     const firstLabelName =
       selectedLabelNames.length > 0 ? selectedLabelNames[0] : '';
-    const formattedCompany = this.formatCompanyToPascalCase(
+    const formattedCompany = formatCompanyToPascalCase(
       updatedData.company || ''
     );
     const compositeSuffix = [firstLabelName, formattedCompany]
@@ -553,9 +554,7 @@ export class ContactSyncer {
     const trimmed = lastName.trim();
     const labelParts = label ? label.split(' | ') : [];
     const firstLabel = labelParts.length > 0 ? labelParts[0].trim() : '';
-    const formattedCompany = company
-      ? this.formatCompanyToPascalCase(company)
-      : '';
+    const formattedCompany = company ? formatCompanyToPascalCase(company) : '';
     const suffixParts = [firstLabel, formattedCompany].filter((s) => s);
     if (suffixParts.length === 0) {
       return trimmed;
@@ -565,18 +564,6 @@ export class ContactSyncer {
       return trimmed.substring(0, trimmed.length - suffix.length - 1).trim();
     }
     return trimmed;
-  }
-
-  private formatCompanyToPascalCase(company: string): string {
-    if (!company || !company.trim()) {
-      return '';
-    }
-    const words = company.trim().split(/\s+/);
-    const pascalCaseWords = words.map((word: string) => {
-      if (!word) return '';
-      return word.charAt(0).toUpperCase() + word.slice(1);
-    });
-    return pascalCaseWords.join('');
   }
 
   private delay(ms: number): Promise<void> {

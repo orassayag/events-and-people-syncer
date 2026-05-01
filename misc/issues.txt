@@ -1,13 +1,10 @@
--Check (Ask Grok) if there is a place if there is a place to suggest fixes:
-Linkedin - Connections Export - Empty values
-Google - Review for each date.
-Google Contacts - Sub-label - Job + Where.
-
-===================
-
 DONE & CANCELLED:
-> ⚠️ Display Warnings (704) - Add another space.
 =================
+-Check (Ask Grok) if there is a place if there is a place to suggest fixes:. *
+Linkedin - Connections Export - Empty values. *
+Google - Review for each date. *
+Google Contacts - Sub-label - Job + Where + Dark mode. *
+> ⚠️ Display Warnings (704) - Add another space. *
 -Fix the "Esc" issue:
 -if pressing "Esc" on Linkedin Sync i see this when I'm trying to press "Esc":
 ? Select a script to run (ESC to exit): ... ^[[B^[[B^[[B^[

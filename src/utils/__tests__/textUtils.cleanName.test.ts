@@ -68,4 +68,10 @@ describe('TextUtils.cleanName - Regression Tests', () => {
     expect(TextUtils.cleanName('Or Assa-ayag')).toBe('Or Assa Ayag');
     expect(TextUtils.cleanName('Tal Fox-Honig')).toBe('Tal Fox Honig');
   });
+
+  it('should preserve internal capitalization in names', () => {
+    expect(TextUtils.cleanName('Joe DiFiore Joseph Vim')).toBe('Joe DiFiore Joseph Vim');
+    expect(TextUtils.cleanName('Tal Erez OkCupid Date')).toBe('Tal Erez OkCupid Date');
+    expect(TextUtils.cleanName('DANA YAFFE OKCUPID')).toBe('Dana Yaffe Okcupid');
+  });
 });

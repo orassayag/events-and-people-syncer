@@ -188,7 +188,7 @@ export class AuthService {
     return JSON.parse(content);
   }
 
-  private async saveToken(token: TokenData): Promise<void> {
+  public async saveToken(token: TokenData): Promise<void> {
     await writeFile(SETTINGS.paths.tokenFile, JSON.stringify(token, null, 2));
     this.logger.info('Token saved');
   }

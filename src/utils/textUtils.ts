@@ -1,5 +1,7 @@
 import { RegexPatterns } from '../regex/patterns';
 import { NameParser } from '../parsers/nameParser';
+import { MANUAL_COMPANY_MAPPINGS } from './companyMappings';
+import { formatCompanyToPascalCase } from './companyUtils';
 
 export class TextUtils {
   static hasHebrewCharacters(text: string): boolean {
@@ -50,15 +52,7 @@ export class TextUtils {
   }
 
   static formatCompanyToPascalCase(company: string): string {
-    if (!company || !company.trim()) {
-      return '';
-    }
-    const words = company.trim().split(/\s+/);
-    const pascalCaseWords = words.map((word: string) => {
-      if (!word) return '';
-      return word.charAt(0).toUpperCase() + word.slice(1);
-    });
-    return pascalCaseWords.join('');
+    return formatCompanyToPascalCase(company);
   }
 
   static getJobTitlesRegex(includeCompanySuffixes: boolean = true): string {
@@ -68,7 +62,7 @@ export class TextUtils {
       'specialist|expert|consultant|developer|engineer|architect|designer|hr|hrbp|hrpb|' +
       'recruiter|recruiting|talent|acquisition|headhunter|recruitment|' +
       'software|frontend|backend|fullstack|devops|data|analyst|account|sales|marketing|product|design|ux|ui|' +
-      'investor|board|advisor|controller';
+      'investor|board|advisor|controller|job';
 
     const companySuffixes =
       'ltd|inc|llc|gmbh|corp|corporation|co|company|limited';
@@ -253,7 +247,30 @@ export class TextUtils {
         if (word.length === 0) return '';
         const lower = word.toLowerCase();
         if (lower === 'linkedin') return 'LinkedIn';
-        return lower.charAt(0).toUpperCase() + lower.slice(1);
+
+        // Fix all-caps but preserve internal casing (like OkCupid)
+        // If the word already has internal capitalization (e.g., DiFiore, OkCupid), keep it UNTOUCHED.
+        const isAllUpper = word === word.toUpperCase() && word.length > 1;
+        const hasInternalCaps =
+          word.length > 2 &&
+          word.slice(1) !== word.slice(1).toLowerCase() &&
+          !isAllUpper;
+
+        if (hasInternalCaps) {
+          return word;
+        }
+
+        const processedRest = isAllUpper
+          ? word.slice(1).toLowerCase()
+          : word.slice(1);
+        const pascalWord = word.charAt(0).toUpperCase() + processedRest;
+
+        // Check if this word exists in our manual mappings (e.g. "Osr" -> "OSR")
+        if (MANUAL_COMPANY_MAPPINGS[pascalWord]) {
+          return MANUAL_COMPANY_MAPPINGS[pascalWord];
+        }
+
+        return pascalWord;
       })
       .filter((word) => word.length > 0)
       .join(' ');

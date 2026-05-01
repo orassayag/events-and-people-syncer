@@ -18,4 +18,5 @@ export const TYPES = {
   ContactSyncer: Symbol.for('ContactSyncer'),
   LinkedInSyncScript: Symbol.for('LinkedInSyncScript'),
   ContactSyncService: Symbol.for('ContactSyncService'),
+  GoogleContactsMaintainerScript: Symbol.for('GoogleContactsMaintainerScript'),
 };

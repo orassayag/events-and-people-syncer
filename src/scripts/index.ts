@@ -6,6 +6,7 @@ import { contactsSyncScript } from './contactsSync';
 import { eventsJobsSyncScript } from './eventsJobsSync';
 import { otherContactsSyncScript } from './otherContactsSync';
 import { smsWhatsappSyncScript } from './smsWhatsappSync';
+import { googleContactsMaintainerScript } from './googleContactsMaintainer';
 import { statisticsScript } from './statistics';
 import { clearCacheScript } from './clearCache';
 import { clearLogsScript } from './clearLogs';
@@ -20,6 +21,7 @@ export { ClearCacheScript } from './clearCache';
 export { ClearLogsScript } from './clearLogs';
 export { SmsWhatsappSyncScript } from './smsWhatsappSync';
 export { OtherContactsSyncScript } from './otherContactsSync';
+export { GoogleContactsMaintainerScript } from './googleContactsMaintainer';
 
 export const AVAILABLE_SCRIPTS: Record<string, Script> = {
   'hibob-sync': hibobSyncScript,
@@ -29,6 +31,7 @@ export const AVAILABLE_SCRIPTS: Record<string, Script> = {
   'events-jobs-sync': eventsJobsSyncScript,
   'other-contacts-sync': otherContactsSyncScript,
   'sms-whatsapp-sync': smsWhatsappSyncScript,
+  'google-contacts-maintainer': googleContactsMaintainerScript,
   statistics: statisticsScript,
   'clear-cache': clearCacheScript,
   'clear-logs': clearLogsScript,

@@ -6,6 +6,7 @@ import {
   PROTECTED_SUFFIXES,
   COMPANY_SUFFIXES_TO_REMOVE,
 } from './companyMappings';
+import { formatCompanyToPascalCase as formatCompany } from './companyUtils';
 
 function removeDomainsAndUrls(text: string): string {
   const urlRegex =
@@ -92,8 +93,11 @@ export function cleanCompany(company: string): string {
 
   // Split on phrase-level separators and take only the FIRST valid segment
   // Handles: commas, pipes, spaced dashes/em-dashes, period+space, double+ spaces
+  // PROTECT: Do not split on period+space if it's followed by "com", "io", "ai", etc. (common domains)
   const parts: string[] = cleaned
-    .split(/\s*[,|]\s*|[-–—]\s+|\s+[-–—]|\.\s+|\s{2,}/)
+    .split(
+      /\s*[,|]\s*|[-–—]\s+|\s+[-–—]|\.\s+(?!(?:com|io|ai|net|org|co|gov|edu|ac|biz|info|me|tech|app|dev|il)\b)|\s{2,}/i
+    )
     .filter((p) => p.trim());
   if (parts.length > 0) {
     cleaned = parts[0].trim();
@@ -123,180 +127,7 @@ export function cleanCompany(company: string): string {
   return cleaned;
 }
 
-const YAFO_OR_JAFFA: ReadonlySet<string> = new Set(['yafo', 'jaffa']);
-
-function stripTrailingPunct(word: string): string {
-  return word.replace(/[.,]$/, '');
-}
-
-function normCompanyWord(word: string): string {
-  return stripTrailingPunct(word).toLowerCase();
-}
-
-/**
- * Tel Aviv is two words but should count as one city prefix for maxWords; optional
- * "Yafo"/"Jaffa" is dropped. Same optional skip after "Jerusalem" or "Haifa".
- */
-function preprocessIsraeliCityCompanyWords(words: string[]): string[] {
-  if (words.length === 0) {
-    return words;
-  }
-  const n0: string = normCompanyWord(words[0]);
-  const n1: string = words.length > 1 ? normCompanyWord(words[1]) : '';
-
-  if (n0 === 'tel' && n1 === 'aviv') {
-    let idx: number = 2;
-    if (idx < words.length && YAFO_OR_JAFFA.has(normCompanyWord(words[idx]))) {
-      idx++;
-    }
-    return ['TelAviv', ...words.slice(idx)];
-  }
-
-  if (n0 === 'jerusalem') {
-    let idx: number = 1;
-    if (idx < words.length && YAFO_OR_JAFFA.has(normCompanyWord(words[idx]))) {
-      idx++;
-    }
-    return ['Jerusalem', ...words.slice(idx)];
-  }
-
-  if (n0 === 'haifa') {
-    let idx: number = 1;
-    if (idx < words.length && YAFO_OR_JAFFA.has(normCompanyWord(words[idx]))) {
-      idx++;
-    }
-    return ['Haifa', ...words.slice(idx)];
-  }
-
-  return words;
-}
-
-function wordToPascalCaseSegment(word: string): string {
-  if (!word) {
-    return '';
-  }
-  const key: string = normCompanyWord(word);
-  if (key === 'telaviv') {
-    return 'TelAviv';
-  }
-  if (key === 'jerusalem') {
-    return 'Jerusalem';
-  }
-  if (key === 'haifa') {
-    return 'Haifa';
-  }
-  return word.charAt(0).toUpperCase() + word.slice(1);
-}
-
-export function formatCompanyToPascalCase(
-  company: string,
-  maxWords?: number
-): string {
-  if (!company || !company.trim()) {
-    return '';
-  }
-  let words: string[] = preprocessIsraeliCityCompanyWords(
-    company.trim().split(/\s+/)
-  );
-  if (maxWords && maxWords > 0) {
-    let resultWords = words.slice(0, maxWords);
-    const joiners = [
-      'of',
-      '&',
-      'and',
-      'with',
-      'for',
-      'the',
-      'a',
-      'an',
-      'in',
-      'at',
-      'by',
-      'or',
-      '+',
-      'co',
-      'co.',
-      'ben',
-      'hebrew',
-      'jewish',
-      'bar',
-      'israel',
-      'bet',
-      'house',
-    ];
-    const forceNextPrefixes = [
-      'TheOpen',
-      'BarIlan',
-      'IsraelNational',
-      'TheIsraeli',
-      'TheIsrael',
-      'BetShemesh',
-      'BenGurion',
-      'TheAcademic',
-      'TheADHD',
-      'Medical',
-      'HouseOf',
-      'Houseof',
-    ];
-
-    while (resultWords.length < words.length) {
-      const lastWord = resultWords[resultWords.length - 1]
-        .toLowerCase()
-        .replace(/[.,]$/, '');
-      const currentPascal = resultWords
-        .map((w) => wordToPascalCaseSegment(w))
-        .join('');
-
-      const shouldForceNext = forceNextPrefixes.some((prefix) =>
-        currentPascal.endsWith(prefix)
-      );
-
-      if (joiners.includes(lastWord) || shouldForceNext) {
-        resultWords.push(words[resultWords.length]);
-      } else if (/\d$/.test(lastWord)) {
-        let nextIdx = resultWords.length;
-        // Skip over purely special character words to find the next meaningful word
-        while (nextIdx < words.length && !/[a-zA-Z0-9]/.test(words[nextIdx])) {
-          nextIdx++;
-        }
-        if (nextIdx < words.length) {
-          for (let i = resultWords.length; i <= nextIdx; i++) {
-            resultWords.push(words[i]);
-          }
-        } else {
-          break;
-        }
-      } else {
-        break;
-      }
-    }
-    // If the final word is a joiner and we can't pull more, remove it if it's a symbol
-    // OR if it's the only word left after a joiner (like "Something &")
-    while (resultWords.length > 0) {
-      const lastWord = resultWords[resultWords.length - 1]
-        .toLowerCase()
-        .replace(/[.,]$/, '');
-      if (
-        joiners.includes(lastWord) &&
-        resultWords.length < words.length === false
-      ) {
-        // If it's a symbol like '&' or '+', always remove if at the end
-        if (lastWord === '&' || lastWord === '+') {
-          resultWords.pop();
-        } else {
-          break;
-        }
-      } else {
-        break;
-      }
-    }
-    words = resultWords;
-  }
-  const pascalCaseWords: string[] = words.map((word: string) =>
-    wordToPascalCaseSegment(word)
-  );
-  return pascalCaseWords.join('');
-}
+export { formatCompany as formatCompanyToPascalCase };
 
 export function calculateFormattedCompany(
   company: string,
@@ -311,7 +142,7 @@ export function calculateFormattedCompany(
 
   const cleanedCompany: string = cleanCompany(company);
 
-  // Check if company name matches the person's name (Self-Employed case)
+  // Check if company name matches the person's full name (Self-Employed case)
   const fName = typeof firstName === 'string' ? firstName : undefined;
   const lName = typeof lastName === 'string' ? lastName : undefined;
 
@@ -319,34 +150,22 @@ export function calculateFormattedCompany(
     const cleanStr = (s: string): string =>
       s.replace(/[^a-zA-Z0-9\u0590-\u05FF]/g, '').toLowerCase();
 
-    // Remove "linkedin" from company name for the comparison
     const compClean = cleanStr(cleanedCompany)
       .replace(/^linkedin/, '')
       .replace(/linkedin$/, '');
     const fNameClean = cleanStr(fName);
     const lNameClean = cleanStr(lName);
-    const name1Clean = fNameClean + lNameClean;
-    const name2Clean = lNameClean + fNameClean;
+    const fullNameClean = fNameClean + lNameClean;
 
-    if (
-      compClean &&
-      (compClean === name1Clean ||
-        compClean === name2Clean ||
-        (compClean.length >= 4 &&
-          (name1Clean.includes(compClean) || compClean.includes(name1Clean))) ||
-        (compClean.length >= 3 &&
-          (compClean === fNameClean || compClean === lNameClean)))
-    ) {
+    // Strict full match only
+    if (compClean && compClean === fullNameClean) {
       return 'LinkedIn SelfEmployed';
     }
   }
 
   const englishOnlyCompany: string = extractEnglishFromMixed(cleanedCompany);
   const noEmojis: string = TextUtils.removeEmojis(englishOnlyCompany);
-  const formattedCompany: string = formatCompanyToPascalCase(
-    noEmojis,
-    maxWords
-  );
+  const formattedCompany: string = formatCompany(noEmojis, maxWords);
 
   const refactoredCompany = refactorCompanyName(formattedCompany);
 
@@ -364,10 +183,7 @@ export function refactorCompanyName(formattedCompany: string): string {
 
   let refactored = formattedCompany;
 
-  // 1. Handle Special Characters: & -> And, é -> e
-  refactored = refactored.replace(/&/g, 'And').replace(/é/g, 'e');
-
-  // 2. Manual Refactor List (Check FIRST to prioritize explicit mappings)
+  // 1. Manual Refactor List (Check FIRST to prioritize explicit mappings)
   // Whitespace-agnostic and case-insensitive matching
   const normKey = (s: string): string =>
     s.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -379,20 +195,25 @@ export function refactorCompanyName(formattedCompany: string): string {
     }
   }
 
+  // 2. Handle Special Characters: & -> And, é -> e
+  refactored = refactored.replace(/&/g, 'And').replace(/é/g, 'e');
+
   // 3. IDF / Unit Rule
+  const idfKeywords = [
+    'idf',
+    'israeldefense',
+    'israelimilitary',
+    'israeliarmy',
+    'israelinavy',
+    'israeliairforce',
+    'mamram',
+  ];
   if (
     /unit\s?\d{3,4}/i.test(refactored) ||
     /ofek\s?\d{3,4}/i.test(refactored) ||
-    [
-      'idf',
-      'israeldefense',
-      'israelimilitary',
-      'israeliarmy',
-      'israelinavy',
-      'israeliairforce',
-      'mamram',
-      'lotem',
-    ].some((k) => refactored.toLowerCase().includes(k))
+    (idfKeywords.some((k) => refactored.toLowerCase().includes(k)) &&
+      refactored.toLowerCase() !== 'lotem') ||
+    refactored.toLowerCase() === 'lotem 8200'
   ) {
     return 'IDF';
   }

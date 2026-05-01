@@ -1439,3 +1439,380 @@
 [2026-05-01T06:52:26.737Z] [prompts] runPrompt: prompt.run() rejected — 
 [2026-05-01T06:52:26.738Z] [prompts] runPrompt: starting cleanup
 [2026-05-01T06:52:26.738Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.942Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.944Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-05-01T08:13:03.944Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.944Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.946Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.946Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-05-01T08:13:03.947Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.947Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.948Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.948Z] [prompts] runPrompt: prompt.run() resolved — "Option 1"
+[2026-05-01T08:13:03.948Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.948Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.949Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.949Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-05-01T08:13:03.949Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.950Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.950Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.950Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-05-01T08:13:03.951Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.951Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.951Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.952Z] [prompts] runPrompt: prompt.run() resolved — "John Doe"
+[2026-05-01T08:13:03.952Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.952Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.953Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.953Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-05-01T08:13:03.953Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.953Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.954Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.954Z] [prompts] runPrompt: prompt.run() resolved — "valid@email.com"
+[2026-05-01T08:13:03.954Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.954Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.955Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.955Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-05-01T08:13:03.955Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.956Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.956Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.957Z] [prompts] runPrompt: prompt.run() resolved — false
+[2026-05-01T08:13:03.957Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.957Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.957Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.958Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-05-01T08:13:03.958Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.958Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.959Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.959Z] [prompts] runPrompt: prompt.run() resolved — ["Label 1","Label 2"]
+[2026-05-01T08:13:03.959Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.960Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.961Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.961Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-05-01T08:13:03.961Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.961Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.962Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.963Z] [prompts] runPrompt: prompt.run() resolved — "Label 1"
+[2026-05-01T08:13:03.963Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.963Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.964Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.964Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-05-01T08:13:03.964Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.964Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.965Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.965Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-05-01T08:13:03.965Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.966Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.966Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.966Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-05-01T08:13:03.966Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.967Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.967Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.967Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-05-01T08:13:03.968Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.968Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.968Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.968Z] [prompts] runPrompt: prompt.run() resolved — "test input"
+[2026-05-01T08:13:03.968Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.969Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.969Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.969Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-05-01T08:13:03.969Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.969Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.970Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.970Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-05-01T08:13:03.970Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.970Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.971Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.971Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-05-01T08:13:03.971Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.971Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.972Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.972Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-05-01T08:13:03.972Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.973Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:13:03.973Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:13:03.973Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-05-01T08:13:03.974Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:13:03.974Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.712Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.714Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-05-01T08:19:22.714Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.714Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.716Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.716Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-05-01T08:19:22.716Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.717Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.718Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.718Z] [prompts] runPrompt: prompt.run() resolved — "Option 1"
+[2026-05-01T08:19:22.718Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.718Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.719Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.720Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-05-01T08:19:22.720Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.720Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.723Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.723Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-05-01T08:19:22.723Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.723Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.724Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.724Z] [prompts] runPrompt: prompt.run() resolved — "John Doe"
+[2026-05-01T08:19:22.725Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.725Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.725Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.726Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-05-01T08:19:22.726Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.726Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.727Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.727Z] [prompts] runPrompt: prompt.run() resolved — "valid@email.com"
+[2026-05-01T08:19:22.727Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.727Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.728Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.728Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-05-01T08:19:22.729Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.729Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.731Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.732Z] [prompts] runPrompt: prompt.run() resolved — false
+[2026-05-01T08:19:22.732Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.733Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.734Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.734Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-05-01T08:19:22.734Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.734Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.735Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.735Z] [prompts] runPrompt: prompt.run() resolved — ["Label 1","Label 2"]
+[2026-05-01T08:19:22.736Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.736Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.737Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.737Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-05-01T08:19:22.737Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.738Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.738Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.739Z] [prompts] runPrompt: prompt.run() resolved — "Label 1"
+[2026-05-01T08:19:22.739Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.739Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.740Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.740Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-05-01T08:19:22.740Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.740Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.741Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.741Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-05-01T08:19:22.741Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.741Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.742Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.742Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-05-01T08:19:22.742Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.742Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.743Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.743Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-05-01T08:19:22.743Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.743Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.743Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.743Z] [prompts] runPrompt: prompt.run() resolved — "test input"
+[2026-05-01T08:19:22.744Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.744Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.744Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.744Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-05-01T08:19:22.744Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.745Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.745Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.745Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-05-01T08:19:22.745Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.746Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.746Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.746Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-05-01T08:19:22.746Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.746Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.747Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.747Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-05-01T08:19:22.747Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.747Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:19:22.748Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:19:22.748Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-05-01T08:19:22.748Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:19:22.748Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:38:19.241Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:38:19.714Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-05-01T08:38:19.714Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:38:19.715Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:38:19.716Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:38:24.325Z] [prompts] runPrompt: prompt.run() resolved — "🔍 Google Contacts Maintainer - Scan and report issues in Google Contacts"
+[2026-05-01T08:38:24.325Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:38:24.327Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:38:29.451Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:48:52.914Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-05-01T08:48:52.916Z] [prompts] recordEsc: t=1777625332916
+[2026-05-01T08:48:52.920Z] [prompts] runPrompt: prompt.run() rejected — 
+[2026-05-01T08:48:52.920Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:48:52.921Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:48:58.243Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:48:59.830Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-05-01T08:48:59.830Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:48:59.831Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:48:59.832Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:49:01.428Z] [prompts] runPrompt: prompt.run() resolved — "🔍 Google Contacts Maintainer - Scan and report issues in Google Contacts"
+[2026-05-01T08:49:01.428Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:49:01.429Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:49:06.542Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:52:41.695Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-05-01T08:52:41.695Z] [prompts] recordEsc: t=1777625561695
+[2026-05-01T08:52:41.697Z] [prompts] runPrompt: prompt.run() rejected — 
+[2026-05-01T08:52:41.697Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:52:41.697Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:52:46.305Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:52:47.599Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-05-01T08:52:47.599Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:52:47.600Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:52:47.601Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:52:49.372Z] [prompts] runPrompt: prompt.run() resolved — "🔍 Google Contacts Maintainer - Scan and report issues in Google Contacts"
+[2026-05-01T08:52:49.372Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:52:49.372Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:52:54.382Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:56:22.376Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-05-01T08:56:22.377Z] [prompts] recordEsc: t=1777625782377
+[2026-05-01T08:56:22.382Z] [prompts] runPrompt: prompt.run() rejected — 
+[2026-05-01T08:56:22.383Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:56:22.384Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:56:27.158Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:56:28.593Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-05-01T08:56:28.594Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:56:28.595Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:56:28.597Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:56:32.975Z] [prompts] runPrompt: prompt.run() resolved — "🔍 Google Contacts Maintainer - Scan and report issues in Google Contacts"
+[2026-05-01T08:56:32.976Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T08:56:32.977Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T08:56:38.197Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T08:59:57.903Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-05-01T08:59:57.904Z] [prompts] recordEsc: t=1777625997904
+[2026-05-01T09:00:02.722Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T09:00:03.977Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-05-01T09:00:03.977Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T09:00:03.978Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T09:00:03.980Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T09:00:06.991Z] [prompts] runPrompt: prompt.run() resolved — "🔍 Google Contacts Maintainer - Scan and report issues in Google Contacts"
+[2026-05-01T09:00:06.992Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T09:00:06.993Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T09:00:12.563Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T09:20:47.875Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-05-01T09:20:47.876Z] [prompts] recordEsc: t=1777627247876
+[2026-05-01T09:20:54.969Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T09:20:55.867Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-05-01T09:20:55.868Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T09:20:55.869Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T09:20:55.870Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T09:20:57.732Z] [prompts] runPrompt: prompt.run() resolved — "🔍 Google Contacts Maintainer - Scan and report issues in Google Contacts"
+[2026-05-01T09:20:57.732Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T09:20:57.733Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T09:21:02.537Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T13:23:39.289Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-05-01T13:23:39.290Z] [prompts] recordEsc: t=1777641819290
+[2026-05-01T13:23:39.294Z] [prompts] runPrompt: prompt.run() rejected — 
+[2026-05-01T13:23:39.294Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T13:23:39.295Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T13:23:46.068Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T13:23:48.951Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-05-01T13:23:48.952Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T13:23:48.953Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T13:23:48.954Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T13:23:51.106Z] [prompts] runPrompt: prompt.run() resolved — "🔍 Google Contacts Maintainer - Scan and report issues in Google Contacts"
+[2026-05-01T13:23:51.106Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T13:23:51.107Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T13:23:56.378Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T13:49:53.237Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-05-01T13:49:53.239Z] [prompts] recordEsc: t=1777643393239
+[2026-05-01T13:49:59.533Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T13:50:01.098Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-05-01T13:50:01.099Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T13:50:01.100Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T13:50:01.102Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T13:50:02.780Z] [prompts] runPrompt: prompt.run() resolved — "🔍 Google Contacts Maintainer - Scan and report issues in Google Contacts"
+[2026-05-01T13:50:02.780Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T13:50:02.781Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T13:50:08.612Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T13:53:36.632Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-05-01T13:53:36.633Z] [prompts] recordEsc: t=1777643616633
+[2026-05-01T13:53:36.636Z] [prompts] runPrompt: prompt.run() rejected — 
+[2026-05-01T13:53:36.637Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T13:53:36.638Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T13:53:41.816Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T13:53:42.964Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-05-01T13:53:42.964Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T13:53:42.965Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T13:53:42.967Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T13:53:44.538Z] [prompts] runPrompt: prompt.run() resolved — "🔍 Google Contacts Maintainer - Scan and report issues in Google Contacts"
+[2026-05-01T13:53:44.538Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T13:53:44.539Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T13:53:49.812Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T13:57:15.271Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-05-01T13:57:15.272Z] [prompts] recordEsc: t=1777643835272
+[2026-05-01T13:57:15.275Z] [prompts] runPrompt: prompt.run() rejected — 
+[2026-05-01T13:57:15.275Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T13:57:15.276Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T13:57:21.041Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T13:57:21.554Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-05-01T13:57:21.554Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T13:57:21.556Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T13:57:21.558Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T13:57:23.527Z] [prompts] runPrompt: prompt.run() resolved — "🔍 Google Contacts Maintainer - Scan and report issues in Google Contacts"
+[2026-05-01T13:57:23.528Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T13:57:23.529Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T13:57:28.869Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T14:02:42.438Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-05-01T14:02:42.440Z] [prompts] recordEsc: t=1777644162440
+[2026-05-01T14:02:51.054Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T14:02:51.870Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-05-01T14:02:51.870Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T14:02:51.871Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T14:02:51.872Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T14:02:52.924Z] [prompts] runPrompt: prompt.run() resolved — "🔍 Google Contacts Maintainer - Scan and report issues in Google Contacts"
+[2026-05-01T14:02:52.925Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T14:02:52.926Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T14:02:58.574Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T14:36:53.427Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-05-01T14:36:53.428Z] [prompts] recordEsc: t=1777646213428
+[2026-05-01T14:36:58.574Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T14:36:59.119Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-05-01T14:36:59.120Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T14:36:59.120Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T14:36:59.122Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T14:37:00.177Z] [prompts] runPrompt: prompt.run() resolved — "🔍 Google Contacts Maintainer - Scan and report issues in Google Contacts"
+[2026-05-01T14:37:00.178Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T14:37:00.178Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T14:37:05.294Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T14:48:10.445Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-05-01T14:48:10.446Z] [prompts] recordEsc: t=1777646890446
+[2026-05-01T14:48:15.060Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T14:48:16.880Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-05-01T14:48:16.881Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T14:48:16.882Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T14:48:16.884Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T14:48:18.207Z] [prompts] runPrompt: prompt.run() resolved — "🔍 Google Contacts Maintainer - Scan and report issues in Google Contacts"
+[2026-05-01T14:48:18.207Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T14:48:18.208Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T14:48:23.016Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T14:53:32.079Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-05-01T14:53:32.079Z] [prompts] recordEsc: t=1777647212079
+[2026-05-01T14:53:40.792Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T14:53:42.272Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-05-01T14:53:42.272Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T14:53:42.272Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T14:53:42.274Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T14:53:43.374Z] [prompts] runPrompt: prompt.run() resolved — "🔍 Google Contacts Maintainer - Scan and report issues in Google Contacts"
+[2026-05-01T14:53:43.374Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T14:53:43.375Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T14:53:48.152Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T15:00:14.915Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-05-01T15:00:14.915Z] [prompts] recordEsc: t=1777647614915
+[2026-05-01T15:00:19.373Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T15:00:21.213Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-05-01T15:00:21.213Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T15:00:21.214Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T15:00:21.216Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T15:00:22.608Z] [prompts] runPrompt: prompt.run() resolved — "🔍 Google Contacts Maintainer - Scan and report issues in Google Contacts"
+[2026-05-01T15:00:22.609Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T15:00:22.609Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T15:00:27.508Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T15:05:53.730Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T15:10:11.390Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T15:19:35.092Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-05-01T15:19:35.092Z] [prompts] recordEsc: t=1777648775092
