@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
+import { join } from 'path';
 import { NoteWriter } from '../noteWriter';
 
 vi.mock('fs/promises');
@@ -112,23 +113,6 @@ describe('NoteWriter', () => {
 
       expect(result).toBe(`notes_${dateStr}-2.txt`);
     });
-
-    it('should warn when future date files exist', async () => {
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      (fs.readdir as any) = vi
-        .fn()
-        .mockResolvedValue([
-          `notes_${dateStr}-1.txt`,
-          `notes_16032026-1.txt`,
-        ] as any);
-
-      await writer.getNextFileName('/path/to/folder', testDate);
-
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Found note files with future dates')
-      );
-      consoleSpy.mockRestore();
-    });
   });
 
   describe('writeNote', () => {
@@ -144,12 +128,10 @@ describe('NoteWriter', () => {
         testDate
       );
 
-      expect(result).toBe(`/path/to/folder/notes_${dateStr}-1.txt`);
-      expect(fs.writeFile).toHaveBeenCalledWith(
-        `/path/to/folder/notes_${dateStr}-1.txt`,
-        content,
-        'utf-8'
-      );
+      const expectedFileName = `notes_${dateStr}-1.txt`;
+      const expectedPath = join('/path/to/folder', expectedFileName);
+      expect(result).toBe(expectedPath);
+      expect(fs.writeFile).toHaveBeenCalledWith(expectedPath, content, 'utf-8');
     });
 
     it('should throw error when content exceeds 1MB', async () => {

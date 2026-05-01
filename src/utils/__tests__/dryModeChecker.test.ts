@@ -21,7 +21,7 @@ describe('DryModeChecker', () => {
   });
 
   describe('logApiCall', () => {
-    it('should log with correct format using logger', () => {
+    it('should not log when logApiCall is called (silenced)', () => {
       const mockLogger = {
         info: vi.fn(),
       };
@@ -30,24 +30,20 @@ describe('DryModeChecker', () => {
         'Contact: John Smith',
         mockLogger
       );
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        '[DRY-MODE] Calling API service.people.createContact() - Contact: John Smith'
-      );
+      expect(mockLogger.info).not.toHaveBeenCalled();
     });
 
-    it('should log to console when logger is undefined', () => {
+    it('should not log to console when logger is undefined', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       DryModeChecker.logApiCall(
         'service.people.createContact()',
         'Contact: John Smith'
       );
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[DRY-MODE] Calling API service.people.createContact() - Contact: John Smith'
-      );
+      expect(consoleSpy).not.toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
 
-    it('should log to console when logger lacks info method', () => {
+    it('should not log to console when logger lacks info method', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       const mockInvalidLogger = {} as any;
       DryModeChecker.logApiCall(
@@ -55,9 +51,7 @@ describe('DryModeChecker', () => {
         'Contact: John Smith',
         mockInvalidLogger
       );
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[DRY-MODE] Calling API service.people.createContact() - Contact: John Smith'
-      );
+      expect(consoleSpy).not.toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
   });

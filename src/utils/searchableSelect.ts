@@ -60,12 +60,14 @@ export class SearchableSelect extends (Enquirer as any).Select {
     if (this.index < 0) this.index = 0;
   }
 
-  async header(): Promise<string> {
+  header(): Promise<string> {
     const cursor = '█';
     const matchCount = this.choices.length;
     const totalCount = this._allChoices?.length ?? 0;
-    return this.styles.muted(
-      `  Search: ${this.searchTerm}${cursor} (${matchCount}/${totalCount} matches)`
+    return Promise.resolve(
+      this.styles.muted(
+        `  Search: ${this.searchTerm}${cursor} (${matchCount}/${totalCount} matches)`
+      )
     );
   }
 }

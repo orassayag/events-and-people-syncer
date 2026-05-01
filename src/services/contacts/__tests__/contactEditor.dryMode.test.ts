@@ -110,7 +110,7 @@ describe('ContactEditor - Dry Mode', () => {
       expect(apiTracker.trackWrite).toHaveBeenCalled();
     });
 
-    it('should continue operation if duplicate detector tracking fails', async () => {
+    it('should throw error if duplicate detector tracking fails', async () => {
       (SETTINGS as any).dryMode = true;
       mockDuplicateDetector.addRecentlyModifiedContact.mockImplementation(
         () => {
@@ -119,7 +119,7 @@ describe('ContactEditor - Dry Mode', () => {
       );
       await expect(
         contactEditor.createContact(testData, 'Test note')
-      ).resolves.not.toThrow();
+      ).rejects.toThrow('Tracking failed');
     });
   });
 

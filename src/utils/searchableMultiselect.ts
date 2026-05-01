@@ -77,12 +77,14 @@ export class SearchableMultiSelect extends (Enquirer as any).MultiSelect {
       .map((c: Choice) => c.name);
   }
 
-  async header(): Promise<string> {
+  header(): Promise<string> {
     const cursor = '█';
     const matchCount = this.choices.length;
     const totalCount = this._allChoices?.length ?? 0;
-    return this.styles.muted(
-      `  Search: ${this.searchTerm}${cursor} (${matchCount}/${totalCount} matches)`
+    return Promise.resolve(
+      this.styles.muted(
+        `  Search: ${this.searchTerm}${cursor} (${matchCount}/${totalCount} matches)`
+      )
     );
   }
 }

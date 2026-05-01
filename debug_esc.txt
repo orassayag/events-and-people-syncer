@@ -78,3 +78,1364 @@
 [2026-04-30T16:24:27.017Z] [prompts] runPrompt: prompt.run() rejected — 
 [2026-04-30T16:24:27.018Z] [prompts] runPrompt: starting cleanup
 [2026-04-30T16:24:27.018Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.567Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T16:26:08.568Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.568Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.570Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T16:26:08.570Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.571Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.580Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T16:26:08.580Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.580Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.582Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T16:26:08.583Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.583Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.584Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T16:26:08.584Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.584Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.585Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Input is not a constructor
+[2026-04-30T16:26:08.585Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.586Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.587Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Input is not a constructor
+[2026-04-30T16:26:08.587Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.587Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.588Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Input is not a constructor
+[2026-04-30T16:26:08.588Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.588Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.590Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Confirm is not a constructor
+[2026-04-30T16:26:08.590Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.590Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.592Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Confirm is not a constructor
+[2026-04-30T16:26:08.592Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.592Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.593Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Confirm is not a constructor
+[2026-04-30T16:26:08.593Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.593Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.594Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Cannot read properties of undefined (reading 'bind')
+[2026-04-30T16:26:08.595Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.595Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.596Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Cannot read properties of undefined (reading 'bind')
+[2026-04-30T16:26:08.596Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.597Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.597Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Cannot read properties of undefined (reading 'bind')
+[2026-04-30T16:26:08.597Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.597Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.599Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Cannot read properties of undefined (reading 'bind')
+[2026-04-30T16:26:08.599Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.600Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.602Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Cannot read properties of undefined (reading 'bind')
+[2026-04-30T16:26:08.602Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.602Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.603Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Confirm is not a constructor
+[2026-04-30T16:26:08.603Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.603Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.604Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Input is not a constructor
+[2026-04-30T16:26:08.604Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.604Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.605Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T16:26:08.605Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.606Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.606Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Input is not a constructor
+[2026-04-30T16:26:08.606Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.606Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.607Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Confirm is not a constructor
+[2026-04-30T16:26:08.607Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.607Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.608Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T16:26:08.608Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.608Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.609Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T16:26:08.609Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.609Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:26:08.610Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T16:26:08.610Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:26:08.610Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.184Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T16:33:22.185Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.185Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.187Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T16:33:22.187Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.187Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.194Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T16:33:22.195Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.195Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.196Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T16:33:22.197Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.197Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.198Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T16:33:22.198Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.198Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.199Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Input is not a constructor
+[2026-04-30T16:33:22.199Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.199Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.200Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Input is not a constructor
+[2026-04-30T16:33:22.200Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.200Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.201Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Input is not a constructor
+[2026-04-30T16:33:22.201Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.201Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.202Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Confirm is not a constructor
+[2026-04-30T16:33:22.202Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.202Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.203Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Confirm is not a constructor
+[2026-04-30T16:33:22.203Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.203Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.204Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Confirm is not a constructor
+[2026-04-30T16:33:22.204Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.204Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.205Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Cannot read properties of undefined (reading 'bind')
+[2026-04-30T16:33:22.205Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.205Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.206Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Cannot read properties of undefined (reading 'bind')
+[2026-04-30T16:33:22.206Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.206Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.207Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Cannot read properties of undefined (reading 'bind')
+[2026-04-30T16:33:22.207Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.207Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.208Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Cannot read properties of undefined (reading 'bind')
+[2026-04-30T16:33:22.209Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.209Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.210Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Cannot read properties of undefined (reading 'bind')
+[2026-04-30T16:33:22.210Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.210Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.211Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Confirm is not a constructor
+[2026-04-30T16:33:22.211Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.211Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.212Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Input is not a constructor
+[2026-04-30T16:33:22.212Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.212Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.213Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T16:33:22.213Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.213Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.213Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Input is not a constructor
+[2026-04-30T16:33:22.213Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.213Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.213Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Confirm is not a constructor
+[2026-04-30T16:33:22.214Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.214Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.214Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T16:33:22.215Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.215Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.215Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T16:33:22.216Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.216Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T16:33:22.216Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T16:33:22.216Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T16:33:22.216Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:25.961Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T19:09:25.962Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:25.962Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:25.964Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T19:09:25.964Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:25.964Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:25.973Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T19:09:25.974Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:25.974Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:25.975Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T19:09:25.976Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:25.976Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:25.977Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T19:09:25.977Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:25.978Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:25.979Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Input is not a constructor
+[2026-04-30T19:09:25.979Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:25.979Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:25.981Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Input is not a constructor
+[2026-04-30T19:09:25.981Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:25.982Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:25.982Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Input is not a constructor
+[2026-04-30T19:09:25.983Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:25.983Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:25.984Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Confirm is not a constructor
+[2026-04-30T19:09:25.985Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:25.985Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:25.986Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Confirm is not a constructor
+[2026-04-30T19:09:25.986Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:25.987Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:25.988Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Confirm is not a constructor
+[2026-04-30T19:09:25.988Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:25.988Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:25.989Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Cannot read properties of undefined (reading 'bind')
+[2026-04-30T19:09:25.990Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:25.990Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:25.991Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Cannot read properties of undefined (reading 'bind')
+[2026-04-30T19:09:25.991Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:25.992Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:25.992Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Cannot read properties of undefined (reading 'bind')
+[2026-04-30T19:09:25.992Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:25.993Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:25.994Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Cannot read properties of undefined (reading 'bind')
+[2026-04-30T19:09:25.994Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:25.994Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:25.995Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Cannot read properties of undefined (reading 'bind')
+[2026-04-30T19:09:25.995Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:25.996Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:25.996Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Confirm is not a constructor
+[2026-04-30T19:09:25.996Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:25.996Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:25.997Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Input is not a constructor
+[2026-04-30T19:09:25.998Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:25.998Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:26.000Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T19:09:26.000Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:26.001Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:26.001Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Input is not a constructor
+[2026-04-30T19:09:26.001Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:26.002Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:26.002Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Confirm is not a constructor
+[2026-04-30T19:09:26.002Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:26.002Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:26.003Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T19:09:26.003Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:26.004Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:26.004Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T19:09:26.005Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:26.005Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:09:26.005Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Select is not a constructor
+[2026-04-30T19:09:26.006Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:09:26.006Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.059Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:03.061Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:20:03.061Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.061Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.063Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:03.064Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:20:03.064Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.064Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.065Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:03.065Z] [prompts] runPrompt: prompt.run() resolved — "Option 1"
+[2026-04-30T19:20:03.066Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.066Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.067Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:03.067Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:20:03.068Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.068Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.069Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:03.069Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:20:03.069Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.069Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.070Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:03.071Z] [prompts] runPrompt: prompt.run() resolved — "John Doe"
+[2026-04-30T19:20:03.071Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.071Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.072Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:03.072Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:20:03.072Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.072Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.073Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:03.073Z] [prompts] runPrompt: prompt.run() resolved — "valid@email.com"
+[2026-04-30T19:20:03.073Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.073Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.074Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:03.075Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T19:20:03.075Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.075Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.076Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:03.076Z] [prompts] runPrompt: prompt.run() resolved — false
+[2026-04-30T19:20:03.076Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.077Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.077Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:03.078Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:20:03.078Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.078Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.079Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Cannot read properties of undefined (reading 'bind')
+[2026-04-30T19:20:03.079Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.079Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.088Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Cannot read properties of undefined (reading 'bind')
+[2026-04-30T19:20:03.088Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.088Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.089Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Cannot read properties of undefined (reading 'bind')
+[2026-04-30T19:20:03.090Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.090Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.091Z] [prompts] runPrompt: prompt.run() rejected — TypeError: Cannot read properties of undefined (reading 'bind')
+[2026-04-30T19:20:03.091Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.091Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.092Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:03.092Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:20:03.092Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.092Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.093Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:03.093Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:20:03.093Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.094Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.094Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:03.095Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-04-30T19:20:03.095Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.095Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.095Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:03.095Z] [prompts] runPrompt: prompt.run() resolved — "test input"
+[2026-04-30T19:20:03.095Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.096Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.096Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:03.096Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T19:20:03.096Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.096Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.097Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:03.098Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-04-30T19:20:03.098Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.098Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.098Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:03.099Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:20:03.099Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.099Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.100Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:03.100Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:20:03.100Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.100Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:03.101Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:03.101Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:20:03.101Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:03.102Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.788Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.789Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:20:26.789Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.789Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.790Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.791Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:20:26.791Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.791Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.792Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.792Z] [prompts] runPrompt: prompt.run() resolved — "Option 1"
+[2026-04-30T19:20:26.792Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.792Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.793Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.793Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:20:26.793Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.793Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.794Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.794Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:20:26.794Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.795Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.795Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.795Z] [prompts] runPrompt: prompt.run() resolved — "John Doe"
+[2026-04-30T19:20:26.795Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.796Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.796Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.796Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:20:26.796Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.796Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.797Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.797Z] [prompts] runPrompt: prompt.run() resolved — "valid@email.com"
+[2026-04-30T19:20:26.797Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.797Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.798Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.798Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T19:20:26.798Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.798Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.798Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.799Z] [prompts] runPrompt: prompt.run() resolved — false
+[2026-04-30T19:20:26.799Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.799Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.799Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.799Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:20:26.799Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.800Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.800Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.800Z] [prompts] runPrompt: prompt.run() resolved — ["Label 1","Label 2"]
+[2026-04-30T19:20:26.800Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.801Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.801Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.802Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:20:26.802Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.802Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.802Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.803Z] [prompts] runPrompt: prompt.run() resolved — "Label 1"
+[2026-04-30T19:20:26.803Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.803Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.803Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.804Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:20:26.804Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.804Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.804Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.804Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:20:26.804Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.805Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.805Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.805Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:20:26.805Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.806Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.806Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.806Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-04-30T19:20:26.806Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.806Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.806Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.807Z] [prompts] runPrompt: prompt.run() resolved — "test input"
+[2026-04-30T19:20:26.807Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.807Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.807Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.807Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T19:20:26.807Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.807Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.808Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.808Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-04-30T19:20:26.808Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.808Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.808Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.808Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:20:26.809Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.809Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.809Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.809Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:20:26.809Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.809Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:20:26.810Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:20:26.810Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:20:26.810Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:20:26.810Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.100Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.102Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:24:24.102Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.103Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.104Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.104Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:24:24.105Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.105Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.106Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.106Z] [prompts] runPrompt: prompt.run() resolved — "Option 1"
+[2026-04-30T19:24:24.106Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.107Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.107Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.108Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:24:24.108Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.108Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.109Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.109Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:24:24.109Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.110Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.110Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.111Z] [prompts] runPrompt: prompt.run() resolved — "John Doe"
+[2026-04-30T19:24:24.111Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.111Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.112Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.112Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:24:24.112Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.112Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.113Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.113Z] [prompts] runPrompt: prompt.run() resolved — "valid@email.com"
+[2026-04-30T19:24:24.113Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.113Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.114Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.115Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T19:24:24.115Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.116Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.116Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.117Z] [prompts] runPrompt: prompt.run() resolved — false
+[2026-04-30T19:24:24.117Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.117Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.118Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.118Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:24:24.118Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.118Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.119Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.119Z] [prompts] runPrompt: prompt.run() resolved — ["Label 1","Label 2"]
+[2026-04-30T19:24:24.120Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.120Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.121Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.122Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:24:24.122Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.122Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.123Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.123Z] [prompts] runPrompt: prompt.run() resolved — "Label 1"
+[2026-04-30T19:24:24.123Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.123Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.124Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.124Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:24:24.124Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.124Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.125Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.125Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:24:24.125Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.125Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.126Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.126Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:24:24.126Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.126Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.127Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.127Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-04-30T19:24:24.127Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.128Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.128Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.128Z] [prompts] runPrompt: prompt.run() resolved — "test input"
+[2026-04-30T19:24:24.128Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.128Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.128Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.129Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T19:24:24.129Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.129Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.129Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.129Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-04-30T19:24:24.130Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.130Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.130Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.130Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:24:24.130Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.130Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.131Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.131Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:24:24.131Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.132Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:24:24.132Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:24:24.132Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:24:24.133Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:24:24.133Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.115Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.116Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:26:03.116Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.117Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.118Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.118Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:26:03.119Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.119Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.120Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.121Z] [prompts] runPrompt: prompt.run() resolved — "Option 1"
+[2026-04-30T19:26:03.121Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.121Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.122Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.122Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:26:03.122Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.122Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.123Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.123Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:26:03.123Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.123Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.124Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.124Z] [prompts] runPrompt: prompt.run() resolved — "John Doe"
+[2026-04-30T19:26:03.125Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.125Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.125Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.129Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:26:03.129Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.130Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.130Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.131Z] [prompts] runPrompt: prompt.run() resolved — "valid@email.com"
+[2026-04-30T19:26:03.131Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.131Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.132Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.132Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T19:26:03.133Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.133Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.134Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.134Z] [prompts] runPrompt: prompt.run() resolved — false
+[2026-04-30T19:26:03.134Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.134Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.135Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.135Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:26:03.135Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.136Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.137Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.137Z] [prompts] runPrompt: prompt.run() resolved — ["Label 1","Label 2"]
+[2026-04-30T19:26:03.137Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.137Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.139Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.139Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:26:03.139Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.139Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.140Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.141Z] [prompts] runPrompt: prompt.run() resolved — "Label 1"
+[2026-04-30T19:26:03.141Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.141Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.142Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.142Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:26:03.143Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.143Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.143Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.144Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:26:03.144Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.144Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.145Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.145Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:26:03.145Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.145Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.146Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.146Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-04-30T19:26:03.146Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.146Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.147Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.147Z] [prompts] runPrompt: prompt.run() resolved — "test input"
+[2026-04-30T19:26:03.147Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.147Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.148Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.148Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T19:26:03.148Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.148Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.149Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.149Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-04-30T19:26:03.149Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.149Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.150Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.150Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:26:03.150Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.151Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.151Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.152Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:26:03.152Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.152Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:26:03.153Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:26:03.153Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:26:03.153Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:26:03.153Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.315Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.317Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:27:42.317Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.317Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.319Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.319Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:27:42.319Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.319Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.320Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.321Z] [prompts] runPrompt: prompt.run() resolved — "Option 1"
+[2026-04-30T19:27:42.321Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.321Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.321Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.322Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:27:42.322Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.322Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.323Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.323Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:27:42.323Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.323Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.324Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.324Z] [prompts] runPrompt: prompt.run() resolved — "John Doe"
+[2026-04-30T19:27:42.324Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.324Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.325Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.325Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:27:42.325Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.326Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.326Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.326Z] [prompts] runPrompt: prompt.run() resolved — "valid@email.com"
+[2026-04-30T19:27:42.326Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.327Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.327Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.328Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T19:27:42.328Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.328Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.329Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.329Z] [prompts] runPrompt: prompt.run() resolved — false
+[2026-04-30T19:27:42.330Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.330Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.331Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.332Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:27:42.332Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.332Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.333Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.333Z] [prompts] runPrompt: prompt.run() resolved — ["Label 1","Label 2"]
+[2026-04-30T19:27:42.334Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.334Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.335Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.336Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:27:42.336Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.336Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.337Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.337Z] [prompts] runPrompt: prompt.run() resolved — "Label 1"
+[2026-04-30T19:27:42.337Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.338Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.338Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.339Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:27:42.339Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.339Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.339Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.340Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:27:42.340Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.340Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.341Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.341Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:27:42.341Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.341Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.342Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.342Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-04-30T19:27:42.342Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.342Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.343Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.343Z] [prompts] runPrompt: prompt.run() resolved — "test input"
+[2026-04-30T19:27:42.343Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.343Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.343Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.344Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T19:27:42.344Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.344Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.345Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.345Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-04-30T19:27:42.345Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.345Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.345Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.347Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:27:42.347Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.347Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.348Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.348Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:27:42.348Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.348Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:27:42.349Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:27:42.349Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:27:42.349Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:27:42.349Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.345Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.347Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:28:21.347Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.347Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.349Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.349Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:28:21.349Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.349Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.350Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.350Z] [prompts] runPrompt: prompt.run() resolved — "Option 1"
+[2026-04-30T19:28:21.351Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.351Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.352Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.352Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:28:21.352Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.352Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.353Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.353Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:28:21.353Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.354Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.354Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.355Z] [prompts] runPrompt: prompt.run() resolved — "John Doe"
+[2026-04-30T19:28:21.355Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.355Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.356Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.356Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:28:21.356Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.356Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.357Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.357Z] [prompts] runPrompt: prompt.run() resolved — "valid@email.com"
+[2026-04-30T19:28:21.357Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.357Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.358Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.358Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T19:28:21.358Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.358Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.359Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.359Z] [prompts] runPrompt: prompt.run() resolved — false
+[2026-04-30T19:28:21.360Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.360Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.360Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.361Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:28:21.361Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.361Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.362Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.362Z] [prompts] runPrompt: prompt.run() resolved — ["Label 1","Label 2"]
+[2026-04-30T19:28:21.362Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.363Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.364Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.365Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:28:21.365Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.365Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.367Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.368Z] [prompts] runPrompt: prompt.run() resolved — "Label 1"
+[2026-04-30T19:28:21.369Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.369Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.370Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.371Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:28:21.371Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.373Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.373Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.373Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:28:21.374Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.374Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.375Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.375Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:28:21.375Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.375Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.376Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.376Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-04-30T19:28:21.376Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.376Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.377Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.377Z] [prompts] runPrompt: prompt.run() resolved — "test input"
+[2026-04-30T19:28:21.377Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.377Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.377Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.377Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T19:28:21.377Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.378Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.378Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.378Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-04-30T19:28:21.379Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.379Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.379Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.379Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:28:21.380Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.380Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.380Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.381Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:28:21.381Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.381Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:28:21.382Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:28:21.382Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:28:21.382Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:28:21.382Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.932Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.933Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:38:23.933Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.934Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.935Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.936Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:38:23.936Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.936Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.937Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.937Z] [prompts] runPrompt: prompt.run() resolved — "Option 1"
+[2026-04-30T19:38:23.938Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.938Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.938Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.939Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:38:23.939Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.939Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.940Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.940Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:38:23.940Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.940Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.941Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.942Z] [prompts] runPrompt: prompt.run() resolved — "John Doe"
+[2026-04-30T19:38:23.942Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.942Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.943Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.943Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:38:23.943Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.944Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.944Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.944Z] [prompts] runPrompt: prompt.run() resolved — "valid@email.com"
+[2026-04-30T19:38:23.944Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.945Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.945Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.946Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T19:38:23.946Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.946Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.947Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.947Z] [prompts] runPrompt: prompt.run() resolved — false
+[2026-04-30T19:38:23.947Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.947Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.948Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.948Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:38:23.948Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.949Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.950Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.950Z] [prompts] runPrompt: prompt.run() resolved — ["Label 1","Label 2"]
+[2026-04-30T19:38:23.950Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.950Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.952Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.952Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:38:23.952Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.952Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.953Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.953Z] [prompts] runPrompt: prompt.run() resolved — "Label 1"
+[2026-04-30T19:38:23.954Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.954Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.955Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.955Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:38:23.955Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.955Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.956Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.956Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:38:23.956Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.956Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.957Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.957Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:38:23.957Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.958Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.959Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.959Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-04-30T19:38:23.959Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.960Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.960Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.960Z] [prompts] runPrompt: prompt.run() resolved — "test input"
+[2026-04-30T19:38:23.960Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.961Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.961Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.961Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T19:38:23.961Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.961Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.962Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.962Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-04-30T19:38:23.962Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.963Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.963Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.963Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:38:23.963Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.964Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.964Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.965Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:38:23.965Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.965Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:38:23.965Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:38:23.966Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:38:23.966Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:38:23.966Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.653Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.654Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:40:27.654Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.654Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.659Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.659Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:40:27.660Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.660Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.661Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.661Z] [prompts] runPrompt: prompt.run() resolved — "Option 1"
+[2026-04-30T19:40:27.661Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.661Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.662Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.662Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:40:27.663Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.663Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.663Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.664Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:40:27.664Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.664Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.665Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.666Z] [prompts] runPrompt: prompt.run() resolved — "John Doe"
+[2026-04-30T19:40:27.666Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.666Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.667Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.667Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:40:27.667Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.667Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.668Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.668Z] [prompts] runPrompt: prompt.run() resolved — "valid@email.com"
+[2026-04-30T19:40:27.668Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.668Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.669Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.669Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T19:40:27.670Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.670Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.671Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.671Z] [prompts] runPrompt: prompt.run() resolved — false
+[2026-04-30T19:40:27.671Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.671Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.672Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.672Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:40:27.672Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.673Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.674Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.674Z] [prompts] runPrompt: prompt.run() resolved — ["Label 1","Label 2"]
+[2026-04-30T19:40:27.675Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.675Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.676Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.676Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:40:27.676Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.677Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.677Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.678Z] [prompts] runPrompt: prompt.run() resolved — "Label 1"
+[2026-04-30T19:40:27.678Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.678Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.678Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.679Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:40:27.679Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.679Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.680Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.680Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:40:27.680Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.680Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.681Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.681Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:40:27.681Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.681Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.682Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.682Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-04-30T19:40:27.682Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.682Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.683Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.683Z] [prompts] runPrompt: prompt.run() resolved — "test input"
+[2026-04-30T19:40:27.683Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.683Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.683Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.684Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T19:40:27.684Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.684Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.684Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.685Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-04-30T19:40:27.685Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.685Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.685Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.685Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:40:27.686Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.686Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.687Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.687Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:40:27.687Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.687Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:40:27.688Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:40:27.688Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:40:27.688Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:40:27.689Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:48:29.766Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:48:30.537Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T19:48:30.538Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:48:30.538Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:48:30.540Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:48:33.529Z] [prompts] runPrompt: prompt.run() resolved — "🔗 LinkedIn Sync       - Syncs LinkedIn connections from exported CSV to Google Contacts"
+[2026-04-30T19:48:33.529Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:48:33.530Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:48:41.162Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:48:43.833Z] [prompts] runPrompt: prompt.run() resolved — "♻️  Clear Cache         - Clear all cached data (company mappings, folder mappings, contacts)"
+[2026-04-30T19:48:43.834Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:48:43.834Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:48:43.838Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.837Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.838Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:50:56.838Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.839Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.840Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.841Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:50:56.841Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.842Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.842Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.843Z] [prompts] runPrompt: prompt.run() resolved — "Option 1"
+[2026-04-30T19:50:56.843Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.843Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.843Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.844Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:50:56.844Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.844Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.844Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.845Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:50:56.845Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.845Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.845Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.846Z] [prompts] runPrompt: prompt.run() resolved — "John Doe"
+[2026-04-30T19:50:56.846Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.846Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.846Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.846Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:50:56.847Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.847Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.847Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.847Z] [prompts] runPrompt: prompt.run() resolved — "valid@email.com"
+[2026-04-30T19:50:56.847Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.847Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.848Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.848Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T19:50:56.848Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.848Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.849Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.849Z] [prompts] runPrompt: prompt.run() resolved — false
+[2026-04-30T19:50:56.849Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.849Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.850Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.850Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:50:56.850Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.850Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.850Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.851Z] [prompts] runPrompt: prompt.run() resolved — ["Label 1","Label 2"]
+[2026-04-30T19:50:56.851Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.851Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.852Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.852Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:50:56.852Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.852Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.853Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.853Z] [prompts] runPrompt: prompt.run() resolved — "Label 1"
+[2026-04-30T19:50:56.853Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.853Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.854Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.854Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:50:56.854Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.854Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.855Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.855Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:50:56.855Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.855Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.855Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.855Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:50:56.855Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.856Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.856Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.856Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-04-30T19:50:56.856Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.857Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.857Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.857Z] [prompts] runPrompt: prompt.run() resolved — "test input"
+[2026-04-30T19:50:56.857Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.857Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.857Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.858Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T19:50:56.858Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.858Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.858Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.858Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-04-30T19:50:56.859Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.859Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.859Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.859Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:50:56.859Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.859Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.859Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.860Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:50:56.860Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.860Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:50:56.860Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:50:56.860Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:50:56.860Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:50:56.860Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:52:07.659Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-04-30T19:52:07.660Z] [prompts] recordEsc: t=1777578727660
+[2026-04-30T19:52:07.663Z] [prompts] runPrompt: prompt.run() rejected — 
+[2026-04-30T19:52:07.664Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:52:07.665Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.016Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.017Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:58:23.017Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.017Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.019Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.019Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:58:23.019Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.020Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.021Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.021Z] [prompts] runPrompt: prompt.run() resolved — "Option 1"
+[2026-04-30T19:58:23.021Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.022Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.022Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.022Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:58:23.023Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.023Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.024Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.024Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:58:23.024Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.025Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.026Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.026Z] [prompts] runPrompt: prompt.run() resolved — "John Doe"
+[2026-04-30T19:58:23.026Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.026Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.027Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.028Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:58:23.028Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.028Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.031Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.033Z] [prompts] runPrompt: prompt.run() resolved — "valid@email.com"
+[2026-04-30T19:58:23.033Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.033Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.042Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.043Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T19:58:23.044Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.046Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.049Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.052Z] [prompts] runPrompt: prompt.run() resolved — false
+[2026-04-30T19:58:23.052Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.052Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.053Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.053Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:58:23.054Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.054Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.055Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.066Z] [prompts] runPrompt: prompt.run() resolved — ["Label 1","Label 2"]
+[2026-04-30T19:58:23.068Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.068Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.069Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.070Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:58:23.071Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.071Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.072Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.072Z] [prompts] runPrompt: prompt.run() resolved — "Label 1"
+[2026-04-30T19:58:23.072Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.073Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.075Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.076Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:58:23.076Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.077Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.078Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.078Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:58:23.079Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.079Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.080Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.080Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:58:23.081Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.081Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.081Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.082Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-04-30T19:58:23.082Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.082Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.082Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.082Z] [prompts] runPrompt: prompt.run() resolved — "test input"
+[2026-04-30T19:58:23.082Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.083Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.086Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.086Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T19:58:23.086Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.086Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.087Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.087Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-04-30T19:58:23.088Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.088Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.088Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.088Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:58:23.089Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.089Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.089Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.090Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T19:58:23.090Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.090Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T19:58:23.091Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T19:58:23.092Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T19:58:23.093Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T19:58:23.093Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.143Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.144Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T20:07:15.145Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.145Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.146Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.146Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T20:07:15.146Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.147Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.147Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.147Z] [prompts] runPrompt: prompt.run() resolved — "Option 1"
+[2026-04-30T20:07:15.148Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.148Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.148Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.148Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T20:07:15.148Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.149Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.149Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.149Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T20:07:15.149Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.149Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.150Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.150Z] [prompts] runPrompt: prompt.run() resolved — "John Doe"
+[2026-04-30T20:07:15.150Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.150Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.151Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.151Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T20:07:15.151Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.151Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.152Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.152Z] [prompts] runPrompt: prompt.run() resolved — "valid@email.com"
+[2026-04-30T20:07:15.152Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.152Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.153Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.153Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T20:07:15.153Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.154Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.154Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.154Z] [prompts] runPrompt: prompt.run() resolved — false
+[2026-04-30T20:07:15.155Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.155Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.155Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.156Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T20:07:15.156Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.156Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.157Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.157Z] [prompts] runPrompt: prompt.run() resolved — ["Label 1","Label 2"]
+[2026-04-30T20:07:15.157Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.157Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.158Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.159Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T20:07:15.159Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.159Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.160Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.160Z] [prompts] runPrompt: prompt.run() resolved — "Label 1"
+[2026-04-30T20:07:15.160Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.160Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.161Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.161Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T20:07:15.161Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.162Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.162Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.162Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T20:07:15.163Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.163Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.163Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.163Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T20:07:15.163Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.164Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.164Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.164Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-04-30T20:07:15.164Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.165Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.165Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.165Z] [prompts] runPrompt: prompt.run() resolved — "test input"
+[2026-04-30T20:07:15.165Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.165Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.165Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.165Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T20:07:15.166Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.166Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.166Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.166Z] [prompts] runPrompt: prompt.run() resolved — "option1"
+[2026-04-30T20:07:15.167Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.167Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.167Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.167Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T20:07:15.167Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.167Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.168Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.168Z] [prompts] runPrompt: prompt.run() resolved — "opt1"
+[2026-04-30T20:07:15.168Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.168Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:07:15.169Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:07:15.169Z] [prompts] runPrompt: prompt.run() rejected — Error: cancelled
+[2026-04-30T20:07:15.170Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:07:15.170Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:14:57.478Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:14:58.252Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-04-30T20:14:58.252Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:14:58.252Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:14:58.254Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:15:01.627Z] [prompts] runPrompt: prompt.run() resolved — "♻️  Clear Cache         - Clear all cached data (company mappings, folder mappings, contacts)"
+[2026-04-30T20:15:01.627Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:15:01.628Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:15:01.632Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:15:03.066Z] [prompts] runPrompt: prompt.run() resolved — "♻️  Clear Logs          - Clear all log files from the logs folder"
+[2026-04-30T20:15:03.067Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:15:03.068Z] [prompts] runPrompt: cleanup finished
+[2026-04-30T20:15:03.071Z] [prompts] runPrompt: prompt.run() starting
+[2026-04-30T20:15:05.901Z] [prompts] runPrompt: prompt.run() resolved — "🔗 LinkedIn Sync       - Syncs LinkedIn connections from exported CSV to Google Contacts"
+[2026-04-30T20:15:05.902Z] [prompts] runPrompt: starting cleanup
+[2026-04-30T20:15:05.902Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T00:55:09.652Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T06:22:42.529Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-05-01T06:22:42.530Z] [prompts] recordEsc: t=1777616562530
+[2026-05-01T06:22:42.531Z] [prompts] runPrompt: prompt.run() rejected — 
+[2026-05-01T06:22:42.531Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T06:22:42.532Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T06:22:42.533Z] [prompts] runPrompt: waiting 117ms for readline ESC timers
+[2026-05-01T06:22:42.651Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T06:22:44.897Z] [prompts] cancel() ALLOWED (age=2367ms)
+[2026-05-01T06:22:44.898Z] [prompts] recordEsc: t=1777616564898
+[2026-05-01T06:22:44.901Z] [prompts] runPrompt: prompt.run() rejected — 
+[2026-05-01T06:22:44.901Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T06:22:44.902Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T06:50:13.623Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T06:50:16.943Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-05-01T06:50:16.944Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T06:50:16.945Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T06:50:16.947Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T06:50:19.174Z] [prompts] runPrompt: prompt.run() resolved — "♻️  Clear Logs          - Clear all log files from the logs folder"
+[2026-05-01T06:50:19.174Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T06:50:19.175Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T06:50:19.180Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T06:50:21.063Z] [prompts] runPrompt: prompt.run() resolved — "♻️  Clear Cache         - Clear all cached data (company mappings, folder mappings, contacts)"
+[2026-05-01T06:50:21.063Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T06:50:21.063Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T06:50:21.067Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T06:50:24.880Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-05-01T06:50:24.881Z] [prompts] recordEsc: t=1777618224881
+[2026-05-01T06:50:24.884Z] [prompts] runPrompt: prompt.run() rejected — 
+[2026-05-01T06:50:24.885Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T06:50:24.886Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T06:50:32.441Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T06:50:37.236Z] [prompts] runPrompt: prompt.run() resolved — "🔗 LinkedIn Sync       - Syncs LinkedIn connections from exported CSV to Google Contacts"
+[2026-05-01T06:50:37.236Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T06:50:37.237Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T06:50:53.988Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T06:52:14.118Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-05-01T06:52:14.118Z] [prompts] recordEsc: t=1777618334118
+[2026-05-01T06:52:14.120Z] [prompts] runPrompt: prompt.run() rejected — 
+[2026-05-01T06:52:14.120Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T06:52:14.121Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T06:52:21.720Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T06:52:22.901Z] [prompts] runPrompt: prompt.run() resolved — true
+[2026-05-01T06:52:22.901Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T06:52:22.902Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T06:52:22.903Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T06:52:24.205Z] [prompts] runPrompt: prompt.run() resolved — "♻️  Clear Logs          - Clear all log files from the logs folder"
+[2026-05-01T06:52:24.206Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T06:52:24.206Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T06:52:24.210Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T06:52:25.218Z] [prompts] runPrompt: prompt.run() resolved — "♻️  Clear Cache         - Clear all cached data (company mappings, folder mappings, contacts)"
+[2026-05-01T06:52:25.218Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T06:52:25.219Z] [prompts] runPrompt: cleanup finished
+[2026-05-01T06:52:25.222Z] [prompts] runPrompt: prompt.run() starting
+[2026-05-01T06:52:26.735Z] [prompts] cancel() ALLOWED (age=Infinityms)
+[2026-05-01T06:52:26.735Z] [prompts] recordEsc: t=1777618346735
+[2026-05-01T06:52:26.737Z] [prompts] runPrompt: prompt.run() rejected — 
+[2026-05-01T06:52:26.738Z] [prompts] runPrompt: starting cleanup
+[2026-05-01T06:52:26.738Z] [prompts] runPrompt: cleanup finished

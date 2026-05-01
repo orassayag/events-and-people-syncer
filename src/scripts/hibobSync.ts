@@ -830,13 +830,13 @@ export class HibobSyncScript {
       }
       if (status.error > 0) {
         choices.push({
-          name: `${EMOJIS.STATUS.ERROR} Display Errors (${FormatUtils.formatNumberWithLeadingZeros(status.error)})`,
+          name: `${EMOJIS.STATUS.ERROR}  Display Errors (${FormatUtils.formatNumberWithLeadingZeros(status.error)})`,
           value: 'errors',
         });
       }
       if (status.skipped > 0) {
         choices.push({
-          name: `${EMOJIS.NAVIGATION.SKIP} Display Skipped (${FormatUtils.formatNumberWithLeadingZeros(status.skipped)})`,
+          name: `${EMOJIS.NAVIGATION.SKIP}  Display Skipped (${FormatUtils.formatNumberWithLeadingZeros(status.skipped)})`,
           value: 'skipped',
         });
       }

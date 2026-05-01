@@ -17,6 +17,7 @@ export class ClearCacheScript {
   }
 
   async run(): Promise<void> {
+    await Promise.resolve();
     this.logger.display('Clear Cache');
     if (!fs.existsSync(this.cacheDir)) {
       this.logger.info('No cache folder found. Nothing to clear.');

@@ -5,6 +5,8 @@ import { LOG_CONFIG } from './logConfig';
 import { EMOJIS } from '../constants';
 
 export class Logger {
+  public isDisplayMethod: boolean = false;
+
   constructor(private context: string) {}
 
   private lastOutputType: 'message' | 'blank' | 'spinner' | 'menu' | 'init' =
@@ -17,23 +19,28 @@ export class Logger {
 
   displayMultiLine(lines: string[]): void {
     if (!LOG_CONFIG.enableConsole) return;
-    if (lines.length === 0) {
-      throw new Error('displayMultiLine requires at least one line');
-    }
-    const needsBlankBefore =
-      this.lastOutputType !== 'blank' &&
-      this.lastOutputType !== 'init' &&
-      this.lastOutputType !== 'spinner' &&
-      this.lastOutputType !== 'menu';
-    if (needsBlankBefore) {
+    this.isDisplayMethod = true;
+    try {
+      if (lines.length === 0) {
+        throw new Error('displayMultiLine requires at least one line');
+      }
+      const needsBlankBefore =
+        this.lastOutputType !== 'blank' &&
+        this.lastOutputType !== 'init' &&
+        this.lastOutputType !== 'spinner' &&
+        this.lastOutputType !== 'menu';
+      if (needsBlankBefore) {
+        console.log('');
+      }
+      for (const line of lines) {
+        const cleaned = this.cleanMessage(line);
+        console.log(`===${cleaned}===`);
+      }
       console.log('');
+      this.lastOutputType = 'message';
+    } finally {
+      this.isDisplayMethod = false;
     }
-    for (const line of lines) {
-      const cleaned = this.cleanMessage(line);
-      console.log(`===${cleaned}===`);
-    }
-    console.log('');
-    this.lastOutputType = 'message';
   }
 
   displayError(message: string): void {
@@ -116,18 +123,22 @@ export class Logger {
 
   private outputWithBreakLines(message: string): void {
     if (!LOG_CONFIG.enableConsole) return;
-    const needsBlankBefore =
-      this.lastOutputType !== 'blank' &&
-      this.lastOutputType !== 'init' &&
-      this.lastOutputType !== 'spinner' &&
-      this.lastOutputType !== 'menu';
-    if (needsBlankBefore) {
+    this.isDisplayMethod = true;
+    try {
+      const needsBlankBefore =
+        this.lastOutputType !== 'blank' &&
+        this.lastOutputType !== 'init' &&
+        this.lastOutputType !== 'spinner' &&
+        this.lastOutputType !== 'menu';
+      if (needsBlankBefore) {
+        console.log('');
+      }
+      console.log(message);
       console.log('');
-      this.lastOutputType = 'blank';
+      this.lastOutputType = 'message';
+    } finally {
+      this.isDisplayMethod = false;
     }
-    console.log(message);
-    console.log('');
-    this.lastOutputType = 'message';
   }
 
   debug(message: string, data?: Record<string, unknown>): void {
@@ -143,11 +154,17 @@ export class Logger {
   }
 
   warn(message: string, data?: Record<string, unknown>): void {
-    this.log(LogLevel.WARN, `${EMOJIS.STATUS.WARNING}  ${message}`, data);
+    const withEmoji = message.startsWith(EMOJIS.STATUS.WARNING)
+      ? message
+      : `${EMOJIS.STATUS.WARNING}  ${message}`;
+    this.log(LogLevel.WARN, withEmoji, data);
   }
 
   error(message: string, error?: Error, data?: Record<string, unknown>): void {
-    this.log(LogLevel.ERROR, `${EMOJIS.STATUS.ERROR} ${message}`, {
+    const withEmoji = message.startsWith(EMOJIS.STATUS.ERROR)
+      ? message
+      : `${EMOJIS.STATUS.ERROR} ${message}`;
+    this.log(LogLevel.ERROR, withEmoji, {
       ...data,
       error: error?.message,
       stack: error?.stack,
@@ -177,6 +194,7 @@ export class Logger {
     if (LOG_CONFIG.enableConsole && this.shouldLog(level)) {
       const formattedMessage = useDecorators ? `===${message}===` : message;
       console.log(formattedMessage);
+      this.lastOutputType = 'message';
     }
     if (LOG_CONFIG.enableFile) {
       this.writeToFile(entry).catch((err: Error) => {

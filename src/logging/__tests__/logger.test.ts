@@ -18,9 +18,10 @@ describe('Logger Display Methods', () => {
   describe('display()', () => {
     it('should format display messages with === markers', () => {
       logger.display('Test message');
-      expect(consoleLogSpy).toHaveBeenCalledWith('');
+      // No blank before at init
       expect(consoleLogSpy).toHaveBeenCalledWith('===Test message===');
       expect(consoleLogSpy).toHaveBeenCalledWith('');
+      expect(consoleLogSpy).toHaveBeenCalledTimes(2);
     });
 
     it('should throw error for empty messages', () => {
@@ -39,8 +40,10 @@ describe('Logger Display Methods', () => {
       consoleLogSpy.mockClear();
       logger.display('First message');
       const calls = consoleLogSpy.mock.calls.map((c: any[]) => c[0]);
+      // The logger should NOT add a blank line before the first message
       expect(calls[0]).toBe('===First message===');
       expect(calls[1]).toBe('');
+      expect(calls.length).toBe(2);
     });
   });
 
@@ -109,8 +112,10 @@ describe('Logger Display Methods', () => {
       logger.resetState('spinner');
       logger.display('After spinner');
       const calls = consoleLogSpy.mock.calls.map((c: any[]) => c[0]);
+      // Should NOT add a blank line before after spinner
       expect(calls[0]).toBe('===After spinner===');
       expect(calls[1]).toBe('');
+      expect(calls.length).toBe(2);
     });
 
     it('should allow normal spacing after non-spinner state', () => {
@@ -129,8 +134,10 @@ describe('Logger Display Methods', () => {
       logger.resetState('menu');
       logger.display('After menu');
       const calls = consoleLogSpy.mock.calls.map((c: any[]) => c[0]);
+      // Should NOT add a blank line before after menu
       expect(calls[0]).toBe('===After menu===');
       expect(calls[1]).toBe('');
+      expect(calls.length).toBe(2);
     });
   });
 
@@ -150,7 +157,10 @@ describe('Logger Display Methods', () => {
       consoleLogSpy.mockClear();
       logger.display('After breakline');
       const calls = consoleLogSpy.mock.calls.map((c: any[]) => c[0]);
+      // Should NOT add a blank line before after breakline
       expect(calls[0]).toBe('===After breakline===');
+      expect(calls[1]).toBe('');
+      expect(calls.length).toBe(2);
     });
   });
 
@@ -193,9 +203,11 @@ describe('Logger Display Methods', () => {
       logger.display('Message 3');
       const calls = consoleLogSpy.mock.calls.map((c: any[]) => c[0]);
 
+      // First call has no blank before
       expect(calls[0]).toBe('===Message 1===');
       expect(calls[1]).toBe('');
 
+      // Subsequent calls have blank before and after
       expect(calls[2]).toBe('');
       expect(calls[3]).toBe('===Message 2===');
       expect(calls[4]).toBe('');

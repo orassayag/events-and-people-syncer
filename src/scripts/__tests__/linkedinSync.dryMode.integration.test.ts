@@ -40,7 +40,7 @@ vi.mock('../../cache', () => {
     invalidate: vi.fn().mockResolvedValue(undefined),
     getByResourceName: vi
       .fn()
-      .mockImplementation(async (resourceName: string) => {
+      .mockImplementation((resourceName: string) => {
         if (resourceName.startsWith('people/dryMode_')) {
           return {
             firstName: 'John',

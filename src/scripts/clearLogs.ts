@@ -17,6 +17,7 @@ export class ClearLogsScript {
   }
 
   async run(): Promise<void> {
+    await Promise.resolve();
     this.logger.display('Clear Logs');
     if (!fs.existsSync(this.logsDir)) {
       this.logger.info('No logs folder found. Nothing to clear.');

@@ -828,7 +828,7 @@ export class LinkedInSyncScript {
       const choices: Array<{ name: string; value: string }> = [];
       if (status.warning > 0) {
         choices.push({
-          name: `${EMOJIS.STATUS.WARNING} Display Warnings (${status.warning})`,
+          name: `${EMOJIS.STATUS.WARNING}  Display Warnings (${status.warning})`,
           value: 'warnings',
         });
       }

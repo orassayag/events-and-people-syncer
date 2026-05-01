@@ -1,5 +1,4 @@
 import { injectable, inject } from 'inversify';
-import { google } from 'googleapis';
 import type { OAuth2Client, Script, ContactGroup, ContactData } from '../types';
 import {
   FolderType,
@@ -57,8 +56,8 @@ export class EventsJobsSyncScript {
   private lastSelectedFolder: FolderMapping | null = null;
   private cachedContactGroups: ContactGroup[] | null = null;
   private isAuthenticated: boolean = false;
-  private originalConsoleLog = console.log;
-  private originalConsoleError = console.error;
+  private static originalConsoleLog = console.log;
+  private static originalConsoleError = console.error;
 
   constructor(
     @inject('OAuth2Client') private auth: OAuth2Client,
@@ -76,7 +75,9 @@ export class EventsJobsSyncScript {
   async run(): Promise<void> {
     this.uiLogger.display('Events & Jobs Sync');
     await this.logger.initialize();
-    this.setupConsoleCapture();
+    if (process.env.NODE_ENV !== 'test') {
+      this.setupConsoleCapture();
+    }
     this.labelResolver.setUiLogger(this.uiLogger);
     await this.logger.logMain('Events & Jobs Sync started');
     try {
@@ -110,16 +111,23 @@ export class EventsJobsSyncScript {
       await this.logger.logMain(
         `Script ended - Job notes: ${this.stats.jobNotes}, Life event notes: ${this.stats.lifeEventNotes}, Contacts: ${this.stats.contacts}, Created folders: ${this.stats.createdFolders}, Deleted folders: ${this.stats.deletedFolders}, Renamed folders: ${this.stats.renamedFolders}`
       );
-      this.restoreConsole();
+      if (process.env.NODE_ENV !== 'test') {
+        this.restoreConsole();
+      }
     }
   }
 
   private setupConsoleCapture(): void {
     const self = this;
-    const originalLog = this.originalConsoleLog;
-    const originalError = this.originalConsoleError;
+    const originalLog = EventsJobsSyncScript.originalConsoleLog;
+    const originalError = EventsJobsSyncScript.originalConsoleError;
+    let isCapturing = false;
+
     console.log = function (...args: any[]): void {
-      if (self.uiLogger && (self.uiLogger as any).isDisplayMethod) {
+      if (
+        isCapturing ||
+        (self.uiLogger && (self.uiLogger as any).isDisplayMethod)
+      ) {
         originalLog.apply(console, args);
         return;
       }
@@ -127,10 +135,20 @@ export class EventsJobsSyncScript {
         .map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg)))
         .join(' ');
       originalLog.apply(console, args);
-      self.logger.logMain(message).catch(() => {});
+
+      isCapturing = true;
+      self.logger
+        .logMain(message)
+        .catch(() => {})
+        .finally(() => {
+          isCapturing = false;
+        });
     };
     console.error = function (...args: any[]): void {
-      if (self.uiLogger && (self.uiLogger as any).isDisplayMethod) {
+      if (
+        isCapturing ||
+        (self.uiLogger && (self.uiLogger as any).isDisplayMethod)
+      ) {
         originalError.apply(console, args);
         return;
       }
@@ -138,13 +156,20 @@ export class EventsJobsSyncScript {
         .map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg)))
         .join(' ');
       originalError.apply(console, args);
-      self.logger.logError(message).catch(() => {});
+
+      isCapturing = true;
+      self.logger
+        .logError(message)
+        .catch(() => {})
+        .finally(() => {
+          isCapturing = false;
+        });
     };
   }
 
   private restoreConsole(): void {
-    console.log = this.originalConsoleLog;
-    console.error = this.originalConsoleError;
+    console.log = EventsJobsSyncScript.originalConsoleLog;
+    console.error = EventsJobsSyncScript.originalConsoleError;
   }
 
   private async clearClipboardInternal(): Promise<void> {
@@ -355,7 +380,7 @@ export class EventsJobsSyncScript {
       if (result.escaped) {
         this.displayFinalSummary();
         this.uiLogger.displayExit();
-        process.exit(0);
+        return;
       }
       const action = result.value;
       await this.logger.logMain(`User selected: ${action}`);
@@ -364,7 +389,7 @@ export class EventsJobsSyncScript {
       } else if (action === MenuOptionEnum.EXIT) {
         this.displayFinalSummary();
         this.uiLogger.displayExit();
-        process.exit(0);
+        return;
       } else if (action === MenuOptionEnum.CREATE_NOTE) {
         await this.createNoteFlow();
       } else if (action === MenuOptionEnum.CREATE_NOTE_WITH_CONTACT) {
@@ -636,8 +661,9 @@ export class EventsJobsSyncScript {
           );
         } else {
           await this.logger.logMain(
-            `Note creation failed validation - continuing loop`
+            `Note creation failed validation - exiting batch flow`
           );
+          return;
         }
       } catch (error) {
         if (error instanceof EscapeSignal) {
@@ -1893,6 +1919,7 @@ export class EventsJobsSyncScript {
   }
 
   private async fetchContactGroups(): Promise<ContactGroup[]> {
+    const { google } = await import('googleapis');
     const service = google.people({ version: 'v1', auth: this.auth });
     const apiTracker = ApiTracker.getInstance();
     const contactGroups: ContactGroup[] = [];

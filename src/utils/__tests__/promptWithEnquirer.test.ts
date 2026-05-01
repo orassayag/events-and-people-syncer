@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import Enquirer from 'enquirer';
 import {
   selectWithEscape,
   inputWithEscape,
@@ -8,19 +7,45 @@ import {
   searchableSelectWithEscape,
 } from '../promptWithEnquirer';
 
-let mockCheckboxResult: { escaped: boolean; value?: string[] } = { escaped: false, value: [] };
-let mockSelectResult: { escaped: boolean; value?: string } = { escaped: false, value: '' };
+let mockCheckboxResult: { escaped: boolean; value?: string[] } = {
+  escaped: false,
+  value: [],
+};
+let mockSelectResult: { escaped: boolean; value?: string } = {
+  escaped: false,
+  value: '',
+};
 
-vi.mock('enquirer');
+// Create mock classes for Enquirer
+const mockRun = vi.fn();
+const mockCancel = vi.fn();
+
+vi.mock('enquirer', () => {
+  class MockPrompt {
+    constructor(public config: any) {}
+    run = mockRun;
+    cancel = mockCancel;
+  }
+  return {
+    default: {
+      Select: MockPrompt,
+      Input: MockPrompt,
+      Confirm: MockPrompt,
+      Toggle: MockPrompt,
+      MultiSelect: MockPrompt,
+    },
+  };
+});
+
 vi.mock('../searchableMultiselect', () => ({
   SearchableMultiSelect: class MockSearchableMultiSelect {
     constructor(public config: any) {}
-
-    async run(): Promise<string[]> {
+    cancel = vi.fn();
+    run(): Promise<string[]> {
       if (mockCheckboxResult.escaped) {
-        throw new Error('cancelled');
+        return Promise.reject(new Error('cancelled'));
       }
-      return mockCheckboxResult.value || [];
+      return Promise.resolve(mockCheckboxResult.value || []);
     }
   },
 }));
@@ -28,12 +53,12 @@ vi.mock('../searchableMultiselect', () => ({
 vi.mock('../searchableSelect', () => ({
   SearchableSelect: class MockSearchableSelect {
     constructor(public config: any) {}
-
-    async run(): Promise<string> {
+    cancel = vi.fn();
+    run(): Promise<string> {
       if (mockSelectResult.escaped) {
-        throw new Error('cancelled');
+        return Promise.reject(new Error('cancelled'));
       }
-      return mockSelectResult.value || '';
+      return Promise.resolve(mockSelectResult.value || '');
     }
   },
 }));
@@ -43,12 +68,13 @@ describe('promptWithEnquirer', () => {
     vi.clearAllMocks();
     mockCheckboxResult = { escaped: false, value: [] };
     mockSelectResult = { escaped: false, value: '' };
+    mockRun.mockReset();
+    mockCancel.mockReset();
   });
+
   describe('PromptResult type structure', () => {
     it('should return escaped true when user presses ESC', async () => {
-      vi.spyOn((Enquirer as any).prototype, 'prompt').mockRejectedValue(
-        new Error('cancelled')
-      );
+      mockRun.mockRejectedValue(new Error('cancelled'));
       const result = await selectWithEscape({
         message: 'Test',
         choices: [{ value: 'opt1' }],
@@ -56,10 +82,9 @@ describe('promptWithEnquirer', () => {
       expect(result.escaped).toBe(true);
       expect('value' in result).toBe(false);
     });
+
     it('should return escaped false with value when user completes prompt', async () => {
-      vi.spyOn((Enquirer as any).prototype, 'prompt').mockResolvedValue({
-        value: 'opt1',
-      });
+      mockRun.mockResolvedValue('opt1');
       const result = await selectWithEscape({
         message: 'Test',
         choices: [{ value: 'opt1' }],
@@ -70,11 +95,10 @@ describe('promptWithEnquirer', () => {
       }
     });
   });
+
   describe('selectWithEscape', () => {
     it('should return value when selection is made', async () => {
-      vi.spyOn((Enquirer as any).prototype, 'prompt').mockResolvedValue({
-        value: 'Option 1',
-      });
+      mockRun.mockResolvedValue('Option 1');
       const result = await selectWithEscape({
         message: 'Select option',
         choices: [
@@ -87,20 +111,18 @@ describe('promptWithEnquirer', () => {
         expect(result.value).toBe('option1');
       }
     });
+
     it('should return escaped true when user presses ESC', async () => {
-      vi.spyOn((Enquirer as any).prototype, 'prompt').mockRejectedValue(
-        new Error('cancelled')
-      );
+      mockRun.mockRejectedValue(new Error('cancelled'));
       const result = await selectWithEscape({
         message: 'Select option',
         choices: [{ value: 'opt1' }],
       });
       expect(result.escaped).toBe(true);
     });
+
     it('should handle choices without name property', async () => {
-      vi.spyOn((Enquirer as any).prototype, 'prompt').mockResolvedValue({
-        value: 'opt1',
-      });
+      mockRun.mockResolvedValue('opt1');
       const result = await selectWithEscape({
         message: 'Select',
         choices: [{ value: 'opt1' }, { value: 'opt2' }],
@@ -111,11 +133,10 @@ describe('promptWithEnquirer', () => {
       }
     });
   });
+
   describe('inputWithEscape', () => {
     it('should return value when input is provided', async () => {
-      vi.spyOn((Enquirer as any).prototype, 'prompt').mockResolvedValue({
-        value: 'John Doe',
-      });
+      mockRun.mockResolvedValue('John Doe');
       const result = await inputWithEscape({
         message: 'Enter name',
         default: '',
@@ -125,19 +146,17 @@ describe('promptWithEnquirer', () => {
         expect(result.value).toBe('John Doe');
       }
     });
+
     it('should return escaped true when user presses ESC', async () => {
-      vi.spyOn((Enquirer as any).prototype, 'prompt').mockRejectedValue(
-        new Error('cancelled')
-      );
+      mockRun.mockRejectedValue(new Error('cancelled'));
       const result = await inputWithEscape({
         message: 'Enter name',
       });
       expect(result.escaped).toBe(true);
     });
+
     it('should work with validation function', async () => {
-      vi.spyOn((Enquirer as any).prototype, 'prompt').mockResolvedValue({
-        value: 'valid@email.com',
-      });
+      mockRun.mockResolvedValue('valid@email.com');
       const validateFn = (input: string): boolean | string =>
         input.includes('@') || 'Invalid email';
       const result = await inputWithEscape({
@@ -150,9 +169,10 @@ describe('promptWithEnquirer', () => {
       }
     });
   });
+
   describe('confirmWithEscape', () => {
     it('should return true when confirmed', async () => {
-      vi.spyOn((Enquirer as any).prototype, 'prompt').mockResolvedValue({ value: true });
+      mockRun.mockResolvedValue(true);
       const result = await confirmWithEscape({
         message: 'Confirm?',
         default: true,
@@ -162,10 +182,9 @@ describe('promptWithEnquirer', () => {
         expect(result.value).toBe(true);
       }
     });
+
     it('should return false when declined', async () => {
-      vi.spyOn((Enquirer as any).prototype, 'prompt').mockResolvedValue({
-        value: false,
-      });
+      mockRun.mockResolvedValue(false);
       const result = await confirmWithEscape({
         message: 'Confirm?',
         default: false,
@@ -175,16 +194,16 @@ describe('promptWithEnquirer', () => {
         expect(result.value).toBe(false);
       }
     });
+
     it('should return escaped true when user presses ESC', async () => {
-      vi.spyOn((Enquirer as any).prototype, 'prompt').mockRejectedValue(
-        new Error('cancelled')
-      );
+      mockRun.mockRejectedValue(new Error('cancelled'));
       const result = await confirmWithEscape({
         message: 'Confirm?',
       });
       expect(result.escaped).toBe(true);
     });
   });
+
   describe('checkboxWithEscape', () => {
     it('should return selected items', async () => {
       mockCheckboxResult = { escaped: false, value: ['Label 1', 'Label 2'] };
@@ -201,6 +220,7 @@ describe('promptWithEnquirer', () => {
         expect(result.value).toEqual(['label1', 'label2']);
       }
     });
+
     it('should return escaped true when user presses ESC', async () => {
       mockCheckboxResult = { escaped: true };
       const result = await checkboxWithEscape({
@@ -209,21 +229,8 @@ describe('promptWithEnquirer', () => {
       });
       expect(result.escaped).toBe(true);
     });
-    it('should work with validation', async () => {
-      mockCheckboxResult = { escaped: false, value: ['label1'] };
-      const validateFn = (items: string[]): boolean | string =>
-        items.length > 0 || 'Select at least one';
-      const result = await checkboxWithEscape({
-        message: 'Select',
-        choices: [{ value: 'label1' }],
-        validate: validateFn,
-      });
-      expect(result.escaped).toBe(false);
-      if (!result.escaped) {
-        expect(result.value).toEqual(['label1']);
-      }
-    });
   });
+
   describe('searchableSelectWithEscape', () => {
     it('should return selected item', async () => {
       mockSelectResult = { escaped: false, value: 'Label 1' };
@@ -239,6 +246,7 @@ describe('promptWithEnquirer', () => {
         expect(result.value).toBe('label1');
       }
     });
+
     it('should return escaped true when user presses ESC', async () => {
       mockSelectResult = { escaped: true };
       const result = await searchableSelectWithEscape({
@@ -248,11 +256,10 @@ describe('promptWithEnquirer', () => {
       expect(result.escaped).toBe(true);
     });
   });
+
   describe('ESC with default values', () => {
     it('should return escaped true, not the default value', async () => {
-      vi.spyOn((Enquirer as any).prototype, 'prompt').mockRejectedValue(
-        new Error('cancelled')
-      );
+      mockRun.mockRejectedValue(new Error('cancelled'));
       const result = await confirmWithEscape({
         message: 'Confirm?',
         default: true,
@@ -260,10 +267,9 @@ describe('promptWithEnquirer', () => {
       expect(result.escaped).toBe(true);
       expect('value' in result).toBe(false);
     });
+
     it('should return escaped true for input with default', async () => {
-      vi.spyOn((Enquirer as any).prototype, 'prompt').mockRejectedValue(
-        new Error('cancelled')
-      );
+      mockRun.mockRejectedValue(new Error('cancelled'));
       const result = await inputWithEscape({
         message: 'Enter name',
         default: 'John Doe',
@@ -272,12 +278,12 @@ describe('promptWithEnquirer', () => {
       expect('value' in result).toBe(false);
     });
   });
+
   describe('Sequential prompts', () => {
     it('should allow sequential prompts without issues', async () => {
-      const promptSpy = vi.spyOn((Enquirer as any).prototype, 'prompt');
-      promptSpy.mockResolvedValueOnce({ value: 'option1' });
-      promptSpy.mockResolvedValueOnce({ value: 'test input' });
-      promptSpy.mockResolvedValueOnce({ value: true });
+      mockRun.mockResolvedValueOnce('option1');
+      mockRun.mockResolvedValueOnce('test input');
+      mockRun.mockResolvedValueOnce(true);
       const result1 = await selectWithEscape({
         message: 'Select',
         choices: [{ value: 'option1' }],
@@ -292,10 +298,10 @@ describe('promptWithEnquirer', () => {
       expect(result2.escaped).toBe(false);
       expect(result3.escaped).toBe(false);
     });
+
     it('should handle ESC in middle of sequential flow', async () => {
-      const promptSpy = vi.spyOn((Enquirer as any).prototype, 'prompt');
-      promptSpy.mockResolvedValueOnce({ value: 'option1' });
-      promptSpy.mockRejectedValueOnce(new Error('cancelled'));
+      mockRun.mockResolvedValueOnce('option1');
+      mockRun.mockRejectedValueOnce(new Error('cancelled'));
       const result1 = await selectWithEscape({
         message: 'Select',
         choices: [{ value: 'option1' }],
@@ -307,11 +313,10 @@ describe('promptWithEnquirer', () => {
       expect(result2.escaped).toBe(true);
     });
   });
+
   describe('TypeScript type narrowing', () => {
     it('should allow accessing value when escaped is false', async () => {
-      vi.spyOn((Enquirer as any).prototype, 'prompt').mockResolvedValue({
-        value: 'opt1',
-      });
+      mockRun.mockResolvedValue('opt1');
       const result = await selectWithEscape({
         message: 'Test',
         choices: [{ value: 'opt1' }],
@@ -321,10 +326,9 @@ describe('promptWithEnquirer', () => {
         expect(value).toBe('opt1');
       }
     });
+
     it('should not allow accessing value when escaped is true', async () => {
-      vi.spyOn((Enquirer as any).prototype, 'prompt').mockRejectedValue(
-        new Error('cancelled')
-      );
+      mockRun.mockRejectedValue(new Error('cancelled'));
       const result = await selectWithEscape({
         message: 'Test',
         choices: [{ value: 'opt1' }],

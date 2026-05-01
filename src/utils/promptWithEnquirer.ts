@@ -12,7 +12,7 @@ import type {
 import { SearchableSelect } from './searchableSelect';
 import { SearchableMultiSelect } from './searchableMultiselect';
 
-function dlog(msg: string) {
+function dlog(msg: string): void {
   const timestamp = new Date().toISOString();
   fs.appendFileSync('debug_esc.txt', `[${timestamp}] [prompts] ${msg}\n`);
 }
@@ -53,7 +53,7 @@ function patchCancel(prompt: any): void {
   let cancelled = false;
   const originalCancel = prompt.cancel.bind(prompt);
 
-  prompt.cancel = async (err?: any) => {
+  prompt.cancel = (err?: any): any => {
     const age = msSinceLastEsc();
     if (age < ESC_GUARD_MS) {
       dlog(`cancel() BLOCKED — ESC bleed (age=${age}ms)`);
@@ -127,7 +127,7 @@ async function runPrompt<T>(
     // 3. Minimal stdin reset
     // We NO LONGER setRawMode(false) or pause() here.
     // Toggling raw mode too quickly on Windows breaks subsequent prompts.
-    // If a script needs non-raw mode, it can set it itself, but for a 
+    // If a script needs non-raw mode, it can set it itself, but for a
     // mostly-interactive CLI, staying in raw mode is safer.
 
     dlog('runPrompt: cleanup finished');
@@ -147,7 +147,7 @@ export function selectWithEscape<T = string>(
     : 0;
 
   return runPrompt<T>(
-    () => {
+    (): any => {
       const { Select } = Enquirer as any;
       return new Select({
         type: 'select',
@@ -158,12 +158,12 @@ export function selectWithEscape<T = string>(
         limit: config.pageSize || 5,
         loop: config.loop ?? true,
         // ← NEW: ESC is now handled in the normal action pipeline
-        escape() {
+        escape(): void {
           this.cancel();
         },
       });
     },
-    (result) => {
+    (result: any): T => {
       const choice = (
         config.choices as Array<{ name?: string; value: T }>
       ).find((c) => (c.name || String(c.value)) === result);
@@ -176,7 +176,7 @@ export function inputWithEscape(
   config: InputConfig
 ): Promise<PromptResult<string>> {
   return runPrompt<string>(
-    () => {
+    (): any => {
       const { Input } = Enquirer as any;
       return new Input({
         type: 'input',
@@ -185,12 +185,12 @@ export function inputWithEscape(
         initial: config.default || '',
         validate: config.validate as any,
         // ← NEW: ESC is now handled in the normal action pipeline
-        escape() {
+        escape(): void {
           this.cancel();
         },
       });
     },
-    (result) => result as string
+    (result: any): string => result as string
   );
 }
 
@@ -198,7 +198,7 @@ export function confirmWithEscape(
   config: ConfirmConfig
 ): Promise<PromptResult<boolean>> {
   return runPrompt<boolean>(
-    () => {
+    (): any => {
       const { Confirm } = Enquirer as any;
       return new Confirm({
         type: 'confirm',
@@ -206,20 +206,20 @@ export function confirmWithEscape(
         message: config.message,
         initial: config.default ?? false,
         // ← NEW: ESC is now handled in the normal action pipeline
-        escape() {
+        escape(): void {
           this.cancel();
         },
       });
     },
-    (result) => result as boolean
+    (result: any): boolean => result as boolean
   );
 }
 
-export async function checkboxWithEscape<T = string>(
+export function checkboxWithEscape<T = string>(
   config: CheckboxConfig<T>
 ): Promise<PromptResult<T[]>> {
   return runPrompt<T[]>(
-    () => {
+    (): any => {
       const choiceConfigs = config.choices.map((c) => ({
         name: c.name || String(c.value),
         value: c.name || String(c.value),
@@ -230,7 +230,7 @@ export async function checkboxWithEscape<T = string>(
         message: config.message,
         choices: choiceConfigs,
         validate: config.validate as any,
-        escape() {
+        escape(): void {
           this.cancel();
         },
       };
@@ -239,7 +239,7 @@ export async function checkboxWithEscape<T = string>(
       }
       return new (SearchableMultiSelect as any)(promptConfig);
     },
-    (selectedNames: string[]) => {
+    (selectedNames: string[]): T[] => {
       return selectedNames.map((name: string) => {
         const choice = config.choices.find(
           (c) => (c.name || String(c.value)) === name
@@ -250,33 +250,31 @@ export async function checkboxWithEscape<T = string>(
   );
 }
 
-export async function searchableSelectWithEscape<T = string>(
+export function searchableSelectWithEscape<T = string>(
   config: SelectConfig<T>
 ): Promise<PromptResult<T>> {
   return runPrompt<T>(
-    () => {
+    (): any => {
       const choiceConfigs = config.choices.map((c) => ({
         name: c.name || String(c.value),
-        value: c.value,
+        value: c.name || String(c.value),
       }));
-      const promptConfig: any = {
+
+      return new (SearchableSelect as any)({
         name: 'value',
         message: config.message,
         choices: choiceConfigs,
-        escape() {
+        limit: config.pageSize || 10,
+        escape(): void {
           this.cancel();
         },
-      };
-      if (config.pageSize) {
-        promptConfig.limit = config.pageSize;
-      }
-      return new (SearchableSelect as any)(promptConfig);
+      });
     },
-    (result: string) => {
-      const finalChoice = config.choices.find(
-        (c) => (c.name || String(c.value)) === result
+    (selectedName: string): T => {
+      const choice = config.choices.find(
+        (c) => (c.name || String(c.value)) === selectedName
       );
-      return finalChoice ? finalChoice.value : (result as unknown as T);
+      return choice ? choice.value : (selectedName as unknown as T);
     }
   );
 }

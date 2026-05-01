@@ -6,14 +6,14 @@ Let's build a new script called "Google Contacts Maintainer".
 2. Once selected, it will do all the existing validations from the google people api perspective, like we have today when selecting to run the "Linkedin sync" script.
 3. Once all the validations passed successfully, like in the "Linkedin sync" script, we will fetch all the google contacts (reuse this logic from the script).
 4. Now the logic part will start, once all google contacts will be scanned, it will be reported:
-4.1. Find duplicate contacts. (For enum: DUPLICATE CONTACTS).
-4.2. Hebrew contact (Contains hebrew in any field). (For enum: CONTAINS HEBREW).
-4.3. Find contacts without any label (Labels of "Imported In *" is not considered a label). (For enum: MISSING LABEL).
-4.4. Find contacts with Phones / Emails without label. (For enum: MISSING PHONE/EMAIL LABEL).
-4.5. Find contacts with Phones / Emails with label of: "Home" / "Work" / "Other" / "Mobile" / "Main" / "Home Fax" / "Work Fax" / "Google Voice" / "Pager". (For enum: INVALID PHONE/EMAIL LABEL).
-4.6. Find contacts with URL without label. (For enum: MISSING URL LABEL).
-4.7. Find contacts with URL with label of: "Profile" / "Blog" / "Home Page" / "Work". (For enum: INVALID URL LABEL).
-4.8. Empty name / null / undefined. (For enum: EMPTY NAME).
+4.1. Hebrew contact (Contains hebrew in any field). (For enum: CONTAINS HEBREW).
+4.2. Empty name / null / undefined. (For enum: EMPTY NAME).
+4.3. Find duplicate contacts. (For enum: DUPLICATE CONTACTS).
+4.4. Find contacts without any label (Labels of "Imported In *" is not considered a label). (For enum: MISSING LABEL).
+4.5. Find contacts with Phones / Emails without label. (For enum: MISSING PHONE/EMAIL LABEL).
+4.6. Find contacts with Phones / Emails with label of: "Home" / "Work" / "Other" / "Mobile" / "Main" / "Home Fax" / "Work Fax" / "Google Voice" / "Pager". (For enum: INVALID PHONE/EMAIL LABEL).
+4.7. Find contacts with URL without label. (For enum: MISSING URL LABEL).
+4.8. Find contacts with URL with label of: "Profile" / "Blog" / "Home Page" / "Work". (For enum: INVALID URL LABEL).
 4.9. Check if any phone is duplicated (in entire contacts and on a single contact). (For enum: DUPLICATE PHONE - GLOBAL/SINGLE).
 4.10. Check if any email is duplicated (in entire contacts and on a single contact). (For enum: DUPLICATE EMAIL - GLOBAL/SINGLE).
 4.11. Check if any URL is duplicated (in entire contacts and on a single contact). (For enum: DUPLICATE URL - GLOBAL/SINGLE).
@@ -33,7 +33,8 @@ Let's build a new script called "Google Contacts Maintainer".
 8. Finally we need to run this report automatically with a bat file which will generate a complete log on the desktop on each contact that needs to be fixed. See project that already implemented this logic - C:\Or\web\projects\repos-maintainer.
 8.1. IMPORTANT 1: logic needs to be added - Each time the scripts run automatically, the first thing needs to be done is to refresh the access token using the refresh token, in order to always have a freshed token to use the API. - C:\Or\web\projects\events-and-people-syncer\token.json
 8.2. IMPORTANT 2: logic needs to be added - If the file report already exists on the desktop, we will abort the run. We shell not override the existing file. This logic is only effected if the script run automatically, not manually from selected option from the menu.
-9. This is an example of how the "SCAN_CONTACTS_REPORT.txt" file should look like:
+9. Order: The order of the contacts in report will be according to the order of the 4.x point. Meaning: First the ones which contains Hebrew, then the ones with empty name, and so on.
+10. This is an example of how the "SCAN_CONTACTS_REPORT.txt" file should look like:
 
 =======================
 📰 Index: 000,001

@@ -50,17 +50,22 @@ export class SyncLogger {
       .catch(() => false);
 
     if (fileExists) {
-      const content = await fs.readFile(this.logPath, 'utf-8');
-      const lines = content.split('\n').length;
-      if (lines >= this.maxLines) {
-        this.currentCounter++;
-        this.logPath = join(
-          logDir,
-          `${this.scriptName}_${this.dateStr}-${this.currentCounter}.${this.fileExtension}`
-        );
+      try {
+        const content = await fs.readFile(this.logPath, 'utf-8');
+        const lines = content.split('\n').length;
+        if (lines >= this.maxLines) {
+          this.currentCounter++;
+          this.logPath = join(
+            logDir,
+            `${this.scriptName}_${this.dateStr}-${this.currentCounter}.${this.fileExtension}`
+          );
+          fileExists = false;
+        } else {
+          this.lineCount = lines;
+        }
+      } catch (_err) {
+        // Fallback if read fails
         fileExists = false;
-      } else {
-        this.lineCount = lines;
       }
     }
 

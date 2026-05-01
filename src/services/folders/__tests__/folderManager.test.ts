@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
+import { join } from 'path';
 import { FolderManager } from '../folderManager';
 
 vi.mock('fs/promises');
@@ -209,18 +210,22 @@ describe('FolderManager', () => {
       (fs.access as any) = vi.fn().mockResolvedValue(undefined);
       (fs.mkdir as any) = vi.fn().mockResolvedValue(undefined);
 
-      const result = await manager.createFolder('/base/path', 'TestFolder');
+      const basePath = '/base/path';
+      const folderName = 'TestFolder';
+      const result = await manager.createFolder(basePath, folderName);
 
-      expect(result).toBe('/base/path/TestFolder');
-      expect(fs.mkdir).toHaveBeenCalledWith('/base/path/TestFolder');
+      const expectedPath = join(basePath, folderName);
+      expect(result).toBe(expectedPath);
+      expect(fs.mkdir).toHaveBeenCalledWith(expectedPath);
     });
 
     it('should throw error when parent directory does not exist', async () => {
       (fs.access as any) = vi.fn().mockRejectedValue({ code: 'ENOENT' });
 
+      const basePath = '/base/path';
       await expect(
-        manager.createFolder('/base/path', 'TestFolder')
-      ).rejects.toThrow('Parent directory no longer exists: /base/path');
+        manager.createFolder(basePath, 'TestFolder')
+      ).rejects.toThrow(`Parent directory no longer exists: ${basePath}`);
     });
 
     it('should throw error for invalid folder name', async () => {
@@ -233,9 +238,12 @@ describe('FolderManager', () => {
       (fs.access as any) = vi.fn().mockResolvedValue(undefined);
       (fs.mkdir as any) = vi.fn().mockResolvedValue(undefined);
 
-      await manager.createFolder('/base/path', '  TestFolder  ');
+      const basePath = '/base/path';
+      const folderName = 'TestFolder';
+      await manager.createFolder(basePath, `  ${folderName}  `);
 
-      expect(fs.mkdir).toHaveBeenCalledWith('/base/path/TestFolder');
+      const expectedPath = join(basePath, folderName);
+      expect(fs.mkdir).toHaveBeenCalledWith(expectedPath);
     });
   });
 

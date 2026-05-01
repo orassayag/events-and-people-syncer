@@ -1783,12 +1783,13 @@ export class ContactEditor {
     const apiTracker = ApiTracker.getInstance();
 
     // 1. Fetch current etag and metadata
-    const current = await retryWithBackoff(async () =>
-      service.people.get({
-        resourceName,
-        personFields:
-          'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies,metadata',
-      })
+    const current = await retryWithBackoff(
+      async () =>
+        await service.people.get({
+          resourceName,
+          personFields:
+            'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies,metadata',
+        })
     );
     await apiTracker.trackRead();
 
@@ -1828,12 +1829,13 @@ export class ContactEditor {
 
     // 4. Real API update
     const spinner = ora('Updating contact...').start();
-    await retryWithBackoff(async () =>
-      service.people.updateContact({
-        resourceName,
-        updatePersonFields: updatedFields.join(','),
-        requestBody: { etag: current.data.etag, ...requestBody },
-      })
+    await retryWithBackoff(
+      async () =>
+        await service.people.updateContact({
+          resourceName,
+          updatePersonFields: updatedFields.join(','),
+          requestBody: { etag: current.data.etag, ...requestBody },
+        })
     );
     await apiTracker.trackWrite();
     spinner.stop();

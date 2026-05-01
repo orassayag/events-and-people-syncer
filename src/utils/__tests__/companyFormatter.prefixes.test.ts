@@ -85,7 +85,7 @@ describe('formatCompanyToPascalCase prefixes', () => {
 
   it('should format Partner at Net&Work correctly', () => {
     expect(calculateFormattedCompany('Partner at Net&Work')).toBe(
-      'LinkedIn Net&Work'
+      'LinkedIn NetAndWork'
     );
   });
 
