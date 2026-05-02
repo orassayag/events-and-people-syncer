@@ -6,7 +6,12 @@ import { SETTINGS } from '../../settings';
 import { ApiTracker } from '../api';
 import { emailSchema } from '../../entities';
 import { Logger } from '../../logging';
-import { retryWithBackoff, formatDateTimeDDMMYYYY_HHMMSS, DryModeChecker, DryModeMocks } from '../../utils';
+import {
+  retryWithBackoff,
+  formatDateTimeDDMMYYYY_HHMMSS,
+  DryModeChecker,
+  DryModeMocks,
+} from '../../utils';
 import {
   buildNewContactNote,
   determineNoteUpdate,

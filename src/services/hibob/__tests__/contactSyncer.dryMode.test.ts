@@ -9,7 +9,8 @@ import { google } from 'googleapis';
 
 vi.mock('googleapis');
 vi.mock('../../../utils', async () => {
-  const actual = await vi.importActual<typeof import('../../../utils')>('../../../utils');
+  const actual =
+    await vi.importActual<typeof import('../../../utils')>('../../../utils');
   return {
     ...actual,
     retryWithBackoff: vi.fn((fn) => fn()),

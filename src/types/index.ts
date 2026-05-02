@@ -14,8 +14,19 @@ export * from './entities';
 export * from './logging';
 export * from './linkedin';
 export * from './hibob';
-export { FolderType, FolderType as FolderTypeEnum, MenuOption, MenuOption as MenuOptionEnum, ScriptState } from './eventsJobsSync';
-export type { FolderMapping, FolderCacheData, FolderMatch, EventsJobsSyncStats } from './eventsJobsSync';
+export {
+  FolderType,
+  FolderType as FolderTypeEnum,
+  MenuOption,
+  MenuOption as MenuOptionEnum,
+  ScriptState,
+} from './eventsJobsSync';
+export type {
+  FolderMapping,
+  FolderCacheData,
+  FolderMatch,
+  EventsJobsSyncStats,
+} from './eventsJobsSync';
 export * from './alert';
 export * from './otherContactsSync';
 export * from './smsWhatsappSync';

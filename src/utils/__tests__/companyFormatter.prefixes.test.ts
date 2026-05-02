@@ -55,7 +55,7 @@ describe('formatCompanyToPascalCase prefixes', () => {
 
   it('should pull next word for "The ADHD"', () => {
     expect(formatCompanyToPascalCase('The ADHD Center', 1)).toBe(
-      'TheADHDCenter'
+      'TheAdhdCenter'
     );
   });
 

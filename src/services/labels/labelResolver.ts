@@ -1,6 +1,10 @@
 import { google } from 'googleapis';
 import { injectable, inject } from 'inversify';
-import type { OAuth2Client, ContactGroup, LabelResolutionResult } from '../../types';
+import type {
+  OAuth2Client,
+  ContactGroup,
+  LabelResolutionResult,
+} from '../../types';
 import { ApiTracker } from '../api';
 import { retryWithBackoff, DryModeChecker, DryModeMocks } from '../../utils';
 import { Logger } from '../../logging';

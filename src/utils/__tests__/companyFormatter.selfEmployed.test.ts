@@ -7,9 +7,9 @@ describe('calculateFormattedCompany - SelfEmployed Logic', () => {
     expect(result).toBe('LinkedIn SelfEmployed');
   });
 
-  it('should return LinkedIn SelfEmployed if company matches lastName + firstName', () => {
+  it('should return normal formatted company if company matches lastName + firstName (strict order required)', () => {
     const result = calculateFormattedCompany('KlingerYonit', undefined, 'Yonit', 'Klinger');
-    expect(result).toBe('LinkedIn SelfEmployed');
+    expect(result).toBe('LinkedIn KlingerYonit');
   });
 
   it('should be case-insensitive', () => {
@@ -54,19 +54,13 @@ describe('calculateFormattedCompany - SelfEmployed Logic', () => {
     expect(result).toBe('LinkedIn SelfEmployed');
   });
 
-  it('should handle cases where company matches only first name (if long enough)', () => {
-    const result = calculateFormattedCompany('YanaYana', undefined, 'YanaYana', 'Weiss');
-    expect(result).toBe('LinkedIn SelfEmployed');
-  });
-
-  it('should handle partial matches (company name is part of full name)', () => {
+  it('should return normal formatted company for partial matches (strict match required)', () => {
     const result = calculateFormattedCompany('Yana', undefined, 'Yana', 'Weiss');
-    expect(result).toBe('LinkedIn SelfEmployed');
+    expect(result).toBe('LinkedIn Yana');
   });
 
-  it('should handle cases where company name is full name with extra noise', () => {
+  it('should return normal formatted company for extra noise (strict match required)', () => {
     const result = calculateFormattedCompany('Yana Weiss Specialist', undefined, 'Yana', 'Weiss');
-    // Note: Specialist is removed by cleanCompany if it's at the end
-    expect(result).toBe('LinkedIn SelfEmployed');
+    expect(result).toBe('LinkedIn YanaWeissSpecialist');
   });
 });

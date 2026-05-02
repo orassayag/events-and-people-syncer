@@ -1,5 +1,9 @@
 import { injectable, inject } from 'inversify';
-import type { MessagePlatformExtractor, ExtractedContact, MessageSource } from '../../types';
+import type {
+  MessagePlatformExtractor,
+  ExtractedContact,
+  MessageSource,
+} from '../../types';
 import { GoogleMessagesExtractor } from './googleMessagesExtractor';
 import { WhatsAppWebExtractor } from './whatsappWebExtractor';
 

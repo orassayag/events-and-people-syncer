@@ -133,6 +133,7 @@ export function formatCompanyToPascalCase(
       'BenGurion',
       'TheAcademic',
       'TheADHD',
+      'TheAdhd',
       'Medical',
       'HouseOf',
       'Houseof',

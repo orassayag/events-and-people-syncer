@@ -1,5 +1,4 @@
 import Enquirer from 'enquirer';
-import fs from 'fs';
 import type {
   PromptResult,
   SelectChoice,
@@ -11,11 +10,6 @@ import type {
 } from '../types';
 import { SearchableSelect } from './searchableSelect';
 import { SearchableMultiSelect } from './searchableMultiselect';
-
-function dlog(msg: string): void {
-  const timestamp = new Date().toISOString();
-  fs.appendFileSync('debug_esc.txt', `[${timestamp}] [prompts] ${msg}\n`);
-}
 
 export {
   PromptResult,
@@ -41,7 +35,6 @@ let lastEscTimestamp: number | null = null;
 
 function recordEsc(): void {
   lastEscTimestamp = Date.now();
-  dlog(`recordEsc: t=${lastEscTimestamp}`);
 }
 
 function msSinceLastEsc(): number {
@@ -56,12 +49,10 @@ function patchCancel(prompt: any): void {
   prompt.cancel = (err?: any): any => {
     const age = msSinceLastEsc();
     if (age < ESC_GUARD_MS) {
-      dlog(`cancel() BLOCKED — ESC bleed (age=${age}ms)`);
       return; // swallow phantom cancel from readline timer
     }
     if (cancelled) return;
     cancelled = true;
-    dlog(`cancel() ALLOWED (age=${age}ms)`);
     recordEsc();
     return originalCancel(err);
   };
@@ -75,7 +66,6 @@ async function runPrompt<T>(
 ): Promise<PromptResult<T>> {
   const wait = POST_ESC_DELAY_MS - msSinceLastEsc();
   if (wait > 0) {
-    dlog(`runPrompt: waiting ${Math.round(wait)}ms for readline ESC timers`);
     await new Promise<void>((r) => setTimeout(r, wait));
   }
 
@@ -96,16 +86,11 @@ async function runPrompt<T>(
     prompt = buildPrompt();
     patchCancel(prompt);
 
-    dlog('runPrompt: prompt.run() starting');
     const result = await prompt.run();
-    dlog(`runPrompt: prompt.run() resolved — ${JSON.stringify(result)}`);
     value = extractValue(result);
-  } catch (err) {
-    dlog(`runPrompt: prompt.run() rejected — ${err}`);
+  } catch {
     escaped = true;
   } finally {
-    dlog('runPrompt: starting cleanup');
-
     // 1. Restore cursor visibility immediately
     if (process.stdout.isTTY) {
       process.stdout.write('\u001b[?25h'); // show cursor
@@ -129,8 +114,6 @@ async function runPrompt<T>(
     // Toggling raw mode too quickly on Windows breaks subsequent prompts.
     // If a script needs non-raw mode, it can set it itself, but for a
     // mostly-interactive CLI, staying in raw mode is safer.
-
-    dlog('runPrompt: cleanup finished');
   }
 
   return escaped ? { escaped: true } : { escaped: false, value: value as T };

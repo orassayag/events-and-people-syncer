@@ -1,7 +1,12 @@
 import { google } from 'googleapis';
 import { injectable, inject } from 'inversify';
 import type { OAuth2Client, ContactData, ContactGroupMap } from '../../types';
-import { LinkedInConnection, SyncStatusType, SyncResult, UpdateDetails } from '../../types';
+import {
+  LinkedInConnection,
+  SyncStatusType,
+  SyncResult,
+  UpdateDetails,
+} from '../../types';
 import { SETTINGS } from '../../settings';
 import { ApiTracker } from '../api';
 import { emailSchema } from '../../entities';
@@ -289,10 +294,7 @@ export class ContactSyncer {
         connection.lastName,
         connection.company
       );
-      const lastNameValue: string = [
-        baseLastName,
-        formattedCompany,
-      ]
+      const lastNameValue: string = [baseLastName, formattedCompany]
         .filter((s: string) => s)
         .join(' ')
         .replace(/'/g, '')
