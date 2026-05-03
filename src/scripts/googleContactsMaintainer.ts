@@ -288,6 +288,12 @@ export class GoogleContactsMaintainerScript implements Script {
 
       const issues: MaintainerIssueType[] = [];
       const customMessages: Partial<Record<MaintainerIssueType, string>> = {};
+      const duplicateDetails: Partial<
+        Record<
+          MaintainerIssueType,
+          { value: string; otherContactIds: string[] }[]
+        >
+      > = {};
 
       // 4.1 Hebrew contact
       const hasHebrew = [
@@ -295,7 +301,6 @@ export class GoogleContactsMaintainerScript implements Script {
         lastName,
         contact.company,
         contact.jobTitle,
-        contact.biography,
         contact.label,
       ].some((f) => this.checkHebrew(f));
       if (hasHebrew) issues.push(MaintainerIssueType.CONTAINS_HEBREW);
@@ -344,6 +349,37 @@ export class GoogleContactsMaintainerScript implements Script {
             customMessages[MaintainerIssueType.INVALID_NAME] =
               `INVALID NAME - SHOULD BE: ${cleanedBaseName}`;
           }
+        }
+
+        // 4.2.2 INVALID CONTACT - Name logic
+        const lastNameWords = lastName.split(' ');
+        let cleanedLastNameForContactVal = lastName;
+        const sortedLabelsForNameVal = [...allLabels].sort(
+          (a, b) => b.length - a.length
+        );
+
+        for (let i = 0; i < lastNameWords.length; i++) {
+          const word = lastNameWords[i].toLowerCase();
+          const hasMatch = sortedLabelsForNameVal.some(
+            (l) => l.toLowerCase() === word
+          );
+          if (hasMatch) {
+            cleanedLastNameForContactVal = lastNameWords.slice(0, i).join(' ');
+            break;
+          }
+        }
+
+        const cleanedFullNameForVal =
+          `${firstName} ${cleanedLastNameForContactVal}`.trim();
+        const formattedFullNameVal = TextUtils.cleanName(cleanedFullNameForVal);
+
+        if (
+          formattedFullNameVal !== cleanedFullNameForVal &&
+          formattedFullNameVal
+        ) {
+          issues.push(MaintainerIssueType.INVALID_CONTACT_NAME);
+          customMessages[MaintainerIssueType.INVALID_CONTACT_NAME] =
+            `INVALID CONTACT - Name: ${formattedFullNameVal}`;
         }
       }
 
@@ -445,27 +481,126 @@ export class GoogleContactsMaintainerScript implements Script {
       const phoneNumbers = contact.phones.map((p) =>
         p.number.replace(/\D/g, '')
       );
-      const hasDuplicatePhone =
-        new Set(phoneNumbers).size !== phoneNumbers.length ||
-        phoneNumbers.some((num) => (phoneMap.get(num)?.length || 0) > 1);
-      if (hasDuplicatePhone)
-        issues.push(MaintainerIssueType.DUPLICATE_PHONE_GLOBAL_SINGLE);
+      const phoneCounts = phoneNumbers.reduce(
+        (acc, num) => {
+          acc[num] = (acc[num] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>
+      );
+
+      const singleDuplicatePhones = Object.keys(phoneCounts).filter(
+        (num) => phoneCounts[num] > 1
+      );
+      if (singleDuplicatePhones.length > 0) {
+        issues.push(MaintainerIssueType.DUPLICATE_PHONE_SINGLE);
+        duplicateDetails[MaintainerIssueType.DUPLICATE_PHONE_SINGLE] =
+          singleDuplicatePhones.map((num) => ({
+            value:
+              contact.phones.find((p) => p.number.replace(/\D/g, '') === num)
+                ?.number || num,
+            otherContactIds: [],
+          }));
+      }
+
+      const globalDuplicatePhones = phoneNumbers.filter(
+        (num) => (phoneMap.get(num)?.length || 0) > 1
+      );
+      const uniqueGlobalDuplicatePhones = [...new Set(globalDuplicatePhones)];
+      if (uniqueGlobalDuplicatePhones.length > 0) {
+        issues.push(MaintainerIssueType.DUPLICATE_PHONE_GLOBAL);
+        duplicateDetails[MaintainerIssueType.DUPLICATE_PHONE_GLOBAL] =
+          uniqueGlobalDuplicatePhones.map((num) => ({
+            value:
+              contact.phones.find((p) => p.number.replace(/\D/g, '') === num)
+                ?.number || num,
+            otherContactIds: (phoneMap.get(num) || []).filter(
+              (id) => id !== contact.resourceName
+            ),
+          }));
+      }
 
       // 4.10 Duplicate email (Global/Single)
       const emails = contact.emails.map((e) => e.value.toLowerCase().trim());
-      const hasDuplicateEmail =
-        new Set(emails).size !== emails.length ||
-        emails.some((email) => (emailMap.get(email)?.length || 0) > 1);
-      if (hasDuplicateEmail)
-        issues.push(MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL_SINGLE);
+      const emailCounts = emails.reduce(
+        (acc, email) => {
+          acc[email] = (acc[email] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>
+      );
+
+      const singleDuplicateEmails = Object.keys(emailCounts).filter(
+        (email) => emailCounts[email] > 1
+      );
+      if (singleDuplicateEmails.length > 0) {
+        issues.push(MaintainerIssueType.DUPLICATE_EMAIL_SINGLE);
+        duplicateDetails[MaintainerIssueType.DUPLICATE_EMAIL_SINGLE] =
+          singleDuplicateEmails.map((email) => ({
+            value:
+              contact.emails.find((e) => e.value.toLowerCase().trim() === email)
+                ?.value || email,
+            otherContactIds: [],
+          }));
+      }
+
+      const globalDuplicateEmails = emails.filter(
+        (email) => (emailMap.get(email)?.length || 0) > 1
+      );
+      const uniqueGlobalDuplicateEmails = [...new Set(globalDuplicateEmails)];
+      if (uniqueGlobalDuplicateEmails.length > 0) {
+        issues.push(MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL);
+        duplicateDetails[MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL] =
+          uniqueGlobalDuplicateEmails.map((email) => ({
+            value:
+              contact.emails.find((e) => e.value.toLowerCase().trim() === email)
+                ?.value || email,
+            otherContactIds: (emailMap.get(email) || []).filter(
+              (id) => id !== contact.resourceName
+            ),
+          }));
+      }
 
       // 4.11 Duplicate URL (Global/Single)
       const urls = contact.websites.map((w) => w.url.toLowerCase().trim());
-      const hasDuplicateUrl =
-        new Set(urls).size !== urls.length ||
-        urls.some((url) => (urlMap.get(url)?.length || 0) > 1);
-      if (hasDuplicateUrl)
-        issues.push(MaintainerIssueType.DUPLICATE_URL_GLOBAL_SINGLE);
+      const urlCounts = urls.reduce(
+        (acc, url) => {
+          acc[url] = (acc[url] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>
+      );
+
+      const singleDuplicateUrls = Object.keys(urlCounts).filter(
+        (url) => urlCounts[url] > 1
+      );
+      if (singleDuplicateUrls.length > 0) {
+        issues.push(MaintainerIssueType.DUPLICATE_URL_SINGLE);
+        duplicateDetails[MaintainerIssueType.DUPLICATE_URL_SINGLE] =
+          singleDuplicateUrls.map((url) => ({
+            value:
+              contact.websites.find((w) => w.url.toLowerCase().trim() === url)
+                ?.url || url,
+            otherContactIds: [],
+          }));
+      }
+
+      const globalDuplicateUrls = urls.filter(
+        (url) => (urlMap.get(url)?.length || 0) > 1
+      );
+      const uniqueGlobalDuplicateUrls = [...new Set(globalDuplicateUrls)];
+      if (uniqueGlobalDuplicateUrls.length > 0) {
+        issues.push(MaintainerIssueType.DUPLICATE_URL_GLOBAL);
+        duplicateDetails[MaintainerIssueType.DUPLICATE_URL_GLOBAL] =
+          uniqueGlobalDuplicateUrls.map((url) => ({
+            value:
+              contact.websites.find((w) => w.url.toLowerCase().trim() === url)
+                ?.url || url,
+            otherContactIds: (urlMap.get(url) || []).filter(
+              (id) => id !== contact.resourceName
+            ),
+          }));
+      }
 
       // 4.12 Missing URL for HR/Job label
       const hasHrOrJobLabel = activeLabels.some(
@@ -537,6 +672,55 @@ export class GoogleContactsMaintainerScript implements Script {
         }
       }
 
+      // 4.15.2 INVALID CONTACT - Company logic
+      const companyWords = currentCompany.split(' ');
+      let cleanedCompanyForVal = currentCompany;
+      const sortedLabelsForCompanyVal = [...allLabels].sort(
+        (a, b) => b.length - a.length
+      );
+
+      // Skip if company name equals a label
+      const isCompanyLabelMatch = allLabels.some(
+        (l) => l.toLowerCase() === currentCompany.toLowerCase()
+      );
+
+      if (!isCompanyLabelMatch) {
+        for (let i = 0; i < companyWords.length; i++) {
+          const word = companyWords[i].toLowerCase();
+          const hasMatch = sortedLabelsForCompanyVal.some(
+            (l) => l.toLowerCase() === word
+          );
+          if (hasMatch) {
+            cleanedCompanyForVal = companyWords.slice(0, i).join(' ');
+            break;
+          }
+        }
+
+        const formattedCompanyVal = calculateFormattedCompany(
+          cleanedCompanyForVal,
+          undefined,
+          firstName,
+          lastName
+        );
+
+        const suggestedCompanyClean = formattedCompanyVal.startsWith(
+          'LinkedIn '
+        )
+          ? formattedCompanyVal.substring(9)
+          : formattedCompanyVal === 'LinkedIn'
+            ? ''
+            : formattedCompanyVal;
+
+        if (
+          suggestedCompanyClean !== cleanedCompanyForVal &&
+          suggestedCompanyClean
+        ) {
+          issues.push(MaintainerIssueType.INVALID_CONTACT_COMPANY);
+          customMessages[MaintainerIssueType.INVALID_CONTACT_COMPANY] =
+            `INVALID CONTACT - Company: ${suggestedCompanyClean}`;
+        }
+      }
+
       // 4.16 Notes contains break lines
       if (
         contact.biography &&
@@ -584,6 +768,7 @@ export class GoogleContactsMaintainerScript implements Script {
           },
           issues: [...new Set(issues)],
           customIssueMessages: customMessages,
+          duplicateDetails: duplicateDetails,
         });
       }
     }
@@ -638,8 +823,31 @@ export class GoogleContactsMaintainerScript implements Script {
       report += `Reasons:\n`;
 
       item.issues.forEach((issue) => {
-        const message = item.customIssueMessages?.[issue] || `-${issue}`;
+        let message = item.customIssueMessages?.[issue] || `-${issue}`;
+
+        // Add colon for duplicate issues to match requested format
+        if (issue.startsWith('DUPLICATE') && !issue.includes('CONTACTS')) {
+          message = message.endsWith(':') ? message : `${message}:`;
+        }
+
         report += message.startsWith('-') ? `${message}\n` : `-${message}\n`;
+
+        if (item.duplicateDetails?.[issue]) {
+          const details = item.duplicateDetails[issue]!;
+          const label = issue.includes('EMAIL')
+            ? 'Email'
+            : issue.includes('PHONE')
+              ? 'Phone'
+              : 'URL';
+
+          details.forEach((detail) => {
+            report += `${label}: ${detail.value}\n`;
+            detail.otherContactIds.forEach((id) => {
+              const otherResourceId = id.split('/').pop() || '';
+              report += `Duplicate for Id: https://contacts.google.com/person/${otherResourceId}\n`;
+            });
+          });
+        }
       });
     });
     report += '=======================\n';

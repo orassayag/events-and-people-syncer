@@ -93,6 +93,13 @@ describe('GoogleContactsMaintainerScript', () => {
       expect(issues[0].issues).toContain('CONTAINS HEBREW');
     });
 
+    it('should NOT detect Hebrew issue if Hebrew is only in biography', () => {
+      const contacts = [{ ...mockContact, biography: 'עוזרת סמנכ״ל שיווק' }];
+      const issues = maintainer.testScanContacts(contacts, []);
+      // Should not contain CONTAINS HEBREW because it's only in biography
+      expect(issues.length === 0 || !issues[0].issues.includes('CONTAINS HEBREW')).toBe(true);
+    });
+
     it('should detect empty name', () => {
       const contacts = [{ ...mockContact, firstName: '', lastName: '' }];
       const issues = maintainer.testScanContacts(contacts, []);
@@ -223,7 +230,12 @@ describe('GoogleContactsMaintainerScript', () => {
         },
       ];
       const issues = maintainer.testScanContacts(contacts, []);
-      expect(issues[0].issues).toContain('DUPLICATE PHONE - GLOBAL/SINGLE');
+      expect(issues[0].issues).toContain(
+        MaintainerIssueType.DUPLICATE_PHONE_GLOBAL
+      );
+      expect(issues[1].issues).toContain(
+        MaintainerIssueType.DUPLICATE_PHONE_GLOBAL
+      );
     });
 
     it('should detect duplicate phone in single contact', () => {
@@ -237,7 +249,68 @@ describe('GoogleContactsMaintainerScript', () => {
         },
       ];
       const issues = maintainer.testScanContacts(contacts, []);
-      expect(issues[0].issues).toContain('DUPLICATE PHONE - GLOBAL/SINGLE');
+      expect(issues[0].issues).toContain(
+        MaintainerIssueType.DUPLICATE_PHONE_SINGLE
+      );
+    });
+
+    it('should detect duplicate email globally and in single contact with details', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          resourceName: 'people/1',
+          emails: [
+            { value: 'dup@test.com', label: 'Work' },
+            { value: 'dup@test.com', label: 'Home' },
+          ],
+        },
+        {
+          ...mockContact,
+          resourceName: 'people/2',
+          emails: [{ value: 'dup@test.com', label: 'Other' }],
+        },
+      ];
+      const issues = maintainer.testScanContacts(contacts, []);
+      
+      const item1 = issues[0];
+      expect(item1.issues).toContain(MaintainerIssueType.DUPLICATE_EMAIL_SINGLE);
+      expect(item1.issues).toContain(MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL);
+      expect(item1.duplicateDetails[MaintainerIssueType.DUPLICATE_EMAIL_SINGLE][0].value).toBe('dup@test.com');
+      expect(item1.duplicateDetails[MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL][0].value).toBe('dup@test.com');
+      expect(item1.duplicateDetails[MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL][0].otherContactIds).toContain('people/2');
+
+      const item2 = issues[1];
+      expect(item2.issues).toContain(MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL);
+      expect(item2.duplicateDetails[MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL][0].value).toBe('dup@test.com');
+      expect(item2.duplicateDetails[MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL][0].otherContactIds).toContain('people/1');
+    });
+
+    it('should detect duplicate URL globally and in single contact', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          resourceName: 'people/1',
+          websites: [
+            { url: 'https://linkedin.com/in/dup', label: 'LinkedIn' },
+            { url: 'https://linkedin.com/in/dup', label: 'LinkedIn' },
+          ],
+        },
+        {
+          ...mockContact,
+          resourceName: 'people/2',
+          websites: [{ url: 'https://linkedin.com/in/dup', label: 'LinkedIn' }],
+        },
+      ];
+      const issues = maintainer.testScanContacts(contacts, []);
+      expect(issues[0].issues).toContain(
+        MaintainerIssueType.DUPLICATE_URL_SINGLE
+      );
+      expect(issues[0].issues).toContain(
+        MaintainerIssueType.DUPLICATE_URL_GLOBAL
+      );
+      expect(issues[1].issues).toContain(
+        MaintainerIssueType.DUPLICATE_URL_GLOBAL
+      );
     });
 
     it('should detect outdated company name for LinkedIn related contacts', () => {
@@ -260,6 +333,71 @@ describe('GoogleContactsMaintainerScript', () => {
       expect(
         item.customIssueMessages[MaintainerIssueType.OUTDATED_COMPANY_NAME]
       ).toBe('OUTDATED COMPANY NAME - SHOULD BE: HR Google');
+    });
+
+    it('should detect invalid contact name and company ONLY if name/company without labels still needs cleaning', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          firstName: 'Avi',
+          lastName: 'Cohen - Director HR',
+          company: 'Google Ltd Job',
+          label: 'HR | Job',
+        },
+        {
+          ...mockContact,
+          firstName: 'Almog',
+          lastName: 'Wang Unknown',
+          company: 'Google',
+          label: 'Unknown',
+        },
+      ];
+      const allLabels = ['HR', 'Job', 'Unknown'];
+      const report = maintainer.testScanContacts(contacts, [], allLabels);
+
+      // First contact: "Avi Cohen - Director HR" -> remove label -> "Avi Cohen - Director" -> clean -> "Avi Cohen"
+      // "Avi Cohen" !== "Avi Cohen - Director" -> Flagged
+      const item1 = report.find((c) => c.contact.firstName === 'Avi');
+      expect(item1?.issues).toContain(MaintainerIssueType.INVALID_CONTACT_NAME);
+      expect(
+        item1?.customIssueMessages[MaintainerIssueType.INVALID_CONTACT_NAME]
+      ).toBe('INVALID CONTACT - Name: Avi Cohen');
+
+      expect(item1?.issues).toContain(
+        MaintainerIssueType.INVALID_CONTACT_COMPANY
+      );
+      expect(
+        item1?.customIssueMessages[MaintainerIssueType.INVALID_CONTACT_COMPANY]
+      ).toBe('INVALID CONTACT - Company: Google');
+
+      // Second contact: "Almog Wang Unknown" -> remove label -> "Almog Wang" -> clean -> "Almog Wang"
+      // "Almog Wang" === "Almog Wang" -> NOT flagged
+      const item2 = report.find((c) => c.contact.firstName === 'Almog');
+      expect(
+        item2?.issues.includes(MaintainerIssueType.INVALID_CONTACT_NAME)
+      ).toBe(false);
+    });
+
+    it('should NOT detect invalid contact company if company name exactly equals a label', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          firstName: 'Avi',
+          lastName: 'Cohen',
+          company: 'Job',
+          label: 'Job',
+        },
+      ];
+      const allLabels = ['Job'];
+      const report = maintainer.testScanContacts(contacts, [], allLabels);
+
+      // Should not contain INVALID_CONTACT_COMPANY because company "Job" equals label "Job"
+      expect(
+        report.length === 0 ||
+          !report[0].issues.includes(
+            MaintainerIssueType.INVALID_CONTACT_COMPANY
+          )
+      ).toBe(true);
     });
 
     it('should not check outdated company name for non-LinkedIn/HR/Job contacts', () => {
