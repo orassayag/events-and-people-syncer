@@ -791,7 +791,10 @@ export class GoogleContactsMaintainerScript implements Script {
       return getMinIndex(a.issues) - getMinIndex(b.issues);
     });
 
-    let report = '';
+    let report = `SCAN_CONTACTS_REPORT\n`;
+    report += `Date: ${new Date().toLocaleString()}\n`;
+    report += `==========================\n`;
+
     items.forEach((item, index) => {
       const indexDisplay = FormatUtils.formatNumberWithLeadingZeros(
         index + 1,
@@ -802,7 +805,9 @@ export class GoogleContactsMaintainerScript implements Script {
         ? `https://contacts.google.com/person/${resourceId}`
         : '';
 
-      report += '=======================\n';
+      if (index > 0) {
+        report += '=======================\n';
+      }
       report += `Index: ${indexDisplay}\n`;
       report += `Full name: ${item.contact.fullName}\n`;
 
