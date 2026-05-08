@@ -97,7 +97,9 @@ describe('GoogleContactsMaintainerScript', () => {
       const contacts = [{ ...mockContact, biography: 'עוזרת סמנכ״ל שיווק' }];
       const issues = maintainer.testScanContacts(contacts, []);
       // Should not contain CONTAINS HEBREW because it's only in biography
-      expect(issues.length === 0 || !issues[0].issues.includes('CONTAINS HEBREW')).toBe(true);
+      expect(
+        issues.length === 0 || !issues[0].issues.includes('CONTAINS HEBREW')
+      ).toBe(true);
     });
 
     it('should detect empty name', () => {
@@ -178,13 +180,36 @@ describe('GoogleContactsMaintainerScript', () => {
     it('should detect missing label', () => {
       const contacts = [{ ...mockContact, label: '' }];
       const issues = maintainer.testScanContacts(contacts, []);
-      expect(issues[0].issues).toContain('MISSING LABEL');
+      expect(issues[0].issues).toContain(MaintainerIssueType.MISSING_LABEL);
+    });
+
+    it('should detect wrong label if HR/Job label is missing from name', () => {
+      const contacts = [
+        { ...mockContact, firstName: 'Avi', lastName: 'Cohen', label: 'HR' },
+      ];
+      const issues = maintainer.testScanContacts(contacts, []);
+      expect(issues[0].issues).toContain(MaintainerIssueType.WRONG_LABEL);
+      expect(issues[0].issues).toContain(MaintainerIssueType.MISSING_LABEL);
+    });
+
+    it('should detect missing label if any other label is missing from name', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          firstName: 'Avi',
+          lastName: 'Cohen',
+          label: 'Friends',
+        },
+      ];
+      const issues = maintainer.testScanContacts(contacts, []);
+      expect(issues[0].issues).toContain(MaintainerIssueType.MISSING_LABEL);
+      expect(issues[0].issues).not.toContain(MaintainerIssueType.WRONG_LABEL);
     });
 
     it('should ignore "Imported In" labels', () => {
       const contacts = [{ ...mockContact, label: 'Imported In 01/01/2024' }];
       const issues = maintainer.testScanContacts(contacts, []);
-      expect(issues[0].issues).toContain('MISSING LABEL');
+      expect(issues[0].issues).toContain(MaintainerIssueType.MISSING_LABEL);
     });
 
     it('should detect invalid phone label', () => {
@@ -271,18 +296,39 @@ describe('GoogleContactsMaintainerScript', () => {
         },
       ];
       const issues = maintainer.testScanContacts(contacts, []);
-      
+
       const item1 = issues[0];
-      expect(item1.issues).toContain(MaintainerIssueType.DUPLICATE_EMAIL_SINGLE);
-      expect(item1.issues).toContain(MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL);
-      expect(item1.duplicateDetails[MaintainerIssueType.DUPLICATE_EMAIL_SINGLE][0].value).toBe('dup@test.com');
-      expect(item1.duplicateDetails[MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL][0].value).toBe('dup@test.com');
-      expect(item1.duplicateDetails[MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL][0].otherContactIds).toContain('people/2');
+      expect(item1.issues).toContain(
+        MaintainerIssueType.DUPLICATE_EMAIL_SINGLE
+      );
+      expect(item1.issues).toContain(
+        MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL
+      );
+      expect(
+        item1.duplicateDetails[MaintainerIssueType.DUPLICATE_EMAIL_SINGLE][0]
+          .value
+      ).toBe('dup@test.com');
+      expect(
+        item1.duplicateDetails[MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL][0]
+          .value
+      ).toBe('dup@test.com');
+      expect(
+        item1.duplicateDetails[MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL][0]
+          .otherContactIds
+      ).toContain('people/2');
 
       const item2 = issues[1];
-      expect(item2.issues).toContain(MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL);
-      expect(item2.duplicateDetails[MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL][0].value).toBe('dup@test.com');
-      expect(item2.duplicateDetails[MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL][0].otherContactIds).toContain('people/1');
+      expect(item2.issues).toContain(
+        MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL
+      );
+      expect(
+        item2.duplicateDetails[MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL][0]
+          .value
+      ).toBe('dup@test.com');
+      expect(
+        item2.duplicateDetails[MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL][0]
+          .otherContactIds
+      ).toContain('people/1');
     });
 
     it('should detect duplicate URL globally and in single contact', () => {
@@ -449,8 +495,8 @@ describe('GoogleContactsMaintainerScript', () => {
         []
       );
       expect(
-        issues[0].issues.some((i: string) =>
-          i.startsWith('CONTAINS WHITE SPACES')
+        issues[0].issues.some(
+          (i: string) => i && i.startsWith('CONTAINS WHITE SPACES')
         )
       ).toBe(true);
     });

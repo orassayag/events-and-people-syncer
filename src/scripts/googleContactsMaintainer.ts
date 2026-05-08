@@ -388,7 +388,7 @@ export class GoogleContactsMaintainerScript implements Script {
         issues.push(MaintainerIssueType.DUPLICATE_CONTACTS);
       }
 
-      // 4.4 Missing label
+      // 4.4 Missing/Wrong label
       const activeLabels = contact.label
         .split(' | ')
         .filter((l) => l && !l.toLowerCase().startsWith('imported'));
@@ -397,16 +397,21 @@ export class GoogleContactsMaintainerScript implements Script {
         (l) => l === 'HR' || l === 'Job' || l === 'LinkedIn'
       );
 
+      const hasLabelInName = activeLabels.some(
+        (l) => lastName.includes(l) || firstName.includes(l)
+      );
+
       if (activeLabels.length === 0) {
         issues.push(MaintainerIssueType.MISSING_LABEL);
       } else {
         // NEED TO BE FIXED: Labels: HR, Contact: Avi Cohen (No HR label attached after the end of the last name)
-        const hasLabelInName = activeLabels.some(
-          (l) => lastName.includes(l) || firstName.includes(l)
-        );
         if (isHrOrJob && !hasLabelInName) {
-          issues.push(MaintainerIssueType.MISSING_LABEL);
+          issues.push(MaintainerIssueType.WRONG_LABEL);
         }
+      }
+
+      if (activeLabels.length > 0 && !hasLabelInName) {
+        issues.push(MaintainerIssueType.MISSING_LABEL);
       }
 
       // 4.5 & 4.6 Phones/Emails labels
