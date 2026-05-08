@@ -19,9 +19,15 @@ class TestMaintainerScript extends GoogleContactsMaintainerScript {
   public testScanContacts(
     contacts: any[],
     exceptions: any[],
-    allLabels: string[] = []
+    allLabels: string[] = [],
+    otherContacts: any[] = []
   ): any[] {
-    return (this as any).scanContacts(contacts, exceptions, allLabels);
+    return (this as any).scanContacts(
+      contacts,
+      exceptions,
+      allLabels,
+      otherContacts
+    );
   }
 
   public testCheckHebrew(contact: any): boolean {
@@ -35,10 +41,13 @@ describe('GoogleContactsMaintainerScript', () => {
     refreshAccessToken: vi.fn().mockResolvedValue({ credentials: {} }),
     setCredentials: vi.fn(),
   } as any;
+  const mockOtherContactsFetcher = {
+    fetchOtherContacts: vi.fn().mockResolvedValue([]),
+  } as any;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    maintainer = new TestMaintainerScript(mockAuth);
+    maintainer = new TestMaintainerScript(mockAuth, mockOtherContactsFetcher);
   });
 
   afterEach(() => {
@@ -422,6 +431,25 @@ describe('GoogleContactsMaintainerScript', () => {
       expect(
         item2?.issues.includes(MaintainerIssueType.INVALID_CONTACT_NAME)
       ).toBe(false);
+    });
+
+    it('should include "Other contacts" in the report', () => {
+      const otherContacts = [
+        {
+          displayName: 'Other Person',
+          emails: ['other@example.com'],
+          phones: ['123456'],
+          resourceName: 'people/other123',
+        },
+      ];
+      const report = maintainer.testScanContacts([], [], [], otherContacts);
+
+      const otherItem = report.find((item) =>
+        item.issues.includes(MaintainerIssueType.OTHER_CONTACT)
+      );
+      expect(otherItem).toBeDefined();
+      expect(otherItem?.contact.fullName).toBe('Other Person');
+      expect(otherItem?.contact.emails[0].value).toBe('other@example.com');
     });
 
     it('should NOT detect invalid contact company if company name exactly equals a label', () => {

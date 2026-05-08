@@ -10,6 +10,7 @@ import type {
   TokenData,
   MaintainerException,
   MaintainerReportItem,
+  OtherContactEntry,
 } from '../types';
 import { MaintainerIssueType } from '../types';
 import { Logger, SyncLogger } from '../logging';
@@ -20,6 +21,8 @@ import { TextUtils } from '../utils/textUtils';
 import { SyncStatusBar } from '../flow/syncStatusBar';
 import { FormatUtils } from '../constants';
 
+import { OtherContactsFetcher } from '../services/otherContacts';
+
 @injectable()
 export class GoogleContactsMaintainerScript implements Script {
   private readonly logger: SyncLogger;
@@ -28,7 +31,11 @@ export class GoogleContactsMaintainerScript implements Script {
   private readonly reportFileName: string = 'SCAN_CONTACTS_REPORT.txt';
   private readonly exceptionsFile: string;
 
-  constructor(@inject('OAuth2Client') private auth: OAuth2Client) {
+  constructor(
+    @inject('OAuth2Client') private auth: OAuth2Client,
+    @inject(OtherContactsFetcher)
+    private otherContactsFetcher: OtherContactsFetcher
+  ) {
     this.logger = new SyncLogger('google-contacts-maintainer');
     this.uiLogger = new Logger('GoogleContactsMaintainer');
     this.desktopPath = join(homedir(), 'Desktop');
@@ -78,10 +85,22 @@ export class GoogleContactsMaintainerScript implements Script {
         `Fetched ${contacts.length} contacts and ${allLabels.length} labels.`
       );
 
+      this.uiLogger.displayInfo('Fetching "Other contacts"...');
+      const otherContacts =
+        await this.otherContactsFetcher.fetchOtherContacts();
+      this.uiLogger.displayInfo(
+        `Fetched ${otherContacts.length} "Other contacts".`
+      );
+
       const exceptions = this.loadExceptions();
       this.uiLogger.displayInfo(`Loaded ${exceptions.length} exceptions.`);
 
-      const reportItems = this.scanContacts(contacts, exceptions, allLabels);
+      const reportItems = this.scanContacts(
+        contacts,
+        exceptions,
+        allLabels,
+        otherContacts
+      );
 
       if (reportItems.length === 0) {
         this.uiLogger.displaySuccess('No issues found in contacts!');
@@ -226,7 +245,8 @@ export class GoogleContactsMaintainerScript implements Script {
   private scanContacts(
     contacts: ContactData[],
     exceptions: MaintainerException[],
-    allLabels: string[]
+    allLabels: string[],
+    otherContacts: OtherContactEntry[] = []
   ): MaintainerReportItem[] {
     const reportItems: MaintainerReportItem[] = [];
 
@@ -778,6 +798,26 @@ export class GoogleContactsMaintainerScript implements Script {
       }
     }
 
+    // Add other contacts to the report
+    for (const other of otherContacts) {
+      reportItems.push({
+        contact: {
+          firstName: '',
+          lastName: '',
+          fullName: other.displayName || 'Unknown Name',
+          label: '',
+          phones: other.phones.map((p) => ({ number: p, label: '' })),
+          emails: other.emails.map((e) => ({ value: e, label: '' })),
+          websites: [],
+          company: '',
+          jobTitle: '',
+          biography: '',
+          resourceName: other.resourceName,
+        },
+        issues: [MaintainerIssueType.OTHER_CONTACT],
+      });
+    }
+
     return reportItems;
   }
 
@@ -817,11 +857,17 @@ export class GoogleContactsMaintainerScript implements Script {
       report += `Full name: ${item.contact.fullName}\n`;
 
       // Point 1: If name is empty, display data we DO have
-      if (item.issues.includes(MaintainerIssueType.EMPTY_NAME)) {
+      if (
+        item.issues.includes(MaintainerIssueType.EMPTY_NAME) ||
+        item.issues.includes(MaintainerIssueType.OTHER_CONTACT)
+      ) {
         if (item.contact.emails.length > 0) {
           report += `Email: ${item.contact.emails.map((e) => e.value).join(', ')}\n`;
         }
-        if (item.contact.biography) {
+        if (
+          item.issues.includes(MaintainerIssueType.EMPTY_NAME) &&
+          item.contact.biography
+        ) {
           report += `Notes: \n${item.contact.biography}\n`;
         }
       }
