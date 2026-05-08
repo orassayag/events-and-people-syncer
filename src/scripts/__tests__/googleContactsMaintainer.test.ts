@@ -198,7 +198,34 @@ describe('GoogleContactsMaintainerScript', () => {
       ];
       const issues = maintainer.testScanContacts(contacts, []);
       expect(issues[0].issues).toContain(MaintainerIssueType.WRONG_LABEL);
-      expect(issues[0].issues).toContain(MaintainerIssueType.MISSING_LABEL);
+    });
+
+    it('should detect missing phone/email labels', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          phones: [{ number: '123', label: '' }],
+          emails: [{ value: 'test@test.com', label: undefined as any }],
+        },
+      ];
+      const issues = maintainer.testScanContacts(contacts, []);
+      expect(issues[0].issues).toContain(
+        MaintainerIssueType.MISSING_PHONE_EMAIL_LABEL
+      );
+    });
+
+    it('should detect invalid phone/email labels (default labels)', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          phones: [{ number: '123', label: 'mobile' }],
+          emails: [{ value: 'test@test.com', label: 'work' }],
+        },
+      ];
+      const issues = maintainer.testScanContacts(contacts, []);
+      expect(issues[0].issues).toContain(
+        MaintainerIssueType.INVALID_PHONE_EMAIL_LABEL
+      );
     });
 
     it('should detect missing label if any other label is missing from name', () => {

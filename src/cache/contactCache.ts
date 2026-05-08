@@ -2,8 +2,9 @@ import { promises as fs } from 'fs';
 import { join } from 'path';
 import type { ContactData, ContactCacheData } from '../types';
 import { VALIDATION_CONSTANTS } from '../constants';
-import { UrlNormalizer } from '../services/linkedin';
-import { PhoneNormalizer, EmailNormalizer } from '../services/contacts';
+import { UrlNormalizer } from '../services/linkedin/urlNormalizer';
+import { PhoneNormalizer } from '../services/contacts/phoneNormalizer';
+import { EmailNormalizer } from '../services/contacts/emailNormalizer';
 import { SETTINGS } from '../settings';
 
 export class ContactCache {

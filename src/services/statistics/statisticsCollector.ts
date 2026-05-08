@@ -3,7 +3,7 @@ import { join } from 'path';
 import { injectable, inject } from 'inversify';
 import type { Ora } from 'ora';
 import { Logger } from '../../logging';
-import { DuplicateDetector } from '../contacts';
+import { DuplicateDetector } from '../contacts/duplicateDetector';
 import { ContactCache, OtherContactsCache } from '../../cache';
 import { SETTINGS } from '../../settings';
 import { RegexPatterns } from '../../regex';

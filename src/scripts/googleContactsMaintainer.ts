@@ -765,16 +765,21 @@ export class GoogleContactsMaintainerScript implements Script {
         fieldsWithSpaces.push('Job Title');
 
       contact.phones.forEach((p) => {
-        if (p.number !== p.number.trim()) fieldsWithSpaces.push('Phone Number');
-        if (p.label !== p.label.trim()) fieldsWithSpaces.push('Phone Label');
+        if (p.number && p.number !== p.number.trim())
+          fieldsWithSpaces.push('Phone Number');
+        if (p.label && p.label !== p.label.trim())
+          fieldsWithSpaces.push('Phone Label');
       });
       contact.emails.forEach((e) => {
-        if (e.value !== e.value.trim()) fieldsWithSpaces.push('Email');
-        if (e.label !== e.label.trim()) fieldsWithSpaces.push('Email Label');
+        if (e.value && e.value !== e.value.trim())
+          fieldsWithSpaces.push('Email');
+        if (e.label && e.label !== e.label.trim())
+          fieldsWithSpaces.push('Email Label');
       });
       contact.websites.forEach((w) => {
-        if (w.url !== w.url.trim()) fieldsWithSpaces.push('URL');
-        if (w.label !== w.label.trim()) fieldsWithSpaces.push('URL Label');
+        if (w.url && w.url !== w.url.trim()) fieldsWithSpaces.push('URL');
+        if (w.label && w.label !== w.label.trim())
+          fieldsWithSpaces.push('URL Label');
       });
 
       if (fieldsWithSpaces.length > 0) {

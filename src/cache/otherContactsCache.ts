@@ -1,7 +1,8 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import type { OtherContactEntry, OtherContactsCacheData } from '../types';
-import { EmailNormalizer, PhoneNormalizer } from '../services/contacts';
+import { EmailNormalizer } from '../services/contacts/emailNormalizer';
+import { PhoneNormalizer } from '../services/contacts/phoneNormalizer';
 import { VALIDATION_CONSTANTS } from '../constants';
 import { SETTINGS } from '../settings';
 

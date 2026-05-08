@@ -21,7 +21,7 @@ import {
 } from '../../utils';
 import { buildNewContactNote, determineNoteUpdate } from './noteParser';
 import { ContactCache } from '../../cache';
-import { DuplicateDetector } from '../contacts';
+import { DuplicateDetector } from '../contacts/duplicateDetector';
 
 @injectable()
 export class ContactSyncer {

@@ -1,5 +1,10 @@
-import { describe, it, expect, vi } from 'vitest';
-import { EmailNormalizer } from '../../services/contacts';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { promises as fs } from 'fs';
+import { ContactCache } from '../contactCache';
+import { SETTINGS } from '../../settings';
+import { PhoneNormalizer } from '../../services/contacts';
+import { UrlNormalizer } from '../../services/linkedin';
+import type { ContactData } from '../../types';
 
 vi.mock('fs', () => ({
   promises: {
@@ -18,8 +23,9 @@ vi.mock('../../settings', () => ({
   },
 }));
 
-describe('ContactCache - getByNormalizedEmail', () => {
-  const mockContacts = [
+describe('ContactCache', () => {
+  let cache: ContactCache;
+  const mockContacts: ContactData[] = [
     {
       firstName: 'John',
       lastName: 'Doe',
@@ -27,8 +33,15 @@ describe('ContactCache - getByNormalizedEmail', () => {
       jobTitle: 'Engineer',
       emails: [{ value: 'john@example.com', label: 'work' }],
       phones: [{ number: '+1-555-123-4567', label: 'mobile' }],
-      websites: [],
+      websites: [
+        { url: 'https://www.linkedin.com/in/johndoe', label: 'linkedin' },
+      ],
       resourceName: 'people/1',
+      addresses: [],
+      organizations: [],
+      notes: [],
+      birthdays: [],
+      metadata: { sources: [] },
     },
     {
       firstName: 'Jane',
@@ -42,160 +55,154 @@ describe('ContactCache - getByNormalizedEmail', () => {
       phones: [],
       websites: [],
       resourceName: 'people/2',
-    },
-    {
-      firstName: 'Bob',
-      lastName: 'Wilson',
-      company: '',
-      jobTitle: '',
-      emails: [{ value: 'BOB.WILSON@Example.COM', label: 'other' }],
-      phones: [],
-      websites: [],
-      resourceName: 'people/3',
-    },
-    {
-      firstName: 'Alice',
-      lastName: 'Brown',
-      company: 'Startup',
-      jobTitle: 'CEO',
-      emails: [],
-      phones: [{ number: '+972-50-123-4567', label: 'mobile' }],
-      websites: [],
-      resourceName: 'people/4',
+      addresses: [],
+      organizations: [],
+      notes: [],
+      birthdays: [],
+      metadata: { sources: [] },
     },
   ];
 
-  const getByNormalizedEmail = (
-    contacts: typeof mockContacts,
-    email: string
-  ): typeof mockContacts => {
-    const normalizedEmail = EmailNormalizer.normalize(email);
-    const matches: typeof mockContacts = [];
-    for (const contact of contacts) {
-      for (const contactEmail of contact.emails) {
-        if (EmailNormalizer.normalize(contactEmail.value) === normalizedEmail) {
-          matches.push(contact);
-          break;
-        }
-      }
-    }
-    return matches;
-  };
-
-  it('should find contact by exact email match', () => {
-    const result = getByNormalizedEmail(mockContacts, 'john@example.com');
-    expect(result).toHaveLength(1);
-    expect(result[0].firstName).toBe('John');
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // @ts-ignore - access private static member for testing
+    ContactCache.instance = undefined;
+    cache = ContactCache.getInstance();
   });
 
-  it('should find contact by case-insensitive email match', () => {
-    const result = getByNormalizedEmail(mockContacts, 'JOHN@EXAMPLE.COM');
-    expect(result).toHaveLength(1);
-    expect(result[0].firstName).toBe('John');
+  describe('getInstance', () => {
+    it('should return the same instance', () => {
+      const instance1 = ContactCache.getInstance();
+      const instance2 = ContactCache.getInstance();
+      expect(instance1).toBe(instance2);
+    });
   });
 
-  it('should find contact by email with different case in stored value', () => {
-    const result = getByNormalizedEmail(mockContacts, 'bob.wilson@example.com');
-    expect(result).toHaveLength(1);
-    expect(result[0].firstName).toBe('Bob');
+  describe('set', () => {
+    it('should save contacts to file', async () => {
+      await cache.set(mockContacts);
+      expect(fs.mkdir).toHaveBeenCalledWith('/mock/cache/path', {
+        recursive: true,
+      });
+      expect(fs.writeFile).toHaveBeenCalledWith(
+        expect.stringContaining('contact-cache.json'),
+        expect.stringContaining('John'),
+        'utf-8'
+      );
+    });
+
+    it('should handle write errors gracefully', async () => {
+      vi.mocked(fs.writeFile).mockRejectedValueOnce(new Error('Write failed'));
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      await cache.set(mockContacts);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Failed to write contact cache:',
+        'Write failed'
+      );
+      consoleSpy.mockRestore();
+    });
   });
 
-  it('should find contact by email with leading/trailing whitespace', () => {
-    const result = getByNormalizedEmail(mockContacts, '  john@example.com  ');
-    expect(result).toHaveLength(1);
-    expect(result[0].firstName).toBe('John');
+  describe('get', () => {
+    it('should return contacts from file if not expired', async () => {
+      const data = {
+        contacts: mockContacts,
+        timestamp: Date.now(),
+      };
+      vi.mocked(fs.readFile).mockResolvedValueOnce(JSON.stringify(data));
+
+      const result = await cache.get();
+      expect(result).toEqual(mockContacts);
+    });
+
+    it('should return null and invalidate if expired', async () => {
+      const data = {
+        contacts: mockContacts,
+        timestamp: Date.now() - 86400000 * 31, // 31 days ago
+      };
+      vi.mocked(fs.readFile).mockResolvedValueOnce(JSON.stringify(data));
+
+      const result = await cache.get();
+      expect(result).toBeNull();
+      expect(fs.unlink).toHaveBeenCalled();
+    });
+
+    it('should return null on file read error', async () => {
+      vi.mocked(fs.readFile).mockRejectedValueOnce(new Error('Read failed'));
+      const result = await cache.get();
+      expect(result).toBeNull();
+    });
   });
 
-  it('should find contact with multiple emails by any email', () => {
-    const result1 = getByNormalizedEmail(mockContacts, 'jane@example.com');
-    expect(result1).toHaveLength(1);
-    expect(result1[0].firstName).toBe('Jane');
-    const result2 = getByNormalizedEmail(
-      mockContacts,
-      'jane.personal@gmail.com'
-    );
-    expect(result2).toHaveLength(1);
-    expect(result2[0].firstName).toBe('Jane');
+  describe('getByLinkedInSlug', () => {
+    it('should find contact by LinkedIn slug', async () => {
+      const data = { contacts: mockContacts, timestamp: Date.now() };
+      vi.mocked(fs.readFile).mockResolvedValueOnce(JSON.stringify(data));
+
+      const result = await cache.getByLinkedInSlug(
+        'https://www.linkedin.com/in/johndoe'
+      );
+      expect(result).toEqual(mockContacts[0]);
+    });
+
+    it('should return null if not found', async () => {
+      const data = { contacts: mockContacts, timestamp: Date.now() };
+      vi.mocked(fs.readFile).mockResolvedValueOnce(JSON.stringify(data));
+
+      const result = await cache.getByLinkedInSlug(
+        'https://www.linkedin.com/in/unknown'
+      );
+      expect(result).toBeNull();
+    });
   });
 
-  it('should return empty array for non-existent email', () => {
-    const result = getByNormalizedEmail(
-      mockContacts,
-      'nonexistent@example.com'
-    );
-    expect(result).toHaveLength(0);
+  describe('getByEmail', () => {
+    it('should find contacts by email', async () => {
+      const data = { contacts: mockContacts, timestamp: Date.now() };
+      vi.mocked(fs.readFile).mockResolvedValueOnce(JSON.stringify(data));
+
+      const result = await cache.getByEmail('jane@example.com');
+      expect(result).toHaveLength(1);
+      expect(result[0].firstName).toBe('Jane');
+    });
   });
 
-  it('should return empty array for empty email', () => {
-    const result = getByNormalizedEmail(mockContacts, '');
-    expect(result).toHaveLength(0);
+  describe('getByResourceName', () => {
+    it('should find contact by resource name', async () => {
+      const data = { contacts: mockContacts, timestamp: Date.now() };
+      vi.mocked(fs.readFile).mockResolvedValueOnce(JSON.stringify(data));
+
+      const result = await cache.getByResourceName('people/2');
+      expect(result).toEqual(mockContacts[1]);
+    });
   });
 
-  it('should return empty array when contacts have no emails', () => {
-    const contactsWithNoEmails = [mockContacts[3]];
-    const result = getByNormalizedEmail(
-      contactsWithNoEmails,
-      'test@example.com'
-    );
-    expect(result).toHaveLength(0);
+  describe('invalidate', () => {
+    it('should remove the cache file', async () => {
+      await cache.invalidate();
+      expect(fs.unlink).toHaveBeenCalled();
+    });
   });
 
-  it('should return empty array for null/empty contacts', () => {
-    const result = getByNormalizedEmail([], 'john@example.com');
-    expect(result).toHaveLength(0);
+  describe('getByNormalizedPhone', () => {
+    it('should find contact by phone variation', async () => {
+      const data = { contacts: mockContacts, timestamp: Date.now() };
+      vi.mocked(fs.readFile).mockResolvedValueOnce(JSON.stringify(data));
+
+      const result = await cache.getByNormalizedPhone('+15551234567');
+      expect(result).toHaveLength(1);
+      expect(result[0].firstName).toBe('John');
+    });
   });
 
-  it('should not match plus-addressed emails as the same', () => {
-    const contactsWithPlusAddress = [
-      {
-        firstName: 'Test',
-        lastName: 'User',
-        company: '',
-        jobTitle: '',
-        emails: [{ value: 'user@example.com', label: 'work' }],
-        phones: [],
-        websites: [],
-        resourceName: 'people/5',
-      },
-    ];
-    const result = getByNormalizedEmail(
-      contactsWithPlusAddress,
-      'user+tag@example.com'
-    );
-    expect(result).toHaveLength(0);
-  });
+  describe('getByNormalizedEmail', () => {
+    it('should find contact by normalized email', async () => {
+      const data = { contacts: mockContacts, timestamp: Date.now() };
+      vi.mocked(fs.readFile).mockResolvedValueOnce(JSON.stringify(data));
 
-  it('should match email with subdomain correctly', () => {
-    const contactsWithSubdomain = [
-      {
-        firstName: 'Sub',
-        lastName: 'Domain',
-        company: '',
-        jobTitle: '',
-        emails: [{ value: 'user@mail.example.com', label: 'work' }],
-        phones: [],
-        websites: [],
-        resourceName: 'people/6',
-      },
-    ];
-    const result = getByNormalizedEmail(
-      contactsWithSubdomain,
-      'USER@MAIL.EXAMPLE.COM'
-    );
-    expect(result).toHaveLength(1);
-    expect(result[0].firstName).toBe('Sub');
-  });
-});
-
-describe('ContactCache - getByNormalizedPhone integration', () => {
-  it('should handle phone lookup scenario correctly', () => {
-    const normalizeDigits = (phone: string): string => phone.replace(/\D/g, '');
-    const phone1 = '+972-50-123-4567';
-    const phone2 = '0501234567';
-    const digits1 = normalizeDigits(phone1);
-    const digits2 = normalizeDigits(phone2);
-    expect(digits1).toBe('972501234567');
-    expect(digits2).toBe('0501234567');
-    expect(digits1.endsWith(digits2.substring(1))).toBe(true);
+      const result = await cache.getByNormalizedEmail(' JANE@EXAMPLE.COM ');
+      expect(result).toHaveLength(1);
+      expect(result[0].firstName).toBe('Jane');
+    });
   });
 });

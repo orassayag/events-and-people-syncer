@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 import { RegexPatterns } from '../../regex';
-import { PhoneNormalizer } from '../contacts';
+import { PhoneNormalizer } from '../contacts/phoneNormalizer';
 import type { ExtractedContact, MessagePlatformExtractor } from '../../types';
 
 @injectable()
