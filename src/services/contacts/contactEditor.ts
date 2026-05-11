@@ -1596,41 +1596,67 @@ export class ContactEditor {
     resourceName: string,
     phone: string
   ): Promise<void> {
+    await this.addPhonesToContact(resourceName, [phone], 'other');
+  }
+
+  async addPhonesToContact(
+    resourceName: string,
+    phones: string[],
+    label: string
+  ): Promise<number> {
     const service = google.people({ version: 'v1', auth: this.auth });
     const apiTracker = ApiTracker.getInstance();
+
+    const normalizedResourceName = resourceName.startsWith('people/')
+      ? resourceName
+      : `people/${resourceName}`;
+
     const currentContact = await retryWithBackoff(async () => {
       return await service.people.get({
-        resourceName,
+        resourceName: normalizedResourceName,
         personFields: 'phoneNumbers',
       });
     });
     await apiTracker.trackRead();
+
     const existingPhones = currentContact.data.phoneNumbers || [];
-    const phoneAlreadyExists = existingPhones.some((p) =>
-      PhoneNormalizer.phonesMatch(p.value || '', phone)
-    );
-    if (phoneAlreadyExists) {
-      this.uiLogger.displayWarning(
-        `Phone ${phone} already exists in this contact`
+    const phonesToAdd = phones.filter((newPhone) => {
+      const exists = existingPhones.some((p) =>
+        PhoneNormalizer.phonesMatch(p.value || '', newPhone)
       );
-      return;
+      if (exists) {
+        this.uiLogger.displayWarning(
+          `Phone ${newPhone} already exists in this contact`
+        );
+      }
+      return !exists;
+    });
+
+    if (phonesToAdd.length === 0) {
+      return 0;
     }
+
+    const updatedPhones = [
+      ...existingPhones,
+      ...phonesToAdd.map((p) => ({ value: p, type: label })),
+    ];
+
     if (SETTINGS.dryMode) {
       DryModeChecker.logApiCall(
         'service.people.updateContact()',
-        `${resourceName}: Add phone ${phone}`,
+        `${normalizedResourceName}: Add phones ${phonesToAdd.join(', ')} with label ${label}`,
         this.uiLogger
       );
       await apiTracker.trackWrite();
       await this.delay(SETTINGS.contactsSync.writeDelayMs);
       await ContactCache.getInstance().invalidate();
-      return;
+      return phonesToAdd.length;
     }
-    const updatedPhones = [...existingPhones, { value: phone, type: 'other' }];
+
     try {
       await retryWithBackoff(async () => {
         return await service.people.updateContact({
-          resourceName,
+          resourceName: normalizedResourceName,
           updatePersonFields: 'phoneNumbers',
           requestBody: {
             etag: currentContact.data.etag,
@@ -1645,28 +1671,30 @@ export class ContactEditor {
       if (errorCode === 412) {
         const refreshedContact = await retryWithBackoff(async () => {
           return await service.people.get({
-            resourceName,
+            resourceName: normalizedResourceName,
             personFields: 'phoneNumbers',
           });
         });
         await apiTracker.trackRead();
         const refreshedPhones = refreshedContact.data.phoneNumbers || [];
-        const phoneExistsAfterRefresh = refreshedPhones.some((p) =>
-          PhoneNormalizer.phonesMatch(p.value || '', phone)
+        const finalPhonesToAdd = phonesToAdd.filter(
+          (p) =>
+            !refreshedPhones.some((rp) =>
+              PhoneNormalizer.phonesMatch(rp.value || '', p)
+            )
         );
-        if (phoneExistsAfterRefresh) {
-          this.uiLogger.displayWarning(
-            `Phone ${phone} already exists in this contact`
-          );
-          return;
+
+        if (finalPhonesToAdd.length === 0) {
+          return 0;
         }
+
         const retryUpdatedPhones = [
           ...refreshedPhones,
-          { value: phone, type: 'other' },
+          ...finalPhonesToAdd.map((p) => ({ value: p, type: label })),
         ];
         await retryWithBackoff(async () => {
           return await service.people.updateContact({
-            resourceName,
+            resourceName: normalizedResourceName,
             updatePersonFields: 'phoneNumbers',
             requestBody: {
               etag: refreshedContact.data.etag,
@@ -1674,13 +1702,68 @@ export class ContactEditor {
             },
           });
         });
+        await apiTracker.trackWrite();
+        await this.delay(SETTINGS.contactsSync.writeDelayMs);
+        await ContactCache.getInstance().invalidate();
+        return finalPhonesToAdd.length;
       } else {
         throw error;
       }
     }
+
     await apiTracker.trackWrite();
     await this.delay(SETTINGS.contactsSync.writeDelayMs);
     await ContactCache.getInstance().invalidate();
+    return phonesToAdd.length;
+  }
+
+  async getContactFirstLabel(resourceName: string): Promise<string> {
+    const service = google.people({ version: 'v1', auth: this.auth });
+    const apiTracker = ApiTracker.getInstance();
+
+    const normalizedResourceName = resourceName.startsWith('people/')
+      ? resourceName
+      : `people/${resourceName}`;
+
+    const response = await retryWithBackoff(async () => {
+      return await service.people.get({
+        resourceName: normalizedResourceName,
+        personFields: 'memberships',
+      });
+    });
+    await apiTracker.trackRead();
+
+    const memberships = response.data.memberships || [];
+    const groupMemberships = memberships
+      .filter((m) => m.contactGroupMembership)
+      .map((m) => m.contactGroupMembership!.contactGroupResourceName!)
+      .filter((name) => name && !name.startsWith('contactGroups/systemGroups/'));
+
+    if (groupMemberships.length === 0) {
+      throw new Error('No label found for this contact');
+    }
+
+    // Map resource name to group name
+    const groups = await this.fetchContactGroups();
+    const firstGroupResourceName = groupMemberships[0];
+    const group = groups.find((g) => g.resourceName === firstGroupResourceName);
+
+    if (!group) {
+      // If not in our USER_CONTACT_GROUP cache, try to fetch it directly
+      try {
+        const groupResponse = await retryWithBackoff(async () => {
+          return await service.contactGroups.get({
+            resourceName: firstGroupResourceName,
+          });
+        });
+        await apiTracker.trackRead();
+        return groupResponse.data.name || 'other';
+      } catch (error) {
+        throw new Error('Could not resolve contact label');
+      }
+    }
+
+    return group.name;
   }
 
   async addEmailToExistingContact(

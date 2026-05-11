@@ -103,6 +103,7 @@ async function main(): Promise<void> {
       'hibob-sync',
       'other-contacts-sync',
       'sms-whatsapp-sync',
+      'sync-phones',
       'statistics',
       'clear-cache',
       'clear-logs',

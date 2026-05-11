@@ -23,11 +23,21 @@ export class PhoneNormalizer {
   }
 
   phonesMatch(phone1: string, phone2: string): boolean {
-    const variations1 = this.getAllNormalizedVariations(phone1);
-    const variations2 = this.getAllNormalizedVariations(phone2);
+    const variations1 = this.getAllNormalizedVariations(phone1).filter(
+      (v) => v.trim() !== ''
+    );
+    const variations2 = this.getAllNormalizedVariations(phone2).filter(
+      (v) => v.trim() !== ''
+    );
+
+    if (variations1.length === 0 || variations2.length === 0) {
+      // If one of them has no numeric/special content, only match if the raw strings are identical
+      return phone1.trim().toLowerCase() === phone2.trim().toLowerCase();
+    }
+
     for (const v1 of variations1) {
       for (const v2 of variations2) {
-        if (v1 === v2) return true;
+        if (v1.toLowerCase() === v2.toLowerCase()) return true;
         const minLength = 6;
         const digitsV1 = v1.replace(/\D/g, '');
         const digitsV2 = v2.replace(/\D/g, '');

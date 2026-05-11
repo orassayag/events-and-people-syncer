@@ -25,6 +25,7 @@ import {
   ClearCacheScript,
   ClearLogsScript,
   SmsWhatsappSyncScript,
+  SyncPhonesScript,
   OtherContactsSyncScript,
 } from '../scripts';
 import { GoogleContactsMaintainerScript as MaintainerService } from '../scripts/googleContactsMaintainer';
@@ -77,6 +78,7 @@ container.bind(WhatsAppWebExtractor).toSelf();
 container.bind(PhoneExtractor).toSelf();
 container.bind(PhoneNormalizer).toSelf();
 container.bind(SmsWhatsappSyncScript).toSelf();
+container.bind(SyncPhonesScript).toSelf();
 container.bind(OtherContactsFetcher).toSelf();
 container.bind(OtherContactsSyncScript).toSelf();
 container.bind(MaintainerService).toSelf();

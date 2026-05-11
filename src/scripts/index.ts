@@ -6,6 +6,7 @@ import { contactsSyncScript } from './contactsSync';
 import { eventsJobsSyncScript } from './eventsJobsSync';
 import { otherContactsSyncScript } from './otherContactsSync';
 import { smsWhatsappSyncScript } from './smsWhatsappSync';
+import { syncPhonesScript } from './syncPhones';
 import { googleContactsMaintainerScript } from './googleContactsMaintainer';
 import { statisticsScript } from './statistics';
 import { clearCacheScript } from './clearCache';
@@ -20,6 +21,7 @@ export { StatisticsScript } from './statistics';
 export { ClearCacheScript } from './clearCache';
 export { ClearLogsScript } from './clearLogs';
 export { SmsWhatsappSyncScript } from './smsWhatsappSync';
+export { SyncPhonesScript } from './syncPhones';
 export { OtherContactsSyncScript } from './otherContactsSync';
 export { GoogleContactsMaintainerScript } from './googleContactsMaintainer';
 
@@ -31,6 +33,7 @@ export const AVAILABLE_SCRIPTS: Record<string, Script> = {
   'events-jobs-sync': eventsJobsSyncScript,
   'other-contacts-sync': otherContactsSyncScript,
   'sms-whatsapp-sync': smsWhatsappSyncScript,
+  'sync-phones': syncPhonesScript,
   'google-contacts-maintainer': googleContactsMaintainerScript,
   statistics: statisticsScript,
   'clear-cache': clearCacheScript,
