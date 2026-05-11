@@ -454,6 +454,35 @@ export class GoogleContactsMaintainerScript implements Script {
         ) {
           issues.push(MaintainerIssueType.INVALID_PHONE_EMAIL_LABEL);
         }
+
+        // Phone number validation
+        const phone = p.number;
+        if (phone) {
+          // 1. Check for Hebrew
+          if (this.checkHebrew(phone)) {
+            if (!issues.includes(MaintainerIssueType.CONTAINS_HEBREW)) {
+              issues.push(MaintainerIssueType.CONTAINS_HEBREW);
+            }
+          }
+
+          // 2. Check for separators if it contains numbers
+          const hasNumbers = /\d/.test(phone);
+          const hasSeparators = phone.includes('-');
+
+          if (hasNumbers && hasSeparators) {
+            issues.push(MaintainerIssueType.PHONE_CONTAINS_SEPARATORS);
+            const msg = `PHONE CONTAINS SEPARATORS - ${phone}`;
+            if (
+              !customMessages[MaintainerIssueType.PHONE_CONTAINS_SEPARATORS]
+            ) {
+              customMessages[MaintainerIssueType.PHONE_CONTAINS_SEPARATORS] =
+                msg;
+            } else {
+              customMessages[MaintainerIssueType.PHONE_CONTAINS_SEPARATORS] +=
+                `\n-${msg}`;
+            }
+          }
+        }
       });
 
       contact.emails.forEach((e) => {
