@@ -315,6 +315,26 @@ describe('GoogleContactsMaintainerScript', () => {
       );
     });
 
+    it('should detect phone with global prefix +972 or 972', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          phones: [{ number: '+972 54 123 4567', label: 'Mobile' }],
+        },
+        {
+          ...mockContact,
+          phones: [{ number: '972-54-123-4567', label: 'Work' }],
+        },
+      ];
+      const issues = maintainer.testScanContacts(contacts, []);
+      expect(issues[0].issues).toContain(
+        MaintainerIssueType.PHONE_GLOBAL_PREFIX
+      );
+      expect(issues[1].issues).toContain(
+        MaintainerIssueType.PHONE_GLOBAL_PREFIX
+      );
+    });
+
     it('should detect duplicate email globally and in single contact with details', () => {
       const contacts = [
         {

@@ -482,6 +482,13 @@ export class GoogleContactsMaintainerScript implements Script {
                 `\n-${msg}`;
             }
           }
+
+          // 3. Check for global prefix +972 or 972
+          if (phone.startsWith('+972') || phone.startsWith('972')) {
+            if (!issues.includes(MaintainerIssueType.PHONE_GLOBAL_PREFIX)) {
+              issues.push(MaintainerIssueType.PHONE_GLOBAL_PREFIX);
+            }
+          }
         }
       });
 
