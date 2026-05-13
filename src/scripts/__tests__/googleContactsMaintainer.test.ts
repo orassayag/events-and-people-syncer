@@ -186,6 +186,133 @@ describe('GoogleContactsMaintainerScript', () => {
       expect(issues[1].issues).toContain('DUPLICATE CONTACTS');
     });
 
+    it('should detect possible duplicate contacts (name included in other)', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          firstName: 'Or',
+          lastName: 'Assayag',
+          resourceName: 'people/1',
+        },
+        {
+          ...mockContact,
+          firstName: 'Or Assayag',
+          lastName: 'Date',
+          resourceName: 'people/2',
+        },
+      ];
+      const issues = maintainer.testScanContacts(contacts, []);
+
+      // Both contacts might have other issues (like invalid labels),
+      // but only the first one should have the POSSIBLE_DUPLICATE_CONTACT issue
+      const firstContactIssues = issues.find(
+        (i) => i.contact.resourceName === 'people/1'
+      );
+      const secondContactIssues = issues.find(
+        (i) => i.contact.resourceName === 'people/2'
+      );
+
+      expect(firstContactIssues).toBeDefined();
+      expect(firstContactIssues?.issues).toContain(
+        MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACT
+      );
+
+      expect(secondContactIssues?.issues || []).not.toContain(
+        MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACT
+      );
+
+      const customMsg =
+        firstContactIssues?.customIssueMessages[
+          MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACT
+        ];
+      expect(customMsg).toContain('POSSIBLE DUPLICATE CONTACT:');
+      expect(customMsg).toContain(
+        'Or Assayag https://contacts.google.com/person/1'
+      );
+      expect(customMsg).toContain(
+        'Or Assayag Date https://contacts.google.com/person/2'
+      );
+    });
+
+    it('should NOT detect possible duplicate contacts if the first 2 words do not match', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          firstName: 'Mr',
+          lastName: 'Or Assayag',
+          resourceName: 'people/1',
+        },
+        {
+          ...mockContact,
+          firstName: 'Dr',
+          lastName: 'Or Assayag',
+          resourceName: 'people/2',
+        },
+      ];
+      const issues = maintainer.testScanContacts(contacts, []);
+
+      // First 2 words of 1: ["mr", "or"]
+      // First 2 words of 2: ["dr", "or"]
+      // Even though "Or Assayag" is common, the first 2 words don't match as a set.
+      const firstContactIssues = issues.find(
+        (i) => i.contact.resourceName === 'people/1'
+      );
+      expect(firstContactIssues?.issues || []).not.toContain(
+        MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACT
+      );
+    });
+
+    it('should detect possible duplicate contacts even if the first 2 words are in different order', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          firstName: 'Or',
+          lastName: 'Assayag',
+          resourceName: 'people/1',
+        },
+        {
+          ...mockContact,
+          firstName: 'Assayag',
+          lastName: 'Or',
+          resourceName: 'people/2',
+        },
+      ];
+      const issues = maintainer.testScanContacts(contacts, []);
+
+      const firstContactIssues = issues.find(
+        (i) => i.contact.resourceName === 'people/1'
+      );
+      expect(firstContactIssues?.issues).toContain(
+        MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACT
+      );
+    });
+
+    it('should NOT detect possible duplicate contacts if they have less than 2 matching words', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          firstName: 'Or',
+          lastName: 'Assayag',
+          resourceName: 'people/1',
+        },
+        {
+          ...mockContact,
+          firstName: 'Or',
+          lastName: 'Date',
+          resourceName: 'people/2',
+        },
+      ];
+      const issues = maintainer.testScanContacts(contacts, []);
+
+      // Only "Or" matches, so it shouldn't be a possible duplicate
+      const firstContactIssues = issues.find(
+        (i) => i.contact.resourceName === 'people/1'
+      );
+      expect(firstContactIssues?.issues || []).not.toContain(
+        MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACT
+      );
+    });
+
     it('should detect missing label', () => {
       const contacts = [{ ...mockContact, label: '' }];
       const issues = maintainer.testScanContacts(contacts, []);

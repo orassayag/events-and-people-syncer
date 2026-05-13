@@ -288,7 +288,8 @@ export class GoogleContactsMaintainerScript implements Script {
       });
     });
 
-    for (const contact of contacts) {
+    for (let i = 0; i < contacts.length; i++) {
+      const contact = contacts[i];
       const firstName = contact.firstName || '';
       const lastName = contact.lastName || '';
       const fullName = `${firstName} ${lastName}`.trim();
@@ -406,6 +407,59 @@ export class GoogleContactsMaintainerScript implements Script {
       // 4.3 Duplicate contacts
       if (fullNameLower && (nameMap.get(fullNameLower)?.length || 0) > 1) {
         issues.push(MaintainerIssueType.DUPLICATE_CONTACTS);
+      }
+
+      // POSSIBLE DUPLICATE CONTACT
+      for (let j = i + 1; j < contacts.length; j++) {
+        const other = contacts[j];
+        const otherFirstName = other.firstName || '';
+        const otherLastName = other.lastName || '';
+        const otherFullName = `${otherFirstName} ${otherLastName}`.trim();
+        const otherFullNameLower = otherFullName.toLowerCase();
+
+        if (
+          fullNameLower &&
+          otherFullNameLower &&
+          fullNameLower !== otherFullNameLower
+        ) {
+          const words1 = fullNameLower
+            .split(/\s+/)
+            .filter((w) => w.length > 0)
+            .slice(0, 2);
+          const words2 = otherFullNameLower
+            .split(/\s+/)
+            .filter((w) => w.length > 0)
+            .slice(0, 2);
+
+          if (words1.length === 2 && words2.length === 2) {
+            const isMatch =
+              words1.every((w) => words2.includes(w)) &&
+              words2.every((w) => words1.includes(w));
+
+            if (isMatch) {
+              issues.push(MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACT);
+              const thisResourceId =
+                contact.resourceName?.split('/').pop() || '';
+              const otherResourceId =
+                other.resourceName?.split('/').pop() || '';
+              const thisUrl = `https://contacts.google.com/person/${thisResourceId}`;
+              const otherUrl = `https://contacts.google.com/person/${otherResourceId}`;
+
+              const msg = `POSSIBLE DUPLICATE CONTACT:\n-${fullName} ${thisUrl}\n-${otherFullName} ${otherUrl}`;
+
+              if (
+                !customMessages[MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACT]
+              ) {
+                customMessages[MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACT] =
+                  msg;
+              } else {
+                customMessages[
+                  MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACT
+                ] += `\n-${msg}`;
+              }
+            }
+          }
+        }
       }
 
       // 4.4 Missing/Wrong label
