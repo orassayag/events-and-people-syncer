@@ -366,6 +366,36 @@ export class GoogleContactsMaintainerScript implements Script {
     return [];
   }
 
+  private extractDataFromNotes(notes: string): {
+    emails: string[];
+    phones: string[];
+  } {
+    const emails: string[] = [];
+    const phones: string[] = [];
+
+    if (!notes) return { emails, phones };
+
+    // Extract Emails
+    // Pattern: Emails: email1, email2
+    const emailMatches = notes.matchAll(/Emails:\s*([^\r\n]+)/gi);
+    for (const match of emailMatches) {
+      const emailList = match[1].split(',').map((e) => e.trim().toLowerCase());
+      emails.push(...emailList.filter((e) => e && e !== 'null'));
+    }
+
+    // Extract PhoneNumbers
+    // Pattern: PhoneNumbers: phone1, phone2
+    const phoneMatches = notes.matchAll(/PhoneNumbers:\s*([^\r\n]+)/gi);
+    for (const match of phoneMatches) {
+      const phoneList = match[1]
+        .split(',')
+        .map((p) => p.trim().replace(/\D/g, ''));
+      phones.push(...phoneList.filter((p) => p && p !== 'null'));
+    }
+
+    return { emails: [...new Set(emails)], phones: [...new Set(phones)] };
+  }
+
   private scanContacts(
     contacts: ContactData[],
     exceptions: MaintainerException[],
@@ -1001,6 +1031,72 @@ export class GoogleContactsMaintainerScript implements Script {
         issues.push(MaintainerIssueType.CONTAINS_WHITE_SPACES);
         customMessages[MaintainerIssueType.CONTAINS_WHITE_SPACES] =
           `CONTAINS WHITE SPACES IN FIELDS: ${uniqueFields.join(', ')}`;
+      }
+
+      // POSSIBLE DUPLICATE CONTACTS BY NOTES
+      const extracted = this.extractDataFromNotes(contact.biography || '');
+      const noteDuplicateMessages: string[] = [];
+
+      extracted.emails.forEach((email) => {
+        const matches = (emailMap.get(email) || []).filter(
+          (id) => id !== contact.resourceName
+        );
+        if (matches.length > 0) {
+          if (
+            !issues.includes(
+              MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACTS_BY_NOTES
+            )
+          ) {
+            issues.push(
+              MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACTS_BY_NOTES
+            );
+          }
+          let msg = `-POSSIBLE DUPLICATE CONTACTS BY NOTES - Email: ${email}`;
+          matches.forEach((id) => {
+            const matchContact = contacts.find((c) => c.resourceName === id);
+            const name = matchContact
+              ? `${matchContact.firstName} ${matchContact.lastName}`.trim() ||
+                'Unknown'
+              : 'Unknown';
+            const resourceId = id.split('/').pop() || '';
+            msg += `\n-${name} \`https://contacts.google.com/person/${resourceId}\``;
+          });
+          noteDuplicateMessages.push(msg);
+        }
+      });
+
+      extracted.phones.forEach((phone) => {
+        const matches = (phoneMap.get(phone) || []).filter(
+          (id) => id !== contact.resourceName
+        );
+        if (matches.length > 0) {
+          if (
+            !issues.includes(
+              MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACTS_BY_NOTES
+            )
+          ) {
+            issues.push(
+              MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACTS_BY_NOTES
+            );
+          }
+          let msg = `-POSSIBLE DUPLICATE CONTACTS BY NOTES - Phone: ${phone}`;
+          matches.forEach((id) => {
+            const matchContact = contacts.find((c) => c.resourceName === id);
+            const name = matchContact
+              ? `${matchContact.firstName} ${matchContact.lastName}`.trim() ||
+                'Unknown'
+              : 'Unknown';
+            const resourceId = id.split('/').pop() || '';
+            msg += `\n-${name} \`https://contacts.google.com/person/${resourceId}\``;
+          });
+          noteDuplicateMessages.push(msg);
+        }
+      });
+
+      if (noteDuplicateMessages.length > 0) {
+        customMessages[
+          MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACTS_BY_NOTES
+        ] = noteDuplicateMessages.join('\n');
       }
 
       if (issues.length > 0) {

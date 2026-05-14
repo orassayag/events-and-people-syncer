@@ -717,6 +717,56 @@ describe('GoogleContactsMaintainerScript', () => {
       const issues = maintainer.testScanContacts(contacts, exceptions);
       expect(issues).toHaveLength(0);
     });
+
+    it('should detect possible duplicate contacts by notes', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          firstName: 'Dummy',
+          lastName: 'Contact One',
+          resourceName: 'people/c1',
+          emails: [
+            { value: 'dummy1@test.com', label: 'Label1' },
+            { value: 'dummy2@test.com', label: 'Label1' },
+          ],
+          phones: [{ number: '0123456789', label: 'Label1' }],
+          biography: `Source: MOBILE_CONTACTS
+Emails: dummy1@test.com, dummy2@test.com, dummy3@test.com
+PhoneNumbers: 9876543210, 0123456789, 5555555555, 5555555555
+CreatedAt: 1/1/20, 12:00 PM`,
+        },
+        {
+          ...mockContact,
+          firstName: 'Dummy',
+          lastName: 'Contact Two',
+          resourceName: 'people/c2',
+          emails: [{ value: 'dummy3@test.com', label: 'Work' }],
+          phones: [{ number: '9876543210', label: 'Work' }],
+        },
+      ];
+
+      const issues = maintainer.testScanContacts(contacts, []);
+      const otherIssues = issues.find(
+        (i) => i.contact.resourceName === 'people/c1'
+      );
+
+      expect(otherIssues?.issues).toContain(
+        MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACTS_BY_NOTES
+      );
+      const customMsg =
+        otherIssues?.customIssueMessages[
+          MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACTS_BY_NOTES
+        ];
+      expect(customMsg).toContain(
+        '-POSSIBLE DUPLICATE CONTACTS BY NOTES - Email: dummy3@test.com'
+      );
+      expect(customMsg).toContain(
+        'Dummy Contact Two `https://contacts.google.com/person/c2`'
+      );
+      expect(customMsg).toContain(
+        '-POSSIBLE DUPLICATE CONTACTS BY NOTES - Phone: 9876543210'
+      );
+    });
   });
 
   describe('run', () => {

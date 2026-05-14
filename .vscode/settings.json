@@ -81,6 +81,7 @@
     "Entro",
     "Entrosecurity",
     "Ericsson",
+    "esbenp",
     "eShop",
     "eToro",
     "Experis",
@@ -199,6 +200,7 @@
     "Payoneer",
     "Perimeter",
     "Phoenix",
+    "phonenumbers",
     "Planview",
     "Playtika",
     "psyd",
@@ -294,5 +296,12 @@
   "[typescriptreact]": {
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "cSpell.ignorePaths": [
+    "coverage",
+    "node_modules",
+    "dist",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml"
+  ]
 }
