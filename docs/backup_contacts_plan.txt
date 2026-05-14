@@ -1,0 +1,93 @@
+Goal: Create a backup contact script which will run as part of the "Repos Scan Reporter" (Which is executed daily in the night by the Windows Task Scheduler) which creates the C:\Users\Or Assayag\Desktop\SCAN_REPOS_REPORT.txt each time. The additional logic to the existing script - Backup all the Google contacts into json files.
+
+Instructions:
+1. Once running the "Repos Scan Reporter" script - The logic currently fetch all the Google contacts and labels and processing the report for the "SCAN_REPOS_REPORT.txt" file.
+1.1. After finishing to fetch all the needed data from Google people API, and before the logic start to process the report, we will add a status log to the console:
+===Backup contacts===
+1.2. At this point we only fetched the Google contacts, didn't do any logic related to the report yet.
+2. By a static path to a folder in the settings.ts, the path is: C:\Users\Or Assayag\Desktop\contacts it will validate if the path exists. If not, throw an error.
+3. Once the folder found, we will write to JSON files the Google contacts.
+3.1. The structure of the JSON for each contacts, for example (Of course that in the reality it wont be with the comments on the braces, these are clarifications for you about each field):
+id_internal: "000,001" (keep the leading zero and use the common function we already built for that matter),
+id_external: (here you will add the external id of the contact),
+id_url: "c5912531973611933564" (The id of the contact from the url),
+labels: (The array of the labels of the contact - All of them): ["Imported Yahoo Mail 8/7/17", "Imported on 6/27 1", "Imported on 7/20", "TestIt"],
+first_name: "Or" (The exact value of the first name),
+last_name: "Or Assayag TestIt" (The exact value of the last name),
+company: "TestIt" (The exact value of the company),
+job_title: "CEO at TestIt" (The exact value of the job title),
+emails: (The array of the email and labels of the contact - All of them): [
+{
+   value: "doronb01@gmail.com",
+   label: "TestIt"
+},
+{
+   value: "doronb02@gmail.com",
+   label: "TestIt"
+},
+],
+phones: (The array of the phones and labels of the contact - All of them):
+[
+{
+   value: "0523365465",
+   label: "TestIt"
+},
+{
+   value: "036746364",
+   label: "TestIt"
+},
+],
+websites: (The array of the websites and labels of the contact - All of them): [
+{
+   value: "linkedin.com/in/or-assayag-29ba1316",
+   label: "LinkedIn"
+}
+],
+notes: "Position: Founder & CEO
+Connected On: 18 Jun 2017"
+(The exact value of the notes, with break lines if exists, include everything),
+4. The contacts will be sorted in alphabetical order.
+5. Each 1,000 contacts will be store in a separate file.
+6. The file names will be called "contacts_01.json", "contacts_02.json", and so on.
+7. We will also backup all the label names we fetched (No duplicates, just the labels from the list as we fetch in a separate API call).
+8. IMPORTANT - In any case that the files exists - We will override them. We need to write each time these files no matter what.
+9. Once finished with the backup logic, it will display on the console:
+===Creating the report===
+9.1. The existing logic of the processing the contacts will be executed at this point.
+10. The structure of the SCAN_REPOS_REPORT.txt report will be updated.
+10.1. The structure:
+Before:
+
+SCAN_CONTACTS_REPORT
+Date: 13/05/2026, 17:50:43
+==========================
+Index: 000,001
+Full name: Or Assayag
+Link: https://contacts.google.com/person/c57268909429944544
+Reasons:
+-CONTAINS HEBREW
+-MISSING LABEL
+=======================
+... and so on.
+
+After (The new structure):
+
+SCAN_CONTACTS_REPORT
+Date: 13/05/2026, 17:50:43
+==========================
+
+ISSUES REPORT:
+=======================
+Index: 000,001
+Full name: Or Assayag
+Link: https://contacts.google.com/person/c57268909429944544
+Reasons:
+-CONTAINS HEBREW
+-MISSING LABEL
+=======================
+... and so on.
+
+BACKUP REPORT:
+=======================
+Contacts: 006,344
+Files:    7

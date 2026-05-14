@@ -15,6 +15,7 @@ export interface Website {
 
 export interface ContactData {
   label: string;
+  labels?: string[];
   firstName: string;
   lastName: string;
   company: string;

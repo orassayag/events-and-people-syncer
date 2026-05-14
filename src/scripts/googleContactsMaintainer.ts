@@ -1,8 +1,15 @@
 import { injectable, inject } from 'inversify';
 import { google } from 'googleapis';
-import { existsSync, writeFileSync, readFileSync, unlinkSync } from 'fs';
+import {
+  existsSync,
+  writeFileSync,
+  readFileSync,
+  unlinkSync,
+  mkdirSync,
+} from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
+import { SETTINGS } from '../settings';
 import type {
   OAuth2Client,
   Script,
@@ -92,9 +99,17 @@ export class GoogleContactsMaintainerScript implements Script {
         `Fetched ${otherContacts.length} "Other contacts".`
       );
 
+      this.uiLogger.display('===Backup contacts===');
+      const backupStats = this.backupContacts(
+        contacts,
+        allLabels,
+        otherContacts
+      );
+
       const exceptions = this.loadExceptions();
       this.uiLogger.displayInfo(`Loaded ${exceptions.length} exceptions.`);
 
+      this.uiLogger.display('===Creating the report===');
       const reportItems = this.scanContacts(
         contacts,
         exceptions,
@@ -111,7 +126,7 @@ export class GoogleContactsMaintainerScript implements Script {
         return;
       }
 
-      this.generateReport(reportItems, reportPath);
+      this.generateReport(reportItems, reportPath, backupStats);
       this.uiLogger.displaySuccess(
         `Scan complete. ${reportItems.length} contacts have issues.`
       );
@@ -217,6 +232,7 @@ export class GoogleContactsMaintainerScript implements Script {
           phones,
           websites,
           label: memberships.join(' | '),
+          labels: memberships,
           biography: person.biographies?.[0]?.value || '',
           resourceName: person.resourceName || undefined,
           etag: person.etag || '',
@@ -228,6 +244,114 @@ export class GoogleContactsMaintainerScript implements Script {
 
     statusBar.completeFetch(contacts.length);
     return { contacts, allLabels: Array.from(allLabelsSet) };
+  }
+
+  private backupContacts(
+    contacts: ContactData[],
+    allLabels: string[],
+    otherContacts: OtherContactEntry[]
+  ): { contactCount: number; otherContactCount: number; fileCount: number } {
+    const backupPath = SETTINGS.backup.contactsPath;
+    if (!existsSync(backupPath)) {
+      mkdirSync(backupPath, { recursive: true });
+    }
+
+    // Sort contacts alphabetically
+    const sortedContacts = [...contacts].sort((a, b) => {
+      const nameA = `${a.firstName} ${a.lastName}`.trim().toLowerCase();
+      const nameB = `${b.firstName} ${b.lastName}`.trim().toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+
+    const transformedContacts = sortedContacts.map((c, index) => {
+      const id = c.resourceName?.split('/').pop() || '';
+      return {
+        id_internal: FormatUtils.formatNumberWithLeadingZeros(index + 1, 6),
+        id_external: id,
+        labels: (c.labels || []).filter((l) => l !== 'myContacts'),
+        first_name: c.firstName,
+        last_name: c.lastName,
+        company: c.company,
+        job_title: c.jobTitle,
+        emails: c.emails.map((e) => ({ value: e.value, label: e.label })),
+        phones: c.phones.map((p) => ({ value: p.number, label: p.label })),
+        websites: c.websites.map((w) => ({ value: w.url, label: w.label })),
+        notes: c.biography || '',
+      };
+    });
+
+    // Chunk by 1000
+    const chunkSize = 1000;
+    const contactChunks: any[][] = [];
+    for (let i = 0; i < transformedContacts.length; i += chunkSize) {
+      contactChunks.push(transformedContacts.slice(i, i + chunkSize));
+    }
+
+    contactChunks.forEach((chunk, index) => {
+      const fileName = `contacts_${String(index + 1).padStart(2, '0')}.json`;
+      writeFileSync(
+        join(backupPath, fileName),
+        JSON.stringify(chunk, null, 2),
+        'utf-8'
+      );
+    });
+
+    // Backup "Other contacts"
+    const sortedOther = [...otherContacts].sort((a, b) =>
+      (a.displayName || '').localeCompare(b.displayName || '')
+    );
+
+    const transformedOther = sortedOther.map((o, index) => {
+      const id = o.resourceName?.split('/').pop() || '';
+      return {
+        id: FormatUtils.formatNumberWithLeadingZeros(index + 1, 6),
+        id_external: id,
+        name: o.displayName || '',
+        email: o.emails?.[0] || '',
+      };
+    });
+
+    const otherChunks: any[][] = [];
+    for (let i = 0; i < transformedOther.length; i += chunkSize) {
+      otherChunks.push(transformedOther.slice(i, i + chunkSize));
+    }
+
+    otherChunks.forEach((chunk, index) => {
+      const fileName = `other_contacts_${String(index + 1).padStart(2, '0')}.json`;
+      writeFileSync(
+        join(backupPath, fileName),
+        JSON.stringify(chunk, null, 2),
+        'utf-8'
+      );
+    });
+
+    // Backup labels
+    const excludedLabels = [
+      'starred',
+      'friends',
+      'family',
+      'coworkers',
+      'myContacts',
+      'chatBuddies',
+      'all',
+      'blocked',
+    ].map((l) => l.toLowerCase());
+
+    const filteredLabels = allLabels
+      .filter((l) => !excludedLabels.includes(l.toLowerCase()))
+      .sort((a, b) => a.localeCompare(b));
+
+    writeFileSync(
+      join(backupPath, 'labels.json'),
+      JSON.stringify(filteredLabels, null, 2),
+      'utf-8'
+    );
+
+    return {
+      contactCount: contacts.length,
+      otherContactCount: otherContacts.length,
+      fileCount: contactChunks.length,
+    };
   }
 
   private loadExceptions(): MaintainerException[] {
@@ -918,7 +1042,12 @@ export class GoogleContactsMaintainerScript implements Script {
 
   private generateReport(
     items: MaintainerReportItem[],
-    reportPath: string
+    reportPath: string,
+    backupStats: {
+      contactCount: number;
+      otherContactCount: number;
+      fileCount: number;
+    }
   ): void {
     const issueOrder = Object.values(MaintainerIssueType);
 
@@ -933,7 +1062,10 @@ export class GoogleContactsMaintainerScript implements Script {
 
     let report = `SCAN_CONTACTS_REPORT\n`;
     report += `Date: ${new Date().toLocaleString()}\n`;
-    report += `==========================\n`;
+    report += `==========================\n\n`;
+
+    report += `ISSUES REPORT:\n`;
+    report += `=======================\n`;
 
     items.forEach((item, index) => {
       const indexDisplay = FormatUtils.formatNumberWithLeadingZeros(
@@ -1001,7 +1133,13 @@ export class GoogleContactsMaintainerScript implements Script {
         }
       });
     });
-    report += '=======================\n';
+    report += '=======================\n\n';
+
+    report += `BACKUP REPORT:\n`;
+    report += `=======================\n`;
+    report += `Contacts:       ${FormatUtils.formatNumberWithLeadingZeros(backupStats.contactCount, 6)}\n`;
+    report += `Other Contacts: ${FormatUtils.formatNumberWithLeadingZeros(backupStats.otherContactCount, 6)}\n`;
+    report += `Files:          ${backupStats.fileCount}\n`;
 
     writeFileSync(reportPath, report, 'utf-8');
   }

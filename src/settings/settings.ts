@@ -64,6 +64,9 @@ export interface Settings {
   statistics: {
     displayWidth: number;
   };
+  backup: {
+    contactsPath: string;
+  };
 }
 
 const parseDryMode = (): boolean => {
@@ -147,5 +150,8 @@ export const SETTINGS: Settings = {
   },
   statistics: {
     displayWidth: 30,
+  },
+  backup: {
+    contactsPath: 'C:\\Users\\Or Assayag\\Dropbox\\contacts',
   },
 };
