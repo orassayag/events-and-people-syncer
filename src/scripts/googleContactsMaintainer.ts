@@ -741,9 +741,6 @@ export class GoogleContactsMaintainerScript implements Script {
         if (!label || labelLower === 'undefined' || labelLower === 'null') {
           issues.push(MaintainerIssueType.MISSING_URL_LABEL);
         } else {
-          if (['profile', 'blog', 'home page', 'work'].includes(labelLower)) {
-            issues.push(MaintainerIssueType.INVALID_URL_LABEL);
-          }
           if (label !== 'LinkedIn') {
             issues.push(MaintainerIssueType.INVALID_URL_LABEL);
           }
@@ -1173,6 +1170,14 @@ export class GoogleContactsMaintainerScript implements Script {
 
     report += `ISSUES REPORT:\n`;
     report += `=======================\n`;
+    const totalIssues = items.reduce(
+      (sum, item) => sum + item.issues.length,
+      0
+    );
+    report += `Contacts to Fix: ${new Intl.NumberFormat('en-US').format(items.length)}\n`;
+    report += `Issues to fix:   ${new Intl.NumberFormat('en-US').format(totalIssues)}\n`;
+    report += `Total contacts:  ${new Intl.NumberFormat('en-US').format(backupStats.contactCount)}\n`;
+    report += `=======================\n`;
 
     items.forEach((item, index) => {
       const indexDisplay = FormatUtils.formatNumberWithLeadingZeros(
@@ -1247,6 +1252,7 @@ export class GoogleContactsMaintainerScript implements Script {
     report += `Contacts:       ${FormatUtils.formatNumberWithLeadingZeros(backupStats.contactCount, 6)}\n`;
     report += `Other Contacts: ${FormatUtils.formatNumberWithLeadingZeros(backupStats.otherContactCount, 6)}\n`;
     report += `Files:          ${backupStats.fileCount}\n`;
+    report += `=======================\n`;
 
     writeFileSync(reportPath, report, 'utf-8');
   }
