@@ -707,7 +707,24 @@ export class GoogleContactsMaintainerScript implements Script {
             }
           }
 
-          // 3. Check for global prefix +972 or 972
+          // 3. Check for spaces if it contains only numbers and spaces
+          const hasSpaces = phone.includes(' ');
+          const cleanedPhone = phone.replace(/\s/g, '');
+          const isOnlyNumbersAndSpaces =
+            /^\+?\d+$/.test(cleanedPhone) && hasSpaces;
+
+          if (isOnlyNumbersAndSpaces) {
+            issues.push(MaintainerIssueType.PHONE_CONTAIN_SPACES);
+            const msg = `PHONE_CONTAIN_SPACES: ${phone}`;
+            if (!customMessages[MaintainerIssueType.PHONE_CONTAIN_SPACES]) {
+              customMessages[MaintainerIssueType.PHONE_CONTAIN_SPACES] = msg;
+            } else {
+              customMessages[MaintainerIssueType.PHONE_CONTAIN_SPACES] +=
+                `\n-${msg}`;
+            }
+          }
+
+          // 4. Check for global prefix +972 or 972
           if (phone.startsWith('+972') || phone.startsWith('972')) {
             if (!issues.includes(MaintainerIssueType.PHONE_GLOBAL_PREFIX)) {
               issues.push(MaintainerIssueType.PHONE_GLOBAL_PREFIX);

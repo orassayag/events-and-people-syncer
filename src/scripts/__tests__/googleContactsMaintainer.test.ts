@@ -474,6 +474,22 @@ describe('GoogleContactsMaintainerScript', () => {
       );
     });
 
+    it('should detect phone numbers with spaces', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          phones: [{ number: '+1 334 34553', label: 'Job' }],
+        },
+      ];
+      const issues = maintainer.testScanContacts(contacts, []);
+      expect(issues[0].issues).toContain(
+        MaintainerIssueType.PHONE_CONTAIN_SPACES
+      );
+      expect(
+        issues[0].customIssueMessages[MaintainerIssueType.PHONE_CONTAIN_SPACES]
+      ).toBe('PHONE_CONTAIN_SPACES: +1 334 34553');
+    });
+
     it('should detect duplicate email globally and in single contact with details', () => {
       const contacts = [
         {
@@ -508,8 +524,9 @@ describe('GoogleContactsMaintainerScript', () => {
           .value
       ).toBe('dup@test.com');
       expect(
-        item1.duplicateDetails[MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL][0]
-          .otherContactIds
+        item1.duplicateDetails[
+          MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL
+        ][0].otherContacts.map((c: any) => c.id)
       ).toContain('people/2');
 
       const item2 = issues[1];
@@ -521,8 +538,9 @@ describe('GoogleContactsMaintainerScript', () => {
           .value
       ).toBe('dup@test.com');
       expect(
-        item2.duplicateDetails[MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL][0]
-          .otherContactIds
+        item2.duplicateDetails[
+          MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL
+        ][0].otherContacts.map((c: any) => c.id)
       ).toContain('people/1');
     });
 
