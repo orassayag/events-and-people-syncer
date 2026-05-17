@@ -117,6 +117,31 @@ describe('GoogleContactsMaintainerScript', () => {
       expect(issues[0].issues).toContain('EMPTY NAME');
     });
 
+    it('should detect hidden unicode characters and suggest fix with label', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          firstName: '\u202aEden',
+          lastName: 'Ben Shoshan Vim',
+          resourceName: 'people/eden',
+          label: 'Vim',
+        },
+      ];
+      const allLabels = ['Vim'];
+      const report = maintainer.testScanContacts(contacts, [], allLabels);
+      const item = report[0];
+      expect(item.issues).toContain(
+        MaintainerIssueType.CONTAINS_HIDDEN_UNICODE_CHARACTER
+      );
+      expect(
+        item.customIssueMessages[
+          MaintainerIssueType.CONTAINS_HIDDEN_UNICODE_CHARACTER
+        ]
+      ).toBe(
+        'CONTAINS_HIDDEN_UNICODE_CHARACTER - SHOULD BE: Eden Ben Shoshan Vim'
+      );
+    });
+
     it('should detect invalid name and suggest fix, using allLabels to identify base name', () => {
       const contacts = [
         { ...mockContact, firstName: 'John Doe', lastName: 'Adv. Job' },
@@ -128,7 +153,7 @@ describe('GoogleContactsMaintainerScript', () => {
       const item = report[0];
       expect(item.issues).toContain(MaintainerIssueType.INVALID_NAME);
       expect(item.customIssueMessages[MaintainerIssueType.INVALID_NAME]).toBe(
-        'INVALID NAME - SHOULD BE: John Doe Adv'
+        'INVALID NAME - SHOULD BE: John Doe Adv Job'
       );
     });
 
@@ -620,7 +645,7 @@ describe('GoogleContactsMaintainerScript', () => {
       expect(item1?.issues).toContain(MaintainerIssueType.INVALID_CONTACT_NAME);
       expect(
         item1?.customIssueMessages[MaintainerIssueType.INVALID_CONTACT_NAME]
-      ).toBe('INVALID CONTACT - Name: Avi Cohen');
+      ).toBe('INVALID CONTACT - Name: Avi Cohen HR');
 
       expect(item1?.issues).toContain(
         MaintainerIssueType.INVALID_CONTACT_COMPANY

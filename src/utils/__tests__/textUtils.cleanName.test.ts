@@ -60,8 +60,22 @@ describe('TextUtils.cleanName - Regression Tests', () => {
     expect(TextUtils.cleanName('★ Liat Kurlender ★')).toBe('Liat Kurlender');
     expect(TextUtils.cleanName('★Sari Cohen')).toBe('Sari Cohen');
     expect(TextUtils.cleanName('★ Gal Ben David ★')).toBe('Gal Ben David');
-    expect(TextUtils.cleanName('☆ Neta Goldberg Levi ☆ I M HIRING')).toBe('Neta Goldberg Levi');
+    expect(TextUtils.cleanName('☆ Neta Goldberg Levi ☆ I M HIRING')).toBe(
+      'Neta Goldberg Levi'
+    );
     expect(TextUtils.cleanName('★Mor Barki★')).toBe('Mor Barki');
+  });
+
+  it('should not remove "Vim" from "Eden Ben Shoshan Vim"', () => {
+    const input = 'Eden Ben Shoshan Vim';
+    const cleaned = TextUtils.cleanName(input);
+    expect(cleaned).toBe('Eden Ben Shoshan Vim');
+  });
+
+  it('should remove hidden LTR characters', () => {
+    const input = '\u202aEden Ben Shoshan Vim';
+    const cleaned = TextUtils.cleanName(input);
+    expect(cleaned).toBe('Eden Ben Shoshan Vim');
   });
 
   it('should format hyphenated names with spaces instead of truncating them', () => {
@@ -70,8 +84,14 @@ describe('TextUtils.cleanName - Regression Tests', () => {
   });
 
   it('should preserve internal capitalization in names', () => {
-    expect(TextUtils.cleanName('Joe DiFiore Joseph Vim')).toBe('Joe DiFiore Joseph Vim');
-    expect(TextUtils.cleanName('Tal Erez OkCupid Date')).toBe('Tal Erez OkCupid Date');
-    expect(TextUtils.cleanName('DANA YAFFE OKCUPID')).toBe('Dana Yaffe Okcupid');
+    expect(TextUtils.cleanName('Joe DiFiore Joseph Vim')).toBe(
+      'Joe DiFiore Joseph Vim'
+    );
+    expect(TextUtils.cleanName('Tal Erez OkCupid Date')).toBe(
+      'Tal Erez OkCupid Date'
+    );
+    expect(TextUtils.cleanName('DANA YAFFE OKCUPID')).toBe(
+      'Dana Yaffe Okcupid'
+    );
   });
 });

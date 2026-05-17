@@ -507,6 +507,7 @@ export class GoogleContactsMaintainerScript implements Script {
 
         // 4.2.1 Invalid Name logic - handle labels and company suffixes
         let baseName = fullName;
+        let detectedLabel = '';
 
         // Find if the name contains any label from allLabels
         // We look for the label in the name, usually preceded by a space
@@ -516,6 +517,7 @@ export class GoogleContactsMaintainerScript implements Script {
           const labelIndex = fullName.indexOf(` ${label}`);
           if (labelIndex !== -1) {
             baseName = fullName.substring(0, labelIndex).trim();
+            detectedLabel = label;
             break;
           }
         }
@@ -536,15 +538,31 @@ export class GoogleContactsMaintainerScript implements Script {
             fullName.endsWith('OSR Job OSR');
 
           if (!shouldSkip && !isOSR) {
-            issues.push(MaintainerIssueType.INVALID_NAME);
-            customMessages[MaintainerIssueType.INVALID_NAME] =
-              `INVALID NAME - SHOULD BE: ${cleanedBaseName}`;
+            const hasHidden = TextUtils.hasHiddenUnicode(fullName);
+            const suggestedFullName = detectedLabel
+              ? `${cleanedBaseName} ${detectedLabel}`
+              : cleanedBaseName;
+
+            if (hasHidden) {
+              issues.push(
+                MaintainerIssueType.CONTAINS_HIDDEN_UNICODE_CHARACTER
+              );
+              customMessages[
+                MaintainerIssueType.CONTAINS_HIDDEN_UNICODE_CHARACTER
+              ] =
+                `CONTAINS_HIDDEN_UNICODE_CHARACTER - SHOULD BE: ${suggestedFullName}`;
+            } else {
+              issues.push(MaintainerIssueType.INVALID_NAME);
+              customMessages[MaintainerIssueType.INVALID_NAME] =
+                `INVALID NAME - SHOULD BE: ${suggestedFullName}`;
+            }
           }
         }
 
         // 4.2.2 INVALID CONTACT - Name logic
         const lastNameWords = lastName.split(' ');
         let cleanedLastNameForContactVal = lastName;
+        let detectedLastNameLabel = '';
         const sortedLabelsForNameVal = [...allLabels].sort(
           (a, b) => b.length - a.length
         );
@@ -556,6 +574,7 @@ export class GoogleContactsMaintainerScript implements Script {
           );
           if (hasMatch) {
             cleanedLastNameForContactVal = lastNameWords.slice(0, i).join(' ');
+            detectedLastNameLabel = lastNameWords.slice(i).join(' ');
             break;
           }
         }
@@ -568,9 +587,31 @@ export class GoogleContactsMaintainerScript implements Script {
           formattedFullNameVal !== cleanedFullNameForVal &&
           formattedFullNameVal
         ) {
-          issues.push(MaintainerIssueType.INVALID_CONTACT_NAME);
-          customMessages[MaintainerIssueType.INVALID_CONTACT_NAME] =
-            `INVALID CONTACT - Name: ${formattedFullNameVal}`;
+          const hasHidden = TextUtils.hasHiddenUnicode(fullName);
+          const suggestedFullName = detectedLastNameLabel
+            ? `${formattedFullNameVal} ${detectedLastNameLabel}`
+            : formattedFullNameVal;
+
+          if (hasHidden) {
+            // If we already added CONTAINS_HIDDEN_UNICODE_CHARACTER in 4.2.1, we don't need to add it again
+            if (
+              !issues.includes(
+                MaintainerIssueType.CONTAINS_HIDDEN_UNICODE_CHARACTER
+              )
+            ) {
+              issues.push(
+                MaintainerIssueType.CONTAINS_HIDDEN_UNICODE_CHARACTER
+              );
+              customMessages[
+                MaintainerIssueType.CONTAINS_HIDDEN_UNICODE_CHARACTER
+              ] =
+                `CONTAINS_HIDDEN_UNICODE_CHARACTER - SHOULD BE: ${suggestedFullName}`;
+            }
+          } else {
+            issues.push(MaintainerIssueType.INVALID_CONTACT_NAME);
+            customMessages[MaintainerIssueType.INVALID_CONTACT_NAME] =
+              `INVALID CONTACT - Name: ${suggestedFullName}`;
+          }
         }
       }
 

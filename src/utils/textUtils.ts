@@ -8,6 +8,17 @@ export class TextUtils {
     return RegexPatterns.HEBREW.test(text);
   }
 
+  static hasHiddenUnicode(text: string): boolean {
+    if (!text) return false;
+    // Common hidden/formatting characters:
+    // \u200B-\u200F: Zero width space, non-joiner, joiner, LTR/RTL marks
+    // \u202A-\u202E: Directional embeddings/overrides
+    // \uFEFF: BOM
+    // \u00AD: Soft hyphen
+    const hiddenRegex = /[\u200B-\u200F\u202A-\u202E\uFEFF\u00AD]/;
+    return hiddenRegex.test(text);
+  }
+
   static reverseHebrewText(text: string): string {
     if (!text || !this.hasHebrewCharacters(text)) {
       return text;
