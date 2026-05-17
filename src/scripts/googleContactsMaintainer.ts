@@ -409,16 +409,21 @@ export class GoogleContactsMaintainerScript implements Script {
     const emailMap = new Map<string, string[]>();
     const urlMap = new Map<string, string[]>();
     const nameMap = new Map<string, string[]>();
+    const resourceToNameMap = new Map<string, string>();
 
     contacts.forEach((c) => {
-      const fullName = `${c.firstName} ${c.lastName}`.trim().toLowerCase();
-      if (fullName) {
-        if (!nameMap.has(fullName)) nameMap.set(fullName, []);
-        nameMap.get(fullName)!.push(c.resourceName!);
+      const fullName = `${c.firstName} ${c.lastName}`.trim();
+      if (c.resourceName) {
+        resourceToNameMap.set(c.resourceName, fullName || 'Unknown Name');
+      }
+      const fullNameLower = fullName.toLowerCase();
+      if (fullNameLower) {
+        if (!nameMap.has(fullNameLower)) nameMap.set(fullNameLower, []);
+        nameMap.get(fullNameLower)!.push(c.resourceName!);
       }
 
       c.phones.forEach((p) => {
-        const num = p.number.replace(/\D/g, '');
+        const num = p.number.trim();
         if (num) {
           if (!phoneMap.has(num)) phoneMap.set(num, []);
           phoneMap.get(num)!.push(c.resourceName!);
@@ -426,7 +431,7 @@ export class GoogleContactsMaintainerScript implements Script {
       });
 
       c.emails.forEach((e) => {
-        const email = e.value.toLowerCase().trim();
+        const email = e.value.trim();
         if (email) {
           if (!emailMap.has(email)) emailMap.set(email, []);
           emailMap.get(email)!.push(c.resourceName!);
@@ -434,7 +439,7 @@ export class GoogleContactsMaintainerScript implements Script {
       });
 
       c.websites.forEach((w) => {
-        const url = w.url.toLowerCase().trim();
+        const url = w.url.trim();
         if (url) {
           if (!urlMap.has(url)) urlMap.set(url, []);
           urlMap.get(url)!.push(c.resourceName!);
@@ -466,7 +471,7 @@ export class GoogleContactsMaintainerScript implements Script {
       const duplicateDetails: Partial<
         Record<
           MaintainerIssueType,
-          { value: string; otherContactIds: string[] }[]
+          { value: string; otherContacts: { id: string; name: string }[] }[]
         >
       > = {};
 
@@ -755,127 +760,122 @@ export class GoogleContactsMaintainerScript implements Script {
       });
 
       // 4.9 Duplicate phone (Global/Single)
-      const phoneNumbers = contact.phones.map((p) =>
-        p.number.replace(/\D/g, '')
-      );
-      const phoneCounts = phoneNumbers.reduce(
-        (acc, num) => {
-          acc[num] = (acc[num] || 0) + 1;
+      const phoneValues = contact.phones.map((p) => p.number.trim());
+      const phoneCounts = phoneValues.reduce(
+        (acc, val) => {
+          acc[val] = (acc[val] || 0) + 1;
           return acc;
         },
         {} as Record<string, number>
       );
 
       const singleDuplicatePhones = Object.keys(phoneCounts).filter(
-        (num) => phoneCounts[num] > 1
+        (val) => phoneCounts[val] > 1
       );
       if (singleDuplicatePhones.length > 0) {
         issues.push(MaintainerIssueType.DUPLICATE_PHONE_SINGLE);
         duplicateDetails[MaintainerIssueType.DUPLICATE_PHONE_SINGLE] =
-          singleDuplicatePhones.map((num) => ({
-            value:
-              contact.phones.find((p) => p.number.replace(/\D/g, '') === num)
-                ?.number || num,
-            otherContactIds: [],
+          singleDuplicatePhones.map((val) => ({
+            value: val,
+            otherContacts: [],
           }));
       }
 
-      const globalDuplicatePhones = phoneNumbers.filter(
-        (num) => (phoneMap.get(num)?.length || 0) > 1
+      const globalDuplicatePhones = phoneValues.filter(
+        (val) => (phoneMap.get(val)?.length || 0) > 1
       );
       const uniqueGlobalDuplicatePhones = [...new Set(globalDuplicatePhones)];
       if (uniqueGlobalDuplicatePhones.length > 0) {
         issues.push(MaintainerIssueType.DUPLICATE_PHONE_GLOBAL);
         duplicateDetails[MaintainerIssueType.DUPLICATE_PHONE_GLOBAL] =
-          uniqueGlobalDuplicatePhones.map((num) => ({
-            value:
-              contact.phones.find((p) => p.number.replace(/\D/g, '') === num)
-                ?.number || num,
-            otherContactIds: (phoneMap.get(num) || []).filter(
-              (id) => id !== contact.resourceName
-            ),
+          uniqueGlobalDuplicatePhones.map((val) => ({
+            value: val,
+            otherContacts: (phoneMap.get(val) || [])
+              .filter((id) => id !== contact.resourceName)
+              .map((id) => ({
+                id,
+                name: resourceToNameMap.get(id) || 'Unknown',
+              })),
           }));
       }
 
       // 4.10 Duplicate email (Global/Single)
-      const emails = contact.emails.map((e) => e.value.toLowerCase().trim());
-      const emailCounts = emails.reduce(
-        (acc, email) => {
-          acc[email] = (acc[email] || 0) + 1;
+      const emailValues = contact.emails.map((e) => e.value.trim());
+      const emailCounts = emailValues.reduce(
+        (acc, val) => {
+          acc[val] = (acc[val] || 0) + 1;
           return acc;
         },
         {} as Record<string, number>
       );
 
       const singleDuplicateEmails = Object.keys(emailCounts).filter(
-        (email) => emailCounts[email] > 1
+        (val) => emailCounts[val] > 1
       );
       if (singleDuplicateEmails.length > 0) {
         issues.push(MaintainerIssueType.DUPLICATE_EMAIL_SINGLE);
         duplicateDetails[MaintainerIssueType.DUPLICATE_EMAIL_SINGLE] =
-          singleDuplicateEmails.map((email) => ({
-            value:
-              contact.emails.find((e) => e.value.toLowerCase().trim() === email)
-                ?.value || email,
-            otherContactIds: [],
+          singleDuplicateEmails.map((val) => ({
+            value: val,
+            otherContacts: [],
           }));
       }
 
-      const globalDuplicateEmails = emails.filter(
-        (email) => (emailMap.get(email)?.length || 0) > 1
+      const globalDuplicateEmails = emailValues.filter(
+        (val) => (emailMap.get(val)?.length || 0) > 1
       );
       const uniqueGlobalDuplicateEmails = [...new Set(globalDuplicateEmails)];
       if (uniqueGlobalDuplicateEmails.length > 0) {
         issues.push(MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL);
         duplicateDetails[MaintainerIssueType.DUPLICATE_EMAIL_GLOBAL] =
-          uniqueGlobalDuplicateEmails.map((email) => ({
-            value:
-              contact.emails.find((e) => e.value.toLowerCase().trim() === email)
-                ?.value || email,
-            otherContactIds: (emailMap.get(email) || []).filter(
-              (id) => id !== contact.resourceName
-            ),
+          uniqueGlobalDuplicateEmails.map((val) => ({
+            value: val,
+            otherContacts: (emailMap.get(val) || [])
+              .filter((id) => id !== contact.resourceName)
+              .map((id) => ({
+                id,
+                name: resourceToNameMap.get(id) || 'Unknown',
+              })),
           }));
       }
 
       // 4.11 Duplicate URL (Global/Single)
-      const urls = contact.websites.map((w) => w.url.toLowerCase().trim());
-      const urlCounts = urls.reduce(
-        (acc, url) => {
-          acc[url] = (acc[url] || 0) + 1;
+      const urlValues = contact.websites.map((w) => w.url.trim());
+      const urlCounts = urlValues.reduce(
+        (acc, val) => {
+          acc[val] = (acc[val] || 0) + 1;
           return acc;
         },
         {} as Record<string, number>
       );
 
       const singleDuplicateUrls = Object.keys(urlCounts).filter(
-        (url) => urlCounts[url] > 1
+        (val) => urlCounts[val] > 1
       );
       if (singleDuplicateUrls.length > 0) {
         issues.push(MaintainerIssueType.DUPLICATE_URL_SINGLE);
         duplicateDetails[MaintainerIssueType.DUPLICATE_URL_SINGLE] =
-          singleDuplicateUrls.map((url) => ({
-            value:
-              contact.websites.find((w) => w.url.toLowerCase().trim() === url)
-                ?.url || url,
-            otherContactIds: [],
+          singleDuplicateUrls.map((val) => ({
+            value: val,
+            otherContacts: [],
           }));
       }
 
-      const globalDuplicateUrls = urls.filter(
-        (url) => (urlMap.get(url)?.length || 0) > 1
+      const globalDuplicateUrls = urlValues.filter(
+        (val) => (urlMap.get(val)?.length || 0) > 1
       );
       const uniqueGlobalDuplicateUrls = [...new Set(globalDuplicateUrls)];
       if (uniqueGlobalDuplicateUrls.length > 0) {
         issues.push(MaintainerIssueType.DUPLICATE_URL_GLOBAL);
         duplicateDetails[MaintainerIssueType.DUPLICATE_URL_GLOBAL] =
-          uniqueGlobalDuplicateUrls.map((url) => ({
-            value:
-              contact.websites.find((w) => w.url.toLowerCase().trim() === url)
-                ?.url || url,
-            otherContactIds: (urlMap.get(url) || []).filter(
-              (id) => id !== contact.resourceName
-            ),
+          uniqueGlobalDuplicateUrls.map((val) => ({
+            value: val,
+            otherContacts: (urlMap.get(val) || [])
+              .filter((id) => id !== contact.resourceName)
+              .map((id) => ({
+                id,
+                name: resourceToNameMap.get(id) || 'Unknown',
+              })),
           }));
       }
 
@@ -1116,7 +1116,8 @@ export class GoogleContactsMaintainerScript implements Script {
           },
           issues: [...new Set(issues)],
           customIssueMessages: customMessages,
-          duplicateDetails: duplicateDetails,
+          duplicateDetails:
+            duplicateDetails as MaintainerReportItem['duplicateDetails'],
         });
       }
     }
@@ -1212,7 +1213,7 @@ export class GoogleContactsMaintainerScript implements Script {
       }
 
       if (contactUrl) {
-        report += `Link: ${contactUrl}\n`;
+        report += `Link: \`${contactUrl}\` \n`;
       }
 
       report += `Reasons:\n`;
@@ -1220,28 +1221,27 @@ export class GoogleContactsMaintainerScript implements Script {
       item.issues.forEach((issue) => {
         let message = item.customIssueMessages?.[issue] || `-${issue}`;
 
-        // Add colon for duplicate issues to match requested format
-        if (issue.startsWith('DUPLICATE') && !issue.includes('CONTACTS')) {
-          message = message.endsWith(':') ? message : `${message}:`;
-        }
+        const isDuplicateIssue =
+          issue.startsWith('DUPLICATE') && !issue.includes('CONTACTS');
 
-        report += message.startsWith('-') ? `${message}\n` : `-${message}\n`;
-
-        if (item.duplicateDetails?.[issue]) {
+        if (isDuplicateIssue && item.duplicateDetails?.[issue]) {
           const details = item.duplicateDetails[issue]!;
-          const label = issue.includes('EMAIL')
-            ? 'Email'
-            : issue.includes('PHONE')
-              ? 'Phone'
-              : 'URL';
-
           details.forEach((detail) => {
-            report += `${label}: ${detail.value}\n`;
-            detail.otherContactIds.forEach((id) => {
-              const otherResourceId = id.split('/').pop() || '';
-              report += `Duplicate for Id: https://contacts.google.com/person/${otherResourceId}\n`;
-            });
+            let detailMessage = message.startsWith('-')
+              ? `${message}`
+              : `-${message}`;
+            if (!detailMessage.endsWith(':')) detailMessage += ':';
+            report += `${detailMessage} ${detail.value}\n`;
+
+            if (issue.endsWith('GLOBAL')) {
+              detail.otherContacts.forEach((other) => {
+                const otherResourceId = other.id.split('/').pop() || '';
+                report += `-In ${other.name} \`https://contacts.google.com/person/${otherResourceId}\` \n`;
+              });
+            }
           });
+        } else {
+          report += message.startsWith('-') ? `${message}\n` : `-${message}\n`;
         }
       });
     });

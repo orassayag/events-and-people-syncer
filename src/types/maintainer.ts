@@ -54,6 +54,9 @@ export interface MaintainerReportItem {
   issues: MaintainerIssueType[];
   customIssueMessages?: Partial<Record<MaintainerIssueType, string>>;
   duplicateDetails?: Partial<
-    Record<MaintainerIssueType, { value: string; otherContactIds: string[] }[]>
+    Record<
+      MaintainerIssueType,
+      { value: string; otherContacts: { id: string; name: string }[] }[]
+    >
   >;
 }
