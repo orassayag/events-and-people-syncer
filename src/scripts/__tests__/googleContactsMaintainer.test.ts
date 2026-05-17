@@ -791,7 +791,7 @@ CreatedAt: 1/1/20, 12:00 PM`,
         '-POSSIBLE DUPLICATE CONTACTS BY NOTES - Email: dummy3@test.com'
       );
       expect(customMsg).toContain(
-        'Dummy Contact Two `https://contacts.google.com/person/c2`'
+        'Dummy Contact Two https://contacts.google.com/person/c2'
       );
       expect(customMsg).toContain(
         '-POSSIBLE DUPLICATE CONTACTS BY NOTES - Phone: 9876543210'

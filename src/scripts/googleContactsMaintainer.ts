@@ -1084,7 +1084,7 @@ export class GoogleContactsMaintainerScript implements Script {
                 'Unknown'
               : 'Unknown';
             const resourceId = id.split('/').pop() || '';
-            msg += `\n-${name} \`https://contacts.google.com/person/${resourceId}\``;
+            msg += `\n-${name} https://contacts.google.com/person/${resourceId}`;
           });
           noteDuplicateMessages.push(msg);
         }
@@ -1112,7 +1112,7 @@ export class GoogleContactsMaintainerScript implements Script {
                 'Unknown'
               : 'Unknown';
             const resourceId = id.split('/').pop() || '';
-            msg += `\n-${name} \`https://contacts.google.com/person/${resourceId}\``;
+            msg += `\n-${name} https://contacts.google.com/person/${resourceId}`;
           });
           noteDuplicateMessages.push(msg);
         }
@@ -1230,7 +1230,7 @@ export class GoogleContactsMaintainerScript implements Script {
       }
 
       if (contactUrl) {
-        report += `Link: \`${contactUrl}\` \n`;
+        report += `Link: ${contactUrl}\n`;
       }
 
       report += `Reasons:\n`;
@@ -1253,7 +1253,7 @@ export class GoogleContactsMaintainerScript implements Script {
             if (issue.endsWith('GLOBAL')) {
               detail.otherContacts.forEach((other) => {
                 const otherResourceId = other.id.split('/').pop() || '';
-                report += `-In ${other.name} \`https://contacts.google.com/person/${otherResourceId}\` \n`;
+                report += `-In ${other.name} https://contacts.google.com/person/${otherResourceId}\n`;
               });
             }
           });
