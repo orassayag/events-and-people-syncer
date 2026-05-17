@@ -313,6 +313,18 @@ describe('GoogleContactsMaintainerScript', () => {
       );
     });
 
+    it('should detect lower case name', () => {
+      const contacts = [{ ...mockContact, firstName: 'john', lastName: 'doe' }];
+      const issues = maintainer.testScanContacts(contacts, []);
+      expect(issues[0].issues).toContain(MaintainerIssueType.LOWER_CASE_NAME);
+    });
+
+    it('should detect upper case name', () => {
+      const contacts = [{ ...mockContact, firstName: 'JOHN', lastName: 'DOE' }];
+      const issues = maintainer.testScanContacts(contacts, []);
+      expect(issues[0].issues).toContain(MaintainerIssueType.UPPER_CASE_NAME);
+    });
+
     it('should detect missing label', () => {
       const contacts = [{ ...mockContact, label: '' }];
       const issues = maintainer.testScanContacts(contacts, []);

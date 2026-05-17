@@ -489,6 +489,17 @@ export class GoogleContactsMaintainerScript implements Script {
       ) {
         issues.push(MaintainerIssueType.EMPTY_NAME);
       } else {
+        // Check for all lowercase or all uppercase name
+        const isAllLower =
+          fullName === fullName.toLowerCase() &&
+          fullName !== fullName.toUpperCase();
+        const isAllUpper =
+          fullName === fullName.toUpperCase() &&
+          fullName !== fullName.toLowerCase();
+
+        if (isAllLower) issues.push(MaintainerIssueType.LOWER_CASE_NAME);
+        if (isAllUpper) issues.push(MaintainerIssueType.UPPER_CASE_NAME);
+
         // 4.2.1 Invalid Name logic - handle labels and company suffixes
         let baseName = fullName;
 
