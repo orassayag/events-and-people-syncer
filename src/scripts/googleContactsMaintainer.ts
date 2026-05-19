@@ -1233,7 +1233,11 @@ export class GoogleContactsMaintainerScript implements Script {
       (sum, item) => sum + item.issues.length,
       0
     );
-    report += `Contacts to Fix: ${new Intl.NumberFormat('en-US').format(items.length)}\n`;
+    const contactsToFixPercentage = FormatUtils.calculatePercentage(
+      items.length,
+      backupStats.contactCount
+    );
+    report += `Contacts to Fix: ${new Intl.NumberFormat('en-US').format(items.length)} (${contactsToFixPercentage})\n`;
     report += `Issues to fix:   ${new Intl.NumberFormat('en-US').format(totalIssues)}\n`;
     report += `Total contacts:  ${new Intl.NumberFormat('en-US').format(backupStats.contactCount)}\n`;
     report += `=======================\n`;

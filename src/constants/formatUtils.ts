@@ -18,4 +18,15 @@ export class FormatUtils {
     const rightPadding = paddingNeeded - leftPadding;
     return '='.repeat(leftPadding) + content + '='.repeat(rightPadding);
   }
+
+  static calculatePercentage(part: number, total: number): string {
+    if (total === 0) {
+      return '00.00%';
+    }
+
+    const percentage = ((part / total) * 100).toFixed(2);
+    const [whole, decimal] = percentage.split('.');
+
+    return `${whole.padStart(2, '0')}.${decimal}%`;
+  }
 }
