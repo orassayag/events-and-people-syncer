@@ -231,7 +231,23 @@ export const MANUAL_COMPANY_MAPPINGS: Record<string, string> = {
   AVIF: 'AVIF',
   Mcpd: 'MCPD',
   MCPD: 'MCPD',
-  Jumbomail: 'JUMBOMail',
-  JumboMail: 'JUMBOMail',
+  Jumbomail: 'JUMBOmail',
+  JumboMail: 'JUMBOmail',
   Similarweb: 'Similarweb',
+  Gotfriends: 'Gotfriends',
+};
+
+/**
+ * Known LinkedIn URLs for companies.
+ * Used to suppress "MISSING REQUIRED URL FOR HR/JOB LABEL" or suggest URLs.
+ */
+export const COMPANY_URL_MAPPINGS: Record<string, string> = {
+  Gotfriends: 'https://www.linkedin.com/company/gotfriends/',
+  Nisha: 'https://www.linkedin.com/company/nisha-group/',
+  Maof: 'https://www.linkedin.com/company/maof-group/',
+  Experis: 'https://www.linkedin.com/company/experis-israel/',
+  Manpower: 'https://www.linkedin.com/company/manpower-israel/',
+  Triad: 'https://www.linkedin.com/company/triad-israel/',
+  SVTJobs: 'https://www.linkedin.com/company/svt-jobs/',
+  AllJobs: 'https://www.linkedin.com/company/alljobs/',
 };

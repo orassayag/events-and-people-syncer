@@ -619,6 +619,48 @@ describe('GoogleContactsMaintainerScript', () => {
       ).toBe('OUTDATED COMPANY NAME - SHOULD BE: HR Google');
     });
 
+    it('should NOT detect outdated company name if company name is in manual mappings with correct casing', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          firstName: 'Test',
+          lastName: 'Tests HR Gotfriends',
+          label: 'HR',
+          company: 'Gotfriends',
+        },
+      ];
+      const report = maintainer.testScanContacts(contacts, []);
+      const item = report.find((r) => r.contact.firstName === 'Test');
+      expect(item?.issues).not.toContain(
+        MaintainerIssueType.OUTDATED_COMPANY_NAME
+      );
+    });
+
+    it('should suggest known LinkedIn URL if missing for HR/Job label', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          firstName: 'Test',
+          lastName: 'Tests HR Gotfriends',
+          label: 'HR',
+          company: 'Gotfriends',
+          websites: [],
+        },
+      ];
+      const report = maintainer.testScanContacts(contacts, []);
+      const item = report.find((r) => r.contact.firstName === 'Test');
+      expect(item?.issues).toContain(
+        MaintainerIssueType.MISSING_REQUIRED_URL_FOR_HR_JOB_LABEL
+      );
+      expect(
+        item?.customIssueMessages[
+          MaintainerIssueType.MISSING_REQUIRED_URL_FOR_HR_JOB_LABEL
+        ]
+      ).toBe(
+        'MISSING REQUIRED URL FOR HR/JOB LABEL - SHOULD BE: https://www.linkedin.com/company/gotfriends/'
+      );
+    });
+
     it('should detect invalid contact name and company ONLY if name/company without labels still needs cleaning', () => {
       const contacts = [
         {

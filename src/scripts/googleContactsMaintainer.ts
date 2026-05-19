@@ -24,6 +24,7 @@ import { Logger, SyncLogger } from '../logging';
 import { AuthService } from '../services/auth';
 import { RegexPatterns } from '../regex';
 import { calculateFormattedCompany } from '../utils/companyFormatter';
+import { COMPANY_URL_MAPPINGS } from '../utils/companyMappings';
 import { TextUtils } from '../utils/textUtils';
 import { SyncStatusBar } from '../flow/syncStatusBar';
 import { FormatUtils } from '../constants';
@@ -650,7 +651,7 @@ export class GoogleContactsMaintainerScript implements Script {
           let isPossibleDuplicate = false;
 
           if (namesEqual) {
-            // IF the names are EQUAL EXACTLY - AND - both of them have the same LinkedIn URL, ONLY then, its possible duplicate.
+            // If the names are EQUAL EXACTLY - AND - both of them have the same LinkedIn URL, ONLY then, its possible duplicate.
             if (sameLinkedIn) {
               isPossibleDuplicate = true;
             }
@@ -962,26 +963,6 @@ export class GoogleContactsMaintainerScript implements Script {
           }));
       }
 
-      // 4.12 Missing URL for HR/Job label
-      const hasHrOrJobLabel = activeLabels.some(
-        (l) => l === 'HR' || l === 'Job'
-      );
-      const hasProperName = firstName.length > 1 && lastName.length > 1;
-      const hasLinkedInUrl = contact.websites.some(
-        (w) => w.label === 'LinkedIn'
-      );
-      // and the family name not equal to the label name
-      const familyNameNotLabel = !activeLabels.includes(lastName);
-
-      if (
-        hasHrOrJobLabel &&
-        !hasLinkedInUrl &&
-        hasProperName &&
-        familyNameNotLabel
-      ) {
-        issues.push(MaintainerIssueType.MISSING_REQUIRED_URL_FOR_HR_JOB_LABEL);
-      }
-
       // 4.15 Company name refactoring
       const currentCompany = contact.company || '';
       // Check last name too as per rule
@@ -990,6 +971,8 @@ export class GoogleContactsMaintainerScript implements Script {
         lastNameParts.length > 2 ? lastNameParts.slice(2).join(' ') : '';
 
       const companyToTest = currentCompany || companyInLastName;
+      let suggestedClean = '';
+
       if (companyToTest && (isHrOrJob || activeLabels.includes('LinkedIn'))) {
         const suggested = calculateFormattedCompany(
           companyToTest,
@@ -998,7 +981,7 @@ export class GoogleContactsMaintainerScript implements Script {
           lastName
         );
         // Suggested starts with "LinkedIn "
-        let suggestedClean = suggested.startsWith('LinkedIn ')
+        suggestedClean = suggested.startsWith('LinkedIn ')
           ? suggested.substring(9)
           : suggested;
 
@@ -1030,6 +1013,34 @@ export class GoogleContactsMaintainerScript implements Script {
               `OUTDATED COMPANY NAME - SHOULD BE: ${finalSuggested}`;
           }
         }
+      }
+
+      // 4.12 Missing URL for HR/Job label
+      const hasHrOrJobLabel = activeLabels.some(
+        (l) => l === 'HR' || l === 'Job'
+      );
+      const hasProperName = firstName.length > 1 && lastName.length > 1;
+      const hasLinkedInUrl = contact.websites.some(
+        (w) => w.label === 'LinkedIn'
+      );
+      // and the family name not equal to the label name
+      const familyNameNotLabel = !activeLabels.includes(lastName);
+
+      if (
+        hasHrOrJobLabel &&
+        !hasLinkedInUrl &&
+        hasProperName &&
+        familyNameNotLabel
+      ) {
+        const knownUrl = suggestedClean
+          ? COMPANY_URL_MAPPINGS[suggestedClean]
+          : undefined;
+        if (knownUrl) {
+          customMessages[
+            MaintainerIssueType.MISSING_REQUIRED_URL_FOR_HR_JOB_LABEL
+          ] = `MISSING REQUIRED URL FOR HR/JOB LABEL - SHOULD BE: ${knownUrl}`;
+        }
+        issues.push(MaintainerIssueType.MISSING_REQUIRED_URL_FOR_HR_JOB_LABEL);
       }
 
       // 4.15.2 INVALID CONTACT - Company logic
