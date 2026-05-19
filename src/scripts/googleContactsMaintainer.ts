@@ -27,6 +27,7 @@ import { calculateFormattedCompany } from '../utils/companyFormatter';
 import { TextUtils } from '../utils/textUtils';
 import { SyncStatusBar } from '../flow/syncStatusBar';
 import { FormatUtils } from '../constants';
+import { UrlNormalizer } from '../services/linkedin/urlNormalizer';
 
 import { OtherContactsFetcher } from '../services/otherContacts';
 
@@ -157,6 +158,17 @@ export class GoogleContactsMaintainerScript implements Script {
 
   private checkHebrew(text: string | undefined): boolean {
     return !!text && RegexPatterns.HEBREW.test(text);
+  }
+
+  private getLinkedInUrl(contact: ContactData): string | undefined {
+    const linkedinWebsite = contact.websites.find(
+      (w) =>
+        w.label.toLowerCase().includes('linkedin') ||
+        w.url.toLowerCase().includes('linkedin.com')
+    );
+    return linkedinWebsite
+      ? UrlNormalizer.normalizeLinkedInUrl(linkedinWebsite.url)
+      : undefined;
   }
 
   private async fetchAllContacts(): Promise<{
@@ -628,46 +640,59 @@ export class GoogleContactsMaintainerScript implements Script {
         const otherFullName = `${otherFirstName} ${otherLastName}`.trim();
         const otherFullNameLower = otherFullName.toLowerCase();
 
-        if (
-          fullNameLower &&
-          otherFullNameLower &&
-          fullNameLower !== otherFullNameLower
-        ) {
-          const words1 = fullNameLower
-            .split(/\s+/)
-            .filter((w) => w.length > 0)
-            .slice(0, 2);
-          const words2 = otherFullNameLower
-            .split(/\s+/)
-            .filter((w) => w.length > 0)
-            .slice(0, 2);
+        if (fullNameLower && otherFullNameLower) {
+          const namesEqual = fullNameLower === otherFullNameLower;
+          const li1 = this.getLinkedInUrl(contact);
+          const li2 = this.getLinkedInUrl(other);
+          const sameLinkedIn = li1 && li2 && li1 === li2;
+          const differentLinkedIn = li1 && li2 && li1 !== li2;
 
-          if (words1.length === 2 && words2.length === 2) {
-            const isMatch =
-              words1.every((w) => words2.includes(w)) &&
-              words2.every((w) => words1.includes(w));
+          let isPossibleDuplicate = false;
 
-            if (isMatch) {
-              issues.push(MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACT);
-              const thisResourceId =
-                contact.resourceName?.split('/').pop() || '';
-              const otherResourceId =
-                other.resourceName?.split('/').pop() || '';
-              const thisUrl = `https://contacts.google.com/person/${thisResourceId}`;
-              const otherUrl = `https://contacts.google.com/person/${otherResourceId}`;
+          if (namesEqual) {
+            // IF the names are EQUAL EXACTLY - AND - both of them have the same LinkedIn URL, ONLY then, its possible duplicate.
+            if (sameLinkedIn) {
+              isPossibleDuplicate = true;
+            }
+          } else {
+            // Keep the rest of the logic of "POSSIBLE DUPLICATE CONTACT" the same.
+            const words1 = fullNameLower
+              .split(/\s+/)
+              .filter((w) => w.length > 0)
+              .slice(0, 2);
+            const words2 = otherFullNameLower
+              .split(/\s+/)
+              .filter((w) => w.length > 0)
+              .slice(0, 2);
 
-              const msg = `POSSIBLE DUPLICATE CONTACT:\n-${fullName} ${thisUrl}\n-${otherFullName} ${otherUrl}`;
+            if (words1.length === 2 && words2.length === 2) {
+              const nameMatch =
+                words1.every((w) => words2.includes(w)) &&
+                words2.every((w) => words1.includes(w));
 
-              if (
-                !customMessages[MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACT]
-              ) {
-                customMessages[MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACT] =
-                  msg;
-              } else {
-                customMessages[
-                  MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACT
-                ] += `\n-${msg}`;
+              if (nameMatch && !differentLinkedIn) {
+                isPossibleDuplicate = true;
               }
+            }
+          }
+
+          if (isPossibleDuplicate) {
+            issues.push(MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACT);
+            const thisResourceId = contact.resourceName?.split('/').pop() || '';
+            const otherResourceId = other.resourceName?.split('/').pop() || '';
+            const thisUrl = `https://contacts.google.com/person/${thisResourceId}`;
+            const otherUrl = `https://contacts.google.com/person/${otherResourceId}`;
+
+            const msg = `POSSIBLE DUPLICATE CONTACT:\n-${fullName} ${thisUrl}\n-${otherFullName} ${otherUrl}`;
+
+            if (
+              !customMessages[MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACT]
+            ) {
+              customMessages[MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACT] =
+                msg;
+            } else {
+              customMessages[MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACT] +=
+                `\n-${msg}`;
             }
           }
         }
