@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
-import { injectable, inject } from 'inversify';
+import * as Inversify from 'inversify';
+const { injectable, inject } = Inversify;
 import type { Ora } from 'ora';
 import { Logger } from '../../logging';
 import { DuplicateDetector } from '../contacts/duplicateDetector';
@@ -343,7 +344,7 @@ export class StatisticsCollector {
   async collectContactStatistics(): Promise<ContactStatistics> {
     try {
       await ContactCache.getInstance().invalidate();
-      const contacts = await this.duplicateDetector['fetchAllContacts']();
+      const contacts = await this.duplicateDetector.fetchAllContacts();
       const contactsToSync = this.calculateContactsToSync(contacts);
       const otherContactsToSync = await this.getOtherContactsCount();
       return {

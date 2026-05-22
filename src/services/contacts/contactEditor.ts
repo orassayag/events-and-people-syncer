@@ -1592,6 +1592,35 @@ export class ContactEditor {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
+  async deleteContact(resourceName: string): Promise<void> {
+    const apiTracker = ApiTracker.getInstance();
+    const normalizedResourceName = resourceName.startsWith('people/')
+      ? resourceName
+      : `people/${resourceName}`;
+
+    if (SETTINGS.dryMode) {
+      DryModeChecker.logApiCall(
+        'service.people.deleteContact()',
+        normalizedResourceName,
+        this.uiLogger
+      );
+      await apiTracker.trackWrite();
+      await this.delay(SETTINGS.contactsSync.writeDelayMs);
+      await ContactCache.getInstance().invalidate();
+      return;
+    }
+
+    const service = google.people({ version: 'v1', auth: this.auth });
+    await retryWithBackoff(async () => {
+      return await service.people.deleteContact({
+        resourceName: normalizedResourceName,
+      });
+    });
+    await apiTracker.trackWrite();
+    await this.delay(SETTINGS.contactsSync.writeDelayMs);
+    await ContactCache.getInstance().invalidate();
+  }
+
   async addPhoneToExistingContact(
     resourceName: string,
     phone: string
@@ -1737,7 +1766,9 @@ export class ContactEditor {
     const groupMemberships = memberships
       .filter((m) => m.contactGroupMembership)
       .map((m) => m.contactGroupMembership!.contactGroupResourceName!)
-      .filter((name) => name && !name.startsWith('contactGroups/systemGroups/'));
+      .filter(
+        (name) => name && !name.startsWith('contactGroups/systemGroups/')
+      );
 
     if (groupMemberships.length === 0) {
       throw new Error('No label found for this contact');
@@ -1758,7 +1789,7 @@ export class ContactEditor {
         });
         await apiTracker.trackRead();
         return groupResponse.data.name || 'other';
-      } catch (error) {
+      } catch (_error) {
         throw new Error('Could not resolve contact label');
       }
     }

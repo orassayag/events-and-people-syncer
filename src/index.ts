@@ -104,6 +104,7 @@ async function main(): Promise<void> {
       'other-contacts-sync',
       'sms-whatsapp-sync',
       'sync-phones',
+      'delete-empty-contacts',
       'statistics',
       'clear-cache',
       'clear-logs',

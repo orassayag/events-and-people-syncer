@@ -383,7 +383,7 @@ export class DuplicateDetector {
     return { action: 'use_existing', contact: selected };
   }
 
-  private async fetchAllContacts(
+  public async fetchAllContacts(
     onProgress?: (count: number) => void
   ): Promise<ContactData[]> {
     const cache: ContactCache = ContactCache.getInstance();

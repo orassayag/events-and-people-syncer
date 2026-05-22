@@ -27,6 +27,7 @@ import {
   SmsWhatsappSyncScript,
   SyncPhonesScript,
   OtherContactsSyncScript,
+  DeleteEmptyContactsScript,
 } from '../scripts';
 import { GoogleContactsMaintainerScript as MaintainerService } from '../scripts/googleContactsMaintainer';
 import { HibobExtractor, HibobContactSyncer } from '../services/hibob';
@@ -81,5 +82,6 @@ container.bind(SmsWhatsappSyncScript).toSelf();
 container.bind(SyncPhonesScript).toSelf();
 container.bind(OtherContactsFetcher).toSelf();
 container.bind(OtherContactsSyncScript).toSelf();
+container.bind(DeleteEmptyContactsScript).toSelf();
 container.bind(MaintainerService).toSelf();
 container.bind(TYPES.GoogleContactsMaintainerScript).to(MaintainerService);
