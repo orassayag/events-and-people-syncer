@@ -9,10 +9,10 @@ importers:
   .:
     dependencies:
       '@inquirer/prompts':
-        specifier: ^8.3.2
+        specifier: ^8.4.3
         version: 8.4.3(@types/node@25.9.1)
       adm-zip:
-        specifier: ^0.5.16
+        specifier: ^0.5.17
         version: 0.5.17
       bidi-js:
         specifier: ^1.0.3
@@ -30,7 +30,7 @@ importers:
         specifier: 2.4.1
         version: 2.4.1
       fuse.js:
-        specifier: ^7.1.0
+        specifier: ^7.3.0
         version: 7.3.0
       googleapis:
         specifier: ^172.0.0
@@ -39,29 +39,29 @@ importers:
         specifier: ^8.1.0
         version: 8.1.0(reflect-metadata@0.2.2)
       jsdom:
-        specifier: ^29.0.0
+        specifier: ^29.1.1
         version: 29.1.1
       log-update:
         specifier: ^8.0.0
         version: 8.0.0
       ora:
-        specifier: ^9.3.0
+        specifier: ^9.4.0
         version: 9.4.0
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
       zod:
-        specifier: ^4.3.6
+        specifier: ^4.4.3
         version: 4.4.3
     devDependencies:
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.4.0)
       '@types/adm-zip':
-        specifier: ^0.5.7
+        specifier: ^0.5.8
         version: 0.5.8
       '@types/jsdom':
-        specifier: ^28.0.1
+        specifier: ^28.0.3
         version: 28.0.3
       '@types/node':
         specifier: ^25.9.1
@@ -82,16 +82,16 @@ importers:
         specifier: ^10.1.0
         version: 10.1.0
       eslint:
-        specifier: ^10.0.2
+        specifier: ^10.4.0
         version: 10.4.0
       eslint-config-prettier:
         specifier: ^10.1.8
         version: 10.1.8(eslint@10.4.0)
       eslint-plugin-prettier:
-        specifier: ^5.5.4
+        specifier: ^5.5.5
         version: 5.5.5(eslint-config-prettier@10.1.8(eslint@10.4.0))(eslint@10.4.0)(prettier@3.8.3)
       prettier:
-        specifier: ^3.6.2
+        specifier: ^3.8.3
         version: 3.8.3
       tsx:
         specifier: ^4.22.3
@@ -2864,7 +2864,7 @@ snapshots:
 
   '@types/adm-zip@0.5.8':
     dependencies:
-      '@types/node': 22.19.19
+      '@types/node': 25.9.1
 
   '@types/chai@5.2.3':
     dependencies:
@@ -2884,7 +2884,7 @@ snapshots:
 
   '@types/jsdom@28.0.3':
     dependencies:
-      '@types/node': 22.19.19
+      '@types/node': 25.9.1
       '@types/tough-cookie': 4.0.5
       parse5: 8.0.1
       undici-types: 7.25.0
@@ -2901,7 +2901,7 @@ snapshots:
 
   '@types/through@0.0.33':
     dependencies:
-      '@types/node': 22.19.19
+      '@types/node': 25.9.1
 
   '@types/tough-cookie@4.0.5': {}
 
