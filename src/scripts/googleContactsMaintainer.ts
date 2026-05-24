@@ -733,6 +733,39 @@ export class GoogleContactsMaintainerScript implements Script {
         issues.push(MaintainerIssueType.MISSING_LABEL);
       }
 
+      // New Label Validations
+      const hasSQLink = activeLabels.some(
+        (l) => l === 'SQLink' || l === 'SQLLink'
+      );
+      const hasGotfriends = activeLabels.some((l) => l === 'Gotfriends');
+
+      // 4.4.1 Twitter Label
+      if (activeLabels.includes('Twitter')) {
+        issues.push(MaintainerIssueType.INVALID_LABEL);
+        customMessages[MaintainerIssueType.INVALID_LABEL] =
+          'INVALID LABEL - SHOULD BE: Twitter X.ai';
+      }
+
+      // 4.4.2 SQLLink Validation
+      if (activeLabels.includes('SQLLink')) {
+        issues.push(MaintainerIssueType.INVALID_LABEL_NAME);
+        customMessages[MaintainerIssueType.INVALID_LABEL_NAME] =
+          'SQLLink is INVALID LABEL NAME - SHOULD BE: SQLink';
+      }
+
+      // 4.4.3 Mixed Labels (SQLink and Gotfriends)
+      const hasMixedLabels =
+        (hasSQLink && hasGotfriends) ||
+        activeLabels.some(
+          (l) =>
+            (l.includes('SQLink') || l.includes('SQLLink')) &&
+            l.includes('Gotfriends')
+        );
+
+      if (hasMixedLabels) {
+        issues.push(MaintainerIssueType.INVALID_MIXED_LABELED);
+      }
+
       // 4.5 & 4.6 Phones/Emails labels
       contact.phones.forEach((p) => {
         const label = (p.label || '').trim().toLowerCase();

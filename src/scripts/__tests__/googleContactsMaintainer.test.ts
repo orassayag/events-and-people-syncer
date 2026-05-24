@@ -708,6 +708,136 @@ describe('GoogleContactsMaintainerScript', () => {
       ).toBe(false);
     });
 
+    it('should verify new validations from user request', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          resourceName: 'people/twitter',
+          firstName: 'Twitter',
+          lastName: 'User',
+          label: 'Twitter',
+        },
+        {
+          ...mockContact,
+          resourceName: 'people/mixed',
+          firstName: 'Mixed',
+          lastName: 'Labels',
+          label: 'SQLink | Gotfriends',
+        },
+        {
+          ...mockContact,
+          resourceName: 'people/mixed_single',
+          firstName: 'Mixed',
+          lastName: 'Single',
+          label: 'SQLink_Gotfriends',
+        },
+        {
+          ...mockContact,
+          resourceName: 'people/sqllink',
+          firstName: 'SQLLink',
+          lastName: 'User',
+          label: 'SQLLink',
+        },
+        {
+          ...mockContact,
+          resourceName: 'people/phone_upper',
+          firstName: 'Phone',
+          lastName: 'Upper',
+          phones: [{ number: 'LIBERMAN', label: 'Work' }],
+        },
+        {
+          ...mockContact,
+          resourceName: 'people/phone_lower',
+          firstName: 'Phone',
+          lastName: 'Lower',
+          phones: [{ number: 'liberman', label: 'Work' }],
+        },
+      ];
+
+      const report = maintainer.testScanContacts(contacts, []);
+
+      // Twitter check
+      const twitterItem = report.find(
+        (r) => r.contact.resourceName === 'people/twitter'
+      );
+      expect(twitterItem?.issues).toContain(MaintainerIssueType.INVALID_LABEL);
+      expect(
+        twitterItem?.customIssueMessages[MaintainerIssueType.INVALID_LABEL]
+      ).toBe('INVALID LABEL - SHOULD BE: Twitter X.ai');
+
+      // Mixed labels check
+      const mixedItem = report.find(
+        (r) => r.contact.resourceName === 'people/mixed'
+      );
+      expect(mixedItem?.issues).toContain(
+        MaintainerIssueType.INVALID_MIXED_LABELED
+      );
+
+      const mixedSingleItem = report.find(
+        (r) => r.contact.resourceName === 'people/mixed_single'
+      );
+      expect(mixedSingleItem?.issues).toContain(
+        MaintainerIssueType.INVALID_MIXED_LABELED
+      );
+
+      // SQLLink check
+      const sqllinkItem = report.find(
+        (r) => r.contact.resourceName === 'people/sqllink'
+      );
+      expect(sqllinkItem?.issues).toContain(
+        MaintainerIssueType.INVALID_LABEL_NAME
+      );
+      expect(
+        sqllinkItem?.customIssueMessages[MaintainerIssueType.INVALID_LABEL_NAME]
+      ).toBe('SQLLink is INVALID LABEL NAME - SHOULD BE: SQLink');
+
+      // Phone case-sensitivity check
+      const phoneUpperItem = report.find(
+        (r) => r.contact.resourceName === 'people/phone_upper'
+      );
+      const phoneLowerItem = report.find(
+        (r) => r.contact.resourceName === 'people/phone_lower'
+      );
+      expect(phoneUpperItem?.issues).not.toContain(
+        MaintainerIssueType.DUPLICATE_PHONE_GLOBAL
+      );
+      expect(phoneLowerItem?.issues).not.toContain(
+        MaintainerIssueType.DUPLICATE_PHONE_GLOBAL
+      );
+    });
+
+    it('should verify JumboMail company mapping', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          label: 'LinkedIn',
+          company: 'JumboMail',
+        },
+        {
+          ...mockContact,
+          label: 'LinkedIn',
+          company: 'JUMBOMail',
+        },
+      ];
+      const report = maintainer.testScanContacts(contacts, []);
+
+      const item1 = report.find((r) => r.contact.company === 'JumboMail');
+      expect(item1?.issues).toContain(
+        MaintainerIssueType.OUTDATED_COMPANY_NAME
+      );
+      expect(
+        item1?.customIssueMessages[MaintainerIssueType.OUTDATED_COMPANY_NAME]
+      ).toBe('OUTDATED COMPANY NAME - SHOULD BE: LinkedIn JUMBOmail');
+
+      const item2 = report.find((r) => r.contact.company === 'JUMBOMail');
+      expect(item2?.issues).toContain(
+        MaintainerIssueType.OUTDATED_COMPANY_NAME
+      );
+      expect(
+        item2?.customIssueMessages[MaintainerIssueType.OUTDATED_COMPANY_NAME]
+      ).toBe('OUTDATED COMPANY NAME - SHOULD BE: LinkedIn JUMBOmail');
+    });
+
     it('should include "Other contacts" in the report', () => {
       const otherContacts = [
         {
