@@ -1151,6 +1151,57 @@ export class GoogleContactsMaintainerScript implements Script {
           `CONTAINS WHITE SPACES IN FIELDS: ${uniqueFields.join(', ')}`;
       }
 
+      // New Sub-Label Validations (Date, Tattoo, etc.)
+      const baseLabels = ['Date', 'Tattoo'];
+      baseLabels.forEach((baseLabel) => {
+        const checkFields = [
+          ...(contact.labels || []),
+          contact.company,
+          lastName,
+          ...contact.phones.map((p) => p.label),
+          ...contact.emails.map((e) => e.label),
+        ].filter((f) => !!f);
+
+        for (const field of checkFields) {
+          const trimmedField = field.trim();
+
+          // Case 1: MISSING SUB-LABEL (Stand alone)
+          if (trimmedField === baseLabel) {
+            if (!issues.includes(MaintainerIssueType.MISSING_SUB_LABEL)) {
+              issues.push(MaintainerIssueType.MISSING_SUB_LABEL);
+              customMessages[MaintainerIssueType.MISSING_SUB_LABEL] =
+                MaintainerIssueType.MISSING_SUB_LABEL.replace(
+                  '#LABEL#',
+                  baseLabel
+                );
+            }
+            break;
+          }
+
+          // Case 2: Ends with baseLabel (Nothing after it)
+          if (
+            trimmedField.endsWith(` ${baseLabel}`) ||
+            trimmedField.endsWith(`-${baseLabel}`)
+          ) {
+            // Both issues apply: It's missing a sub-label after it, AND it's in the wrong order
+            if (!issues.includes(MaintainerIssueType.MISSING_SUB_LABEL)) {
+              issues.push(MaintainerIssueType.MISSING_SUB_LABEL);
+              customMessages[MaintainerIssueType.MISSING_SUB_LABEL] =
+                MaintainerIssueType.MISSING_SUB_LABEL.replace(
+                  '#LABEL#',
+                  baseLabel
+                );
+            }
+            if (
+              !issues.includes(MaintainerIssueType.INVALID_ORDER_FOR_SUB_LABEL)
+            ) {
+              issues.push(MaintainerIssueType.INVALID_ORDER_FOR_SUB_LABEL);
+            }
+            break;
+          }
+        }
+      });
+
       // POSSIBLE DUPLICATE CONTACTS BY NOTES
       const extracted = this.extractDataFromNotes(contact.biography || '');
       const noteDuplicateMessages: string[] = [];
