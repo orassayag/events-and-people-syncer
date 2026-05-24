@@ -7,7 +7,8 @@ import { cleanCompany, formatCompanyToPascalCase } from '../../../utils';
 
 vi.mock('googleapis');
 vi.mock('../../../utils', async () => {
-  const actual = await vi.importActual<typeof import('../../../utils')>('../../../utils');
+  const actual =
+    await vi.importActual<typeof import('../../../utils')>('../../../utils');
   return {
     ...actual,
     retryWithBackoff: vi.fn((fn) => fn()),
@@ -297,7 +298,7 @@ describe('ContactSyncer', () => {
           organizations: [{ title: 'Developer' }],
           urls: [
             {
-              value: 'https://www.linkedin.com/in/test-user',
+              value: 'linkedin.com/in/test-user',
               type: 'LinkedIn',
             },
           ],
@@ -343,7 +344,7 @@ describe('ContactSyncer', () => {
           ],
           urls: [
             {
-              value: 'https://www.linkedin.com/in/test-user',
+              value: 'linkedin.com/in/test-user',
               type: 'LinkedIn',
             },
           ],
@@ -381,7 +382,7 @@ describe('ContactSyncer', () => {
           ],
           urls: [
             {
-              value: 'https://www.linkedin.com/in/test-user',
+              value: 'linkedin.com/in/test-user',
               type: 'LinkedIn',
             },
           ],
@@ -418,7 +419,7 @@ describe('ContactSyncer', () => {
           names: [{ givenName: 'John', familyName: 'Doe LinkedIn Microsoft' }],
           emailAddresses: [{ value: 'john@example.com' }],
           organizations: [{ title: 'Software Engineer' }],
-          urls: [{ value: 'https://www.linkedin.com/in/test-user' }],
+          urls: [{ value: 'linkedin.com/in/test-user' }],
           biographies: [
             {
               value: 'Some personal note',

@@ -22,6 +22,7 @@ import {
 import { buildNewContactNote, determineNoteUpdate } from './noteParser';
 import { ContactCache } from '../../cache';
 import { DuplicateDetector } from '../contacts/duplicateDetector';
+import { UrlNormalizer } from './urlNormalizer';
 
 @injectable()
 export class ContactSyncer {
@@ -114,7 +115,7 @@ export class ContactSyncer {
       if (connection.url) {
         requestBody.urls = [
           {
-            value: connection.url.trim(),
+            value: UrlNormalizer.formatLinkedInUrl(connection.url),
             type: 'LinkedIn',
           },
         ];
@@ -165,7 +166,12 @@ export class ContactSyncer {
             : [],
           phones: [],
           websites: connection.url
-            ? [{ url: connection.url, label: 'LinkedIn' }]
+            ? [
+                {
+                  url: UrlNormalizer.formatLinkedInUrl(connection.url),
+                  label: 'LinkedIn',
+                },
+              ]
             : [],
           resourceName: mockResponse.resourceName,
           biography: buildNewContactNote(new Date(), scriptName),
@@ -372,7 +378,7 @@ export class ContactSyncer {
         const updatedUrls = [
           ...existingUrls,
           {
-            value: connection.url.trim(),
+            value: UrlNormalizer.formatLinkedInUrl(connection.url),
             type: 'LinkedIn',
           },
         ];
@@ -383,12 +389,13 @@ export class ContactSyncer {
       } else if (linkedInUrls.length > 0) {
         let urlsChanged: boolean = false;
         const updatedUrls = existingUrls.map((u: any) => {
-          if (
-            (u.value || '').toLowerCase().includes('linkedin') &&
-            u.type !== 'LinkedIn'
-          ) {
-            urlsChanged = true;
-            return { ...u, type: 'LinkedIn' };
+          const isLinkedIn = (u.value || '').toLowerCase().includes('linkedin');
+          if (isLinkedIn) {
+            const formattedUrl = UrlNormalizer.formatLinkedInUrl(u.value);
+            if (u.value !== formattedUrl || u.type !== 'LinkedIn') {
+              urlsChanged = true;
+              return { ...u, value: formattedUrl, type: 'LinkedIn' };
+            }
           }
           return u;
         });
