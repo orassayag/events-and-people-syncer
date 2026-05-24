@@ -11,6 +11,8 @@ vi.mock('fs', async () => {
     unlinkSync: vi.fn(),
     readFileSync: vi.fn(),
     writeFileSync: vi.fn(),
+    readdirSync: vi.fn().mockReturnValue([]),
+    mkdirSync: vi.fn(),
   };
 });
 
@@ -33,6 +35,14 @@ class TestMaintainerScript extends GoogleContactsMaintainerScript {
   public testCheckHebrew(contact: any): boolean {
     return (this as any).checkHebrew(contact);
   }
+
+  public testBackupContacts(
+    contacts: any[],
+    allLabels: string[],
+    otherContacts: any[]
+  ): any {
+    return (this as any).backupContacts(contacts, allLabels, otherContacts);
+  }
 }
 
 describe('GoogleContactsMaintainerScript', () => {
@@ -47,6 +57,7 @@ describe('GoogleContactsMaintainerScript', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(fs.readdirSync).mockReturnValue([]);
     maintainer = new TestMaintainerScript(mockAuth, mockOtherContactsFetcher);
   });
 
@@ -863,6 +874,54 @@ CreatedAt: 1/1/20, 12:00 PM`,
       expect(customMsg).toContain(
         '-POSSIBLE DUPLICATE CONTACTS BY NOTES - Phone: 9876543210'
       );
+    });
+  });
+
+  describe('backupContacts', () => {
+    it('should delete existing JSON files in backup folder before writing new ones', () => {
+      const existingFiles = [
+        'contacts_01.json',
+        'labels.json',
+        'other_contacts_01.json',
+        'README.txt',
+        'backup.zip',
+      ];
+
+      vi.mocked(fs.existsSync).mockReturnValue(true);
+      vi.mocked(fs.readdirSync).mockReturnValue(existingFiles as any);
+      const unlinkSpy = vi.mocked(fs.unlinkSync);
+
+      maintainer.testBackupContacts([], [], []);
+
+      // Should delete .json files
+      expect(unlinkSpy).toHaveBeenCalledWith(
+        expect.stringContaining('contacts_01.json')
+      );
+      expect(unlinkSpy).toHaveBeenCalledWith(
+        expect.stringContaining('labels.json')
+      );
+      expect(unlinkSpy).toHaveBeenCalledWith(
+        expect.stringContaining('other_contacts_01.json')
+      );
+
+      // Should NOT delete other files
+      expect(unlinkSpy).not.toHaveBeenCalledWith(
+        expect.stringContaining('README.txt')
+      );
+      expect(unlinkSpy).not.toHaveBeenCalledWith(
+        expect.stringContaining('backup.zip')
+      );
+    });
+
+    it('should create backup folder if it does not exist', () => {
+      vi.mocked(fs.existsSync).mockReturnValue(false);
+      const mkdirSpy = vi.mocked(fs.mkdirSync);
+
+      maintainer.testBackupContacts([], [], []);
+
+      expect(mkdirSpy).toHaveBeenCalledWith(expect.any(String), {
+        recursive: true,
+      });
     });
   });
 

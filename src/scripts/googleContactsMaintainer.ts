@@ -6,6 +6,7 @@ import {
   readFileSync,
   unlinkSync,
   mkdirSync,
+  readdirSync,
 } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
@@ -267,6 +268,14 @@ export class GoogleContactsMaintainerScript implements Script {
     const backupPath = SETTINGS.backup.contactsPath;
     if (!existsSync(backupPath)) {
       mkdirSync(backupPath, { recursive: true });
+    } else {
+      // Delete all JSON files in the backup folder before writing new ones
+      const files = readdirSync(backupPath);
+      files.forEach((file) => {
+        if (file.toLowerCase().endsWith('.json')) {
+          unlinkSync(join(backupPath, file));
+        }
+      });
     }
 
     // Sort contacts alphabetically
