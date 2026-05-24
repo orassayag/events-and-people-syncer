@@ -647,7 +647,7 @@ describe('GoogleContactsMaintainerScript', () => {
       );
     });
 
-    it('should suggest known LinkedIn URL if missing for HR/Job label', () => {
+    it('should detect missing LinkedIn URL for HR/Job label', () => {
       const contacts = [
         {
           ...mockContact,
@@ -662,13 +662,6 @@ describe('GoogleContactsMaintainerScript', () => {
       const item = report.find((r) => r.contact.firstName === 'Test');
       expect(item?.issues).toContain(
         MaintainerIssueType.MISSING_REQUIRED_URL_FOR_HR_JOB_LABEL
-      );
-      expect(
-        item?.customIssueMessages[
-          MaintainerIssueType.MISSING_REQUIRED_URL_FOR_HR_JOB_LABEL
-        ]
-      ).toBe(
-        'MISSING REQUIRED URL FOR HR/JOB LABEL - SHOULD BE: https://www.linkedin.com/company/gotfriends/'
       );
     });
 

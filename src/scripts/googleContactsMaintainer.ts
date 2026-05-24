@@ -25,7 +25,6 @@ import { Logger, SyncLogger } from '../logging';
 import { AuthService } from '../services/auth';
 import { RegexPatterns } from '../regex';
 import { calculateFormattedCompany } from '../utils/companyFormatter';
-import { COMPANY_URL_MAPPINGS } from '../utils/companyMappings';
 import { TextUtils } from '../utils/textUtils';
 import { SyncStatusBar } from '../flow/syncStatusBar';
 import { FormatUtils } from '../constants';
@@ -1030,7 +1029,9 @@ export class GoogleContactsMaintainerScript implements Script {
       );
       const hasProperName = firstName.length > 1 && lastName.length > 1;
       const hasLinkedInUrl = contact.websites.some(
-        (w) => w.label === 'LinkedIn'
+        (w) =>
+          w.label === 'LinkedIn' ||
+          w.url.toLowerCase().includes('linkedin.com/in')
       );
       // and the family name not equal to the label name
       const familyNameNotLabel = !activeLabels.includes(lastName);
@@ -1041,14 +1042,6 @@ export class GoogleContactsMaintainerScript implements Script {
         hasProperName &&
         familyNameNotLabel
       ) {
-        const knownUrl = suggestedClean
-          ? COMPANY_URL_MAPPINGS[suggestedClean]
-          : undefined;
-        if (knownUrl) {
-          customMessages[
-            MaintainerIssueType.MISSING_REQUIRED_URL_FOR_HR_JOB_LABEL
-          ] = `MISSING REQUIRED URL FOR HR/JOB LABEL - SHOULD BE: ${knownUrl}`;
-        }
         issues.push(MaintainerIssueType.MISSING_REQUIRED_URL_FOR_HR_JOB_LABEL);
       }
 
