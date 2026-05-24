@@ -198,7 +198,7 @@ export class TextUtils {
     );
     // If title is at the very start, remove only the title and common joiners
     cleaned = cleaned.replace(
-      new RegExp(`^\\b${jobTitles}\\b\\s*(at|of|in|the)?\\s*`, 'gi'),
+      new RegExp(`^\\b${jobTitles}\\b\\s*(?:\\b(at|of|in|the)\\b\\s*)?`, 'gi'),
       ''
     );
 

@@ -975,8 +975,18 @@ export class GoogleContactsMaintainerScript implements Script {
       const currentCompany = contact.company || '';
       // Check last name too as per rule
       const lastNameParts = lastName.split(' ');
-      const companyInLastName =
-        lastNameParts.length > 2 ? lastNameParts.slice(2).join(' ') : '';
+      let companyInLastName = '';
+
+      // Find if last name contains a label (HR/Job/LinkedIn) and extract everything after it
+      const labelIndex = lastNameParts.findIndex(
+        (p) => p === 'HR' || p === 'Job' || p === 'LinkedIn'
+      );
+      if (labelIndex !== -1 && labelIndex < lastNameParts.length - 1) {
+        companyInLastName = lastNameParts.slice(labelIndex + 1).join(' ');
+      } else if (lastNameParts.length > 2) {
+        // Fallback to legacy logic: everything after the first two words
+        companyInLastName = lastNameParts.slice(2).join(' ');
+      }
 
       const companyToTest = currentCompany || companyInLastName;
       let suggestedClean = '';
@@ -1046,51 +1056,55 @@ export class GoogleContactsMaintainerScript implements Script {
       }
 
       // 4.15.2 INVALID CONTACT - Company logic
-      const companyWords = currentCompany.split(' ');
-      let cleanedCompanyForVal = currentCompany;
-      const sortedLabelsForCompanyVal = [...allLabels].sort(
-        (a, b) => b.length - a.length
-      );
+      const hasRelevantLabel = isHrOrJob || activeLabels.includes('LinkedIn');
 
-      // Skip if company name equals a label
-      const isCompanyLabelMatch = allLabels.some(
-        (l) => l.toLowerCase() === currentCompany.toLowerCase()
-      );
-
-      if (!isCompanyLabelMatch) {
-        for (let i = 0; i < companyWords.length; i++) {
-          const word = companyWords[i].toLowerCase();
-          const hasMatch = sortedLabelsForCompanyVal.some(
-            (l) => l.toLowerCase() === word
-          );
-          if (hasMatch) {
-            cleanedCompanyForVal = companyWords.slice(0, i).join(' ');
-            break;
-          }
-        }
-
-        const formattedCompanyVal = calculateFormattedCompany(
-          cleanedCompanyForVal,
-          undefined,
-          firstName,
-          lastName
+      if (hasRelevantLabel) {
+        const companyWords = currentCompany.split(' ');
+        let cleanedCompanyForVal = currentCompany;
+        const sortedLabelsForCompanyVal = [...allLabels].sort(
+          (a, b) => b.length - a.length
         );
 
-        const suggestedCompanyClean = formattedCompanyVal.startsWith(
-          'LinkedIn '
-        )
-          ? formattedCompanyVal.substring(9)
-          : formattedCompanyVal === 'LinkedIn'
-            ? ''
-            : formattedCompanyVal;
+        // Skip if company name equals a label
+        const isCompanyLabelMatch = allLabels.some(
+          (l) => l.toLowerCase() === currentCompany.toLowerCase()
+        );
 
-        if (
-          suggestedCompanyClean !== cleanedCompanyForVal &&
-          suggestedCompanyClean
-        ) {
-          issues.push(MaintainerIssueType.INVALID_CONTACT_COMPANY);
-          customMessages[MaintainerIssueType.INVALID_CONTACT_COMPANY] =
-            `INVALID CONTACT - Company: ${suggestedCompanyClean}`;
+        if (!isCompanyLabelMatch) {
+          for (let i = 0; i < companyWords.length; i++) {
+            const word = companyWords[i].toLowerCase();
+            const hasMatch = sortedLabelsForCompanyVal.some(
+              (l) => l.toLowerCase() === word
+            );
+            if (hasMatch) {
+              cleanedCompanyForVal = companyWords.slice(0, i).join(' ');
+              break;
+            }
+          }
+
+          const formattedCompanyVal = calculateFormattedCompany(
+            cleanedCompanyForVal,
+            undefined,
+            firstName,
+            lastName
+          );
+
+          const suggestedCompanyClean = formattedCompanyVal.startsWith(
+            'LinkedIn '
+          )
+            ? formattedCompanyVal.substring(9)
+            : formattedCompanyVal === 'LinkedIn'
+              ? ''
+              : formattedCompanyVal;
+
+          if (
+            suggestedCompanyClean !== cleanedCompanyForVal &&
+            suggestedCompanyClean
+          ) {
+            issues.push(MaintainerIssueType.INVALID_CONTACT_COMPANY);
+            customMessages[MaintainerIssueType.INVALID_CONTACT_COMPANY] =
+              `INVALID CONTACT - Company: ${suggestedCompanyClean}`;
+          }
         }
       }
 

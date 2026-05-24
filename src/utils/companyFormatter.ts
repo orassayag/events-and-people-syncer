@@ -68,7 +68,7 @@ export function cleanCompany(company: string): string {
   // Remove profession if it starts with it and is followed by "At" or similar
   const jobTitles = TextUtils.getJobTitlesRegex(false);
   cleaned = cleaned.replace(
-    new RegExp(`^\\b${jobTitles}\\b\\s*(at|of|in|the)?\\s*`, 'gi'),
+    new RegExp(`^\\b${jobTitles}\\b\\s*(?:\\b(at|of|in|the)\\b\\s*)?`, 'gi'),
     ''
   );
 
@@ -135,12 +135,21 @@ export function calculateFormattedCompany(
   firstName?: string,
   lastName?: string
 ): string {
-  const normalized = company?.trim().toLowerCase();
+  let companyToProcess = company?.trim() || '';
+  const normalized = companyToProcess.toLowerCase();
+
   if (!normalized || normalized === '(none)' || normalized === 'none') {
     return 'LinkedIn';
   }
 
-  const cleanedCompany: string = cleanCompany(company);
+  // If the company already starts with "LinkedIn", strip it to avoid double prefixing
+  if (normalized.startsWith('linkedin ')) {
+    companyToProcess = companyToProcess.substring(9).trim();
+  } else if (normalized === 'linkedin') {
+    return 'LinkedIn';
+  }
+
+  const cleanedCompany: string = cleanCompany(companyToProcess);
 
   // Check if company name matches the person's full name (Self-Employed case)
   const fName = typeof firstName === 'string' ? firstName : undefined;

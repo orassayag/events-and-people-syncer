@@ -13,6 +13,7 @@ export const PROTECTED_SUFFIXES = [
   'eBay',
   'SVT.Jobs',
   'GlassesUSA.com',
+  'YaelGroup',
 ];
 
 export const COMPANY_SUFFIXES_TO_REMOVE = [
@@ -235,6 +236,8 @@ export const MANUAL_COMPANY_MAPPINGS: Record<string, string> = {
   JumboMail: 'JUMBOmail',
   Similarweb: 'Similarweb',
   Gotfriends: 'Gotfriends',
+  Ideodigital: 'IDEODIGITAL',
+  YaelGroup: 'YaelGroup',
 };
 
 /**
