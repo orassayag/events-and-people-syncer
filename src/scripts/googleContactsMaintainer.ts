@@ -631,7 +631,7 @@ export class GoogleContactsMaintainerScript implements Script {
           } else {
             issues.push(MaintainerIssueType.INVALID_CONTACT_NAME);
             customMessages[MaintainerIssueType.INVALID_CONTACT_NAME] =
-              `INVALID CONTACT - Name: ${suggestedFullName}`;
+              `INVALID CONTACT - Name: ${cleanedFullNameForVal} | SHOULD BE: ${suggestedFullName}`;
           }
         }
       }
@@ -1136,7 +1136,7 @@ export class GoogleContactsMaintainerScript implements Script {
           ) {
             issues.push(MaintainerIssueType.INVALID_CONTACT_COMPANY);
             customMessages[MaintainerIssueType.INVALID_CONTACT_COMPANY] =
-              `INVALID CONTACT - Company: ${suggestedCompanyClean}`;
+              `INVALID CONTACT - Company: ${cleanedCompanyForVal} | SHOULD BE: ${suggestedCompanyClean}`;
           }
         }
       }
