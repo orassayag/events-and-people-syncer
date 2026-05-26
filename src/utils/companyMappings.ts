@@ -14,6 +14,7 @@ export const PROTECTED_SUFFIXES = [
   'SVT.Jobs',
   'GlassesUSA.com',
   'YaelGroup',
+  'JobInfo',
 ];
 
 export const COMPANY_SUFFIXES_TO_REMOVE = [
@@ -222,6 +223,9 @@ export const MANUAL_COMPANY_MAPPINGS: Record<string, string> = {
   Gotfriends: 'Gotfriends',
   Ideodigital: 'IDEODIGITAL',
   YaelGroup: 'YaelGroup',
+  JobInfo: 'JobInfo',
+  Sms: 'SMS',
+  SMS: 'SMS',
 };
 
 /**

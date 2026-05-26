@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { GoogleContactsMaintainerScript } from '../googleContactsMaintainer';
 import { MaintainerIssueType } from '../../types/maintainer';
+import { PhoneNormalizer } from '../../services/contacts/phoneNormalizer';
 import * as fs from 'fs';
 
 vi.mock('fs', async () => {
@@ -13,6 +14,10 @@ vi.mock('fs', async () => {
     writeFileSync: vi.fn(),
     readdirSync: vi.fn().mockReturnValue([]),
     mkdirSync: vi.fn(),
+    promises: {
+      unlink: vi.fn().mockResolvedValue(undefined),
+      writeFile: vi.fn().mockResolvedValue(undefined),
+    },
   };
 });
 
@@ -54,11 +59,16 @@ describe('GoogleContactsMaintainerScript', () => {
   const mockOtherContactsFetcher = {
     fetchOtherContacts: vi.fn().mockResolvedValue([]),
   } as any;
+  const phoneNormalizer = new PhoneNormalizer();
 
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(fs.readdirSync).mockReturnValue([]);
-    maintainer = new TestMaintainerScript(mockAuth, mockOtherContactsFetcher);
+    maintainer = new TestMaintainerScript(
+      mockAuth,
+      mockOtherContactsFetcher,
+      phoneNormalizer
+    );
   });
 
   afterEach(() => {
@@ -128,13 +138,74 @@ describe('GoogleContactsMaintainerScript', () => {
       expect(issues[0].issues).toContain('EMPTY NAME');
     });
 
+    it('should detect empty contact (no name, no email, no phone)', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          firstName: '',
+          lastName: '',
+          emails: [],
+          phones: [],
+          resourceName: 'people/empty',
+        },
+      ];
+      const issues = maintainer.testScanContacts(contacts, []);
+      expect(issues[0].issues).toContain(MaintainerIssueType.EMPTY_NAME);
+      expect(issues[0].issues).toContain(MaintainerIssueType.EMPTY_CONTACT);
+    });
+
+    it('should NOT detect empty contact if it has a name', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          firstName: 'John',
+          lastName: 'Doe',
+          emails: [],
+          phones: [],
+          resourceName: 'people/has-name',
+        },
+      ];
+      const issues = maintainer.testScanContacts(contacts, []);
+      expect(issues[0].issues).not.toContain(MaintainerIssueType.EMPTY_CONTACT);
+    });
+
+    it('should NOT detect empty contact if it has an email', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          firstName: '',
+          lastName: '',
+          emails: [{ value: 'john@doe.com', label: 'Work' }],
+          phones: [],
+          resourceName: 'people/has-email',
+        },
+      ];
+      const issues = maintainer.testScanContacts(contacts, []);
+      expect(issues[0].issues).not.toContain(MaintainerIssueType.EMPTY_CONTACT);
+    });
+
+    it('should NOT detect empty contact if it has a phone', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          firstName: '',
+          lastName: '',
+          emails: [],
+          phones: [{ number: '123456', label: 'Work' }],
+          resourceName: 'people/has-phone',
+        },
+      ];
+      const issues = maintainer.testScanContacts(contacts, []);
+      expect(issues[0].issues).not.toContain(MaintainerIssueType.EMPTY_CONTACT);
+    });
+
     it('should detect hidden unicode characters and suggest fix with label', () => {
       const contacts = [
         {
           ...mockContact,
-          firstName: '\u202aEden',
-          lastName: 'Ben Shoshan Vim',
-          resourceName: 'people/eden',
+          firstName: '\u202aDummy',
+          lastName: 'Name Vim',
+          resourceName: 'people/dummy',
           label: 'Vim',
         },
       ];
@@ -148,9 +219,7 @@ describe('GoogleContactsMaintainerScript', () => {
         item.customIssueMessages[
           MaintainerIssueType.CONTAINS_HIDDEN_UNICODE_CHARACTER
         ]
-      ).toBe(
-        'CONTAINS_HIDDEN_UNICODE_CHARACTER - SHOULD BE: Eden Ben Shoshan Vim'
-      );
+      ).toBe('CONTAINS_HIDDEN_UNICODE_CHARACTER - SHOULD BE: Dummy Name Vim');
     });
 
     it('should detect invalid name and suggest fix, using allLabels to identify base name', () => {
@@ -166,6 +235,27 @@ describe('GoogleContactsMaintainerScript', () => {
       expect(item.customIssueMessages[MaintainerIssueType.INVALID_NAME]).toBe(
         'INVALID NAME - SHOULD BE: John Doe Adv Job'
       );
+    });
+
+    it('should not flag "Dummy Name HR JobInfo" as invalid name when JobInfo is company and HR is label', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          firstName: 'Dummy',
+          lastName: 'Name HR JobInfo',
+          label: 'HR',
+          company: 'JobInfo',
+        },
+      ];
+      const allLabels = ['HR', 'Job'];
+      const report = maintainer.testScanContacts(contacts, [], allLabels);
+
+      // Should not contain INVALID NAME issue
+      const item = report[0];
+      const hasInvalidName = item?.issues.some((i: string) =>
+        i.startsWith('INVALID NAME')
+      );
+      expect(hasInvalidName).toBe(false);
     });
 
     it('should not flag invalid name if contact has "Life" or "Customer Service" label', () => {
@@ -669,15 +759,15 @@ describe('GoogleContactsMaintainerScript', () => {
       const contacts = [
         {
           ...mockContact,
-          firstName: 'Avi',
-          lastName: 'Cohen - Director HR',
+          firstName: 'John',
+          lastName: 'Doe - Director HR',
           company: 'Google Ltd Job',
           label: 'HR | Job',
         },
         {
           ...mockContact,
-          firstName: 'Almog',
-          lastName: 'Wang Unknown',
+          firstName: 'Jane',
+          lastName: 'Smith Unknown',
           company: 'Google',
           label: 'Unknown',
         },
@@ -685,24 +775,27 @@ describe('GoogleContactsMaintainerScript', () => {
       const allLabels = ['HR', 'Job', 'Unknown'];
       const report = maintainer.testScanContacts(contacts, [], allLabels);
 
-      // First contact: "Avi Cohen - Director HR" -> remove label -> "Avi Cohen - Director" -> clean -> "Avi Cohen"
-      // "Avi Cohen" !== "Avi Cohen - Director" -> Flagged
-      const item1 = report.find((c) => c.contact.firstName === 'Avi');
+      // First contact: "John Doe - Director HR" -> remove label -> "John Doe - Director" -> clean -> "John Doe"
+      // "John Doe" !== "John Doe - Director" -> Flagged
+      const item1 = report.find((c) => c.contact.firstName === 'John');
       expect(item1?.issues).toContain(MaintainerIssueType.INVALID_CONTACT_NAME);
       expect(
         item1?.customIssueMessages[MaintainerIssueType.INVALID_CONTACT_NAME]
-      ).toBe('INVALID CONTACT - Name: Avi Cohen HR');
+      ).toContain('INVALID CONTACT - Name: John Doe');
+      expect(
+        item1?.customIssueMessages[MaintainerIssueType.INVALID_CONTACT_NAME]
+      ).toContain('SHOULD BE: John Doe HR');
 
       expect(item1?.issues).toContain(
         MaintainerIssueType.INVALID_CONTACT_COMPANY
       );
       expect(
         item1?.customIssueMessages[MaintainerIssueType.INVALID_CONTACT_COMPANY]
-      ).toBe('INVALID CONTACT - Company: Google');
+      ).toContain('INVALID CONTACT - Company: Google');
 
-      // Second contact: "Almog Wang Unknown" -> remove label -> "Almog Wang" -> clean -> "Almog Wang"
-      // "Almog Wang" === "Almog Wang" -> NOT flagged
-      const item2 = report.find((c) => c.contact.firstName === 'Almog');
+      // Second contact: "Jane Smith Unknown" -> remove label -> "Jane Smith" -> clean -> "Jane Smith"
+      // "Jane Smith" === "Jane Smith" -> NOT flagged
+      const item2 = report.find((c) => c.contact.firstName === 'Jane');
       expect(
         item2?.issues.includes(MaintainerIssueType.INVALID_CONTACT_NAME)
       ).toBe(false);
@@ -743,14 +836,14 @@ describe('GoogleContactsMaintainerScript', () => {
           resourceName: 'people/phone_upper',
           firstName: 'Phone',
           lastName: 'Upper',
-          phones: [{ number: 'LIBERMAN', label: 'Work' }],
+          phones: [{ number: 'DUMMY', label: 'Work' }],
         },
         {
           ...mockContact,
           resourceName: 'people/phone_lower',
           firstName: 'Phone',
           lastName: 'Lower',
-          phones: [{ number: 'liberman', label: 'Work' }],
+          phones: [{ number: 'dummy', label: 'Work' }],
         },
       ];
 
@@ -779,6 +872,97 @@ describe('GoogleContactsMaintainerScript', () => {
       expect(mixedSingleItem?.issues).toContain(
         MaintainerIssueType.INVALID_MIXED_LABELED
       );
+    });
+
+    it('should validate sub-labels (Tattoo, Date) and their presence in contact labels', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          resourceName: 'people/tattoo1',
+          firstName: 'Dummy Emily Kim',
+          lastName: 'Tattoo Vision',
+          label: 'Job', // Missing Tattoo and Vision labels
+        },
+        {
+          ...mockContact,
+          resourceName: 'people/tattoo2',
+          firstName: 'Dummy Emily Kim',
+          lastName: 'Vision Tattoo', // Ends with Tattoo - missing sub-label in name
+          label: 'Job | Tattoo | Vision',
+        },
+        {
+          ...mockContact,
+          resourceName: 'people/tattoo3',
+          firstName: 'Dummy Emily Kim',
+          lastName: 'Tattoo Vision',
+          label: 'Job | Tattoo | Vision', // Has both labels - should be fine
+        },
+      ];
+
+      const report = maintainer.testScanContacts(contacts, []);
+
+      // people/tattoo1: Has "Tattoo Vision" in name but missing labels
+      const item1 = report.find(
+        (r) => r.contact.resourceName === 'people/tattoo1'
+      );
+      expect(item1?.issues).toContain(MaintainerIssueType.MISSING_SUB_LABEL);
+      expect(
+        item1?.customIssueMessages[MaintainerIssueType.MISSING_SUB_LABEL]
+      ).toContain('MISSING SUB-LABEL FOR: Tattoo');
+      expect(
+        item1?.customIssueMessages[MaintainerIssueType.MISSING_SUB_LABEL]
+      ).toContain('MISSING SUB-LABEL FOR: Vision');
+
+      // people/tattoo2: Ends with "Tattoo" - missing sub-label in name
+      const item2 = report.find(
+        (r) => r.contact.resourceName === 'people/tattoo2'
+      );
+      expect(item2?.issues).toContain(MaintainerIssueType.MISSING_SUB_LABEL);
+      expect(item2?.issues).toContain(
+        MaintainerIssueType.INVALID_ORDER_FOR_SUB_LABEL
+      );
+      expect(
+        item2?.customIssueMessages[MaintainerIssueType.MISSING_SUB_LABEL]
+      ).toBe('MISSING SUB-LABEL FOR: Tattoo');
+
+      // people/tattoo3: Has both name and labels - should have no sub-label issues
+      const item3 = report.find(
+        (r) => r.contact.resourceName === 'people/tattoo3'
+      );
+      const subLabelIssues = item3?.issues.filter(
+        (i: MaintainerIssueType) =>
+          i === MaintainerIssueType.MISSING_SUB_LABEL ||
+          i === MaintainerIssueType.INVALID_ORDER_FOR_SUB_LABEL
+      );
+      expect(subLabelIssues?.length || 0).toBe(0);
+    });
+
+    it('should check for other new validations', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          resourceName: 'people/sqllink',
+          firstName: 'SQLLink',
+          lastName: 'User',
+          label: 'SQLLink',
+        },
+        {
+          ...mockContact,
+          resourceName: 'people/phone_upper',
+          firstName: 'Phone',
+          lastName: 'Upper',
+          phones: [{ number: 'LIBERMAN', label: 'Work' }],
+        },
+        {
+          ...mockContact,
+          resourceName: 'people/phone_lower',
+          firstName: 'Phone',
+          lastName: 'Lower',
+          phones: [{ number: 'liberman', label: 'Work' }],
+        },
+      ];
+
+      const report = maintainer.testScanContacts(contacts, []);
 
       // SQLLink check
       const sqllinkItem = report.find(
@@ -861,8 +1045,8 @@ describe('GoogleContactsMaintainerScript', () => {
       const contacts = [
         {
           ...mockContact,
-          firstName: 'Avi',
-          lastName: 'Cohen',
+          firstName: 'John',
+          lastName: 'Doe',
           company: 'Job',
           label: 'Job',
         },
@@ -998,10 +1182,76 @@ CreatedAt: 1/1/20, 12:00 PM`,
         '-POSSIBLE DUPLICATE CONTACTS BY NOTES - Phone: 9876543210'
       );
     });
+
+    it('should detect possible duplicate contacts by Israeli phone variations in notes', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          firstName: 'Note',
+          lastName: 'Contact',
+          resourceName: 'people/note1',
+          biography: `PhoneNumbers: +972506856032`,
+        },
+        {
+          ...mockContact,
+          firstName: 'Duplicate',
+          lastName: 'Contact',
+          resourceName: 'people/dup1',
+          phones: [{ number: '0506856032', label: 'Mobile' }],
+        },
+      ];
+
+      const issues = maintainer.testScanContacts(contacts, []);
+      const noteContactIssues = issues.find(
+        (i) => i.contact.resourceName === 'people/note1'
+      );
+
+      expect(noteContactIssues?.issues).toContain(
+        MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACTS_BY_NOTES
+      );
+      const customMsg =
+        noteContactIssues?.customIssueMessages[
+          MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACTS_BY_NOTES
+        ];
+      expect(customMsg).toContain(
+        '-POSSIBLE DUPLICATE CONTACTS BY NOTES - Phone: +972506856032'
+      );
+      expect(customMsg).toContain(
+        'Duplicate Contact https://contacts.google.com/person/dup1'
+      );
+    });
+
+    it('should detect possible duplicate contacts by Israeli phone variation +9720 in notes', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          firstName: 'Note',
+          lastName: 'Contact',
+          resourceName: 'people/note1',
+          biography: `PhoneNumbers: +9720506856032`,
+        },
+        {
+          ...mockContact,
+          firstName: 'Duplicate',
+          lastName: 'Contact',
+          resourceName: 'people/dup1',
+          phones: [{ number: '0506856032', label: 'Mobile' }],
+        },
+      ];
+
+      const issues = maintainer.testScanContacts(contacts, []);
+      const noteContactIssues = issues.find(
+        (i) => i.contact.resourceName === 'people/note1'
+      );
+
+      expect(noteContactIssues?.issues).toContain(
+        MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACTS_BY_NOTES
+      );
+    });
   });
 
   describe('backupContacts', () => {
-    it('should delete existing JSON files in backup folder before writing new ones', () => {
+    it('should delete existing JSON files in backup folder before writing new ones', async () => {
       const existingFiles = [
         'contacts_01.json',
         'labels.json',
@@ -1012,9 +1262,9 @@ CreatedAt: 1/1/20, 12:00 PM`,
 
       vi.mocked(fs.existsSync).mockReturnValue(true);
       vi.mocked(fs.readdirSync).mockReturnValue(existingFiles as any);
-      const unlinkSpy = vi.mocked(fs.unlinkSync);
+      const unlinkSpy = vi.mocked(fs.promises.unlink);
 
-      maintainer.testBackupContacts([], [], []);
+      await maintainer.testBackupContacts([], [], []);
 
       // Should delete .json files
       expect(unlinkSpy).toHaveBeenCalledWith(

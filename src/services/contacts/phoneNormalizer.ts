@@ -13,6 +13,37 @@ export class PhoneNormalizer {
     variations.push(normalized);
     variations.push(digitsOnly);
     variations.push(phone);
+
+    // Israeli specific logic
+    if (digitsOnly.startsWith('972')) {
+      // +972... case
+      const without972 = digitsOnly.substring(3);
+      if (without972.startsWith('0')) {
+        // +9720... case
+        const local = without972; // already starts with 0
+        variations.push(local);
+        const withoutExtraZero = '972' + without972.substring(1);
+        variations.push(withoutExtraZero);
+        variations.push('+' + withoutExtraZero);
+      } else {
+        // +972... (no extra 0)
+        const local = '0' + without972;
+        variations.push(local);
+        const withExtraZero = '9720' + without972;
+        variations.push(withExtraZero);
+        variations.push('+' + withExtraZero);
+      }
+    } else if (digitsOnly.startsWith('0') && !digitsOnly.startsWith('00')) {
+      // 0... local case
+      const withoutZero = digitsOnly.substring(1);
+      const international = '972' + withoutZero;
+      variations.push(international);
+      variations.push('+' + international);
+      const internationalWithZero = '9720' + withoutZero;
+      variations.push(internationalWithZero);
+      variations.push('+' + internationalWithZero);
+    }
+
     if (digitsOnly.startsWith('0')) {
       variations.push(digitsOnly.substring(1));
     }

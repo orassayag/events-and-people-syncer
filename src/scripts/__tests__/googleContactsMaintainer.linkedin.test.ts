@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { GoogleContactsMaintainerScript } from '../googleContactsMaintainer';
+import { PhoneNormalizer } from '../../services/contacts/phoneNormalizer';
 import {
   MaintainerIssueType,
   MaintainerReportItem,
@@ -19,9 +20,14 @@ describe('GoogleContactsMaintainerScript LinkedIn Duplicates', () => {
   let maintainer: TestMaintainerScript;
   const mockAuth = {} as any;
   const mockOtherContactsFetcher = {} as any;
+  const phoneNormalizer = new PhoneNormalizer();
 
   beforeEach(() => {
-    maintainer = new TestMaintainerScript(mockAuth, mockOtherContactsFetcher);
+    maintainer = new TestMaintainerScript(
+      mockAuth,
+      mockOtherContactsFetcher,
+      phoneNormalizer
+    );
   });
 
   const mockContact = {

@@ -30,7 +30,7 @@ import { TextUtils } from '../utils/textUtils';
 import { SyncStatusBar } from '../flow/syncStatusBar';
 import { FormatUtils } from '../constants';
 import { UrlNormalizer } from '../services/linkedin/urlNormalizer';
-
+import { PhoneNormalizer } from '../services/contacts/phoneNormalizer';
 import { OtherContactsFetcher } from '../services/otherContacts';
 
 @injectable()
@@ -44,7 +44,8 @@ export class GoogleContactsMaintainerScript implements Script {
   constructor(
     @inject('OAuth2Client') private auth: OAuth2Client,
     @inject(OtherContactsFetcher)
-    private otherContactsFetcher: OtherContactsFetcher
+    private otherContactsFetcher: OtherContactsFetcher,
+    @inject(PhoneNormalizer) private phoneNormalizer: PhoneNormalizer
   ) {
     this.logger = new SyncLogger('google-contacts-maintainer');
     this.uiLogger = new Logger('GoogleContactsMaintainer');
@@ -467,9 +468,7 @@ export class GoogleContactsMaintainerScript implements Script {
     // Pattern: PhoneNumbers: phone1, phone2
     const phoneMatches = notes.matchAll(/PhoneNumbers:\s*([^\r\n]+)/gi);
     for (const match of phoneMatches) {
-      const phoneList = match[1]
-        .split(',')
-        .map((p) => p.trim().replace(/\D/g, ''));
+      const phoneList = match[1].split(',').map((p) => p.trim());
       phones.push(...phoneList.filter((p) => p && p !== 'null'));
     }
 
@@ -503,11 +502,13 @@ export class GoogleContactsMaintainerScript implements Script {
       }
 
       c.phones.forEach((p) => {
-        const num = p.number.trim();
-        if (num) {
-          if (!phoneMap.has(num)) phoneMap.set(num, []);
-          phoneMap.get(num)!.push(c.resourceName!);
-        }
+        const variations = this.phoneNormalizer.getAllNormalizedVariations(
+          p.number
+        );
+        variations.forEach((v) => {
+          if (!phoneMap.has(v)) phoneMap.set(v, []);
+          phoneMap.get(v)!.push(c.resourceName!);
+        });
       });
 
       c.emails.forEach((e) => {
@@ -565,14 +566,20 @@ export class GoogleContactsMaintainerScript implements Script {
       ].some((f) => this.checkHebrew(f));
       if (hasHebrew) issues.push(MaintainerIssueType.CONTAINS_HEBREW);
 
-      // 4.2 Empty name
-      if (
+      // 4.2 Empty name / Empty contact
+      const isNameEmpty =
         !fullName ||
         fullNameLower === 'undefined' ||
         fullNameLower === 'null' ||
-        !fullName.trim()
-      ) {
+        !fullName.trim();
+
+      if (isNameEmpty) {
         issues.push(MaintainerIssueType.EMPTY_NAME);
+
+        // In case a contact don't have anything - No name, no email, no phone - write in the reasons: -EMPTY CONTACT
+        if (contact.emails.length === 0 && contact.phones.length === 0) {
+          issues.push(MaintainerIssueType.EMPTY_CONTACT);
+        }
       } else {
         // Check for all lowercase or all uppercase name
         const isAllLower =
@@ -594,9 +601,12 @@ export class GoogleContactsMaintainerScript implements Script {
         const sortedLabels = [...allLabels].sort((a, b) => b.length - a.length); // Longest first to avoid partial matches
         for (const label of sortedLabels) {
           if (label.length < 2) continue; // Skip too short labels
-          const labelIndex = fullName.indexOf(` ${label}`);
-          if (labelIndex !== -1) {
-            baseName = fullName.substring(0, labelIndex).trim();
+          // Use regex for whole word match to avoid partial matches like "Job" in "JobInfo"
+          const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const labelRegex = new RegExp(`\\s+${escapedLabel}\\b`, 'i');
+          const match = fullName.match(labelRegex);
+          if (match && match.index !== undefined) {
+            baseName = fullName.substring(0, match.index).trim();
             detectedLabel = label;
             break;
           }
@@ -1245,9 +1255,9 @@ export class GoogleContactsMaintainerScript implements Script {
 
       // New Sub-Label Validations (Date, Tattoo, etc.)
       const baseLabels = ['Date', 'Tattoo'];
+
       baseLabels.forEach((baseLabel) => {
         const checkFields = [
-          ...(contact.labels || []),
           contact.company,
           lastName,
           ...contact.phones.map((p) => p.label),
@@ -1255,41 +1265,60 @@ export class GoogleContactsMaintainerScript implements Script {
         ].filter((f) => !!f);
 
         for (const field of checkFields) {
-          const trimmedField = field.trim();
+          const words = field.split(/[\s-]+/);
+          const baseLabelIndex = words.indexOf(baseLabel);
 
-          // Case 1: MISSING SUB-LABEL (Stand alone)
-          if (trimmedField === baseLabel) {
-            if (!issues.includes(MaintainerIssueType.MISSING_SUB_LABEL)) {
-              issues.push(MaintainerIssueType.MISSING_SUB_LABEL);
-              customMessages[MaintainerIssueType.MISSING_SUB_LABEL] =
-                MaintainerIssueType.MISSING_SUB_LABEL.replace(
-                  '#LABEL#',
-                  baseLabel
-                );
-            }
-            break;
-          }
+          if (baseLabelIndex !== -1) {
+            const isLastWord = baseLabelIndex === words.length - 1;
 
-          // Case 2: Ends with baseLabel (Nothing after it)
-          if (
-            trimmedField.endsWith(` ${baseLabel}`) ||
-            trimmedField.endsWith(`-${baseLabel}`)
-          ) {
-            // Both issues apply: It's missing a sub-label after it, AND it's in the wrong order
-            if (!issues.includes(MaintainerIssueType.MISSING_SUB_LABEL)) {
-              issues.push(MaintainerIssueType.MISSING_SUB_LABEL);
-              customMessages[MaintainerIssueType.MISSING_SUB_LABEL] =
-                MaintainerIssueType.MISSING_SUB_LABEL.replace(
-                  '#LABEL#',
-                  baseLabel
-                );
+            if (isLastWord) {
+              // Case 1: MISSING SUB-LABEL (At the end or stand alone)
+              if (!issues.includes(MaintainerIssueType.MISSING_SUB_LABEL)) {
+                issues.push(MaintainerIssueType.MISSING_SUB_LABEL);
+                customMessages[MaintainerIssueType.MISSING_SUB_LABEL] =
+                  MaintainerIssueType.MISSING_SUB_LABEL.replace(
+                    '#LABEL#',
+                    baseLabel
+                  );
+              }
+              if (
+                !issues.includes(
+                  MaintainerIssueType.INVALID_ORDER_FOR_SUB_LABEL
+                )
+              ) {
+                issues.push(MaintainerIssueType.INVALID_ORDER_FOR_SUB_LABEL);
+              }
+              break;
+            } else {
+              // Case 2: Has something after it (Sub-Label) - Verify if labels are present
+              const subLabel = words[baseLabelIndex + 1];
+              const missingLabels: string[] = [];
+
+              if (!activeLabels.includes(baseLabel))
+                missingLabels.push(baseLabel);
+              if (!activeLabels.includes(subLabel))
+                missingLabels.push(subLabel);
+
+              if (missingLabels.length > 0) {
+                if (!issues.includes(MaintainerIssueType.MISSING_SUB_LABEL)) {
+                  issues.push(MaintainerIssueType.MISSING_SUB_LABEL);
+                  customMessages[MaintainerIssueType.MISSING_SUB_LABEL] = '';
+                }
+
+                missingLabels.forEach((label) => {
+                  const msg = MaintainerIssueType.MISSING_SUB_LABEL.replace(
+                    '#LABEL#',
+                    label
+                  );
+                  const currentMsg =
+                    customMessages[MaintainerIssueType.MISSING_SUB_LABEL] || '';
+                  if (!currentMsg.includes(label)) {
+                    customMessages[MaintainerIssueType.MISSING_SUB_LABEL] =
+                      currentMsg ? `${currentMsg}\n-${msg}` : msg;
+                  }
+                });
+              }
             }
-            if (
-              !issues.includes(MaintainerIssueType.INVALID_ORDER_FOR_SUB_LABEL)
-            ) {
-              issues.push(MaintainerIssueType.INVALID_ORDER_FOR_SUB_LABEL);
-            }
-            break;
           }
         }
       });
@@ -1327,10 +1356,19 @@ export class GoogleContactsMaintainerScript implements Script {
       });
 
       extracted.phones.forEach((phone) => {
-        const matches = (phoneMap.get(phone) || []).filter(
-          (id) => id !== contact.resourceName
-        );
-        if (matches.length > 0) {
+        const variations =
+          this.phoneNormalizer.getAllNormalizedVariations(phone);
+        const allMatches: string[] = [];
+        variations.forEach((v) => {
+          const matches = (phoneMap.get(v) || []).filter(
+            (id) => id !== contact.resourceName
+          );
+          allMatches.push(...matches);
+        });
+
+        const uniqueMatches = [...new Set(allMatches)];
+
+        if (uniqueMatches.length > 0) {
           if (
             !issues.includes(
               MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACTS_BY_NOTES
@@ -1341,7 +1379,7 @@ export class GoogleContactsMaintainerScript implements Script {
             );
           }
           let msg = `-POSSIBLE DUPLICATE CONTACTS BY NOTES - Phone: ${phone}`;
-          matches.forEach((id) => {
+          uniqueMatches.forEach((id) => {
             const matchContact = contacts.find((c) => c.resourceName === id);
             const name = matchContact
               ? `${matchContact.firstName} ${matchContact.lastName}`.trim() ||
