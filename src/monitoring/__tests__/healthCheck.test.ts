@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { HealthCheck } from '../healthCheck';
 import { Logger } from '../../logging';
 import { AuthService } from '../../services/auth';
-import { promises as fs } from 'fs';
 
 vi.mock('../../logging', () => ({
   Logger: class {
@@ -33,7 +32,7 @@ describe('HealthCheck', () => {
     mockLogger = new Logger('Test');
     mockAuthService = new AuthService();
     healthCheck = new HealthCheck(mockLogger, mockAuthService);
-    
+
     // Mock global fetch
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
@@ -49,16 +48,16 @@ describe('HealthCheck', () => {
 
       const results = await healthCheck.checkAll();
       expect(results).toHaveLength(4);
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.status).toBe('healthy');
       });
     });
 
     it('should return unhealthy if environment variables are missing', async () => {
       delete process.env.CLIENT_ID;
-      
+
       const results = await healthCheck.checkAll();
-      const envCheck = results.find(r => r.service === 'environment');
+      const envCheck = results.find((r) => r.service === 'environment');
       expect(envCheck?.status).toBe('unhealthy');
       expect(envCheck?.message).toContain('CLIENT_ID');
     });
@@ -70,7 +69,7 @@ describe('HealthCheck', () => {
       });
 
       const results = await healthCheck.checkAll();
-      const apiCheck = results.find(r => r.service === 'google-api');
+      const apiCheck = results.find((r) => r.service === 'google-api');
       expect(apiCheck?.status).toBe('degraded');
       expect(apiCheck?.message).toBe('HTTP 500');
     });

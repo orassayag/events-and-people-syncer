@@ -1,5 +1,5 @@
-import { RegexPatterns } from "./regexPatterns.js";
-import { NameParser } from "./nameParser.js";
+import { RegexPatterns } from './regexPatterns.js';
+import { NameParser } from './nameParser.js';
 
 export class TextUtils {
   static hasHebrewCharacters(text: string): boolean {
@@ -10,14 +10,14 @@ export class TextUtils {
     if (!text || !this.hasHebrewCharacters(text)) {
       return text;
     }
-    const words = text.split(" ");
+    const words = text.split(' ');
     const processedWords = words.map((word) => {
       if (this.hasHebrewCharacters(word) && !this.hasMixedContent(word)) {
-        return word.split("").reverse().join("");
+        return word.split('').reverse().join('');
       }
       return word;
     });
-    return processedWords.join(" ");
+    return processedWords.join(' ');
   }
 
   private static hasMixedContent(word: string): boolean {
@@ -29,8 +29,8 @@ export class TextUtils {
   static formatNumberWithLeadingZeros(num: number): string {
     return num
       .toString()
-      .padStart(5, "0")
-      .replace(RegexPatterns.NUMBER_GROUPING, ",");
+      .padStart(5, '0')
+      .replace(RegexPatterns.NUMBER_GROUPING, ',');
   }
 
   static parseFullName(fullName: string): {
@@ -42,13 +42,13 @@ export class TextUtils {
 
   static formatCompanyToPascalCase(company: string): string {
     if (!company || !company.trim()) {
-      return "";
+      return '';
     }
     const words = company.trim().split(/\s+/);
     const pascalCaseWords = words.map((word: string) => {
-      if (!word) return "";
+      if (!word) return '';
       return word.charAt(0).toUpperCase() + word.slice(1);
     });
-    return pascalCaseWords.join("");
+    return pascalCaseWords.join('');
   }
 }

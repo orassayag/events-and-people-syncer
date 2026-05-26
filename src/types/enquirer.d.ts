@@ -3,14 +3,14 @@ declare module 'enquirer' {
     name: string;
     enabled?: boolean;
   }
-  
+
   interface KeypressEvent {
     name?: string;
     ctrl?: boolean;
     meta?: boolean;
     shift?: boolean;
   }
-  
+
   class MultiSelect {
     choices: Choice[];
     index: number;

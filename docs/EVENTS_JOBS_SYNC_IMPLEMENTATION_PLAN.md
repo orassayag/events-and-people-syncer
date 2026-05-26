@@ -128,7 +128,7 @@ Following the pattern of `ContactsSyncScript`:
   - `deleteNote(filePath: string): Promise<void>` - deletes a specific note file, handles ENOENT gracefully
   - `listNotes(folderPath: string): Promise<string[]>` - returns list of note files in folder
   - `rewriteNote(filePath: string, content: string): Promise<void>` - overwrites existing note
-- Counter logic: 
+- Counter logic:
   - **Only match files with counter**: Use regex `/notes_\d{8}-\d+\.txt$/` to match `notes_DDMMYYYY-N.txt`
   - Ignore files without counter (e.g., `notes_15032026.txt`)
   - Find max N from all matched files, use N+1 (ignoring gaps in sequence)
@@ -141,7 +141,7 @@ Following the pattern of `ContactsSyncScript`:
 - **Timezone behavior**: All date operations use system local timezone; if timezone changes between runs, dates reflect new timezone; if timezone changes **during** script execution, subsequent operations use new timezone
 - Uses new utility `formatDateDDMMYYYYCompact()` from `src/utils/dateFormatter.ts` for filename date formatting (returns `DDMMYYYY` without slashes)
 - Uses `fs.readdir()`, regex to match pattern, `fs.writeFile()`, `fs.unlink()` to manage notes
-- **Note content validation**: 
+- **Note content validation**:
   - Max 1MB (~1,048,576 characters) enforced before writing
   - **Binary data rejection**: Reject content containing null bytes (`\0`) or other binary data
   - Check for null bytes: `if (content.includes('\0')) throw new Error('Note content cannot contain binary data')`
@@ -154,7 +154,7 @@ Following the pattern of `ContactsSyncScript`:
   - `validatePathsExist(paths: string[]): Promise<{ path: string, exists: boolean, isDirectory: boolean }[]>` - returns validation results
   - `validateWritable(path: string): Promise<boolean>` - throws error if not writable
   - `validateReadable(path: string): Promise<boolean>` - throws error if not readable
-- Checks: 
+- Checks:
   - Existence via `fs.access()`
   - Type check via `fs.stat()` - verify path is directory (not file)
   - Write permissions via `fs.constants.W_OK` - throw error if not writable
@@ -172,7 +172,7 @@ Following the pattern of `ContactsSyncScript`:
   - `renameFolder(oldPath: string, newPath: string): Promise<void>` - renames folder with validation
   - `checkFolderExists(folderName: string, basePath: string): boolean` - case-insensitive duplicate check
   - `trimFolderName(name: string): string` - trims leading/trailing whitespace
-- Folder name validation: 
+- Folder name validation:
   - **Always trim leading/trailing whitespace** before any processing
   - Checks for illegal filesystem characters (`/`, `\`, `:`, `*`, `?`, `"`, `<`, `>`, `|`)
   - Validates folder name format (no emojis, basic ASCII validation)
@@ -215,6 +215,7 @@ eventsJobsSync: {
 ```
 
 **Implementation**:
+
 ```typescript
 eventsJobsSync: {
   companyFoldersPath: SETTINGS.linkedin.companyFoldersPath, // Reference existing path
@@ -234,13 +235,13 @@ eventsJobsSync: {
 export enum FolderType {
   JOB = 'job',
   HR = 'hr',
-  LIFE_EVENT = 'life-event'
+  LIFE_EVENT = 'life-event',
 }
 
 export enum ScriptState {
   IDLE = 'idle',
   NOTE_CREATED = 'note_created',
-  FOLDER_SELECTED = 'folder_selected'
+  FOLDER_SELECTED = 'folder_selected',
 }
 
 export enum MenuOption {
@@ -250,7 +251,7 @@ export enum MenuOption {
   DELETE_EMPTY_FOLDER = 'delete_empty_folder',
   RENAME_FOLDER = 'rename_folder',
   ADD_CONTACT = 'add_contact',
-  EXIT = 'exit'
+  EXIT = 'exit',
 }
 
 export interface FolderMapping {
@@ -339,7 +340,7 @@ export const folderCacheDataSchema = z.object({
   - Call `FolderCache.getInstance().invalidate()`
   - Log: "Cache bypassed via --no-cache flag - deleting cache and re-scanning folders"
   - Console: "Cache bypassed via --no-cache flag - deleting cache and re-scanning folders"
-- Call `FolderCache.getInstance().get()` 
+- Call `FolderCache.getInstance().get()`
 - If cache retrieval fails with Zod validation error:
   - Log: "⚠️ Malformed cache file detected, invalidating and re-scanning"
   - Call `FolderCache.getInstance().invalidate()`
@@ -439,7 +440,7 @@ export const folderCacheDataSchema = z.object({
       - Non-empty: required
       - Min 2 chars: required
       - No Hebrew characters
-      - **No illegal filesystem characters**: `/[\/\\:*?"<>|]/` → show error: "Company name cannot contain: / \ : * ? \" < > |"
+      - **No illegal filesystem characters**: `/[\/\\:*?"<>|]/` → show error: "Company name cannot contain: / \ : \* ? \" < > |"
       - **Path length check**: Validate full path will not exceed OS limits (~255 chars)
     - Format using `TextUtils.formatCompanyToPascalCase()`
     - Final folder name: `{Label}_{PascalCaseCompany}` (e.g., "Job_Microsoft", "HR_EladSoftwareSystems")
@@ -487,7 +488,7 @@ export const folderCacheDataSchema = z.object({
 6. **Note Creation Flow**
 
 - Prompt: "Enter your message (paste content):" (inquirer input, unlimited length)
-- Validate: 
+- Validate:
   - Non-empty: `if (!input.trim()) return 'Message cannot be empty.'`
   - **Max length**: `if (input.length > 1048576) return 'Message cannot exceed 1MB (~1,048,576 characters).'`
   - **Binary data check**: `if (input.includes('\0')) return 'Message cannot contain binary data (null bytes).'`
@@ -544,7 +545,7 @@ export const folderCacheDataSchema = z.object({
   - Log: "Awaiting confirmation to delete note: '[noteFilePath]'"
 - If confirmed:
   - Try to call `NoteWriter.deleteNote(this.lastCreatedNotePath)`
-  - **Handle ENOENT gracefully**: 
+  - **Handle ENOENT gracefully**:
     - Catch error with code 'ENOENT'
     - Console: "⚠️ Note file was already deleted externally"
     - Log: "Note file not found (already deleted): '[noteFilePath]'"
@@ -635,33 +636,27 @@ export const folderCacheDataSchema = z.object({
   - Lazy auth validation: check if already authenticated, otherwise call `AuthService.authorize()`
   - Log: "Authenticating with Google..."
   - Log: "✅ Authentication successful"
-  
   - **Fetch and Cache Contact Groups** (if not already cached):
     - If `this.cachedContactGroups` is null or empty:
       - Call `await this.contactEditor.fetchContactGroups()` with retry/backoff (use existing retry service from LinkedInScript)
       - Store in `this.cachedContactGroups` for script-level caching
       - Log: "✅ Fetched [N] contact groups from Google Contacts"
     - Else: Log: "Using cached contact groups ([N] groups)"
-  
   - **Label Resolution and Validation** (using LabelResolver service):
     - Extract label string from `lastSelectedFolder.label` (e.g., "Job", "HR", "OSR")
-    
     - **For existing life event folders**: If folder already exists and type is LIFE_EVENT:
       - Call `LabelResolver.inferLabelFromExisting(folderName, cachedContactGroups)`
       - This checks which word from folder name exists as a label in Google Contacts
       - **Multiple matches**: Uses **first match found** (left-to-right order)
       - Example: "Alex Z OSR" where both "Alex" and "OSR" exist → uses "Alex" (first match)
       - If no match found, user must select label (same as folder creation flow)
-    
     - Call `LabelResolver.resolveLabel(labelString, isRequired, cachedContactGroups)`
       - `isRequired` = true for Job/HR labels, false for life events
       - Returns: `{ resourceName: string, created: boolean }`
-    
     - **For Job/HR labels** ("Job" or "HR"):
       - If label doesn't exist: **Throw error**: "Required label '[label]' does not exist. Please create it in Google Contacts first."
       - Script must exit - these are mandatory labels
       - Log: "❌ Missing required label: '[label]'"
-    
     - **For Life Event labels** (any other label):
       - If label doesn't exist:
         - Console: "⚠️ Label '[label]' does not exist in your contacts"
@@ -677,9 +672,8 @@ export const folderCacheDataSchema = z.object({
           - Log: "User declined label creation - cancelling contact creation"
           - Console: "Contact creation cancelled"
           - Return to main menu (don't create contact)
-    
     - If label exists or was just created, use `resourceName` from result
-  
+
   - **Pre-populate contact data**:
     ```typescript
     const prePopulatedData: Partial<EditableContactData> = {
@@ -687,7 +681,6 @@ export const folderCacheDataSchema = z.object({
       company: lastSelectedFolder.companyName || '',
     };
     ```
-  
   - Call `EventsContactEditor.collectInitialInput(prePopulatedData)` (using subclass)
     - EventsContactEditor shows pre-populated fields as **defaults** (user can override or clear)
     - If `labelResourceNames` is provided and not empty: show as default, allow edit or clear
@@ -804,12 +797,12 @@ console.log('='.repeat(totalWidth));
 #### Add to `src/scripts/index.ts`
 
 ```typescript
-import { eventsJobsSyncScript } from "./eventsJobsSync";
+import { eventsJobsSyncScript } from './eventsJobsSync';
 
 export const AVAILABLE_SCRIPTS: Record<string, Script> = {
-  "linkedin-sync": linkedInSyncScript,
-  "contacts-sync": contactsSyncScript,
-  "events-jobs-sync": eventsJobsSyncScript, // NEW
+  'linkedin-sync': linkedInSyncScript,
+  'contacts-sync': contactsSyncScript,
+  'events-jobs-sync': eventsJobsSyncScript, // NEW
 };
 ```
 
@@ -820,13 +813,13 @@ In `src/scripts/eventsJobsSync.ts`:
 ```typescript
 export const eventsJobsSyncScript: Script = {
   metadata: {
-    name: "Events & Jobs Sync",
-    description: "Create notes and contacts for job interviews and life events",
-    version: "1.0.0",
-    category: "interactive",
+    name: 'Events & Jobs Sync',
+    description: 'Create notes and contacts for job interviews and life events',
+    version: '1.0.0',
+    category: 'interactive',
     requiresAuth: false, // conditional - only if user adds contact
-    estimatedDuration: "2-5 minutes",
-    emoji: "📝",
+    estimatedDuration: '2-5 minutes',
+    emoji: '📝',
   },
   run: async () => {
     const { container } = await import('../di/container');
@@ -869,7 +862,7 @@ container.bind(EventsJobsSyncScript).toSelf(); // Transient (script)
 
 ### Error Handling
 
-1. **Path Validation Errors**: 
+1. **Path Validation Errors**:
    - Clear message with missing path(s)
    - "Neither job-interviews nor life-events folder found. At least one must exist at: [paths]"
    - "Path exists but is not a directory: [path]"
@@ -881,21 +874,21 @@ container.bind(EventsJobsSyncScript).toSelf(); // Transient (script)
 
 3. **Illegal Filesystem Characters**:
    - Validate input for characters: `/ \ : * ? " < > |`
-   - Error message: "Company name cannot contain: / \ : * ? \" < > |"
+   - Error message: "Company name cannot contain: / \ : \* ? \" < > |"
 
-4. **Folder Creation Errors**: 
+4. **Folder Creation Errors**:
    - EEXIST: Invalidate cache, re-prompt user for different name
    - Permission errors: Throw with message "Failed to create folder - check permissions"
 
-5. **File Write Errors**: 
+5. **File Write Errors**:
    - Permission errors: Throw with message "Failed to write note file - check permissions"
    - Disk full: Throw with message "Failed to write note - disk may be full"
 
-6. **User Interruption (Ctrl+C)**: 
+6. **User Interruption (Ctrl+C)**:
    - Show summary, exit gracefully via signal handlers
    - Restore console before exit
 
-7. **Contact Creation Errors**: 
+7. **Contact Creation Errors**:
    - Missing required labels (Job/HR): Throw error, script exits
    - Missing optional labels (Life Events): Prompt user to create, cancel if declined
    - **API rate limiting**: Use retry with backoff pattern (from LinkedInScript) for all API calls
@@ -951,8 +944,12 @@ Implementation at start of `run()` method (aligned with LinkedInSyncScript patte
 const noCacheFlag = process.env.NO_CACHE === 'true';
 if (noCacheFlag) {
   await FolderCache.getInstance().invalidate();
-  console.log('Cache bypassed via --no-cache flag - deleting cache and re-scanning folders');
-  await this.logger.logMain('Cache bypassed via --no-cache flag - deleting cache and re-scanning folders');
+  console.log(
+    'Cache bypassed via --no-cache flag - deleting cache and re-scanning folders'
+  );
+  await this.logger.logMain(
+    'Cache bypassed via --no-cache flag - deleting cache and re-scanning folders'
+  );
 }
 ```
 
@@ -986,7 +983,6 @@ if (noCacheFlag) {
   - Label extraction: First part before `_` (must be exactly "Job" or "HR")
   - Company extraction: Everything after `_`
   - Labels "Job" and "HR" are **mandatory** - script throws error if they don't exist
-  
 - **Life Events**: Capitalize first letter of each word (not concatenated)
   - Example: "alex z osr" → "Alex Z Osr"
   - Label extraction: User selects from words in folder name
@@ -997,6 +993,7 @@ if (noCacheFlag) {
 #### Illegal Filesystem Characters
 
 Characters that cannot be used in folder/company names:
+
 - Forward slash: `/`
 - Backslash: `\`
 - Colon: `:`
@@ -1010,6 +1007,7 @@ Characters that cannot be used in folder/company names:
 Validation regex: `/[\/\\:*?"<>|]/`
 
 Validation happens:
+
 1. During initial input (before fuzzy matching)
 2. After folder type selection (final validation before creation)
 3. After PascalCase formatting (for Job/HR folders)
@@ -1019,6 +1017,7 @@ This prevents filesystem errors and ensures cross-platform compatibility.
 #### Reserved OS Filenames
 
 **Windows reserved filenames** (case-insensitive) that cannot be used:
+
 - Device names: `CON`, `PRN`, `AUX`, `NUL`
 - Serial ports: `COM1`, `COM2`, `COM3`, `COM4`, `COM5`, `COM6`, `COM7`, `COM8`, `COM9`
 - Parallel ports: `LPT1`, `LPT2`, `LPT3`, `LPT4`, `LPT5`, `LPT6`, `LPT7`, `LPT8`, `LPT9`
@@ -1026,6 +1025,7 @@ This prevents filesystem errors and ensures cross-platform compatibility.
 These names are reserved even with extensions (e.g., `CON.txt` is also invalid).
 
 Validation pattern:
+
 ```typescript
 const WINDOWS_RESERVED_NAMES = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i;
 ```
@@ -1309,7 +1309,7 @@ Before running this script, ensure the following labels exist in your Google Con
    - Script will throw error if missing
    - Create at: https://contacts.google.com
 
-2. **"HR"** (case-sensitive) - REQUIRED  
+2. **"HR"** (case-sensitive) - REQUIRED
    - Used for HR representative contacts
    - Script will throw error if missing
    - Create at: https://contacts.google.com
@@ -1340,6 +1340,7 @@ project-root/
 ```
 
 **Folder Naming Conventions**:
+
 - Job/HR: Must match pattern `{Label}_{CompanyName}` where Label is exactly "Job" or "HR"
   - ✅ Valid: `Job_Microsoft`, `HR_EladSoftwareSystems`
   - ❌ Invalid: `job_Microsoft`, `JOB_Microsoft`, `Microsoft`
@@ -1390,7 +1391,7 @@ project-root/
 4. **Folder case matching**: Always use existing filesystem casing
 5. **Summary width: 56 characters**: Consistent with ContactDisplay pattern
 6. **Stats formatting**: Zero-padded with commas (e.g., "00,001")
-7. **Date format utilities**: 
+7. **Date format utilities**:
    - `formatDateDDMMYYYYCompact()` for filenames (returns `DDMMYYYY` without slashes)
    - `formatDateDDMMYYYY()` for display dates in biography (returns `DD/MM/YYYY` with slashes)
 8. **Note prefix hard-coded**: `notes_` prefix is not configurable
@@ -1448,6 +1449,7 @@ project-root/
 ### Folder Naming Requirements
 
 **Job/HR Folders** (in `dummy/job-interviews/`):
+
 - **MUST** match pattern: `{Label}_{CompanyName}` where Label is exactly "Job" or "HR" (case-sensitive)
 - Pattern regex: `/^(Job|HR)_([^ ].+)$/` (company must start with non-space character)
 - Label selection: User selects from dropdown with **ONLY** "Job" and "HR" options
@@ -1457,12 +1459,13 @@ project-root/
 - **Labels are MANDATORY**: If "Job" or "HR" labels don't exist in Google Contacts, script throws error
 
 **Life Event Folders** (in `dummy/life-events/`):
+
 - Can be any name with minimum 2 characters for the full folder name
 - Formatted: Capitalize first letter of each word (not concatenated)
 - Label extraction: User **selects** which word from folder name should be the label
 - Validation: Selected label must be at least 2 characters
 - No company name (undefined)
-- Examples: 
+- Examples:
   - "Alex Z OSR" → user selects "OSR" as label (or "Alex", "Z")
   - "Airbnb" → label is "Airbnb" (only option)
 - **Labels are OPTIONAL**: If label doesn't exist in Google Contacts, script prompts "Create now? Y/N"
@@ -1472,7 +1475,8 @@ project-root/
 When user creates a contact, the label and company are automatically determined from the selected folder:
 
 **Job Folder** (`Job_Microsoft`):
-- Label string: "Job" 
+
+- Label string: "Job"
 - Label resolution: Fetch all contact groups, find group with name "Job", extract resourceName
 - If "Job" label doesn't exist: **Throw error** - "Required label 'Job' does not exist. Please create it in Google Contacts first."
 - Company: "Microsoft"
@@ -1481,6 +1485,7 @@ When user creates a contact, the label and company are automatically determined 
 - Contact's last name suffix: "Job Microsoft"
 
 **HR Folder** (`HR_EladSoftware`):
+
 - Label string: "HR"
 - Label resolution: Fetch all contact groups, find group with name "HR", extract resourceName
 - If "HR" label doesn't exist: **Throw error** - "Required label 'HR' does not exist. Please create it in Google Contacts first."
@@ -1490,9 +1495,10 @@ When user creates a contact, the label and company are automatically determined 
 - Contact's last name suffix: "HR EladSoftware"
 
 **Life Event Folder** (`Alex Z OSR` with "OSR" selected as label):
+
 - Label string: "OSR" (user-selected from folder name words)
 - Label resolution: Fetch all contact groups, find group with name "OSR"
-- If "OSR" label doesn't exist: 
+- If "OSR" label doesn't exist:
   - Prompt: "⚠️ Label 'OSR' does not exist in your contacts. Would you like to create it now? (Y/n)"
   - If Yes: Create label, use resourceName
   - If No: Cancel contact creation, return to main menu
@@ -1506,6 +1512,7 @@ When user creates a contact, the label and company are automatically determined 
 ### Future Date File Handling
 
 If note files exist with dates in the future (e.g., system time was changed), the script:
+
 1. Logs a warning: "⚠️ Found note files with future dates in folder. System time may have changed."
 2. Continues execution (non-fatal)
 3. Uses the maximum counter found (even if it's from a "future" file)
@@ -1514,6 +1521,7 @@ If note files exist with dates in the future (e.g., system time was changed), th
 ### Illegal Filesystem Characters
 
 The following characters are not allowed in folder names or company names:
+
 - `/` (forward slash)
 - `\` (backslash)
 - `:` (colon)
@@ -1525,6 +1533,7 @@ The following characters are not allowed in folder names or company names:
 - `|` (pipe)
 
 Validation happens:
+
 1. During initial input (before fuzzy matching)
 2. After folder type selection (final validation before creation)
 
@@ -1533,6 +1542,7 @@ This prevents filesystem errors and ensures cross-platform compatibility.
 ## Implementation Tasks (Ordered Checklist)
 
 ### Phase 1: Foundation (Configuration & Types)
+
 - [ ] 1. Create `src/types/eventsJobsSync.ts` with enums (`FolderType`, `ScriptState`, `MenuOption`) and all interfaces including `ContactGroup`
 - [ ] 2. Create `src/entities/eventsJobsSync.schema.ts` with Zod schemas
 - [ ] 3. Create new utility `formatDateDDMMYYYYCompact()` in `src/utils/dateFormatter.ts` (returns `DDMMYYYY` without slashes)
@@ -1540,6 +1550,7 @@ This prevents filesystem errors and ensures cross-platform compatibility.
 - [ ] 5. Export types and schemas in respective index files (if applicable)
 
 ### Phase 2: Core Services (Bottom-Up Implementation)
+
 - [ ] 6. Implement `src/validators/pathValidator.ts` with path existence, directory validation, and read/write permission checks
 - [ ] 7. Write unit tests for PathValidator (`src/validators/__tests__/pathValidator.test.ts`)
 - [ ] 8. Implement `src/cache/folderCache.ts` with singleton `getInstance()` pattern, Zod validation, and malformed cache handling
@@ -1554,6 +1565,7 @@ This prevents filesystem errors and ensures cross-platform compatibility.
 - [ ] 17. Write unit tests for LabelResolver (`src/services/labels/__tests__/labelResolver.test.ts`) including multiple match scenarios and API rate limiting tests
 
 ### Phase 3: EventsContactEditor Subclass
+
 - [ ] 18. Create `src/services/contacts/eventsContactEditor.ts` as subclass of ContactEditor (no modifications to original ContactEditor)
 - [ ] 19. Override `collectInitialInput()` to accept optional `prePopulated` parameter with default values and field clearing support
 - [ ] 20. Ensure all shared logic remains in parent ContactEditor class (no duplication)
@@ -1562,6 +1574,7 @@ This prevents filesystem errors and ensures cross-platform compatibility.
 - [ ] 23. Manually test that original ContactEditor still works in contactsSync.ts (run contacts sync script)
 
 ### Phase 4: Main Script Implementation
+
 - [ ] 24. Create `src/scripts/eventsJobsSync.ts` with EventsJobsSyncScript class
 - [ ] 25. Implement startup validation (paths must exist as directories with proper permissions)
 - [ ] 26. Implement --no-cache flag handling with malformed cache detection
@@ -1584,11 +1597,13 @@ This prevents filesystem errors and ensures cross-platform compatibility.
 - [ ] 43. Track state using `ScriptState` enum: `lastCreatedNotePath`, `lastSelectedFolder`, `scriptState`
 
 ### Phase 5: Dependency Injection & Registration
+
 - [ ] 44. Update `src/di/container.ts` to bind all new services (FolderMatcher, NoteWriter, FolderManager, PathValidator, LabelResolver, EventsContactEditor, EventsJobsSyncScript - all transient)
 - [ ] 45. Create eventsJobsSyncScript export object in eventsJobsSync.ts
 - [ ] 46. Register script in `src/scripts/index.ts` AVAILABLE_SCRIPTS
 
 ### Phase 6: Testing & Validation
+
 - [ ] 47. Run all unit tests: `pnpm test` - ensure all pass
 - [ ] 48. Manual E2E test: Create note in existing folder → create contact with label resolution
 - [ ] 49. Manual E2E test: Create new job folder → verify "Job" label is required
@@ -1625,6 +1640,7 @@ This prevents filesystem errors and ensures cross-platform compatibility.
 - [ ] 80. Verify all logging matches ContactsSyncScript pattern and follows logging policy (no note content logged)
 
 ### Phase 7: Documentation & Final Review
+
 - [ ] 81. Create setup documentation with prerequisites (required "Job" and "HR" labels, folder structure)
 - [ ] 82. Review all code comments - ensure clarity and completeness
 - [ ] 83. Document timezone behavior in code comments (including behavior when timezone changes during execution)

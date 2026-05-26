@@ -24,15 +24,20 @@ export class AuthService {
   private logger: Logger = new Logger('AuthService');
 
   async ensureValidAuth(): Promise<OAuth2Client> {
+    this.logger.debug('Ensuring valid authentication');
     const credentials: GoogleCredentials = this.loadCredentials();
     this.oAuth2Client = this.createOAuth2Client(credentials);
     const validationStatus: TokenValidationStatus = await this.validateToken();
+    this.logger.debug('Token validation status', { status: validationStatus });
     if (validationStatus === 'valid' && this.oAuth2Client) {
+      this.logger.debug('Authentication is valid');
       return this.oAuth2Client;
     }
     if (validationStatus === 'invalid') {
       this.logger.warn('Token is invalid or expired - re-authenticating');
       await this.deleteToken();
+    } else if (validationStatus === 'missing') {
+      this.logger.info('Token is missing - starting initial authentication');
     }
     await this.getNewToken();
     return this.oAuth2Client;
@@ -244,11 +249,13 @@ export class AuthService {
       let serverClosed: boolean = false;
       const closeServer = (): void => {
         if (this.server && !serverClosed) {
+          this.logger.debug('Closing authentication server');
           serverClosed = true;
           this.server.close();
         }
       };
       const handleSignal = (): void => {
+        this.logger.info('Authentication signal received (SIGINT/SIGTERM)');
         closeServer();
         reject(
           new AppError(
@@ -264,8 +271,10 @@ export class AuthService {
           if (!req.url) {
             return;
           }
+          this.logger.debug('Auth server request received', { url: req.url });
           const queryData = parse(req.url, true).query;
           if (queryData.code) {
+            this.logger.info('Auth code received from browser');
             const code: string = queryData.code as string;
             res.writeHead(200, { 'Content-Type': 'text/html' });
             res.end(
@@ -315,7 +324,9 @@ export class AuthService {
           prompt: 'consent',
           scope: SETTINGS.auth.scopes,
         });
-        this.logger.info('Opening browser for authentication');
+        this.logger.info('Opening browser for Google authentication...', {
+          authUrl,
+        });
         this.logger.info(
           'If the browser does not open automatically, visit this URL:'
         );

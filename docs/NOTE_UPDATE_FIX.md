@@ -5,6 +5,7 @@
 When updating existing contacts via LinkedIn sync (and potentially other sync scripts), the contact's biography note was not being updated from "Added by..." to "Updated by..." with the current date.
 
 **Example:**
+
 - Contact was added on 14/03/2026 with note: `Added by the people syncer script (LinkedIn) - Last update: 14/03/2026`
 - Contact was updated on 22/03/2026 (LastName changed)
 - Expected note: `Updated by the people syncer script (LinkedIn) - Last update: 22/03/2026`
@@ -36,6 +37,7 @@ Additionally, debug logging was added to track when notes are being updated.
 ### 1. LinkedIn Contact Syncer (`src/services/linkedin/contactSyncer.ts`)
 
 **Before:**
+
 ```typescript
 if (!hasChanges) {
   return { status: SyncStatusType.UP_TO_DATE };
@@ -48,6 +50,7 @@ if (noteUpdate.shouldUpdate) {
 ```
 
 **After:**
+
 ```typescript
 const noteUpdate = determineNoteUpdate(existingBiography, currentDate, scriptName);
 if (noteUpdate.shouldUpdate) {

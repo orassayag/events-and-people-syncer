@@ -7,12 +7,14 @@ The POC testing confirmed that `enquirer` handles ESC navigation cleanly without
 ## Why Migrate?
 
 ### Current Issues
+
 - Screen overlap when pressing ESC due to timing between `@inquirer/prompts` rendering and manual clearing
 - Complex `promptWithEscape.ts` wrapper with AbortController, raw mode, keypress detection
 - Race conditions between `console.clear()`, `process.stdout.write('\x1B[2J\x1B[0f')`, and prompt rendering
 - Manual clearing logic scattered across multiple files
 
 ### Enquirer Benefits
+
 - Native ESC support - throws error when ESC is pressed
 - Built-in screen management - no manual clearing needed
 - Simpler API - just wrap in try/catch
@@ -30,7 +32,7 @@ graph TD
     E -->|on ESC| G[abort + cleanup]
     G -->|manual| H[process.stdout.write clear]
     H -->|then| I[resolve escaped: true]
-    
+
     J[Loop Code] -->|after return| K[process.stdout.write clear]
     K -->|race with| C
 ```
@@ -53,7 +55,6 @@ graph TD
 1. **`src/utils/promptWithEscape.ts`** - Complete rewrite
    - Current: 171 lines with complex ESC handling
    - Target: ~80 lines with simple enquirer wrappers
-   
 2. **`src/services/contacts/contactEditor.ts`** - 24 prompt calls
    - Replace `selectWithEscape`, `inputWithEscape`, `checkboxWithEscape`
    - No logic changes, just API adaptation
@@ -63,7 +64,7 @@ graph TD
    - Replace all prompt functions
 
 4. **`src/services/contacts/eventsContactEditor.ts`** - 9 prompt calls
-5. **`src/services/contacts/duplicateDetector.ts`** - 2 prompt calls  
+5. **`src/services/contacts/duplicateDetector.ts`** - 2 prompt calls
 6. **`src/scripts/contactsSync.ts`** - 2 prompt calls
 7. **`src/scripts/linkedinSync.ts`** - 2 prompt calls
 8. **`src/index.ts`** - 2 prompt calls
@@ -73,6 +74,7 @@ graph TD
 ### Manual Clearing to Remove
 
 Remove all `process.stdout.write('\x1B[2J\x1B[0f')` calls from:
+
 - `src/utils/promptWithEscape.ts` (lines 60, 87)
 - `src/scripts/contactsSync.ts` (lines 106, 130, 139, 220, 236)
 - `src/services/contacts/contactEditor.ts` (lines 206, 857)
@@ -80,9 +82,11 @@ Remove all `process.stdout.write('\x1B[2J\x1B[0f')` calls from:
 ### Dependencies
 
 **Remove:**
+
 - `@inquirer/prompts` (currently ^8.3.2)
 
 **Keep:**
+
 - `enquirer` (already installed: ^2.4.1)
 
 ## Implementation Steps
@@ -95,9 +99,7 @@ Create simplified wrapper functions matching the current API but using `enquirer
 // src/utils/promptWithEnquirer.ts
 import Enquirer from 'enquirer';
 
-export type PromptResult<T> = 
-  | { escaped: true }
-  | { escaped: false; value: T };
+export type PromptResult<T> = { escaped: true } | { escaped: false; value: T };
 
 async function enquirerPrompt<T>(
   promptConfig: any,
@@ -107,13 +109,18 @@ async function enquirerPrompt<T>(
     const enquirer = new Enquirer();
     const result: any = await enquirer.prompt(promptConfig);
     const selectedText = result[promptConfig.name];
-    
+
     // Map text back to value if choices provided
     if (choices && promptConfig.type === 'select') {
-      const choice = choices.find(c => (c.name || String(c.value)) === selectedText);
-      return { escaped: false, value: choice ? choice.value : selectedText as T };
+      const choice = choices.find(
+        (c) => (c.name || String(c.value)) === selectedText
+      );
+      return {
+        escaped: false,
+        value: choice ? choice.value : (selectedText as T),
+      };
     }
-    
+
     return { escaped: false, value: selectedText as T };
   } catch (error) {
     return { escaped: true };
@@ -138,11 +145,11 @@ export interface SelectConfig<T = string> {
 export async function selectWithEscape<T = string>(
   config: SelectConfig<T>
 ): Promise<PromptResult<T>> {
-  const choiceNames = config.choices.map(c => c.name || String(c.value));
-  const defaultIndex = config.default 
-    ? config.choices.findIndex(c => c.value === config.default)
+  const choiceNames = config.choices.map((c) => c.name || String(c.value));
+  const defaultIndex = config.default
+    ? config.choices.findIndex((c) => c.value === config.default)
     : 0;
-    
+
   return enquirerPrompt<T>(
     {
       type: 'select',
@@ -217,12 +224,12 @@ export async function checkboxWithEscape<T = string>(
 ): Promise<PromptResult<T[]>> {
   try {
     const enquirer = new Enquirer();
-    const choiceConfigs = config.choices.map(c => ({
+    const choiceConfigs = config.choices.map((c) => ({
       name: c.name || String(c.value),
       value: c.name || String(c.value),
       enabled: c.checked || false,
     }));
-    
+
     const result: any = await enquirer.prompt({
       type: 'multiselect',
       name: 'value',
@@ -230,14 +237,16 @@ export async function checkboxWithEscape<T = string>(
       choices: choiceConfigs,
       validate: config.validate as any,
     });
-    
+
     // Map selected names back to values
     const selectedNames = result.value as string[];
-    const selectedValues = selectedNames.map(name => {
-      const choice = config.choices.find(c => (c.name || String(c.value)) === name);
-      return choice ? choice.value : name as unknown as T;
+    const selectedValues = selectedNames.map((name) => {
+      const choice = config.choices.find(
+        (c) => (c.name || String(c.value)) === name
+      );
+      return choice ? choice.value : (name as unknown as T);
     });
-    
+
     return { escaped: false, value: selectedValues };
   } catch (error) {
     return { escaped: true };
@@ -250,6 +259,7 @@ export function resetEscapeManagerForTesting(): void {
 ```
 
 **Key Differences:**
+
 - No `EscapeKeyManager` singleton
 - No raw mode or keypress detection
 - No `AbortController`
@@ -263,10 +273,20 @@ Replace in all 10 files:
 
 ```typescript
 // OLD
-import { selectWithEscape, inputWithEscape, confirmWithEscape, checkboxWithEscape } from '../utils/promptWithEscape';
+import {
+  selectWithEscape,
+  inputWithEscape,
+  confirmWithEscape,
+  checkboxWithEscape,
+} from '../utils/promptWithEscape';
 
-// NEW  
-import { selectWithEscape, inputWithEscape, confirmWithEscape, checkboxWithEscape } from '../utils/promptWithEnquirer';
+// NEW
+import {
+  selectWithEscape,
+  inputWithEscape,
+  confirmWithEscape,
+  checkboxWithEscape,
+} from '../utils/promptWithEnquirer';
 ```
 
 **API Compatibility:**
@@ -299,6 +319,7 @@ const value = result.value;
 ### Step 4: Update Tests
 
 **`src/utils/__tests__/promptWithEscape.test.ts`:**
+
 - Rename to `promptWithEnquirer.test.ts`
 - Update imports to use `promptWithEnquirer`
 - Simplify tests - no need to test raw mode, keypress, AbortController
@@ -306,6 +327,7 @@ const value = result.value;
 - Mock `Enquirer.prototype.prompt` instead of `@inquirer/prompts`
 
 Example test structure:
+
 ```typescript
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import Enquirer from 'enquirer';
@@ -319,24 +341,28 @@ describe('promptWithEnquirer', () => {
   });
 
   it('should return escaped: true when user presses ESC', async () => {
-    vi.spyOn(Enquirer.prototype, 'prompt').mockRejectedValue(new Error('cancelled'));
-    
+    vi.spyOn(Enquirer.prototype, 'prompt').mockRejectedValue(
+      new Error('cancelled')
+    );
+
     const result = await selectWithEscape({
       message: 'Choose:',
       choices: [{ name: 'A', value: 'a' }],
     });
-    
+
     expect(result.escaped).toBe(true);
   });
 
   it('should return value when user makes selection', async () => {
-    vi.spyOn(Enquirer.prototype, 'prompt').mockResolvedValue({ value: 'Option A' });
-    
+    vi.spyOn(Enquirer.prototype, 'prompt').mockResolvedValue({
+      value: 'Option A',
+    });
+
     const result = await selectWithEscape({
       message: 'Choose:',
       choices: [{ name: 'Option A', value: 'a' }],
     });
-    
+
     expect(result.escaped).toBe(false);
     expect(result.value).toBe('a');
   });
@@ -344,6 +370,7 @@ describe('promptWithEnquirer', () => {
 ```
 
 **`src/scripts/__tests__/eventsJobsSync.test.ts`:**
+
 - Update mocks to use enquirer
 - Replace `@inquirer/prompts` mocks with `Enquirer.prototype.prompt` mocks
 - No logic changes needed
@@ -351,6 +378,7 @@ describe('promptWithEnquirer', () => {
 ### Step 5: Remove Old Files
 
 After migration is complete and tested:
+
 1. Delete `src/utils/promptWithEscape.ts`
 2. Run `pnpm remove @inquirer/prompts`
 3. Verify build succeeds: `pnpm build`
@@ -359,28 +387,33 @@ After migration is complete and tested:
 ### Step 6: Update Documentation
 
 Update these existing doc files to reflect the new approach:
+
 - `docs/ESC_NAVIGATION_IMPLEMENTATION_PLAN.md` - Mark as superseded
 - `docs/ESC_IMPLEMENTATION_COMPLETE.md` - Update with new implementation
 - `docs/ESC_NAVIGATION_QUICK_REFERENCE.md` - Update usage examples
 
 Create new:
+
 - `docs/ENQUIRER_MIGRATION_SUMMARY.md` - Document what changed and why
 
 ## Testing Strategy
 
 ### Unit Tests
+
 1. Test new `promptWithEnquirer` functions
 2. Verify ESC returns `{ escaped: true }`
 3. Verify normal input returns `{ escaped: false, value }`
 4. Test choice value mapping for select/checkbox
 
 ### Integration Tests
+
 1. Run each script and test ESC at every prompt
 2. Verify no screen overlap
 3. Verify no flickering
 4. Test nested flows (e.g., add contact → edit → ESC → ESC)
 
 ### Manual Testing Checklist
+
 - [ ] Main menu → ESC exits cleanly
 - [ ] Contacts Sync → Add contact → ESC at labels → clean return
 - [ ] Contacts Sync → Add contact → ESC at name input → clean return
@@ -395,17 +428,20 @@ Create new:
 ## File-by-File Migration Order
 
 ### Phase 1: Foundation (Critical Path)
+
 1. Create `src/utils/promptWithEnquirer.ts`
 2. Update `src/utils/__tests__/promptWithEscape.test.ts` → rename and modify
 3. Run tests to verify wrapper works
 
 ### Phase 2: Core Services (Most Complex)
+
 4. Update `src/services/contacts/contactEditor.ts` (24 usages + 2 clears)
 5. Update `src/scripts/eventsJobsSync.ts` (29 usages)
 6. Update `src/services/contacts/eventsContactEditor.ts` (9 usages)
 7. Test thoroughly after each file
 
 ### Phase 3: Supporting Files (Lower Risk)
+
 8. Update `src/services/contacts/duplicateDetector.ts` (2 usages)
 9. Update `src/scripts/contactsSync.ts` (2 usages + 5 clears)
 10. Update `src/scripts/linkedinSync.ts` (2 usages)
@@ -413,6 +449,7 @@ Create new:
 12. Update `src/scripts/__tests__/eventsJobsSync.test.ts`
 
 ### Phase 4: Cleanup
+
 13. Delete `src/utils/promptWithEscape.ts`
 14. Run `pnpm remove @inquirer/prompts`
 15. Update documentation
@@ -429,18 +466,22 @@ If issues arise during migration:
 ## Risks and Mitigations
 
 ### Risk 1: Enquirer choice API differs from inquirer
+
 - **Mitigation:** Wrapper maintains same API, handles mapping internally
 - **Tested in POC:** Confirmed working
 
 ### Risk 2: Some advanced inquirer features not available in enquirer
+
 - **Mitigation:** Audit current usage - we only use basic select/input/confirm/checkbox
 - **Status:** No advanced features detected
 
 ### Risk 3: Different validation error display
+
 - **Mitigation:** Test all validators, adjust messages if needed
 - **Impact:** Low - validators are simple
 
 ### Risk 4: Enquirer may have different keyboard shortcuts
+
 - **Mitigation:** Test thoroughly, document any differences
 - **Status:** ESC works identically (tested in POC)
 
@@ -459,12 +500,14 @@ If issues arise during migration:
 ## Estimated Effort
 
 ### Code Changes
+
 - **Lines changed:** ~300-400 lines across 10 files
 - **New code:** ~150 lines (promptWithEnquirer.ts)
 - **Deleted code:** ~200 lines (promptWithEscape.ts + manual clears)
 - **Net change:** ~250 lines added, ~200 deleted
 
 ### Time Estimate
+
 - **Phase 1 (Foundation):** 1-2 hours
 - **Phase 2 (Core Services):** 2-3 hours
 - **Phase 3 (Supporting Files):** 1-2 hours
@@ -473,6 +516,7 @@ If issues arise during migration:
 - **Total:** 7-11 hours
 
 ### Complexity Reduction
+
 ```
 Before: 171 lines (promptWithEscape.ts) + 7 manual clears + 200 lines of tests
 After:  150 lines (promptWithEnquirer.ts) + 0 manual clears + 150 lines of tests
@@ -483,10 +527,8 @@ Net:    Simpler, more maintainable, fewer edge cases
 
 1. Should we keep both implementations temporarily for A/B comparison?
    - **Recommendation:** No, clean cut migration is simpler
-   
 2. Should we migrate all files at once or incrementally?
    - **Recommendation:** Incremental by phase, with git commits between phases
-   
 3. What's the rollback trigger point?
    - **Recommendation:** If Phase 2 shows persistent issues after 2 attempts
 

@@ -21,14 +21,18 @@ export class ApiTracker {
     const stats = await this.loadStats();
     stats.read_count++;
     await this.saveStats(stats);
-    console.log(`[API Counter] Read: ${stats.read_count}, Write: ${stats.write_count}`);
+    console.log(
+      `[API Counter] Read: ${stats.read_count}, Write: ${stats.write_count}`
+    );
   }
 
   async trackWrite(): Promise<void> {
     const stats = await this.loadStats();
     stats.write_count++;
     await this.saveStats(stats);
-    console.log(`[API Counter] Read: ${stats.read_count}, Write: ${stats.write_count}`);
+    console.log(
+      `[API Counter] Read: ${stats.read_count}, Write: ${stats.write_count}`
+    );
   }
 
   private async loadStats(): Promise<ApiStats> {
@@ -55,7 +59,11 @@ export class ApiTracker {
   }
 
   private async saveStats(stats: ApiStats): Promise<void> {
-    await writeFile(this.statsFilePath, JSON.stringify(stats, null, 2), 'utf-8');
+    await writeFile(
+      this.statsFilePath,
+      JSON.stringify(stats, null, 2),
+      'utf-8'
+    );
   }
 
   private shouldResetCounter(currentDate: string, statsDate: string): boolean {

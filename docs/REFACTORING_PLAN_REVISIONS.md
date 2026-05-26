@@ -1,6 +1,6 @@
 # Refactoring Plan Revisions Summary
 
-**Date:** March 19, 2026  
+**Date:** March 19, 2026
 **Status:** Plan Enhanced with Phase 0 and Critical Fixes
 
 ## Overview
@@ -18,6 +18,7 @@ The original refactoring plan was excellent (9/10), but needed several critical 
 **Purpose:** Mandatory pre-flight checks before any code changes
 
 **Contents:**
+
 - 0.1: Capture current state baseline (tests, build, lint, LOC)
 - 0.2: Identify test coverage gaps
 - 0.3: Check for test mock file paths
@@ -29,10 +30,11 @@ The original refactoring plan was excellent (9/10), but needed several critical 
 - 0.9: Set up automated validation scripts
 - 0.10: Document suspicious patterns found
 
-**Time:** 2-3 hours  
+**Time:** 2-3 hours
 **Critical:** DO NOT SKIP THIS PHASE
 
 **Outputs:**
+
 - Baseline test results, build output, lint output
 - Test coverage analysis
 - Type dependency map
@@ -50,20 +52,23 @@ The original refactoring plan was excellent (9/10), but needed several critical 
 **Issue:** Original plan used runtime `import` which affects bundle size unnecessarily.
 
 **Original:**
+
 ```typescript
 import { Auth } from 'googleapis';
 export type OAuth2Client = Auth.OAuth2Client;
 ```
 
 **Fixed:**
+
 ```typescript
-import type { Auth } from 'googleapis';  // ✅ Type-only import
+import type { Auth } from 'googleapis'; // ✅ Type-only import
 export type OAuth2Client = Auth.OAuth2Client;
 ```
 
 **Also updated consumer imports:**
+
 ```typescript
-import type { OAuth2Client } from '../types/auth';  // ✅ Type-only
+import type { OAuth2Client } from '../types/auth'; // ✅ Type-only
 ```
 
 **Reason:** `import type` ensures this is compile-time only and doesn't affect runtime.
@@ -75,6 +80,7 @@ import type { OAuth2Client } from '../types/auth';  // ✅ Type-only
 **Issue:** Making fields optional can break existing code that assumes they exist.
 
 **Added to Phase 1.1:**
+
 1. **Before making changes:** Review `editable-contact-data-review.md` from Phase 0
 2. Search for `.company.` and `.jobTitle.` usage without optional chaining
 3. Add optional chaining (`?.`) or null checks where needed
@@ -82,6 +88,7 @@ import type { OAuth2Client } from '../types/auth';  // ✅ Type-only
 5. Fix any errors before proceeding
 
 **Example Fix:**
+
 ```typescript
 // Before (breaks if company is optional):
 const name = data.company.toUpperCase();
@@ -97,6 +104,7 @@ const name = data.company?.toUpperCase() ?? '';
 **Issue:** Original plan updated 100+ imports manually - high risk of errors.
 
 **Added Safety Steps:**
+
 1. Update ONE pattern at a time (regex → logging → types → etc.)
 2. Test after each pattern: `pnpm build && pnpm test`
 3. Commit after each pattern
@@ -109,7 +117,7 @@ const name = data.company?.toUpperCase() ?? '';
 
 ### Fix 4: Time Estimate Revised
 
-**Original:** 1-2 days  
+**Original:** 1-2 days
 **Revised:** 2-3 days
 
 **Reason:** Testing 100+ import changes takes significant time.
@@ -123,6 +131,7 @@ const name = data.company?.toUpperCase() ?? '';
 **Issue:** Original plan moved Settings type to `types/settings.ts`, creating potential circular dependency.
 
 **Analysis:**
+
 ```typescript
 // settings/settings.ts
 export const SETTINGS: Settings = { ... }  // Needs Settings type
@@ -141,6 +150,7 @@ import { SETTINGS } from '../settings';
 **Rationale:** Keep type and implementation co-located when tightly coupled. This is actually good practice.
 
 **Changes Made:**
+
 - ❌ Removed `src/types/settings.ts` from plan
 - ✅ Added warning to keep Settings in `settings/settings.ts`
 - ✅ Updated Phase 3.1 checklist to explicitly NOT create settings.ts
@@ -153,6 +163,7 @@ import { SETTINGS } from '../settings';
 **Issue:** Original BaseCache used `(data as any).timestamp` - not type-safe.
 
 **Original:**
+
 ```typescript
 export abstract class BaseCache<T> {
   async get(): Promise<T | null> {
@@ -161,6 +172,7 @@ export abstract class BaseCache<T> {
 ```
 
 **Fixed:**
+
 ```typescript
 export abstract class BaseCache<T extends { timestamp: number }> {  // ✅ Type constraint
   async get(): Promise<T | null> {
@@ -175,11 +187,13 @@ export abstract class BaseCache<T extends { timestamp: number }> {  // ✅ Type 
 ### Fix 7: Cache Inconsistencies Addressed
 
 **Issue:** Three caches have different patterns:
+
 - ContactCache: singleton, parse()
 - CompanyCache: regular constructor, parse()
 - FolderCache: singleton, safeParse()
 
 **Added to Phase 3.2:**
+
 1. **Decisions required before implementing:**
    - Singleton or not? (Recommend: all singletons)
    - safeParse or parse? (Recommend: safeParse + invalidate)
@@ -197,11 +211,13 @@ export abstract class BaseCache<T extends { timestamp: number }> {  // ✅ Type 
 ### Fix 8: ContactCache Special Methods Preserved
 
 **Issue:** Original plan reduced all caches to ~10 lines, but ContactCache has cache-specific methods:
+
 - `getByLinkedInSlug()`
 - `getByEmail()`
 - `getByResourceName()`
 
 **Fixed:**
+
 - ContactCache: ~40 lines (keeps cache-specific methods)
 - CompanyCache: ~15 lines (extends BaseCache only)
 - FolderCache: ~15 lines (extends BaseCache only)
@@ -213,6 +229,7 @@ export abstract class BaseCache<T extends { timestamp: number }> {  // ✅ Type 
 ### Fix 9: Cache Types Update
 
 **Added `BaseCacheData` interface:**
+
 ```typescript
 export interface BaseCacheData {
   timestamp: number;
@@ -233,7 +250,7 @@ export interface CompanyCacheData extends BaseCacheData {
 
 ### Fix 10: Time Estimate Revised
 
-**Original:** 2-3 days  
+**Original:** 2-3 days
 **Revised:** 3-4 days
 
 **Reason:** Type moves require careful dependency analysis, cache decisions need resolution.
@@ -242,14 +259,14 @@ export interface CompanyCacheData extends BaseCacheData {
 
 ## Updated Time Estimates
 
-| Phase | Original | Revised | Reason |
-|-------|----------|---------|--------|
-| Phase 0 | N/A | 2-3 hours | NEW - mandatory baseline |
-| Phase 1 | 1-2 days | 2-3 days | Import testing takes time |
-| Phase 2 | 2-3 days | 2-3 days | Unchanged |
-| Phase 3 | 2-3 days | 3-4 days | Type moves need care |
-| Phase 4 | 1-2 days | 2-3 days | Line numbers need updating after code changes |
-| **Total** | **6-10 days** | **11-16 days** | +20% buffer for unexpected issues |
+| Phase     | Original      | Revised        | Reason                                        |
+| --------- | ------------- | -------------- | --------------------------------------------- |
+| Phase 0   | N/A           | 2-3 hours      | NEW - mandatory baseline                      |
+| Phase 1   | 1-2 days      | 2-3 days       | Import testing takes time                     |
+| Phase 2   | 2-3 days      | 2-3 days       | Unchanged                                     |
+| Phase 3   | 2-3 days      | 3-4 days       | Type moves need care                          |
+| Phase 4   | 1-2 days      | 2-3 days       | Line numbers need updating after code changes |
+| **Total** | **6-10 days** | **11-16 days** | +20% buffer for unexpected issues             |
 
 ---
 
@@ -260,12 +277,14 @@ export interface CompanyCacheData extends BaseCacheData {
 **Created in Phase 0:**
 
 **`scripts/validate-refactoring.sh`:**
+
 - Runs lint
 - Runs build
 - Runs tests
 - Reports pass/fail
 
 **`scripts/check-imports.sh`:**
+
 - Verifies imports resolve via build
 - Catches broken imports immediately
 
@@ -276,11 +295,13 @@ export interface CompanyCacheData extends BaseCacheData {
 ### 2. Git Rollback Tag
 
 **Created in Phase 0:**
+
 - Tag: `before-refactoring-YYYY-MM-DD`
 - Pushed to remote
 - Documented rollback instructions
 
 **Rollback if needed:**
+
 ```bash
 git reset --hard before-refactoring-YYYY-MM-DD
 ```
@@ -290,11 +311,13 @@ git reset --hard before-refactoring-YYYY-MM-DD
 ### 3. Baseline Comparison
 
 **Captured in Phase 0:**
+
 - `test-results-before.txt`
 - `build-output-before.txt`
 - `lint-output-before.txt`
 
 **After each phase:**
+
 ```bash
 diff test-results-before.txt <(pnpm test 2>&1)
 ```
@@ -304,12 +327,14 @@ diff test-results-before.txt <(pnpm test 2>&1)
 ### 4. Security Checklist
 
 **Created in Phase 0:**
+
 - Review PHI logging patterns
 - Check `{ noPHI: true }` preserved
 - Verify new utilities don't leak PHI
 - Document error message safety
 
 **Applied to:**
+
 - ErrorUtils (Phase 1)
 - SummaryFormatter (Phase 2)
 - ContactMapper (Phase 2)
@@ -320,6 +345,7 @@ diff test-results-before.txt <(pnpm test 2>&1)
 ### 5. Type Dependency Map
 
 **Created in Phase 0:**
+
 - Maps which types import which
 - Identifies circular dependencies
 - Plans move order (leaf types first)
@@ -331,11 +357,13 @@ diff test-results-before.txt <(pnpm test 2>&1)
 ### 6. Test Coverage Gaps Document
 
 **Created in Phase 0:**
+
 - Lists files without tests
 - Plans test creation for new utilities
 - Tracks coverage improvements
 
 **New tests needed:**
+
 - ErrorUtils (Phase 1)
 - SummaryFormatter (Phase 2)
 - ContactMapper (Phase 2)
@@ -346,26 +374,32 @@ diff test-results-before.txt <(pnpm test 2>&1)
 ## Edge Cases Documented
 
 ### Edge Case 1: Circular Dependencies
+
 - **Risk:** Moving types can create circular imports
 - **Fix:** Type dependency map in Phase 0, move in dependency order
 
 ### Edge Case 2: Type Inference Breaking
+
 - **Risk:** Making EditableContactData fields optional breaks existing code
 - **Fix:** Usage audit in Phase 0, add optional chaining before change
 
 ### Edge Case 3: Test Mocks with Hardcoded Paths
+
 - **Risk:** Mocks break when imports change
 - **Fix:** Document mocks in Phase 0, update in Phase 1.2
 
 ### Edge Case 4: Dynamic Imports
+
 - **Risk:** `import()` not caught by find/replace
 - **Fix:** Search in Phase 0, manually update if found
 
 ### Edge Case 5: Settings Type Circular Dependency
+
 - **Risk:** Moving Settings creates circular import
 - **Fix:** DON'T move Settings, keep co-located with implementation
 
 ### Edge Case 6: Constructor Injection Changes
+
 - **Risk:** Static utilities vs dependency injection
 - **Fix:** SummaryFormatter accepts optional logger parameter
 
@@ -405,6 +439,7 @@ diff test-results-before.txt <(pnpm test 2>&1)
 ## Files Created/Modified
 
 ### New Files Created:
+
 1. `docs/REFACTORING_PLAN_PHASE0.md` (Phase 0 plan)
 2. `docs/REFACTORING_PLAN_REVISIONS.md` (this file)
 3. `scripts/validate-refactoring.sh` (created in Phase 0)
@@ -412,6 +447,7 @@ diff test-results-before.txt <(pnpm test 2>&1)
 5. Various baseline and analysis files (created in Phase 0)
 
 ### Modified Files:
+
 1. `docs/REFACTORING_PLAN_OVERVIEW.md` (added Phase 0, updated estimates, added edge cases)
 2. `docs/REFACTORING_PLAN_PHASE1.md` (added safety steps, OAuth2Client fix, EditableContactData fix, time update)
 3. `docs/REFACTORING_PLAN_PHASE3.md` (removed Settings move, BaseCache type safety, cache fixes, time update)
@@ -443,6 +479,7 @@ diff test-results-before.txt <(pnpm test 2>&1)
 ## Success Criteria (Revised)
 
 **Technical:**
+
 - ✅ 1000+ lines of duplicate code eliminated
 - ✅ 6→1 ContactGroup definitions
 - ✅ 100+ incorrect imports fixed
@@ -455,6 +492,7 @@ diff test-results-before.txt <(pnpm test 2>&1)
 - ✅ No PHI leaks in new code
 
 **Process:**
+
 - ✅ Phase 0 completed first
 - ✅ Baseline captured
 - ✅ Validation scripts used
@@ -483,6 +521,7 @@ diff test-results-before.txt <(pnpm test 2>&1)
 ## Conclusion
 
 The original plan was excellent and well-researched. These revisions add:
+
 - **Safety mechanisms** to prevent and recover from mistakes
 - **Critical fixes** for type safety and circular dependencies
 - **Realistic estimates** accounting for testing time
@@ -493,6 +532,6 @@ The original plan was excellent and well-researched. These revisions add:
 
 ---
 
-**Last Updated:** March 19, 2026  
-**Status:** Ready for implementation  
+**Last Updated:** March 19, 2026
+**Status:** Ready for implementation
 **Next Action:** Execute Phase 0

@@ -62,12 +62,14 @@ flowchart TD
 ```
 
 **Important Flow Notes:**
+
 - **Interactive Processing**: The `ProcessLoop` is NOT automatic. Each phone is presented to the user who must manually choose an action.
 - **Ctrl+C during extraction**: If user interrupts during the extraction phase (before temp file is complete), delete temp file and exit.
 - **ESC during processing**: If user presses ESC while processing phones, exit gracefully - current phone remains in temp file for next session.
 - **SIGINT/Ctrl+C during processing**: Behaves consistently with ESC - exit gracefully, current phone remains in temp file for next session.
 
 **SIGINT Handler Implementation:**
+
 ```typescript
 import { unlinkSync } from 'fs';
 
@@ -106,6 +108,7 @@ extractionPhaseComplete = true;
 Main script class `SmsWhatsappSyncScript` with DI integration.
 
 **Responsibilities:**
+
 - Check for existing temp file and prompt to continue or start fresh (selecting "New HTML" **overwrites** the existing temp file)
 - Read HTML from clipboard with size validation (max 5MB)
 - Sanitize HTML (remove `<script>` tags)
@@ -119,6 +122,7 @@ Main script class `SmsWhatsappSyncScript` with DI integration.
 - Process each phone interactively - present to user one-by-one for manual decision (not automatic)
 
 **Reuses:**
+
 - `ContactEditor` - for contact creation/update wizard (extended with `addPhoneToExistingContact`)
 - `DuplicateDetector` - for fuzzy name matching and phone duplicate detection
 - `ContactCache` - for Google Contacts caching (extended with `getByNormalizedPhone`)
@@ -145,6 +149,7 @@ export class HtmlSourceDetector {
 
 **Google Messages Detection Elements (5 of 10 required):**
 Detection uses stable selectors that are less likely to change:
+
 1. `messages.google.com` in URLs (stable - domain)
 2. `MW_CONFIG` window variable in script (stable - config)
 3. `mws-conversation-list-item` component (stable - semantic)
@@ -158,6 +163,7 @@ Detection uses stable selectors that are less likely to change:
 
 **WhatsApp Web Detection Elements (5 of 10 required):**
 Detection uses stable selectors that are less likely to change:
+
 1. `<html id="whatsapp-web"` (stable - root element)
 2. `static.whatsapp.net` in URLs (stable - CDN domain)
 3. `web.whatsapp.com` in URLs (stable - domain)
@@ -185,7 +191,7 @@ import { JSDOM } from 'jsdom';
 export interface ExtractedContact {
   phone: string;
   normalizedPhone: string;
-  suggestedName?: string;  // Includes emojis and non-ASCII characters if present
+  suggestedName?: string; // Includes emojis and non-ASCII characters if present
 }
 
 // Strategy interface for platform-specific extraction
@@ -213,7 +219,7 @@ export class WhatsAppWebExtractor implements MessagePlatformExtractor {
 @injectable()
 export class PhoneExtractor {
   private strategies: Map<string, MessagePlatformExtractor> = new Map();
-  
+
   constructor(
     @inject(GoogleMessagesExtractor) googleExtractor: GoogleMessagesExtractor,
     @inject(WhatsAppWebExtractor) whatsappExtractor: WhatsAppWebExtractor
@@ -221,8 +227,11 @@ export class PhoneExtractor {
     this.strategies.set('google-messages', googleExtractor);
     this.strategies.set('whatsapp-web', whatsappExtractor);
   }
-  
-  extractPhoneNumbers(html: string, source: 'google-messages' | 'whatsapp-web'): ExtractedContact[] {
+
+  extractPhoneNumbers(
+    html: string,
+    source: 'google-messages' | 'whatsapp-web'
+  ): ExtractedContact[] {
     const strategy = this.strategies.get(source);
     if (!strategy) {
       throw new Error(`No extraction strategy for source: ${source}`);
@@ -236,6 +245,7 @@ This pattern makes it easy to add support for other platforms (Telegram, Signal,
 
 **HTML Parsing:**
 Use JSDOM for reliable DOM parsing instead of regex-based extraction:
+
 ```typescript
 import { JSDOM } from 'jsdom';
 
@@ -249,6 +259,7 @@ private parseHtml(html: string): Document {
 
 **IMPORTANT: International Phone Number Support**
 This script extracts phone numbers from ANY country, regardless of country code. The extraction patterns must support all international formats including but not limited to:
+
 - US/Canada: `+1 (555) 123-4567`, `555-123-4567`, `1-800-FLOWERS`
 - UK: `+44 20 7946 0958`, `020 7946 0958`
 - European: `+49 30 1234567`, `+33 1 23 45 67 89`
@@ -259,10 +270,12 @@ This script extracts phone numbers from ANY country, regardless of country code.
 
 **For Google Messages:**
 Google Messages shows either a name OR a phone number for each conversation - never both together.
+
 - If it shows a **name**: the contact is already synced in Google Contacts → **skip extraction**
 - If it shows a **phone number**: the contact is NOT synced → **extract the phone**
 
 Primary extraction using simple string search:
+
 ```typescript
 // Primary: Search for 'data-e2e-conversation-name="">' pattern and extract content between > and <
 // Pattern in HTML: data-e2e-conversation-name="">052-999-5784</span>
@@ -284,6 +297,7 @@ WhatsApp Web can show phone numbers with optional associated names. The extracti
 **Extraction Target**: This script extracts phone numbers from conversation titles in the chat list sidebar. It does NOT parse message content or body text.
 
 Primary extraction using JSDOM with prioritized strategies:
+
 ```typescript
 // Strategy 1 (Primary): Extract from span[dir="auto"] elements
 // This is the most stable selector - WhatsApp uses dir="auto" for all text content
@@ -294,7 +308,9 @@ for (const span of spans) {
     // Extract phone - e.g., "+972 55-987-4713"
     // Also check for aria-label for suggested name (e.g., aria-label="Maybe נתנאל")
     const ariaLabel = span.getAttribute('aria-label');
-    const suggestedName = ariaLabel ? this.extractNameFromAriaLabel(ariaLabel) : undefined;
+    const suggestedName = ariaLabel
+      ? this.extractNameFromAriaLabel(ariaLabel)
+      : undefined;
   }
 }
 
@@ -323,10 +339,12 @@ for (const el of titledElements) {
 
 **Suggested Name Extraction:**
 WhatsApp shows suggested names in two ways:
+
 1. `aria-label` attribute: `aria-label="Maybe נתנאל"` → extract "נתנאל"
 2. Text with `~` prefix: `~ נתנאל` → extract "נתנאל"
 
 Display both values as suggested names when available:
+
 ```typescript
 private extractNameFromAriaLabel(ariaLabel: string): string | undefined {
   // Pattern: "Maybe <name>" or similar
@@ -342,15 +360,18 @@ private extractNameFromTildePrefix(text: string): string | undefined {
 ```
 
 This pattern works for both:
+
 - **Conversation list view** (`whatsapp-web.html`) - extracts phones from chat list sidebar
 - **Group info view** (`whatsapp-web-group.html`) - extracts phones from group participants list
 
 Both views use the same DOM pattern for displaying phone numbers:
+
 ```html
 <span dir="auto" class="x1rg5ohu _ao3e">+972 54-441-9002</span>:&nbsp;
 ```
 
 **Fallback strategies (in order of priority):**
+
 1. `span[dir="auto"]` - most stable, WhatsApp uses this for all text content (primary)
 2. Elements with class containing `_ao3e` - less stable, may change between deployments (fallback)
 3. `[title]` attributes matching phone patterns (fallback)
@@ -393,6 +414,7 @@ private isLikelyPhoneNumber(value: string): boolean {
 ```
 
 **Name Extraction:**
+
 - **Google Messages**: No name extraction (only phone or name is shown, never both)
 - **WhatsApp Web**: For entries showing both phone and name in proximity, extract the associated name
 - **Name preservation**: Names are extracted as-is, including emojis, non-ASCII characters, and special symbols. No stripping or sanitization of name content.
@@ -405,6 +427,7 @@ During extraction, maintain a Set of normalized phone numbers. Only add unique p
 
 **Post-Extraction Validation:**
 After extraction, validate each phone number to filter out false positives:
+
 ```typescript
 private validateExtractedPhone(phone: string): boolean {
   const digitsOnly = phone.replace(/\D/g, '');
@@ -430,6 +453,7 @@ export class HtmlSanitizer {
 ```
 
 **Features:**
+
 - Remove all `<script>` tags and their content
 - Remove all `<style>` tags and their content
 - Validate HTML size (max 5MB - reference files are ~1MB each, allowing room for users with many conversations)
@@ -447,19 +471,20 @@ import { injectable } from 'inversify';
 export class PhoneNormalizer {
   // Normalize phone for comparison - keeps +, #, * and digits only
   normalize(phone: string): string;
-  
+
   // Check if two phones match using multiple strategies
   phonesMatch(phone1: string, phone2: string): boolean;
-  
+
   // Get all normalized variations of a phone for comprehensive matching
   getAllNormalizedVariations(phone: string): string[];
-  
+
   // Validate if a string looks like a phone number
   isValidPhone(value: string): boolean;
 }
 ```
 
 **Normalization Logic:**
+
 ```typescript
 normalize(phone: string): string {
   // Keep +, #, * and digits only
@@ -604,26 +629,32 @@ export interface ClipboardReadResult {
   sizeBytes: number;
 }
 
-export async function readFromClipboard(maxSizeBytes?: number): Promise<ClipboardReadResult>;
+export async function readFromClipboard(
+  maxSizeBytes?: number
+): Promise<ClipboardReadResult>;
 ```
 
 **Size Check:**
 Clipboard reading is inherently non-streaming. The content is read into memory first, then size is validated. This is acceptable since 5MB is manageable for modern systems.
 
 **Clipboard Content Type Handling:**
+
 - If clipboard contains non-text content (images, files, etc.), treat as empty clipboard
 - Only process text/html content type
 - If clipboard contains plain text (no HTML tags detected), display warning and ask for HTML again:
+
   ```
   ⚠️  Clipboard contains plain text, not HTML.
      Please copy the full HTML from the browser page (Ctrl+U or View Source), not just the visible text.
-     
+
   Press Enter to try again (ESC to cancel)
   ```
+
 - **HTML Detection**: Check for presence of `<` and `>` characters and common HTML tags like `<html`, `<div`, `<span`
 - Display appropriate error message: "Clipboard is empty or contains non-text content"
 
 **Warning**: Include a size warning in CLI instructions:
+
 ```
 ⚠️  Note: Large HTML files (>5MB) will be rejected. If you have many conversations,
    consider copying in smaller batches.
@@ -642,8 +673,8 @@ export const AVAILABLE_SCRIPTS: Record<string, Script> = {
   'linkedin-sync': linkedInSyncScript,
   'contacts-sync': contactsSyncScript,
   'events-jobs-sync': eventsJobsSyncScript,
-  'sms-whatsapp-sync': smsWhatsappSyncScript,  // Add this
-  'statistics': statisticsScript,
+  'sms-whatsapp-sync': smsWhatsappSyncScript, // Add this
+  statistics: statisticsScript,
 };
 ```
 
@@ -656,7 +687,7 @@ const scriptOrder = [
   'contacts-sync',
   'events-jobs-sync',
   'linkedin-sync',
-  'sms-whatsapp-sync',  // Add this
+  'sms-whatsapp-sync', // Add this
   'statistics',
 ];
 ```
@@ -668,7 +699,11 @@ Bind new services:
 ```typescript
 import { HtmlSourceDetector } from '../services/messaging/htmlSourceDetector';
 import { HtmlSanitizer } from '../services/messaging/htmlSanitizer';
-import { PhoneExtractor, GoogleMessagesExtractor, WhatsAppWebExtractor } from '../services/messaging/phoneExtractor';
+import {
+  PhoneExtractor,
+  GoogleMessagesExtractor,
+  WhatsAppWebExtractor,
+} from '../services/messaging/phoneExtractor';
 import { PhoneNormalizer } from '../services/contacts/phoneNormalizer';
 import { SmsWhatsappSyncScript } from '../scripts/smsWhatsappSync';
 
@@ -819,7 +854,7 @@ async checkDuplicatePhone(phone: string): Promise<DuplicateMatch[]> {
       similarityType: 'Phone' as SimilarityType,
     }));
   }
-  
+
   // Fallback to full scan with unified normalization
   const contacts = await this.fetchAllContacts();
   const matches: DuplicateMatch[] = [];
@@ -899,9 +934,14 @@ Display pending count in statistics output:
 
 ```typescript
 // In displayStatistics method, add:
-const pendingSmsWhatsapp = await this.collector.collectSmsWhatsappPendingCount();
+const pendingSmsWhatsapp =
+  await this.collector.collectSmsWhatsappPendingCount();
 if (pendingSmsWhatsapp > 0) {
-  console.log(padLine(`${padLabel('Pending SMS/WA')}${padValue(formatNumber(pendingSmsWhatsapp) + ' phones')}`));
+  console.log(
+    padLine(
+      `${padLabel('Pending SMS/WA')}${padValue(formatNumber(pendingSmsWhatsapp) + ' phones')}`
+    )
+  );
 }
 ```
 
@@ -918,10 +958,10 @@ if (pendingSmsWhatsapp > 0) {
 ### Step 2: HTML Clipboard Instructions
 
 ```
-Please pair Google Messages / WhatsApp Web and scroll through ALL conversations 
+Please pair Google Messages / WhatsApp Web and scroll through ALL conversations
 to ensure they are loaded in the DOM, then copy the HTML page to the clipboard.
 
-Note: This script only processes what you copy. Conversations not visible 
+Note: This script only processes what you copy. Conversations not visible
 when copying will not be included.
 
 ⚠️  Large HTML files (>5MB) will be rejected. If you have many conversations,
@@ -937,6 +977,7 @@ Press Enter when ready (ESC to cancel)
 ```
 
 If size exceeds 5MB:
+
 ```
 ✗ Error: Clipboard content exceeds 5MB limit. Please copy less content.
 ```
@@ -954,20 +995,26 @@ If size exceeds 5MB:
   Matched selectors: messages.google.com, mws-conversation-snippet, mws-relative-timestamp, _ngcontent-ng-c, mws-icon
   Failed selectors: MW_CONFIG, data-e2e-, android-messages-web, Google Messages for web, mws-conversation-list-item
 ```
+
 or
+
 ```
 ✓ WhatsApp Web HTML detected (90% confidence).
   Matched selectors: id="whatsapp-web", static.whatsapp.net, web.whatsapp.com, data-icon=", app-wrapper-web
   Failed selectors: /data/manifest.json, WhatsApp Web, data-btmanifest, requireLazy, wa-popovers-bucket
 ```
+
 or (low confidence warning)
+
 ```
 ⚠️  WhatsApp Web HTML detected with low confidence (45%).
    Detection may be unreliable. Proceed anyway? (y/N)
 ```
+
 or
+
 ```
-✗ Error: Could not detect Google Messages or WhatsApp Web HTML. 
+✗ Error: Could not detect Google Messages or WhatsApp Web HTML.
   Please ensure you copied the correct page HTML.
   Matched selectors: (none)
 ```
@@ -991,6 +1038,7 @@ or
 ### Step 7.5: Auto-Skip Summary (with details)
 
 Display each auto-skipped phone with the contact name it matched:
+
 ```
 ✓ Auto-skipped: +972-52-123-4567 (already saved as "John Doe")
 ✓ Auto-skipped: +972-54-987-6543 (already saved as "Jane Smith")
@@ -1006,6 +1054,7 @@ This provides transparency about which phones were skipped and why, without requ
 ### Step 8: Phone Processing Loop
 
 Display for each phone:
+
 ```
 ═══════════════════════════════════════════════════════════════════
 Phone 00,002 / 00,102
@@ -1020,6 +1069,7 @@ Phone 00,002 / 00,102
 ```
 
 Or without suggested name:
+
 ```
 ═══════════════════════════════════════════════════════════════════
 Phone 00,003 / 00,102
@@ -1036,6 +1086,7 @@ Phone 00,003 / 00,102
 ### Step 9: Search Flow
 
 When user selects "Search in contacts":
+
 ```
 ? Enter name to search: _
 ```
@@ -1043,6 +1094,7 @@ When user selects "Search in contacts":
 User types a name, then fuzzy matching logic (same as Add Contact wizard) is triggered.
 
 If matches found:
+
 ```
 Found 2 similar contacts:
 ===Match 001:===
@@ -1061,6 +1113,7 @@ Found 2 similar contacts:
 ```
 
 If no matches:
+
 ```
 No contacts found matching "John Doe".
 
@@ -1073,6 +1126,7 @@ No contacts found matching "John Doe".
 ### Step 10: Skip Action with Spinner
 
 When user selects "Skip this phone":
+
 ```
 ⠋ Skipping...
 ✓ Skipped
@@ -1102,6 +1156,7 @@ async function phoneExistsInContacts(phone: string): Promise<boolean> {
 ```
 
 The `PhoneNormalizer.phonesMatch()` function handles:
+
 1. **Exact E.164 match** - `+972521234567` === `+972521234567`
 2. **Normalized E.164 match** - `+972 52-123-4567` === `+972521234567`
 3. **Local format match** - `052-123-4567` === `0521234567`
@@ -1109,49 +1164,50 @@ The `PhoneNormalizer.phonesMatch()` function handles:
 
 ## Edge Cases and Error Handling
 
-| Edge Case | Handling |
-|-----------|----------|
-| Phone number deduplication | Deduplicate during extraction (exact + normalized using all variations), unique phones only |
-| Phone already in Google Contacts | Auto-skip with single-line summary, increment skipped counter, remove from temp file |
-| Hebrew/RTL text in names | Detect with `RegexPatterns.HEBREW`, use `TextUtils.reverseHebrewText()` with LTR isolation |
-| Large HTML files (5MB+) | Reject after read with error message and size warning in instructions |
-| Interrupted sessions | JSON file with phones array, remove on success/skip, keep on error |
-| Start fresh with new HTML | Completely overwrite existing temp file with new extraction results |
-| No phone numbers found | Display warning and return to main menu |
-| Invalid HTML (neither source) | Display appropriate error message with selector details |
-| Phone format normalization | Unified check via `PhoneNormalizer.phonesMatch()` with all variations |
-| Country code mismatch | Check all normalized variations including 00 prefix handling |
-| International phone formats | **IMPORTANT**: Support ALL international formats, not just Israeli |
-| Multiple contacts found | Show selection list, allow search again or create new |
-| ESC handling during processing | Proper escape handling, graceful exit, current phone stays in temp file for next session |
-| Ctrl+C / Kill during extraction | Abort immediately, delete temp file if it exists (incomplete extraction should not be resumed) |
-| Ctrl+C / Kill during processing | Behave like ESC - graceful exit, current phone stays in temp file |
-| Phone with extension | Include in extraction (`+1-234-567-8900 ext 123`) |
-| Short codes | **DO NOT FILTER** - Include in extraction (`*123`, `#999`, `*2700`) |
-| Vanity numbers | Include in extraction (`1-800-FLOWERS`) |
-| Phones with `#` or `*` symbols | **DO NOT FILTER** - Include as-is, these are valid phone formats |
-| Script tags in HTML | Remove before processing (security) |
-| Conversation shows only name | Skip extraction (already synced) |
-| Conversation shows phone + name | Extract phone, include suggested name (WhatsApp only - Google Messages shows only one) |
-| Conversation shows only phone | Extract phone, no suggested name |
-| Successful sync | Remove phone from temp file AFTER successful API response |
-| User skips phone | Remove phone from temp file with animated spinner |
-| Error during sync | Keep phone in temp file for retry |
-| Low detection confidence | Warn user and ask for confirmation (threshold configurable in settings) |
-| BiDi phone display | Wrap phone numbers in LTR isolation marks |
-| Concurrent execution | Not supported - single user mode only |
-| Interactive processing | Each phone is presented to user one-by-one for manual decision (not automatic batch processing) |
-| Clipboard contains non-text | Treat as empty clipboard, display appropriate error message |
-| Names with emojis/special chars | Preserve as-is, no stripping or sanitization |
-| API etag conflict (412) | Refetch contact and retry once |
-| False positive phone extraction | Post-extraction validation filters out dates, CSS values, etc. |
-| All extracted phones already synced | Display success message: "All X extracted phones are already in your contacts! No new phones to process." and return to main menu |
-| Temp file corrupted/malformed | Throw error with message: "Temp file is corrupted. Please delete it or start fresh." |
-| Clipboard contains plain text (not HTML) | Display warning: "Clipboard contains plain text, not HTML. Please copy the HTML from the page." and ask for HTML again |
+| Edge Case                                | Handling                                                                                                                          |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Phone number deduplication               | Deduplicate during extraction (exact + normalized using all variations), unique phones only                                       |
+| Phone already in Google Contacts         | Auto-skip with single-line summary, increment skipped counter, remove from temp file                                              |
+| Hebrew/RTL text in names                 | Detect with `RegexPatterns.HEBREW`, use `TextUtils.reverseHebrewText()` with LTR isolation                                        |
+| Large HTML files (5MB+)                  | Reject after read with error message and size warning in instructions                                                             |
+| Interrupted sessions                     | JSON file with phones array, remove on success/skip, keep on error                                                                |
+| Start fresh with new HTML                | Completely overwrite existing temp file with new extraction results                                                               |
+| No phone numbers found                   | Display warning and return to main menu                                                                                           |
+| Invalid HTML (neither source)            | Display appropriate error message with selector details                                                                           |
+| Phone format normalization               | Unified check via `PhoneNormalizer.phonesMatch()` with all variations                                                             |
+| Country code mismatch                    | Check all normalized variations including 00 prefix handling                                                                      |
+| International phone formats              | **IMPORTANT**: Support ALL international formats, not just Israeli                                                                |
+| Multiple contacts found                  | Show selection list, allow search again or create new                                                                             |
+| ESC handling during processing           | Proper escape handling, graceful exit, current phone stays in temp file for next session                                          |
+| Ctrl+C / Kill during extraction          | Abort immediately, delete temp file if it exists (incomplete extraction should not be resumed)                                    |
+| Ctrl+C / Kill during processing          | Behave like ESC - graceful exit, current phone stays in temp file                                                                 |
+| Phone with extension                     | Include in extraction (`+1-234-567-8900 ext 123`)                                                                                 |
+| Short codes                              | **DO NOT FILTER** - Include in extraction (`*123`, `#999`, `*2700`)                                                               |
+| Vanity numbers                           | Include in extraction (`1-800-FLOWERS`)                                                                                           |
+| Phones with `#` or `*` symbols           | **DO NOT FILTER** - Include as-is, these are valid phone formats                                                                  |
+| Script tags in HTML                      | Remove before processing (security)                                                                                               |
+| Conversation shows only name             | Skip extraction (already synced)                                                                                                  |
+| Conversation shows phone + name          | Extract phone, include suggested name (WhatsApp only - Google Messages shows only one)                                            |
+| Conversation shows only phone            | Extract phone, no suggested name                                                                                                  |
+| Successful sync                          | Remove phone from temp file AFTER successful API response                                                                         |
+| User skips phone                         | Remove phone from temp file with animated spinner                                                                                 |
+| Error during sync                        | Keep phone in temp file for retry                                                                                                 |
+| Low detection confidence                 | Warn user and ask for confirmation (threshold configurable in settings)                                                           |
+| BiDi phone display                       | Wrap phone numbers in LTR isolation marks                                                                                         |
+| Concurrent execution                     | Not supported - single user mode only                                                                                             |
+| Interactive processing                   | Each phone is presented to user one-by-one for manual decision (not automatic batch processing)                                   |
+| Clipboard contains non-text              | Treat as empty clipboard, display appropriate error message                                                                       |
+| Names with emojis/special chars          | Preserve as-is, no stripping or sanitization                                                                                      |
+| API etag conflict (412)                  | Refetch contact and retry once                                                                                                    |
+| False positive phone extraction          | Post-extraction validation filters out dates, CSS values, etc.                                                                    |
+| All extracted phones already synced      | Display success message: "All X extracted phones are already in your contacts! No new phones to process." and return to main menu |
+| Temp file corrupted/malformed            | Throw error with message: "Temp file is corrupted. Please delete it or start fresh."                                              |
+| Clipboard contains plain text (not HTML) | Display warning: "Clipboard contains plain text, not HTML. Please copy the HTML from the page." and ask for HTML again            |
 
 ## Stats Tracking
 
 Track the following counters (like other scripts):
+
 - **Added**: New contacts created
 - **Updated**: Existing contacts updated with phone number
 - **Skipped**: Phone already exists (auto-skipped) or user skipped
@@ -1162,24 +1218,24 @@ Track the following counters (like other scripts):
 - **Location**: `sources/phone-numbers-temp.json`
 - **Overwrite Behavior**: When user selects "Start fresh with new HTML", the existing temp file is **completely overwritten** with the new extraction results. Each script run with new HTML replaces all previous data.
 - **Format**: JSON with phones array and errors array
+
 ```json
 {
   "phones": [
-    { 
-      "phone": "+972521234567", 
-      "normalizedPhone": "+972521234567", 
+    {
+      "phone": "+972521234567",
+      "normalizedPhone": "+972521234567",
       "suggestedName": "John Doe"
     },
-    { 
-      "phone": "+1-234-567-8900", 
+    {
+      "phone": "+1-234-567-8900",
       "normalizedPhone": "+12345678900"
     }
   ],
-  "errors": [
-    { "phone": "+972999999999", "error": "API rate limit exceeded" }
-  ]
+  "errors": [{ "phone": "+972999999999", "error": "API rate limit exceeded" }]
 }
 ```
+
 - **On Success**: Remove phone from `phones` array AFTER successful API response
 - **On Skip**: Remove phone from `phones` array with animated spinner
 - **On Error**: Keep phone in `phones` array, add to `errors` array
@@ -1207,6 +1263,7 @@ async run(): Promise<void> {
 **Log File Location**: `logs/sms-whatsapp-sync-YYYY-MM-DD.log`
 
 **What to Log:**
+
 - Script start/end with summary stats
 - Detection results (source type, confidence, matched/failed selectors)
 - Extraction results (count, duplicates removed)
@@ -1216,6 +1273,7 @@ async run(): Promise<void> {
 - User interactions (ESC, Ctrl+C, menu selections)
 
 **Log Levels:**
+
 - `logMain()` - Normal operations, user actions
 - `logError()` - Errors and exceptions
 
@@ -1225,14 +1283,15 @@ Use `ApiTracker` for monitoring API usage:
 
 ```typescript
 const apiTracker = ApiTracker.getInstance();
-await apiTracker.trackRead();  // After each read operation
+await apiTracker.trackRead(); // After each read operation
 await apiTracker.trackWrite(); // After each write operation
-await apiTracker.logStats(this.uiLogger);  // Display stats when appropriate
+await apiTracker.logStats(this.uiLogger); // Display stats when appropriate
 ```
 
 ## Rate Limiting
 
 Use the same `retryWithBackoff` logic as other scripts:
+
 ```typescript
 import { retryWithBackoff } from '../utils';
 
@@ -1243,14 +1302,17 @@ await retryWithBackoff(async () => {
 ```
 
 Also use the same write delay as `contactsSync`:
+
 ```typescript
-writeDelayMs: 500  // From SETTINGS.contactsSync.writeDelayMs
+writeDelayMs: 500; // From SETTINGS.contactsSync.writeDelayMs
 ```
 
 ## Testing Checklist
 
 ### Mock Files Structure
+
 Place mocks in `__mocks__` folders following existing patterns:
+
 - `src/services/messaging/__mocks__/htmlSourceDetector.mock.ts`
 - `src/services/messaging/__mocks__/phoneExtractor.mock.ts`
 - `src/services/messaging/__mocks__/sampleHtml.mock.ts` - Contains minimal HTML snippets for Google Messages and WhatsApp Web (NOT full 1MB files)
@@ -1259,6 +1321,7 @@ Place mocks in `__mocks__` folders following existing patterns:
 
 **sampleHtml.mock.ts Structure:**
 Create minimal, anonymized HTML snippets that contain:
+
 - Representative DOM structure for detection selectors
 - Sample phone number patterns (e.g., `052-999-5784`, `+972 54-441-9002`)
 - Both synced (name-only) and unsynced (phone number) conversation examples
@@ -1273,7 +1336,7 @@ Create minimal, anonymized HTML snippets that contain:
 - [ ] Unit tests for `HtmlSanitizer` (script tag removal)
 - [ ] Unit tests for `HtmlSanitizer` (style tag removal)
 - [ ] Unit tests for `PhoneExtractor` with various international phone formats (US, UK, EU, Israeli, Asian)
-- [ ] Unit tests for `PhoneExtractor` fallback strategies (span[dir="auto"] vs _ao3e class vs title attribute)
+- [ ] Unit tests for `PhoneExtractor` fallback strategies (span[dir="auto"] vs \_ao3e class vs title attribute)
 - [ ] Unit tests for `PhoneExtractor` with JSDOM parsing
 - [ ] Unit tests for `PhoneExtractor` post-extraction validation (filtering false positives)
 - [ ] Unit tests for `PhoneExtractor` Google Messages pattern extraction (`data-e2e-conversation-name="">`)
@@ -1336,6 +1399,7 @@ Create minimal, anonymized HTML snippets that contain:
 ## Dependencies
 
 Existing dependencies (already in project):
+
 - `zod` - for phone validation
 - `ora` - for spinners
 - `enquirer` - for prompts (via `promptWithEnquirer.ts`)
@@ -1343,6 +1407,7 @@ Existing dependencies (already in project):
 - `inversify` - for DI
 
 **New dependency to add:**
+
 - `jsdom` - for reliable HTML DOM parsing
 
 ```bash

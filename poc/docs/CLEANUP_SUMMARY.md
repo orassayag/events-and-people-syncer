@@ -3,9 +3,11 @@
 ## What Was Fixed
 
 ### 1. File Naming Convention ✅
+
 All TypeScript files have been renamed to follow camelCase convention (first letter lowercase, each word starting with capital):
 
 **Services:**
+
 - `ApiTracker.ts` → `apiTracker.ts`
 - `AuthService.ts` → `authService.ts`
 - `ContactReader.ts` → `contactReader.ts`
@@ -13,22 +15,28 @@ All TypeScript files have been renamed to follow camelCase convention (first let
 - `DuplicateDetector.ts` → `duplicateDetector.ts`
 
 **Utils:**
+
 - `PortManager.ts` → `portManager.ts`
 - `RegexPatterns.ts` → `regexPatterns.ts`
 - `TextUtils.ts` → `textUtils.ts`
 
 **Validators:**
+
 - `InputValidator.ts` → `inputValidator.ts`
 
 ### 2. Import Statements Updated ✅
+
 All import statements have been updated to reference the new camelCase filenames:
+
 - `import { RegexPatterns } from './regexPatterns.js'`
 - `import { ApiTracker } from './apiTracker.js'`
 - `import { TextUtils } from '../utils/index.js'`
 - And all other imports across the codebase
 
 ### 3. Barrel Exports Updated ✅
+
 All barrel export files (`index.ts`) updated:
+
 - `services/index.ts`
 - `utils/index.ts`
 - `validators/index.ts`
@@ -36,18 +44,22 @@ All barrel export files (`index.ts`) updated:
 ### 4. Unused Code Removed ✅
 
 **Removed unused utility methods:**
+
 - `TextUtils.isEmpty()` - not used anywhere
 - `RegexPatterns.extractDigits()` - not used anywhere
 - `InputValidator.validateFieldLength()` - not used anywhere
 
 **Removed unused constants from settings.ts:**
+
 - `MAX_FIELD_LENGTH` - was only referenced by unused validateFieldLength
 - `MAX_FIELDS_PER_CONTACT` - not used anywhere
 
 **Removed unused imports:**
+
 - Removed `SETTINGS` import from `inputValidator.ts` (no longer needed)
 
 ### 5. Build Verification ✅
+
 - TypeScript compilation: **SUCCESS**
 - No lint errors
 - All imports resolve correctly
@@ -81,6 +93,7 @@ poc/src/
 ## Active SETTINGS Constants
 
 After cleanup, these are the settings currently in use:
+
 - `API_PAGE_SIZE` - Used for pagination (1000)
 - `DISPLAY_PAGE_SIZE` - Used for inquirer display (15)
 - `TOP_CONTACTS_DISPLAY` - Used to limit contact display (10)

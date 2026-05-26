@@ -5,7 +5,12 @@
 ## Basic Usage
 
 ```typescript
-import { selectWithEscape, inputWithEscape, confirmWithEscape, checkboxWithEscape } from '../utils/promptWithEnquirer';
+import {
+  selectWithEscape,
+  inputWithEscape,
+  confirmWithEscape,
+  checkboxWithEscape,
+} from '../utils/promptWithEnquirer';
 
 // Select
 const result = await selectWithEscape<string>({
@@ -58,6 +63,7 @@ console.log('Selected labels:', checkboxResult.value);
 ## Common Patterns
 
 ### Top-Level Menu (Exit on ESC)
+
 ```typescript
 const result = await selectWithEscape({...});
 if (result.escaped) {
@@ -66,6 +72,7 @@ if (result.escaped) {
 ```
 
 ### Sub-Menu (Return on ESC)
+
 ```typescript
 async function subMenu() {
   const result = await selectWithEscape({...});
@@ -77,20 +84,22 @@ async function subMenu() {
 ```
 
 ### While Loop Menu
+
 ```typescript
 while (true) {
   const result = await selectWithEscape({...});
-  
+
   if (result.escaped) {
     break; // Exit loop
   }
-  
+
   if (result.value === 'exit') break;
   await handleChoice(result.value);
 }
 ```
 
 ### Sequential Prompts
+
 ```typescript
 // Get folder
 const folderResult = await selectFolder();
@@ -105,6 +114,7 @@ await cache.set(folderResult.value, nameResult.value);
 ```
 
 ### With Validation
+
 ```typescript
 const result = await inputWithEscape({
   message: 'Enter email:',
@@ -125,7 +135,7 @@ const email = result.value; // Valid email
 
 ```typescript
 // Result type
-type PromptResult<T> = 
+type PromptResult<T> =
   | { escaped: true }
   | { escaped: false; value: T };
 
@@ -152,14 +162,14 @@ vi.mock('../../utils/promptWithEscape', () => ({
 const mockSelect = vi.mocked(selectWithEscape);
 
 // Mock normal completion
-mockSelect.mockResolvedValue({ 
-  escaped: false, 
-  value: 'option1' 
+mockSelect.mockResolvedValue({
+  escaped: false,
+  value: 'option1'
 });
 
 // Mock ESC
-mockSelect.mockResolvedValue({ 
-  escaped: true 
+mockSelect.mockResolvedValue({
+  escaped: true
 });
 
 // Test

@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ApiTracker } from '../apiTracker';
 import { readFile, writeFile } from 'fs/promises';
 import { existsSync } from 'fs';
-import { SETTINGS } from '../../../settings';
 
 vi.mock('fs/promises', () => ({
   readFile: vi.fn(),
@@ -35,7 +34,11 @@ describe('ApiTracker', () => {
   describe('trackRead', () => {
     it('should increment read count', async () => {
       vi.mocked(existsSync).mockReturnValue(true);
-      const mockStats = { date: new Date().toISOString().split('T')[0], read_count: 5, write_count: 2 };
+      const mockStats = {
+        date: new Date().toISOString().split('T')[0],
+        read_count: 5,
+        write_count: 2,
+      };
       vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockStats));
 
       await tracker.trackRead();
@@ -51,7 +54,11 @@ describe('ApiTracker', () => {
   describe('trackWrite', () => {
     it('should increment write count', async () => {
       vi.mocked(existsSync).mockReturnValue(true);
-      const mockStats = { date: new Date().toISOString().split('T')[0], read_count: 5, write_count: 2 };
+      const mockStats = {
+        date: new Date().toISOString().split('T')[0],
+        read_count: 5,
+        write_count: 2,
+      };
       vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockStats));
 
       await tracker.trackWrite();
@@ -77,7 +84,7 @@ describe('ApiTracker', () => {
 
     it('should create initial stats if file does not exist', async () => {
       vi.mocked(existsSync).mockReturnValue(false);
-      
+
       const stats = await tracker.getStats();
       expect(stats.read).toBe(0);
       expect(writeFile).toHaveBeenCalled();

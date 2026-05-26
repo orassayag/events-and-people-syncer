@@ -216,13 +216,19 @@ export class Logger {
   }
 
   private async writeToFile(entry: LogEntry): Promise<void> {
-    const logFilePath: string = join(LOG_CONFIG.logDir, 'app.txt');
+    const logFilePath: string = join(
+      process.cwd(),
+      LOG_CONFIG.logDir,
+      'app.log'
+    );
     const logLine: string = JSON.stringify(entry) + '\n';
     try {
-      await fs.mkdir(LOG_CONFIG.logDir, { recursive: true });
+      await fs.mkdir(join(process.cwd(), LOG_CONFIG.logDir), {
+        recursive: true,
+      });
       await fs.appendFile(logFilePath, logLine);
-    } catch (error) {
-      console.error('Failed to write to log file:', error);
+    } catch (_error) {
+      // Don't use console.error here to avoid infinite loops if console is redirected
     }
   }
 }

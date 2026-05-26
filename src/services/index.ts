@@ -1,7 +1,13 @@
 export * from './contacts';
 export * from './auth';
 export * from './api';
-export { LinkedInExtractor, CompanyMatcher, ConnectionMatcher, ContactSyncer as LinkedInContactSyncer, UrlNormalizer } from './linkedin';
+export {
+  LinkedInExtractor,
+  CompanyMatcher,
+  ConnectionMatcher,
+  ContactSyncer as LinkedInContactSyncer,
+  UrlNormalizer,
+} from './linkedin';
 export * from './hibob';
 export * from './messaging';
 export * from './folders';

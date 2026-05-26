@@ -128,86 +128,85 @@ The project uses emojis extensively across multiple files. Based on my investiga
 export const EMOJIS = {
   // Status indicators
   STATUS: {
-    SUCCESS: "✅",
-    ERROR: "❌",
-    WARNING: "⚠️",
-    INFO: "ℹ️",
-    IMPORTANT: "🚨",
+    SUCCESS: '✅',
+    ERROR: '❌',
+    WARNING: '⚠️',
+    INFO: 'ℹ️',
+    IMPORTANT: '🚨',
   },
   // Navigation
   NAVIGATION: {
-    EXIT: "🚪",
-    BACK: "🔙",
-    GO_BACK: "⬅️",
-    SKIP: "⏭️",
-    SKIP_ARROW: "➡️",
+    EXIT: '🚪',
+    BACK: '🔙',
+    GO_BACK: '⬅️',
+    SKIP: '⏭️',
+    SKIP_ARROW: '➡️',
   },
   // Actions
   ACTIONS: {
-    ADD: "➕",
-    EDIT: "✏️",
-    DELETE: "🗑️",
-    SEARCH: "🔍",
-    PROCESS: "▶️",
-    SYNC: "🔄",
-    CLEANUP: "♻️",
+    ADD: '➕',
+    EDIT: '✏️',
+    DELETE: '🗑️',
+    SEARCH: '🔍',
+    PROCESS: '▶️',
+    SYNC: '🔄',
+    CLEANUP: '♻️',
   },
   // Contact fields
   FIELDS: {
-    COMPANY: "🏢",
-    PERSON: "👤",
-    JOB_TITLE: "💼",
-    EMAIL: "📧",
-    PHONE: "📞",
-    LINKEDIN: "🔗",
-    LABEL: "🏷️",
-    GROUP: "👥",
+    COMPANY: '🏢',
+    PERSON: '👤',
+    JOB_TITLE: '💼',
+    EMAIL: '📧',
+    PHONE: '📞',
+    LINKEDIN: '🔗',
+    LABEL: '🏷️',
+    GROUP: '👥',
   },
   // Data indicators
   DATA: {
-    INDEX: "🔢",
-    ID: "🆔",
-    REASON: "⁉️",
-    CLIPBOARD: "📋",
+    INDEX: '🔢',
+    ID: '🆔',
+    REASON: '⁉️',
+    CLIPBOARD: '📋',
   },
   // Script icons
   SCRIPTS: {
-    DEFAULT: "📄",
-    CONTACTS_SYNC: "🔄",
-    EVENTS_JOBS: "📝",
-    LINKEDIN: "🔗",
-    OTHER_CONTACTS: "🗄️",
-    SMS_WHATSAPP: "💬",
-    STATISTICS: "📊",
+    DEFAULT: '📄',
+    CONTACTS_SYNC: '🔄',
+    EVENTS_JOBS: '📝',
+    LINKEDIN: '🔗',
+    OTHER_CONTACTS: '🗄️',
+    SMS_WHATSAPP: '💬',
+    STATISTICS: '📊',
   },
   // Menu items (for events/jobs sync)
   MENU: {
-    WRITE_NOTES: "📓",
-    CREATE_NOTE: "📝",
-    REWRITE_NOTE: "📋",
-    FOLDER: "📁",
-    CREATE_LABEL: "🏷️",
+    WRITE_NOTES: '📓',
+    CREATE_NOTE: '📝',
+    REWRITE_NOTE: '📋',
+    FOLDER: '📁',
+    CREATE_LABEL: '🏷️',
   },
   // Auth & Security
   AUTH: {
-    LOCK: "🔐",
-    SECURITY: "🔒",
+    LOCK: '🔐',
+    SECURITY: '🔒',
   },
   // API operations
   API: {
-    READ: "📖",
-    WRITE: "✏️",
+    READ: '📖',
+    WRITE: '✏️',
   },
   // Shell script specific
   SHELL: {
-    BUILD: "🏗️",
-    TEST: "🧪",
-    COMPLETE: "✨",
-    STEP: "📝",
+    BUILD: '🏗️',
+    TEST: '🧪',
+    COMPLETE: '✨',
+    STEP: '📝',
   },
 } as const;
-
-``` 
+```
 
 > **Note:** Type definitions (`EmojiKey`, `EmojiValue`) are optional. Evaluate during implementation whether they provide practical value. If not needed, omit them to keep the code simple.
 

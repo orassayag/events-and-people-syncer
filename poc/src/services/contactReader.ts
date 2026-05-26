@@ -25,7 +25,9 @@ export class ContactReader {
     }
   }
 
-  private async readContacts(onProgress?: (current: number) => void): Promise<ContactData[]> {
+  private async readContacts(
+    onProgress?: (current: number) => void
+  ): Promise<ContactData[]> {
     const service = google.people({ version: 'v1', auth: this.auth });
     const apiTracker = ApiTracker.getInstance();
     let contactGroupsPageToken: string | undefined;
@@ -38,11 +40,16 @@ export class ContactReader {
       await apiTracker.trackRead();
       const contactGroups = contactGroupsResponse.data.contactGroups || [];
       contactGroups.forEach((group) => {
-        if (group.resourceName && group.name && group.groupType === 'USER_CONTACT_GROUP') {
+        if (
+          group.resourceName &&
+          group.name &&
+          group.groupType === 'USER_CONTACT_GROUP'
+        ) {
           groupIdToName[group.resourceName] = group.name;
         }
       });
-      contactGroupsPageToken = contactGroupsResponse.data.nextPageToken || undefined;
+      contactGroupsPageToken =
+        contactGroupsResponse.data.nextPageToken || undefined;
     } while (contactGroupsPageToken);
     const contacts: ContactData[] = [];
     let pageToken: string | undefined;
@@ -50,7 +57,8 @@ export class ContactReader {
       const response = await service.people.connections.list({
         resourceName: 'people/me',
         pageSize: SETTINGS.API_PAGE_SIZE,
-        personFields: 'names,emailAddresses,phoneNumbers,organizations,urls,memberships',
+        personFields:
+          'names,emailAddresses,phoneNumbers,organizations,urls,memberships',
         pageToken,
       });
       await apiTracker.trackRead();
@@ -74,13 +82,17 @@ export class ContactReader {
           url: url.value || '',
           label: url.type || url.formattedType || '',
         }));
-        const contactGroupMemberships = (person.memberships || []).filter(m => m.contactGroupMembership?.contactGroupResourceName).map(m => {
-          const groupResourceName = m.contactGroupMembership?.contactGroupResourceName;
-          if (!groupResourceName) {
-            return '';
-          }
-          return groupIdToName[groupResourceName] || '';
-        }).filter(name => name);
+        const contactGroupMemberships = (person.memberships || [])
+          .filter((m) => m.contactGroupMembership?.contactGroupResourceName)
+          .map((m) => {
+            const groupResourceName =
+              m.contactGroupMembership?.contactGroupResourceName;
+            if (!groupResourceName) {
+              return '';
+            }
+            return groupIdToName[groupResourceName] || '';
+          })
+          .filter((name) => name);
         const label = contactGroupMemberships.join(' | ');
         contacts.push({
           label,
@@ -108,14 +120,20 @@ export class ContactReader {
     const total = contacts.length;
     const displayCount = Math.min(SETTINGS.TOP_CONTACTS_DISPLAY, total);
     if (total > SETTINGS.TOP_CONTACTS_DISPLAY) {
-      console.log(`Showing ${displayCount} of ${total.toLocaleString('en-US')} contacts\n`);
+      console.log(
+        `Showing ${displayCount} of ${total.toLocaleString('en-US')} contacts\n`
+      );
     }
     for (let i = 0; i < displayCount; i++) {
       this.displayContact(contacts[i], i, total);
     }
   }
 
-  private displayContact(contact: ContactData, index: number, total: number): void {
+  private displayContact(
+    contact: ContactData,
+    index: number,
+    total: number
+  ): void {
     const isVerbose = process.env.VERBOSE_MODE === 'true';
     if (isVerbose) {
       console.log(`Person ${index + 1} of ${total}`);
@@ -153,48 +171,73 @@ export class ContactReader {
       const personNum = TextUtils.formatNumberWithLeadingZeros(index + 1);
       const totalNum = TextUtils.formatNumberWithLeadingZeros(total);
       const fullName = `${contact.firstName} ${contact.lastName}`.trim();
-      const compositeSuffix = [contact.label, contact.company].filter((s) => s).join(' ');
+      const compositeSuffix = [contact.label, contact.company]
+        .filter((s) => s)
+        .join(' ');
       console.log(`===Person ${personNum}/${totalNum}===`);
-      console.log(`-Labels: ${TextUtils.reverseHebrewText(contact.label || '')}`);
-      console.log(`-Company: ${TextUtils.reverseHebrewText(contact.company || '')}`);
+      console.log(
+        `-Labels: ${TextUtils.reverseHebrewText(contact.label || '')}`
+      );
+      console.log(
+        `-Company: ${TextUtils.reverseHebrewText(contact.company || '')}`
+      );
       if (compositeSuffix) {
-        console.log(`-Full name: ${TextUtils.reverseHebrewText(fullName)} ${TextUtils.reverseHebrewText(compositeSuffix)}`);
+        console.log(
+          `-Full name: ${TextUtils.reverseHebrewText(fullName)} ${TextUtils.reverseHebrewText(compositeSuffix)}`
+        );
       } else {
         console.log(`-Full name: ${TextUtils.reverseHebrewText(fullName)}`);
       }
-      console.log(`-Job Title: ${TextUtils.reverseHebrewText(contact.jobTitle || '')}`);
+      console.log(
+        `-Job Title: ${TextUtils.reverseHebrewText(contact.jobTitle || '')}`
+      );
       if (contact.emails.length === 1) {
-        const emailLabel = contact.emails[0].label || contact.label || contact.company;
-        console.log(`-Email: ${contact.emails[0].value} ${TextUtils.reverseHebrewText(emailLabel)}`);
+        const emailLabel =
+          contact.emails[0].label || contact.label || contact.company;
+        console.log(
+          `-Email: ${contact.emails[0].value} ${TextUtils.reverseHebrewText(emailLabel)}`
+        );
       } else if (contact.emails.length > 1) {
         console.log('-Emails:');
         contact.emails.forEach((email) => {
           const emailLabel = email.label || contact.label || contact.company;
-          console.log(`-${email.value} ${TextUtils.reverseHebrewText(emailLabel)}`);
+          console.log(
+            `-${email.value} ${TextUtils.reverseHebrewText(emailLabel)}`
+          );
         });
       } else {
         console.log('-Email:');
       }
       if (contact.phones.length === 1) {
-        const phoneLabel = contact.phones[0].label || contact.label || contact.company;
-        console.log(`-Phone: ${contact.phones[0].number} ${TextUtils.reverseHebrewText(phoneLabel)}`);
+        const phoneLabel =
+          contact.phones[0].label || contact.label || contact.company;
+        console.log(
+          `-Phone: ${contact.phones[0].number} ${TextUtils.reverseHebrewText(phoneLabel)}`
+        );
       } else if (contact.phones.length > 1) {
         console.log('-Phones:');
         contact.phones.forEach((phone) => {
           const phoneLabel = phone.label || contact.label || contact.company;
-          console.log(`-${phone.number} ${TextUtils.reverseHebrewText(phoneLabel)}`);
+          console.log(
+            `-${phone.number} ${TextUtils.reverseHebrewText(phoneLabel)}`
+          );
         });
       } else {
         console.log('-Phone:');
       }
       if (contact.websites.length === 1) {
-        const urlLabel = contact.websites[0].label || contact.label || contact.company;
-        console.log(`-LinkedIn URL: ${TextUtils.reverseHebrewText(contact.websites[0].url)} ${TextUtils.reverseHebrewText(urlLabel)}`);
+        const urlLabel =
+          contact.websites[0].label || contact.label || contact.company;
+        console.log(
+          `-LinkedIn URL: ${TextUtils.reverseHebrewText(contact.websites[0].url)} ${TextUtils.reverseHebrewText(urlLabel)}`
+        );
       } else if (contact.websites.length > 1) {
         console.log('-LinkedIn URL:');
         contact.websites.forEach((website) => {
           const urlLabel = website.label || contact.label || contact.company;
-          console.log(`-${TextUtils.reverseHebrewText(website.url)} ${TextUtils.reverseHebrewText(urlLabel)}`);
+          console.log(
+            `-${TextUtils.reverseHebrewText(website.url)} ${TextUtils.reverseHebrewText(urlLabel)}`
+          );
         });
       } else {
         console.log('-LinkedIn URL:');

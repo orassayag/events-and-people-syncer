@@ -1,18 +1,22 @@
 # Company Name PascalCase Formatting Implementation Summary
 
 ## Overview
+
 Successfully implemented PascalCase formatting for company names across all three main components (POC, LinkedIn Sync, and Contacts Sync). Company names are now formatted with capital letters for each word merged into a single word without spaces.
 
 ## Changes Made
 
 ### 1. Centralized Utility Function
+
 **Files Modified:**
+
 - `src/utils/companyFormatter.ts`
 - `src/utils/textUtils.ts`
 
 **Primary Method:** `calculateFormattedCompany(company: string, maxWords: number): string`
 
 **Functionality:**
+
 - Trims whitespace and removes invalid characters (emojis, Hebrew, special symbols).
 - Handles empty, `(none)`, or `none` values by returning the hardcoded string `"LinkedIn"`.
 - Prefixes valid company names with `"LinkedIn "` (e.g., `"LinkedIn TanishaSystems"`).
@@ -21,56 +25,69 @@ Successfully implemented PascalCase formatting for company names across all thre
 - Formats words into PascalCase.
 
 **Examples:**
+
 - "Herzliya Medical Center" → "HerzliyaMedicalCenter"
 - "Google Cloud" → "GoogleCloud"
 - "microsoft" → "Microsoft"
 - "TEL AVIV university" → "TelAvivUniversity"
 
 ### 2. POC Component Updated
+
 **File:** `poc/src/services/contactWriter.ts`
 
 **Changes:**
+
 - Line 146: Format company on initial input in `collectInitialInput()`
 - Line 611: Format company when editing in `handleEditAction()`
 
 **Impact:**
+
 - Company names entered manually are formatted before storage
 - Formatted company appears in labels, full names, email/phone types
 
 ### 3. LinkedIn Sync Service Updated
+
 **File:** `src/services/linkedin/contactSyncer.ts`
 
 **Changes:**
+
 - Integrated `calculateFormattedCompany` utility.
 - Removed manual PascalCase formatting and suffix removal logic from the service.
 - Ensures all new contacts and label assignments use the centralized formatting.
 - Missing company data now results in a clean "LinkedIn" label instead of empty fields.
 
 **Impact:**
+
 - LinkedIn CSV company names are formatted for storage
 - Full formatted company name used in lastName field (not just first word)
 - Formatted company used in email labels and organization field
 
 ### 4. Contacts Sync ContactEditor Updated
+
 **File:** `src/services/contacts/contactEditor.ts`
 
 **Changes:**
+
 - Line 80: Format company on initial input in `collectInitialInput()`
 - Line 481: Format company when editing in `handleEditAction()`
 
 **Impact:**
+
 - Manual contact entry formats company names
 - Edits to company names are formatted before saving
 
 ### 5. Contacts Sync ContactSyncer Updated
+
 **File:** `src/services/contacts/contactSyncer.ts`
 
 **Changes:**
+
 - Added private method `formatCompanyToPascalCase()` (lines 431-441)
 - Line 333: Format company in `updateContact()` method
 - Line 360: Use formatted company in organizations field
 
 **Impact:**
+
 - Contact updates format company names consistently
 - Formatted company used in composite suffix for labels
 
@@ -78,19 +95,20 @@ Successfully implemented PascalCase formatting for company names across all thre
 
 All test cases passed successfully:
 
-| Input | Output | Status |
-|-------|--------|--------|
+| Input                     | Output                  | Status |
+| ------------------------- | ----------------------- | ------ |
 | "Herzliya Medical Center" | "HerzliyaMedicalCenter" | ✓ Pass |
-| "Microsoft" | "Microsoft" | ✓ Pass |
-| "Google   Cloud" | "GoogleCloud" | ✓ Pass |
-| "google cloud platform" | "GoogleCloudPlatform" | ✓ Pass |
-| "TEL AVIV university" | "TelAvivUniversity" | ✓ Pass |
-| "" (empty) | "" | ✓ Pass |
-| "   " (spaces only) | "" | ✓ Pass |
+| "Microsoft"               | "Microsoft"             | ✓ Pass |
+| "Google Cloud"            | "GoogleCloud"           | ✓ Pass |
+| "google cloud platform"   | "GoogleCloudPlatform"   | ✓ Pass |
+| "TEL AVIV university"     | "TelAvivUniversity"     | ✓ Pass |
+| "" (empty)                | ""                      | ✓ Pass |
+| " " (spaces only)         | ""                      | ✓ Pass |
 
 ## Example Output Format
 
 ### Before Implementation:
+
 ```
 Full name: Aviad Simon Job Herzliya Medical Center
 Email: aviad@example.com Job Herzliya Medical Center
@@ -99,6 +117,7 @@ Company: Herzliya Medical Center
 ```
 
 ### After Implementation:
+
 ```
 Full name: Aviad Simon Job HerzliyaMedicalCenter
 Email: aviad@example.com Job HerzliyaMedicalCenter
@@ -109,6 +128,7 @@ Company: HerzliyaMedicalCenter
 ## Storage Changes
 
 ### Fields Affected:
+
 1. **Organizations Field**: Company name stored in PascalCase format
 2. **Last Name Field**: Contains formatted company (e.g., "Simon Job HerzliyaMedicalCenter")
 3. **Email/Phone Type Labels**: Use formatted company in composite suffix

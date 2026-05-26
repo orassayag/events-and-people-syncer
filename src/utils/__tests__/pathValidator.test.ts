@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { access, stat, constants } from 'fs/promises';
 import { resolve } from 'path';
-import { 
-  isWindowsPath, 
-  validatePathPermissions, 
-  validateAndResolveFilePath, 
-  normalizePath 
+import {
+  isWindowsPath,
+  validatePathPermissions,
+  validateAndResolveFilePath,
+  normalizePath,
 } from '../pathValidator';
 
 vi.mock('fs/promises', () => ({
@@ -15,8 +15,8 @@ vi.mock('fs/promises', () => ({
     R_OK: 4,
     W_OK: 2,
     X_OK: 1,
-    F_OK: 0
-  }
+    F_OK: 0,
+  },
 }));
 
 describe('pathValidator utils', () => {
@@ -48,7 +48,9 @@ describe('pathValidator utils', () => {
   describe('validatePathPermissions', () => {
     it('should resolve if access is granted', async () => {
       vi.mocked(access).mockResolvedValue(undefined);
-      await expect(validatePathPermissions('/valid/path')).resolves.toBeUndefined();
+      await expect(
+        validatePathPermissions('/valid/path')
+      ).resolves.toBeUndefined();
       expect(access).toHaveBeenCalledWith('/valid/path', constants.R_OK);
     });
 
@@ -56,40 +58,47 @@ describe('pathValidator utils', () => {
       const error = new Error('access denied') as any;
       error.code = 'EACCES';
       vi.mocked(access).mockRejectedValue(error);
-      
-      await expect(validatePathPermissions('/forbidden/path'))
-        .rejects.toThrow('Permission denied accessing path: /forbidden/path');
+
+      await expect(validatePathPermissions('/forbidden/path')).rejects.toThrow(
+        'Permission denied accessing path: /forbidden/path'
+      );
     });
 
     it('should throw permission error for EPERM', async () => {
       const error = new Error('perm denied') as any;
       error.code = 'EPERM';
       vi.mocked(access).mockRejectedValue(error);
-      
-      await expect(validatePathPermissions('/forbidden/path'))
-        .rejects.toThrow('Permission denied accessing path: /forbidden/path');
+
+      await expect(validatePathPermissions('/forbidden/path')).rejects.toThrow(
+        'Permission denied accessing path: /forbidden/path'
+      );
     });
 
     it('should rethrow other errors', async () => {
       const error = new Error('Other error') as any;
       error.code = 'OTHER';
       vi.mocked(access).mockRejectedValue(error);
-      
-      await expect(validatePathPermissions('/other/path'))
-        .rejects.toThrow('Other error');
+
+      await expect(validatePathPermissions('/other/path')).rejects.toThrow(
+        'Other error'
+      );
     });
   });
 
   describe('validateAndResolveFilePath', () => {
     it('should throw if path is empty', async () => {
-      await expect(validateAndResolveFilePath('')).rejects.toThrow('File path cannot be empty');
-      await expect(validateAndResolveFilePath('   ')).rejects.toThrow('File path cannot be empty');
+      await expect(validateAndResolveFilePath('')).rejects.toThrow(
+        'File path cannot be empty'
+      );
+      await expect(validateAndResolveFilePath('   ')).rejects.toThrow(
+        'File path cannot be empty'
+      );
     });
 
     it('should resolve and validate a valid file', async () => {
       const target = 'test.txt';
       const resolved = resolve(target);
-      
+
       vi.mocked(stat).mockResolvedValue({ isFile: () => true } as any);
       vi.mocked(access).mockResolvedValue(undefined);
 
@@ -102,11 +111,12 @@ describe('pathValidator utils', () => {
     it('should throw if path is a directory', async () => {
       const target = 'folder';
       const resolved = resolve(target);
-      
+
       vi.mocked(stat).mockResolvedValue({ isFile: () => false } as any);
 
-      await expect(validateAndResolveFilePath(target))
-        .rejects.toThrow(`Target must be a file, not a folder: ${resolved}`);
+      await expect(validateAndResolveFilePath(target)).rejects.toThrow(
+        `Target must be a file, not a folder: ${resolved}`
+      );
     });
 
     it('should throw if file does not exist', async () => {
@@ -114,11 +124,12 @@ describe('pathValidator utils', () => {
       const resolved = resolve(target);
       const error = new Error('not found') as any;
       error.code = 'ENOENT';
-      
+
       vi.mocked(stat).mockRejectedValue(error);
 
-      await expect(validateAndResolveFilePath(target))
-        .rejects.toThrow(`File not found: ${resolved}`);
+      await expect(validateAndResolveFilePath(target)).rejects.toThrow(
+        `File not found: ${resolved}`
+      );
     });
 
     it('should rethrow other stat errors', async () => {
@@ -126,7 +137,9 @@ describe('pathValidator utils', () => {
       error.code = 'UNKNOWN';
       vi.mocked(stat).mockRejectedValue(error);
 
-      await expect(validateAndResolveFilePath('test.txt')).rejects.toThrow('stat error');
+      await expect(validateAndResolveFilePath('test.txt')).rejects.toThrow(
+        'stat error'
+      );
     });
   });
 

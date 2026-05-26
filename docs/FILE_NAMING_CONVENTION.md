@@ -7,6 +7,7 @@ All TypeScript files in the `src/` directory have been renamed to follow camelCa
 ## Changes Made
 
 ### Services
+
 - `AuthService.ts` → `authService.ts`
 - `ApiTracker.ts` → `apiTracker.ts`
 - `RetryHandler.ts` → `retryHandler.ts`
@@ -15,6 +16,7 @@ All TypeScript files in the `src/` directory have been renamed to follow camelCa
 - `DuplicateDetector.ts` → `duplicateDetector.ts`
 
 ### Infrastructure
+
 - `Logger.ts` → `logger.ts`
 - `AppError.ts` → `appError.ts`
 - `ErrorCodes.ts` → `errorCodes.ts`
@@ -67,8 +69,9 @@ import { AuthService } from './authService';
 ## Files Affected
 
 Total files renamed: 10
+
 - 6 service files
-- 3 infrastructure files  
+- 3 infrastructure files
 - 1 monitoring file
 
 All changes are backward compatible through barrel exports.

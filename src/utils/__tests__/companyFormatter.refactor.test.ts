@@ -72,37 +72,62 @@ describe('refactorCompanyName rules', () => {
 
 describe('calculateFormattedCompany integration', () => {
   it('should integrate refactoring into the full flow', () => {
-    expect(calculateFormattedCompany('Applied Materials Israel')).toBe('LinkedIn AppliedMaterials');
+    expect(calculateFormattedCompany('Applied Materials Israel')).toBe(
+      'LinkedIn AppliedMaterials'
+    );
     expect(calculateFormattedCompany('Monday')).toBe('LinkedIn Monday.com');
     expect(calculateFormattedCompany('Unit 8200')).toBe('LinkedIn IDF');
-    expect(calculateFormattedCompany('Self Employed')).toBe('LinkedIn Freelance');
+    expect(calculateFormattedCompany('Self Employed')).toBe(
+      'LinkedIn Freelance'
+    );
     expect(calculateFormattedCompany('Wix.com')).toBe('LinkedIn Wix');
-    expect(calculateFormattedCompany('entrosecurity')).toBe('LinkedIn EntroSecurity');
+    expect(calculateFormattedCompany('entrosecurity')).toBe(
+      'LinkedIn EntroSecurity'
+    );
     expect(calculateFormattedCompany('AnyClip')).toBe('LinkedIn AnyClip');
     expect(calculateFormattedCompany('OkCupid')).toBe('LinkedIn OkCupid');
     expect(calculateFormattedCompany('AVIF')).toBe('LinkedIn AVIF');
     expect(calculateFormattedCompany('Mcpd')).toBe('LinkedIn MCPD');
     expect(calculateFormattedCompany('JumboMail')).toBe('LinkedIn JUMBOMail');
-    expect(calculateFormattedCompany('Dun & Bradstreet')).toBe('LinkedIn Dun & Bradstreet');
+    expect(calculateFormattedCompany('Dun & Bradstreet')).toBe(
+      'LinkedIn Dun & Bradstreet'
+    );
     expect(calculateFormattedCompany('3D Printer')).toBe('LinkedIn 3DPrinter');
-    expect(calculateFormattedCompany('Investing.com')).toBe('LinkedIn Investing.com');
+    expect(calculateFormattedCompany('Investing.com')).toBe(
+      'LinkedIn Investing.com'
+    );
   });
 
   it('should not suggest duplicate labels like HR Hr', () => {
     // Linoy Bar HR case
     // The maintainer logic should correctly construct the suffix
-    expect(calculateFormattedCompany('HR', undefined, 'Linoy', 'Bar')).toBe('LinkedIn HR');
+    expect(calculateFormattedCompany('HR', undefined, 'Linoy', 'Bar')).toBe(
+      'LinkedIn HR'
+    );
   });
 
   it('should not suggest SelfEmployed for partial matches (like Lotem or BrainerHub)', () => {
     // "Lotem" matches firstName but not full name
-    expect(calculateFormattedCompany('Lotem', undefined, 'Lotem', 'Cohen')).toBe('LinkedIn Lotem');
+    expect(
+      calculateFormattedCompany('Lotem', undefined, 'Lotem', 'Cohen')
+    ).toBe('LinkedIn Lotem');
     // "BrainerHub" matches part of lastName but not full name
-    expect(calculateFormattedCompany('BrainerHub', undefined, 'Tanknath', 'Motikhar')).toBe('LinkedIn BrainerHub');
+    expect(
+      calculateFormattedCompany('BrainerHub', undefined, 'Tanknath', 'Motikhar')
+    ).toBe('LinkedIn BrainerHub');
   });
 
   it('should still suggest SelfEmployed for exact full name matches', () => {
-    expect(calculateFormattedCompany('Lotem Cohen', undefined, 'Lotem', 'Cohen')).toBe('LinkedIn SelfEmployed');
-    expect(calculateFormattedCompany('Tanknath Motikhar', undefined, 'Tanknath', 'Motikhar')).toBe('LinkedIn SelfEmployed');
+    expect(
+      calculateFormattedCompany('Lotem Cohen', undefined, 'Lotem', 'Cohen')
+    ).toBe('LinkedIn SelfEmployed');
+    expect(
+      calculateFormattedCompany(
+        'Tanknath Motikhar',
+        undefined,
+        'Tanknath',
+        'Motikhar'
+      )
+    ).toBe('LinkedIn SelfEmployed');
   });
 });

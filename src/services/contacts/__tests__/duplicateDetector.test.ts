@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DuplicateDetector } from '../duplicateDetector';
 import { ContactCache } from '../../../cache';
-import { PhoneNormalizer } from '../phoneNormalizer';
 import type { ContactData, OAuth2Client } from '../../../types';
 
 vi.mock('../../../cache', () => ({
@@ -35,30 +34,26 @@ describe('DuplicateDetector', () => {
 
   const mockContacts: ContactData[] = [
     {
+      label: 'Test',
       firstName: 'John',
       lastName: 'Doe',
+      company: '',
+      jobTitle: '',
       emails: [{ value: 'john@example.com', label: 'work' }],
       phones: [{ number: '+15551234567', label: 'mobile' }],
       websites: [],
       resourceName: 'people/1',
-      addresses: [],
-      organizations: [],
-      notes: [],
-      birthdays: [],
-      metadata: { sources: [] },
     },
     {
+      label: 'Test',
       firstName: 'Jane',
       lastName: 'Smith',
+      company: '',
+      jobTitle: '',
       emails: [{ value: 'jane@example.com', label: 'work' }],
       phones: [],
       websites: [],
       resourceName: 'people/2',
-      addresses: [],
-      organizations: [],
-      notes: [],
-      birthdays: [],
-      metadata: { sources: [] },
     },
   ];
 

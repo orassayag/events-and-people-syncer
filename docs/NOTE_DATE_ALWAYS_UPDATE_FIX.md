@@ -2,14 +2,16 @@
 
 ## Problem
 
-When updating contacts, the note date was not always being updated to the current date. 
+When updating contacts, the note date was not always being updated to the current date.
 
 **Example:**
+
 - Contact "guy lasry" was updated on `2026-03-22T16:09:16.828Z` (March 22)
 - But the note showed: `Updated by the people syncer script - Last update: 19/03/2026` (March 19)
 - Expected: `Updated by the people syncer script (LinkedIn) - Last update: 22/03/2026` (March 22)
 
 The log entry showed:
+
 ```
 [INFO] [2026-03-22T16:09:16.828Z] Updated contact: guy lasry (Israel Defense Forces) - Label: Job
 ```
@@ -27,7 +29,7 @@ if (hasUpdatedMessage) {
   const existingDate: string | null = extractDateFromNote(existingNote);
   if (existingDate === currentDate) {
     return {
-      shouldUpdate: false,  // ❌ BAD: Don't update if date is same
+      shouldUpdate: false, // ❌ BAD: Don't update if date is same
       newNoteValue: existingNote,
     };
   }
@@ -39,6 +41,7 @@ if (hasUpdatedMessage) {
 ```
 
 This logic was flawed because:
+
 1. It assumed that if the date is the same, we shouldn't update
 2. But we should ALWAYS update the note when we update a contact, regardless of the date
 3. The note might also be missing the script name (e.g., "Updated by the people syncer script" instead of "Updated by the people syncer script (LinkedIn)")
@@ -52,7 +55,7 @@ Removed the date comparison logic. Now the functions ALWAYS return `shouldUpdate
 ```typescript
 if (hasUpdatedMessage) {
   return {
-    shouldUpdate: true,  // ✅ GOOD: Always update
+    shouldUpdate: true, // ✅ GOOD: Always update
     newNoteValue: updateNoteDateOnly(existingNote, currentDate),
   };
 }
@@ -82,6 +85,7 @@ if (hasUpdatedMessage) {
 ### Always Update Date
 
 When a contact is updated:
+
 1. **If note says "Added by..."**: Change to "Updated by..." AND update date
 2. **If note says "Updated by..."**: Keep "Updated by..." AND update date (even if date is the same)
 3. **If note has no syncer message**: Append "Updated by..." with current date
@@ -89,16 +93,19 @@ When a contact is updated:
 ### Example Scenarios
 
 **Scenario 1: Update on same day**
+
 - Existing note: `Updated by the people syncer script (LinkedIn) - Last update: 22/03/2026`
 - Update happens on: 22/03/2026
 - New note: `Updated by the people syncer script (LinkedIn) - Last update: 22/03/2026` (still updates, ensuring script name is correct)
 
 **Scenario 2: Update on different day**
+
 - Existing note: `Updated by the people syncer script - Last update: 19/03/2026`
 - Update happens on: 22/03/2026
 - New note: `Updated by the people syncer script - Last update: 22/03/2026` (date updated)
 
 **Scenario 3: First update after add**
+
 - Existing note: `Added by the people syncer script (LinkedIn) - Last update: 15/03/2026`
 - Update happens on: 22/03/2026
 - New note: `Updated by the people syncer script (LinkedIn) - Last update: 22/03/2026` (changed "Added" to "Updated" and updated date)
@@ -119,6 +126,7 @@ When a contact is updated:
 ## Impact
 
 This fix applies to:
+
 - **LinkedIn sync script** - Uses `determineNoteUpdate`
 - **HiBob sync script** - Uses `determineNoteUpdate`
 - **Contacts sync script** - Uses `determineSyncNoteUpdate`

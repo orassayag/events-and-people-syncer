@@ -7,10 +7,11 @@ This document lists all critical inline comments that should be added to the cod
 ### 1. `src/services/notes/noteWriter.ts`
 
 #### At top of file (after imports):
+
 ```typescript
 /**
  * NoteWriter service handles all note file operations for Events & Jobs Sync.
- * 
+ *
  * File Naming Convention:
  * - Format: notes_DDMMYYYY-N.txt (e.g., notes_15032026-1.txt)
  * - Uses system local time (timezone-aware)
@@ -18,13 +19,13 @@ This document lists all critical inline comments that should be added to the cod
  * - Counter CAN start at 0: If notes_15032026-0.txt exists, next is -1.txt
  * - Only files matching regex /^notes_\d{8}-\d+\.txt$/ are considered
  * - Files without counter (e.g., notes_15032026.txt) are ignored
- * 
+ *
  * Timezone Behavior:
  * - All date operations use system local timezone
  * - If timezone changes between runs, dates reflect new timezone
  * - If timezone changes DURING execution, subsequent operations use new timezone
  * - If system time goes backwards, may see warnings about "future" files (non-fatal)
- * 
+ *
  * Content Validation:
  * - Max size: 1MB (~1,048,576 characters)
  * - Binary data (null bytes) automatically rejected
@@ -32,6 +33,7 @@ This document lists all critical inline comments that should be added to the cod
 ```
 
 #### In `getNextFileName()` method (before maxCounter calculation):
+
 ```typescript
     let maxCounter = 0;
     for (const file of matchingFiles) {
@@ -50,21 +52,22 @@ This document lists all critical inline comments that should be added to the cod
 ### 2. `src/scripts/eventsJobsSync.ts`
 
 #### At top of class (after member variables):
+
 ```typescript
 export class EventsJobsSyncScript {
   /**
    * Events & Jobs Sync Script
-   * 
+   *
    * Language Support: English only (no localization)
-   * 
+   *
    * Logging Policy:
    * - Logs all actions: folder names, file paths, user selections, stats, errors
    * - NEVER logs: note content (may contain sensitive/personal information)
-   * 
+   *
    * Single-User Design:
    * - Designed for single local user only
    * - No concurrent access handling needed (only one instance runs at a time)
-   * 
+   *
    * Symlink Behavior:
    * - Follows symlinks to their target directories
    * - If dummy/job-interviews is a symlink, script scans the target
@@ -73,6 +76,7 @@ export class EventsJobsSyncScript {
 ```
 
 #### In `scanFolders()` method (before reading directories):
+
 ```typescript
   private async scanFolders(): Promise<void> {
     const jobFolders: FolderMapping[] = [];
@@ -90,23 +94,27 @@ export class EventsJobsSyncScript {
 ```
 
 #### In `addContactFlow()` (before label inference):
+
 ```typescript
-    let labelString = this.lastSelectedFolder.label;
-    if (this.lastSelectedFolder.type === FolderTypeEnum.LIFE_EVENT) {
-      const inferredLabel = this.labelResolver.inferLabelFromExisting(
-        this.lastSelectedFolder.name,
-        this.cachedContactGroups
-      );
-      if (inferredLabel) {
-        labelString = inferredLabel;
-        await this.logger.logMain(`Inferred label from existing folder: '${inferredLabel}'`);
-      }
-    }
+let labelString = this.lastSelectedFolder.label;
+if (this.lastSelectedFolder.type === FolderTypeEnum.LIFE_EVENT) {
+  const inferredLabel = this.labelResolver.inferLabelFromExisting(
+    this.lastSelectedFolder.name,
+    this.cachedContactGroups
+  );
+  if (inferredLabel) {
+    labelString = inferredLabel;
+    await this.logger.logMain(
+      `Inferred label from existing folder: '${inferredLabel}'`
+    );
+  }
+}
 ```
 
 ### 3. `src/services/labels/labelResolver.ts`
 
 #### In `inferLabelFromExisting()` method:
+
 ```typescript
   inferLabelFromExisting(folderName: string, contactGroups: ContactGroup[]): string | null {
     const words = folderName.trim().split(' ');
@@ -123,14 +131,15 @@ export class EventsJobsSyncScript {
 ### 4. `src/services/folders/folderManager.ts`
 
 #### At top of class:
+
 ```typescript
 export class FolderManager {
   /**
    * FolderManager - Centralized folder operations and parsing
-   * 
+   *
    * SINGLE SOURCE OF TRUTH for folder parsing logic.
    * All folder name parsing MUST go through this service.
-   * 
+   *
    * Validation Rules:
    * - Min length: 2 characters (after trimming)
    * - Illegal characters: / \ : * ? " < > |
@@ -138,12 +147,12 @@ export class FolderManager {
    * - Path length: Max ~255 characters for full path
    * - Unicode: Rejects emojis and problematic Unicode characters
    * - Whitespace: Always trims leading/trailing spaces before processing
-   * 
+   *
    * Empty Folder Detection:
    * - Filters hidden files (starting with '.')
    * - Filters Windows junk files (Thumbs.db, desktop.ini)
    * - Only counts visible files
-   * 
+   *
    * Duplicate Detection:
    * - Case-insensitive check before folder creation
    * - Prevents "Job_Microsoft" and "Job_microsoft" conflicts
@@ -153,19 +162,20 @@ export class FolderManager {
 ### 5. `src/cache/folderCache.ts`
 
 #### At top of class:
+
 ```typescript
 export class FolderCache {
   /**
    * FolderCache - Singleton cache for folder mappings
-   * 
+   *
    * Cache File: sources/.cache/folder-mappings.json
    * TTL: 24 hours
-   * 
+   *
    * Validation:
    * - Zod schema validation on read
    * - Malformed JSON automatically invalidated
    * - Schema validation failures trigger automatic invalidation
-   * 
+   *
    * Update Strategy:
    * - Immediate invalidation when folders created/deleted/renamed
    * - Automatic rescan after invalidation

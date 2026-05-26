@@ -49,8 +49,14 @@ describe('ClearLogsScript', () => {
     await script.run();
 
     expect(fs.rmSync).toHaveBeenCalledTimes(3);
-    expect(fs.rmSync).toHaveBeenCalledWith(expect.stringContaining('app.log'), { recursive: true, force: true });
-    expect(fs.rmSync).toHaveBeenCalledWith(expect.stringContaining('subfolder'), { recursive: true, force: true });
+    expect(fs.rmSync).toHaveBeenCalledWith(expect.stringContaining('app.log'), {
+      recursive: true,
+      force: true,
+    });
+    expect(fs.rmSync).toHaveBeenCalledWith(
+      expect.stringContaining('subfolder'),
+      { recursive: true, force: true }
+    );
   });
 
   it('should handle errors during deletion', async () => {

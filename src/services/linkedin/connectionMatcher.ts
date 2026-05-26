@@ -1,6 +1,9 @@
 import { injectable, inject } from 'inversify';
 import { LinkedInConnection, MatchType, MatchResult } from '../../types';
-import { DuplicateDetector, DuplicateMatch } from '../contacts/duplicateDetector';
+import {
+  DuplicateDetector,
+  DuplicateMatch,
+} from '../contacts/duplicateDetector';
 import { UrlNormalizer } from './urlNormalizer';
 
 @injectable()

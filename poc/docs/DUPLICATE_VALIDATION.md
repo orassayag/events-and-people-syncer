@@ -7,11 +7,13 @@ Added validation to prevent adding the same email or phone number more than once
 ## How It Works
 
 ### Email Validation
+
 - **Case-insensitive comparison**: `test@example.com` and `TEST@EXAMPLE.COM` are considered duplicates
 - **When adding email**: Checks if email already exists in contact
 - **When editing email**: Allows keeping the same email, but prevents changing to another existing email
 
 ### Phone Validation
+
 - **Normalized comparison**: Ignores formatting (spaces, dashes, parentheses)
   - `+1-555-1234`, `+1 555 1234`, and `(555) 1234` are all considered the same
 - **When adding phone**: Checks if phone already exists in contact (normalized)
@@ -25,8 +27,8 @@ Added to `src/validators/inputValidator.ts`:
 
 ```typescript
 static validateUniqueEmail(
-  email: string, 
-  existingEmails: string[], 
+  email: string,
+  existingEmails: string[],
   currentIndex?: number
 ): string | true {
   // Validates email format
@@ -35,8 +37,8 @@ static validateUniqueEmail(
 }
 
 static validateUniquePhone(
-  phone: string, 
-  existingPhones: string[], 
+  phone: string,
+  existingPhones: string[],
   currentIndex?: number
 ): string | true {
   // Validates phone format
@@ -48,6 +50,7 @@ static validateUniquePhone(
 ### Updated Contact Writer
 
 Modified `src/services/contactWriter.ts` to use new validators:
+
 - **Add Email**: Uses `validateUniqueEmail(email, existingEmails)`
 - **Edit Email**: Uses `validateUniqueEmail(email, existingEmails, currentIndex)`
 - **Add Phone**: Uses `validateUniquePhone(phone, existingPhones)`
@@ -56,6 +59,7 @@ Modified `src/services/contactWriter.ts` to use new validators:
 ## User Experience
 
 ### When Adding Duplicate Email
+
 ```
 ? Email address: test@example.com
 ✓ Added
@@ -67,6 +71,7 @@ Modified `src/services/contactWriter.ts` to use new validators:
 ```
 
 ### When Adding Duplicate Phone
+
 ```
 ? Phone number: +1-555-1234
 ✓ Added
@@ -78,7 +83,9 @@ Modified `src/services/contactWriter.ts` to use new validators:
 ```
 
 ### When Editing Email/Phone
+
 Users can keep the same value when editing, but cannot change to another existing value:
+
 ```
 Current emails: test@example.com, john@example.com
 
@@ -94,12 +101,14 @@ Current emails: test@example.com, john@example.com
 ## Testing Results
 
 ### Email Validation Tests
+
 - ✅ Rejects exact duplicate: `test@example.com` + `test@example.com` → Error
 - ✅ Rejects case-insensitive duplicate: `test@example.com` + `TEST@EXAMPLE.COM` → Error
 - ✅ Allows new email: `test@example.com` + `new@example.com` → Valid
 - ✅ Allows editing same index: Editing index 0 with same value → Valid
 
 ### Phone Validation Tests
+
 - ✅ Rejects duplicate (same formatting): `+1-555-1234` + `+1-555-1234` → Error
 - ✅ Rejects duplicate (different formatting): `+1-555-1234` + `+1 555 1234` → Error
 - ✅ Rejects duplicate (different formatting): `555-5678` + `(555) 5678` → Error
@@ -110,7 +119,7 @@ Current emails: test@example.com, john@example.com
 
 1. **Data Quality**: Prevents accidental duplicate entries
 2. **User Friendly**: Clear error messages guide users
-3. **Smart Comparison**: 
+3. **Smart Comparison**:
    - Emails: Case-insensitive
    - Phones: Formatting-agnostic (recognizes same number despite different formatting)
 4. **Edit-Friendly**: Users can keep the same value when editing without triggering duplicate error
@@ -118,12 +127,14 @@ Current emails: test@example.com, john@example.com
 ## How to Test
 
 Run the POC and try to add duplicates:
+
 ```bash
 cd poc
 pnpm start
 ```
 
 **Test Scenarios**:
+
 1. Add a contact with email `test@example.com`
 2. Try to add another email with same address → Should show error and re-prompt
 3. Try to add email `TEST@EXAMPLE.COM` → Should show error (case-insensitive)

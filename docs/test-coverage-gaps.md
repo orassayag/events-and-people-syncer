@@ -1,6 +1,6 @@
 # Test Coverage Gaps Analysis
 
-**Date:** March 19, 2026  
+**Date:** March 19, 2026
 **Purpose:** Identify files being refactored without test coverage
 
 ## Summary
@@ -40,32 +40,32 @@ src/services/linkedin/__tests__/connectionMatcher.test.ts
 
 ### Phase 1 Files
 
-| File | Test Status | Risk Level | Notes |
-|------|-------------|------------|-------|
-| `src/parsers/textParser.ts` | ❌ NO TESTS | HIGH | Will be deleted (duplicate of textUtils) |
-| `src/utils/textUtils.ts` | ❌ NO TESTS | MEDIUM | Used by textParser, needs tests |
-| `src/cache/contactCache.ts` | ❌ NO TESTS | HIGH | Will be refactored to use BaseCache |
-| `src/cache/companyCache.ts` | ✅ HAS TESTS | LOW | Already has tests |
-| `src/cache/folderCache.ts` | ✅ HAS TESTS | LOW | Already has tests |
+| File                        | Test Status  | Risk Level | Notes                                    |
+| --------------------------- | ------------ | ---------- | ---------------------------------------- |
+| `src/parsers/textParser.ts` | ❌ NO TESTS  | HIGH       | Will be deleted (duplicate of textUtils) |
+| `src/utils/textUtils.ts`    | ❌ NO TESTS  | MEDIUM     | Used by textParser, needs tests          |
+| `src/cache/contactCache.ts` | ❌ NO TESTS  | HIGH       | Will be refactored to use BaseCache      |
+| `src/cache/companyCache.ts` | ✅ HAS TESTS | LOW        | Already has tests                        |
+| `src/cache/folderCache.ts`  | ✅ HAS TESTS | LOW        | Already has tests                        |
 
 ### Phase 2 Files (Will be created)
 
-| File | Test Status | Risk Level | Notes |
-|------|-------------|------------|-------|
-| `src/utils/errorUtils.ts` | ❌ NO TESTS | MEDIUM | Will be created - needs tests after |
-| `src/utils/summaryFormatter.ts` | ❌ NO TESTS | MEDIUM | Will be created - needs tests after |
-| `src/utils/contactMapper.ts` | ❌ NO TESTS | MEDIUM | Will be created - needs tests after |
+| File                            | Test Status | Risk Level | Notes                               |
+| ------------------------------- | ----------- | ---------- | ----------------------------------- |
+| `src/utils/errorUtils.ts`       | ❌ NO TESTS | MEDIUM     | Will be created - needs tests after |
+| `src/utils/summaryFormatter.ts` | ❌ NO TESTS | MEDIUM     | Will be created - needs tests after |
+| `src/utils/contactMapper.ts`    | ❌ NO TESTS | MEDIUM     | Will be created - needs tests after |
 
 ### Phase 3 Files (Will be created)
 
-| File | Test Status | Risk Level | Notes |
-|------|-------------|------------|-------|
-| `src/cache/baseCache.ts` | ❌ NO TESTS | HIGH | Will be created - critical, needs tests |
+| File                     | Test Status | Risk Level | Notes                                   |
+| ------------------------ | ----------- | ---------- | --------------------------------------- |
+| `src/cache/baseCache.ts` | ❌ NO TESTS | HIGH       | Will be created - critical, needs tests |
 
 ## Existing Cache Tests
 
-✅ **companyCache.test.ts** exists (4 tests passing)  
-✅ **folderCache.test.ts** exists (10 tests passing)  
+✅ **companyCache.test.ts** exists (4 tests passing)
+✅ **folderCache.test.ts** exists (10 tests passing)
 ❌ **contactCache.test.ts** MISSING
 
 ## Action Items
@@ -84,22 +84,26 @@ src/services/linkedin/__tests__/connectionMatcher.test.ts
 ### After Refactoring (Phase-by-Phase)
 
 #### After Phase 1.4 (Error Utils Created)
+
 - [ ] Add tests for `errorUtils.ts`
 - [ ] Verify error extraction works correctly
 - [ ] Test edge cases (null, undefined, Error objects, strings)
 
 #### After Phase 2.1 (Summary Formatter Created)
+
 - [ ] Add tests for `summaryFormatter.ts`
 - [ ] Test different box widths
 - [ ] Test multiline content
 - [ ] Test empty content
 
 #### After Phase 2.5 (Contact Mapper Created)
+
 - [ ] Add tests for `contactMapper.ts`
 - [ ] Test Person → ContactData mapping
 - [ ] Test edge cases (missing fields, null values)
 
 #### After Phase 3.2 (BaseCache Created)
+
 - [ ] **CRITICAL**: Add comprehensive tests for `baseCache.ts`
 - [ ] Test TTL expiration
 - [ ] Test schema validation
@@ -111,24 +115,27 @@ src/services/linkedin/__tests__/connectionMatcher.test.ts
 
 ### HIGH RISK: contactCache.ts
 
-**Problem:** Used extensively but has no tests  
+**Problem:** Used extensively but has no tests
 **Mitigation:**
+
 1. Review all usage of contactCache before refactoring
 2. Add tests before modifying
 3. Test thoroughly after moving to BaseCache pattern
 
 ### MEDIUM RISK: New Utility Files
 
-**Problem:** New files (errorUtils, summaryFormatter, contactMapper) will have no tests initially  
+**Problem:** New files (errorUtils, summaryFormatter, contactMapper) will have no tests initially
 **Mitigation:**
+
 1. Keep implementations simple and focused
 2. Add tests immediately after creation
 3. Review with existing code that uses similar patterns
 
 ### HIGH RISK: baseCache.ts
 
-**Problem:** Foundation for all caches, but will be new code  
+**Problem:** Foundation for all caches, but will be new code
 **Mitigation:**
+
 1. Design carefully based on existing cache patterns
 2. Add comprehensive test suite before migration
 3. Migrate one cache at a time
@@ -162,17 +169,19 @@ pnpm test:coverage
 ## Current Test Pass Rate
 
 **Before Refactoring:**
+
 - Total: 934 tests
 - Passing: 900 (96.4%)
 - Failing: 32 (3.4%) - pre-existing failures
 - Skipped: 2
 
 **Goal After Refactoring:**
+
 - Maintain 96.4%+ pass rate
 - Add 30-50 new tests for new utilities
 - Fix pre-existing failures (optional)
 
 ---
 
-**Status:** ✅ Phase 0.2 Complete  
+**Status:** ✅ Phase 0.2 Complete
 **Next Step:** Phase 0.3 - Check for Test Mock File Paths

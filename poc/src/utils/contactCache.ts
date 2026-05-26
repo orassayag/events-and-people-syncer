@@ -1,4 +1,4 @@
-import type { ContactData } from "../types.js";
+import type { ContactData } from '../types.js';
 
 export class ContactCache {
   private static instance: ContactCache;

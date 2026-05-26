@@ -668,10 +668,10 @@ Number of calls: 0
  FAIL  src/services/linkedin/__tests__/contactSyncer.test.ts > ContactSyncer > updateContact - biographies field > should convert Added message to Updated message even with same date
 AssertionError: expected { status: 'error' } to be 'updated' // Object.is equality
 
-- Expected: 
+- Expected:
 "updated"
 
-+ Received: 
++ Received:
 {
   "status": "error",
 }

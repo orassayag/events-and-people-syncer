@@ -7,6 +7,7 @@ import {
   unlinkSync,
   mkdirSync,
   readdirSync,
+  promises as fs,
 } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
@@ -102,11 +103,19 @@ export class GoogleContactsMaintainerScript implements Script {
       );
 
       this.uiLogger.display('===Backup contacts===');
-      const backupStats = this.backupContacts(
-        contacts,
-        allLabels,
-        otherContacts
-      );
+      let backupStats = { contactCount: 0, otherContactCount: 0, fileCount: 0 };
+      try {
+        backupStats = await this.backupContacts(
+          contacts,
+          allLabels,
+          otherContacts
+        );
+      } catch (backupError) {
+        this.uiLogger.warn(
+          'Backup failed, but continuing with report generation',
+          { error: (backupError as Error).message }
+        );
+      }
 
       const exceptions = this.loadExceptions();
       this.uiLogger.displayInfo(`Loaded ${exceptions.length} exceptions.`);
@@ -259,22 +268,71 @@ export class GoogleContactsMaintainerScript implements Script {
     return { contacts, allLabels: Array.from(allLabelsSet) };
   }
 
-  private backupContacts(
+  private async backupContacts(
     contacts: ContactData[],
     allLabels: string[],
     otherContacts: OtherContactEntry[]
-  ): { contactCount: number; otherContactCount: number; fileCount: number } {
+  ): Promise<{
+    contactCount: number;
+    otherContactCount: number;
+    fileCount: number;
+  }> {
     const backupPath = SETTINGS.backup.contactsPath;
+
+    const sleep = (ms: number): Promise<void> =>
+      new Promise((resolve) => setTimeout(resolve, ms));
+
+    const safeUnlink = async (path: string): Promise<void> => {
+      for (let i = 0; i < 10; i++) {
+        try {
+          if (existsSync(path)) {
+            await fs.unlink(path);
+          }
+          return;
+        } catch (error: any) {
+          if (i < 9 && (error.code === 'EPERM' || error.code === 'EBUSY')) {
+            this.uiLogger.debug(
+              `Retrying unlink of ${path} due to ${error.code} (attempt ${i + 1}/10)`
+            );
+            await sleep(500 * (i + 1));
+            continue;
+          }
+          throw error;
+        }
+      }
+    };
+
+    const safeWriteFile = async (
+      path: string,
+      content: string
+    ): Promise<void> => {
+      for (let i = 0; i < 10; i++) {
+        try {
+          await fs.writeFile(path, content, 'utf-8');
+          return;
+        } catch (error: any) {
+          if (i < 9 && (error.code === 'EPERM' || error.code === 'EBUSY')) {
+            this.uiLogger.debug(
+              `Retrying write to ${path} due to ${error.code} (attempt ${i + 1}/10)`
+            );
+            await sleep(500 * (i + 1));
+            continue;
+          }
+          throw error;
+        }
+      }
+    };
+
     if (!existsSync(backupPath)) {
       mkdirSync(backupPath, { recursive: true });
     } else {
       // Delete all JSON files in the backup folder before writing new ones
       const files = readdirSync(backupPath);
-      files.forEach((file) => {
+      for (const file of files) {
         if (file.toLowerCase().endsWith('.json')) {
-          unlinkSync(join(backupPath, file));
+          await safeUnlink(join(backupPath, file));
         }
-      });
+      }
     }
 
     // Sort contacts alphabetically
@@ -308,14 +366,15 @@ export class GoogleContactsMaintainerScript implements Script {
       contactChunks.push(transformedContacts.slice(i, i + chunkSize));
     }
 
-    contactChunks.forEach((chunk, index) => {
-      const fileName = `contacts_${String(index + 1).padStart(2, '0')}.json`;
-      writeFileSync(
+    let fileCount = 0;
+    for (let i = 0; i < contactChunks.length; i++) {
+      const fileName = `contacts_${String(i + 1).padStart(2, '0')}.json`;
+      await safeWriteFile(
         join(backupPath, fileName),
-        JSON.stringify(chunk, null, 2),
-        'utf-8'
+        JSON.stringify(contactChunks[i], null, 2)
       );
-    });
+      fileCount++;
+    }
 
     // Backup "Other contacts"
     const sortedOther = [...otherContacts].sort((a, b) =>
@@ -337,14 +396,14 @@ export class GoogleContactsMaintainerScript implements Script {
       otherChunks.push(transformedOther.slice(i, i + chunkSize));
     }
 
-    otherChunks.forEach((chunk, index) => {
-      const fileName = `other_contacts_${String(index + 1).padStart(2, '0')}.json`;
-      writeFileSync(
+    for (let i = 0; i < otherChunks.length; i++) {
+      const fileName = `other_contacts_${String(i + 1).padStart(2, '0')}.json`;
+      await safeWriteFile(
         join(backupPath, fileName),
-        JSON.stringify(chunk, null, 2),
-        'utf-8'
+        JSON.stringify(otherChunks[i], null, 2)
       );
-    });
+      fileCount++;
+    }
 
     // Backup labels
     const excludedLabels = [
@@ -362,16 +421,16 @@ export class GoogleContactsMaintainerScript implements Script {
       .filter((l) => !excludedLabels.includes(l.toLowerCase()))
       .sort((a, b) => a.localeCompare(b));
 
-    writeFileSync(
+    await safeWriteFile(
       join(backupPath, 'labels.json'),
-      JSON.stringify(filteredLabels, null, 2),
-      'utf-8'
+      JSON.stringify(filteredLabels, null, 2)
     );
+    fileCount++;
 
     return {
       contactCount: contacts.length,
       otherContactCount: otherContacts.length,
-      fileCount: contactChunks.length,
+      fileCount,
     };
   }
 

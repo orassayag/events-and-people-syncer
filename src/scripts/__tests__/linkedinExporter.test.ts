@@ -53,7 +53,10 @@ describe('LinkedInExporterScript', () => {
       { firstName: 'No', lastName: 'Company', company: '' },
     ];
     mockExtractor.extract.mockResolvedValue({ connections: mockConnections });
-    vi.mocked(selectWithEscape).mockResolvedValue({ escaped: false, value: 'company_names' });
+    vi.mocked(selectWithEscape).mockResolvedValue({
+      escaped: false,
+      value: 'company_names',
+    });
     vi.mocked(fs.writeFile).mockResolvedValue(undefined);
 
     await script.run();
@@ -71,7 +74,10 @@ describe('LinkedInExporterScript', () => {
       { firstName: 'User', lastName: 'One', company: 'Company (Israel) Ltd.' },
     ];
     mockExtractor.extract.mockResolvedValue({ connections: mockConnections });
-    vi.mocked(selectWithEscape).mockResolvedValue({ escaped: false, value: 'company_names' });
+    vi.mocked(selectWithEscape).mockResolvedValue({
+      escaped: false,
+      value: 'company_names',
+    });
 
     await script.run();
 

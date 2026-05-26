@@ -101,7 +101,7 @@ Parse patterns like:
 - Handle nicknames in parentheses: "Allen (Aaron) Jacobson" → firstName: "Allen", lastName: "(Aaron) Jacobson"
 - **Pattern Matching Order for Simple Format:**
   1. First try `NAME_WITH_PARENS_EMAIL`: "Name (email@domain.com)"
-  2. Then try `NAME_WITH_NICKNAME`: "Allen (Aaron) Jacobson (email@domain.com)" 
+  2. Then try `NAME_WITH_NICKNAME`: "Allen (Aaron) Jacobson (email@domain.com)"
   3. Then try `NAME_WITH_SPACE_EMAIL`: "Name email@domain.com"
   4. Extract any remaining email using `EMAIL_IN_STRING`
 - **Line-by-line processing:** Each line in simple format represents one or more comma-separated entries; no multi-line spanning
@@ -123,7 +123,7 @@ Parse JSON array with structure:
 ```
 
 **Name Extraction Strategy:**
-- **From JSON:** 
+- **From JSON:**
   - **Priority 1:** Use `displayName` field if present
   - **Priority 2:** If `displayName` is missing, use `firstName` + `surname`
   - **Skip:** If both `displayName` and `firstName`/`surname` are missing, skip the contact
@@ -251,7 +251,7 @@ export class HibobSyncScript {
     @inject(HibobContactSyncer) private contactSyncer: HibobContactSyncer,
     @inject(DuplicateDetector) private duplicateDetector: DuplicateDetector
   ) {}
-  
+
   async run(): Promise<void> {
     // Implementation
   }
@@ -290,7 +290,7 @@ export class HibobSyncScript {
      🏢 Company: Vim
      🏷️ Label: Employees
      ================================
-     
+
      Proceed? (y/N)
      ```
    - Use emojis from `EMOJIS.FIELDS.COMPANY` and `EMOJIS.FIELDS.LABEL`
@@ -461,17 +461,17 @@ Add HiBob parsing patterns:
 export const HIBOB_PATTERNS = {
   // Match: "Name (email@domain.com)" - captures name and email
   NAME_WITH_PARENS_EMAIL: /^(.+?)\s*\(([^)]+@[^)]+)\)$/,
-  
+
   // Match name with nickname and email: "Allen (Aaron) Jacobson (allenj@getvim.com)"
   // Captures: firstName, nickname (with parens preserved), lastName, email
   NAME_WITH_NICKNAME: /^(.+?)\s+(\([^)]+\))\s+(.+?)\s*\(([^)]+@[^)]+)\)$/,
-  
+
   // Match: "Name email@domain.com" - captures name and email
   NAME_WITH_SPACE_EMAIL: /^(.+?)\s+([^\s]+@[^\s]+)$/,
-  
+
   // Match email anywhere in string (fallback)
   EMAIL_IN_STRING: /([^\s]+@[^\s]+)/,
-  
+
   // Normalize whitespace
   MULTIPLE_SPACES: /\s+/g,
 };
@@ -507,7 +507,7 @@ type SupportedContact = LinkedInConnection | HibobContact;
 export class SyncStatusBar {
   private currentConnection: SupportedContact | null = null;
   private filePath: string = ''; // Add file path tracking
-  
+
   updateStatus(
     status: Partial<SyncStatus>,
     currentConnection?: SupportedContact,
@@ -515,22 +515,22 @@ export class SyncStatusBar {
   ): void {
     // ... implementation
   }
-  
+
   setFilePath(path: string): void {
     this.filePath = path;
   }
-  
+
   // Update formatProcessStatus to handle both types
   private formatProcessStatus(): string {
     let output = `Time: ${this.formatTime()} | Status: ${this.apiStatus}\n`;
-    
+
     // Add file path line for both sync types
     if (this.filePath) {
       output += `  Path: ${this.filePath}\n`;
     }
-    
+
     // ... rest of status formatting
-    
+
     if (this.currentConnection) {
       // Type guard to determine which type we have
       if ('position' in this.currentConnection) {
@@ -1017,7 +1017,7 @@ This section documents all design decisions made during planning to address edge
 
 **Decision 5.4: Label Merging for Existing Contacts (HiBob Sync ONLY)**
 - **Decision:** Merge labels (existing + new) when contact already exists
-- **Implementation:** 
+- **Implementation:**
   - Fetch existing contact's current label memberships
   - Compare with user-selected labels (from pre-sync prompt)
   - Add only labels that don't already exist (avoid duplicates)
@@ -1043,7 +1043,7 @@ This section documents all design decisions made during planning to address edge
   🏢 Company: Vim
   🏷️ Label: Employees
   ================================
-  
+
   Proceed? (y/N)
   ```
 - **Rationale:** User verifies critical parameters before expensive API operations
@@ -1051,7 +1051,7 @@ This section documents all design decisions made during planning to address edge
 **Decision 6.2: File Path Display**
 - **Decision:** Display file path in status bar during sync (not just at start)
 - **Location:** Add "Path:" line to status bar display, appears on every status update
-- **Implementation Order:** 
+- **Implementation Order:**
   1. Implement first for LinkedIn sync (to establish pattern)
   2. Then reuse for HiBob sync
 - **Display Format:**

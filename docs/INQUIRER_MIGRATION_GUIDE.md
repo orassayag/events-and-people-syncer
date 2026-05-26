@@ -17,6 +17,7 @@ This guide documents the migration from `inquirer` v9 to `@inquirer/prompts` v8 
 ### Core Strategy: Wrapper Utility Pattern
 
 Instead of migrating each prompt individually, we created a **wrapper utility** that:
+
 1. Provides consistent Esc key detection across all prompts
 2. Minimizes code changes in existing files
 3. Centralizes error handling logic
@@ -108,13 +109,20 @@ export function checkboxWithEscape<T = string>(config: any): Promise<T[]> {
 #### 3.1 Update Imports
 
 **Before:**
+
 ```typescript
 import inquirer from 'inquirer';
 ```
 
 **After:**
+
 ```typescript
-import { selectWithEscape, inputWithEscape, confirmWithEscape, EscapeSignal } from '../utils/promptWithEscape';
+import {
+  selectWithEscape,
+  inputWithEscape,
+  confirmWithEscape,
+  EscapeSignal,
+} from '../utils/promptWithEscape';
 ```
 
 #### 3.2 Update Prompt Calls
@@ -122,6 +130,7 @@ import { selectWithEscape, inputWithEscape, confirmWithEscape, EscapeSignal } fr
 ##### Example 1: List/Select Prompt
 
 **Before:**
+
 ```typescript
 const { action } = await inquirer.prompt([
   {
@@ -143,6 +152,7 @@ if (action === 'exit') {
 ```
 
 **After:**
+
 ```typescript
 try {
   const action = await selectWithEscape<string>({
@@ -154,7 +164,7 @@ try {
       { name: '🚪 Exit', value: 'exit' },
     ],
   });
-  
+
   if (action === 'exit') {
     process.exit(0);
   }
@@ -170,6 +180,7 @@ try {
 ##### Example 2: Input Prompt
 
 **Before:**
+
 ```typescript
 const { companyInput } = await inquirer.prompt([
   {
@@ -177,7 +188,7 @@ const { companyInput } = await inquirer.prompt([
     name: 'companyInput',
     message: '🏢 Company:',
     default: '',
-    validate: (input: string): boolean | string => 
+    validate: (input: string): boolean | string =>
       InputValidator.validateText(input, true),
   },
 ]);
@@ -185,12 +196,13 @@ const company = companyInput;
 ```
 
 **After:**
+
 ```typescript
 try {
   const company = await inputWithEscape({
     message: '🏢 Company:',
     default: '',
-    validate: (input: string): boolean | string => 
+    validate: (input: string): boolean | string =>
       InputValidator.validateText(input, true),
   });
 } catch (error) {
@@ -204,6 +216,7 @@ try {
 ##### Example 3: Confirm Prompt
 
 **Before:**
+
 ```typescript
 const { shouldCreate } = await inquirer.prompt([
   {
@@ -220,13 +233,14 @@ if (shouldCreate) {
 ```
 
 **After:**
+
 ```typescript
 try {
   const shouldCreate = await confirmWithEscape({
     message: 'Create new folder?',
     default: true,
   });
-  
+
   if (shouldCreate) {
     await createFolder();
   }
@@ -242,6 +256,7 @@ try {
 ##### Example 4: Checkbox Prompt
 
 **Before:**
+
 ```typescript
 const { selectedLabels } = await inquirer.prompt([
   {
@@ -260,6 +275,7 @@ const { selectedLabels } = await inquirer.prompt([
 ```
 
 **After:**
+
 ```typescript
 const selectedLabels = await checkboxWithEscape<string>({
   message: 'Select labels (At least one required):',
@@ -275,21 +291,22 @@ const selectedLabels = await checkboxWithEscape<string>({
 
 ### Step 4: Key API Differences
 
-| inquirer v9 | @inquirer/prompts v8 | Notes |
-|-------------|----------------------|-------|
-| `type: 'list'` | `select()` | Function name changed |
-| `type: 'input'` | `input()` | Same name |
-| `type: 'confirm'` | `confirm()` | Same name |
-| `type: 'checkbox'` | `checkbox()` | Same name |
-| `name: 'varName'` | ❌ Removed | Return value is direct, no destructuring |
-| `prompt([{...}])` | `select({...})` | No array wrapper |
-| Destructuring `{ var }` | Direct assignment | `const var = await select()` |
+| inquirer v9             | @inquirer/prompts v8 | Notes                                    |
+| ----------------------- | -------------------- | ---------------------------------------- |
+| `type: 'list'`          | `select()`           | Function name changed                    |
+| `type: 'input'`         | `input()`            | Same name                                |
+| `type: 'confirm'`       | `confirm()`          | Same name                                |
+| `type: 'checkbox'`      | `checkbox()`         | Same name                                |
+| `name: 'varName'`       | ❌ Removed           | Return value is direct, no destructuring |
+| `prompt([{...}])`       | `select({...})`      | No array wrapper                         |
+| Destructuring `{ var }` | Direct assignment    | `const var = await select()`             |
 
 ### Step 5: Handling Esc Key Press
 
 The `EscapeSignal` error is thrown when user presses Esc. Handle it based on context:
 
 **Pattern 1: Return to previous menu**
+
 ```typescript
 try {
   const action = await selectWithEscape({...});
@@ -303,6 +320,7 @@ try {
 ```
 
 **Pattern 2: Exit application**
+
 ```typescript
 try {
   const action = await selectWithEscape({...});
@@ -317,6 +335,7 @@ try {
 ```
 
 **Pattern 3: Treat as cancellation**
+
 ```typescript
 try {
   const input = await inputWithEscape({...});
@@ -352,9 +371,11 @@ try {
 ## Testing Strategy
 
 ### 1. Build Verification
+
 ```bash
 pnpm build
 ```
+
 Fix any TypeScript errors before proceeding.
 
 ### 2. Manual Testing Checklist
@@ -369,6 +390,7 @@ Test Esc key behavior in each flow:
 - [ ] Deep nested flows (3+ levels) - Esc should properly unwind
 
 ### 3. Run Test Suite
+
 ```bash
 NODE_OPTIONS='--no-warnings' vitest
 ```
@@ -378,6 +400,7 @@ NODE_OPTIONS='--no-warnings' vitest
 ### Issue 1: TypeScript errors about destructuring
 
 **Problem:**
+
 ```typescript
 const { action } = await selectWithEscape({...});
 // Error: Type 'string' is not assignable to type '{ action: string }'
@@ -385,6 +408,7 @@ const { action } = await selectWithEscape({...});
 
 **Solution:**
 Remove destructuring:
+
 ```typescript
 const action = await selectWithEscape<string>({...});
 ```
@@ -392,12 +416,14 @@ const action = await selectWithEscape<string>({...});
 ### Issue 2: Missing EscapeSignal import
 
 **Problem:**
+
 ```
 error TS2304: Cannot find name 'EscapeSignal'
 ```
 
 **Solution:**
 Add to imports:
+
 ```typescript
 import { selectWithEscape, EscapeSignal } from '../utils/promptWithEscape';
 ```
@@ -405,12 +431,14 @@ import { selectWithEscape, EscapeSignal } from '../utils/promptWithEscape';
 ### Issue 3: Unused wrapper imports
 
 **Problem:**
+
 ```
 error TS6133: 'inputWithEscape' is declared but its value is never read
 ```
 
 **Solution:**
 Only import what you use:
+
 ```typescript
 // If file only has select prompts:
 import { selectWithEscape, EscapeSignal } from '../utils/promptWithEscape';
@@ -423,6 +451,7 @@ Code after prompt still executes even when Esc is pressed.
 
 **Solution:**
 Ensure try-catch wraps the entire prompt handling:
+
 ```typescript
 try {
   const action = await selectWithEscape({...});
@@ -450,6 +479,7 @@ try {
 ## Example: Complete File Migration
 
 **Before (using inquirer v9):**
+
 ```typescript
 import inquirer from 'inquirer';
 
@@ -481,6 +511,7 @@ async function mainMenu(): Promise<void> {
 ```
 
 **After (using @inquirer/prompts v8):**
+
 ```typescript
 import { selectWithEscape, EscapeSignal } from '../utils/promptWithEscape';
 

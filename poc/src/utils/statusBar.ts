@@ -27,7 +27,7 @@ export class StatusBar {
 
   hide(): void {
     this.isEnabled = false;
-    process.stdout.write("\x1b[s\x1b[999;0H\x1b[K\x1b[u");
+    process.stdout.write('\x1b[s\x1b[999;0H\x1b[K\x1b[u');
   }
 
   show(): void {

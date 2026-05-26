@@ -1,5 +1,5 @@
-import { exec } from "child_process";
-import { promisify } from "util";
+import { exec } from 'child_process';
+import { promisify } from 'util';
 
 const execAsync = promisify(exec);
 
@@ -23,7 +23,7 @@ export class PortManager {
       try {
         const platform = process.platform;
         const killCommand =
-          platform === "win32" ? `taskkill /F /PID ${pid}` : `kill -9 ${pid}`;
+          platform === 'win32' ? `taskkill /F /PID ${pid}` : `kill -9 ${pid}`;
         await execAsync(killCommand);
         console.log(`Process ${pid} killed successfully.`);
         await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -37,14 +37,14 @@ export class PortManager {
     try {
       const platform = process.platform;
       let command: string;
-      if (platform === "win32") {
+      if (platform === 'win32') {
         command = `netstat -ano | findstr :${port}`;
       } else {
         command = `lsof -ti:${port}`;
       }
       const { stdout } = await execAsync(command);
-      if (platform === "win32") {
-        const lines = stdout.trim().split("\n");
+      if (platform === 'win32') {
+        const lines = stdout.trim().split('\n');
         const match = lines[0]?.match(/\s+(\d+)\s*$/);
         return match ? parseInt(match[1], 10) : null;
       } else {

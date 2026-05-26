@@ -1,6 +1,6 @@
 # Mock Files Review - Phase 0.3
 
-**Date:** March 19, 2026  
+**Date:** March 19, 2026
 **Purpose:** Identify mocks that may break during refactoring
 
 ## Summary
@@ -25,37 +25,47 @@ src/services/linkedin/__mocks__/
 These mocks import specific files and may break if those files are moved or refactored:
 
 #### 1. `src/scripts/__tests__/eventsJobsSync.test.ts`
+
 ```typescript
 vi.mock('../../cache/folderCache');
 vi.mock('../../utils/promptWithEnquirer', async () => { ... });
 ```
+
 **Risk:** Phase 3.2 will refactor cache files. May need to update import paths.
 
 #### 2. `src/cache/__tests__/companyCache.test.ts`
+
 ```typescript
 vi.mock('../../settings', () => ({ ... }));
 ```
+
 **Risk:** If settings structure changes in Phase 3, may need update.
 
 #### 3. `src/services/linkedin/__tests__/companyMatcher.test.ts`
+
 ```typescript
 vi.mock('../../../settings', () => ({ ... }));
 vi.mock('../../../cache/companyCache', () => ({ ... }));
 ```
+
 **Risk:** Phase 3.2 BaseCache refactor will affect companyCache.
 
 #### 4. `src/services/linkedin/__tests__/contactSyncer.test.ts`
+
 ```typescript
 vi.mock('../../../utils/retryWithBackoff', () => ({ ... }));
 vi.mock('../../../settings', () => ({ ... }));
 vi.mock('../../api/apiTracker', () => ({ ... }));
 ```
+
 **Risk:** If retryWithBackoff is refactored, mock may need update.
 
 #### 5. `src/services/linkedin/__tests__/linkedinExtractor.test.ts`
+
 ```typescript
 vi.mock('../../../settings', () => ({ ... }));
 ```
+
 **Risk:** Settings import may change.
 
 ### Medium-Risk Mocks (Mock External Dependencies)
@@ -83,6 +93,7 @@ These use `vi.mocked()` at runtime - will break if function signatures change:
 ## Mock File Imports
 
 ### `src/services/linkedin/__tests__/linkedinExtractor.test.ts`
+
 ```typescript
 import { ... } from '../__mocks__/connections.mock';
 ```
@@ -122,12 +133,14 @@ import { ... } from '../__mocks__/connections.mock';
 ## Testing Strategy After Mock-Affected Changes
 
 ### After Phase 1.2 (Import Refactoring)
+
 ```bash
 # Run tests that import from __mocks__
 NODE_OPTIONS='--no-warnings' vitest run src/services/linkedin/__tests__/linkedinExtractor.test.ts
 ```
 
 ### After Phase 3.2 (BaseCache Creation)
+
 ```bash
 # Run all cache-related tests
 NODE_OPTIONS='--no-warnings' vitest run src/cache/__tests__/
@@ -150,11 +163,11 @@ NODE_OPTIONS='--no-warnings' vitest run src/services/linkedin/__tests__/companyM
 
 ## Mock Patterns Summary
 
-| Pattern | Count | Risk | Phase Affected |
-|---------|-------|------|----------------|
-| Path-based mocks | ~15 | HIGH | Phase 3 |
-| External lib mocks | ~10 | LOW | None |
-| Runtime vi.mocked() | ~48 | MEDIUM | All phases |
+| Pattern             | Count | Risk   | Phase Affected |
+| ------------------- | ----- | ------ | -------------- |
+| Path-based mocks    | ~15   | HIGH   | Phase 3        |
+| External lib mocks  | ~10   | LOW    | None           |
+| Runtime vi.mocked() | ~48   | MEDIUM | All phases     |
 
 ## Safety Checklist
 
@@ -166,7 +179,7 @@ NODE_OPTIONS='--no-warnings' vitest run src/services/linkedin/__tests__/companyM
 
 ---
 
-**Status:** ✅ Phase 0.3 Complete  
+**Status:** ✅ Phase 0.3 Complete
 **Next Step:** Phase 0.4 - Search for Dynamic Imports
 
 **Critical Finding:** 6 places mock `FolderCache.getInstance()` - must be carefully reviewed during Phase 3.2 BaseCache refactoring.

@@ -5,12 +5,14 @@
 Modify two flows in the Events & Jobs Sync script to prompt the user to create a contact after finishing note creation. The contact wizard will reuse the label and company name from the folder context. Labels are now REQUIRED for all contacts - empty selection is not permitted.
 
 **IMPORTANT CONSTRAINTS:**
+
 - This script is used by a single user locally. No concurrent modifications or multi-user scenarios need to be considered.
 - The **parent directories** (life-events and job-interviews) are NEVER renamed externally during script execution.
 - **Sub-folders** (e.g., "Job_AcmeInc", "Paris Trip") CAN be renamed externally via the rename folder flow.
 - The `lastSelectedFolder` context can become stale if folders are renamed between operations.
 
 **ABOUT "ADD CONTACT" MENU OPTION:**
+
 - The "Add contact" menu option exists in the "Contacts Sync" script (a different script).
 - This feature is NOT needed in the "Events & Jobs Sync" script.
 - This document does NOT propose adding an "Add contact" menu option to this script.
@@ -110,7 +112,7 @@ async run(): Promise<void> {
   await this.logger.initialize();
   this.setupConsoleCapture();
   await this.logger.logMain('Events & Jobs Sync started');
-  
+
   // NEW: Pre-flight authentication check for contact features
   try {
     const authService = new AuthService();
@@ -123,7 +125,7 @@ async run(): Promise<void> {
     console.log('You can still create notes, but contact features will be unavailable.\n');
     // Continue anyway - notes don't require auth
   }
-  
+
   try {
     await this.validatePaths();
     await this.initializeCache();
@@ -145,6 +147,7 @@ async run(): Promise<void> {
 ```
 
 **Why this approach?**
+
 - Tests actual API access, not just network/DNS
 - Allows note features to work even if Google authentication fails
 - More consistent with existing auth patterns in the codebase
@@ -161,6 +164,7 @@ All changes in this step are made to `ContactEditor` (the base class used by all
 3. Any other scripts that import ContactEditor
 
 **INTENTIONAL CHANGE - Labels Now Required for ALL Contacts:**
+
 - Making labels required is an **intentional, expected change** that affects all scripts
 - This is NOT a breaking change in terms of logic - it's an expected enhancement
 - The `EventsContactEditor` class extends `ContactEditor` and overrides `collectInitialInput()` with pre-population support
@@ -187,6 +191,7 @@ static validateMinimumRequirements(data: EditableContactData): string | true {
 **Part B: Modify `ContactEditor.promptForLabels()`** to handle empty label list and enforce selection:
 
 When `existingGroups.length === 0` (no labels exist in Google Contacts):
+
 1. Display: `"===⚠️ At least 1 label is required to create a new contact==="`
 2. Automatically trigger the create label wizard using `this.createContactGroup()`
 3. After label creation, fetch groups again and proceed with label selection
@@ -197,12 +202,12 @@ async promptForLabels(): Promise<string[]> {
   console.log('\n===Select Labels===\n');
   let existingGroups = await this.fetchContactGroups();
   let selectedResourceNames: string[] = [];
-  
+
   // NEW: Handle case where no labels exist
   if (existingGroups.length === 0) {
     console.log('===⚠️ At least 1 label is required to create a new contact===');
     console.log('No existing labels found. Creating new label...\n');
-    
+
     // Loop until at least one label is created
     while (existingGroups.length === 0) {
       const { labelName } = await inquirer.prompt([
@@ -218,7 +223,7 @@ async promptForLabels(): Promise<string[]> {
           },
         },
       ]);
-      
+
       // Create the label using ContactEditor's built-in method
       const trimmedLabelName = labelName.trim();
       const ora = (await import('ora')).default;
@@ -226,25 +231,25 @@ async promptForLabels(): Promise<string[]> {
         text: `Creating label: ${trimmedLabelName}...`,
         color: 'cyan',
       }).start();
-      
+
       const newGroupResourceName = await this.createContactGroup(trimmedLabelName);
-      
+
       spinner.stop();
       spinner.clear();
-      
+
       console.log(`\n===✅ Label created: ${trimmedLabelName}===\n`);
-      
+
       // Fetch groups again to get the newly created label
       existingGroups = await this.fetchContactGroups();
     }
   }
-  
+
   // Now existingGroups.length > 0 is guaranteed
   const choices = existingGroups.map((group) => ({
     name: group.name,
     value: group.resourceName,
   }));
-  
+
   const { selectedLabels } = await inquirer.prompt([
     {
       type: 'checkbox',
@@ -262,13 +267,14 @@ async promptForLabels(): Promise<string[]> {
       },
     },
   ]);
-  
+
   selectedResourceNames = selectedLabels;
   return selectedResourceNames;
 }
 ```
 
-**Impact Analysis:** 
+**Impact Analysis:**
+
 - This method is called by `ContactEditor.collectInitialInput()` and `EventsContactEditor.collectInitialInput()`
 - Adding validation to the checkbox prevents users from pressing Enter without selection
 - The empty label wizard loop ensures at least one label exists before showing selection
@@ -286,9 +292,9 @@ private async createNoteInFolder(
   options?: { noteCount?: number; allowCancel?: boolean }
 ): Promise<boolean> {
   // ... existing clipboard reading logic ...
-  
+
   const trimmedMessage = message.trim();
-  
+
   // Validation checks - return false instead of silent return
   if (trimmedMessage.length > 1048576) {
     console.log('\n⚠️  Message cannot exceed 1MB (~1,048,576 characters).\n');
@@ -298,12 +304,12 @@ private async createNoteInFolder(
     console.log('\n⚠️  Message cannot contain binary data (null bytes).\n');
     return false; // ← Changed from: return;
   }
-  
+
   // ... existing note writing logic ...
-  
+
   await this.noteWriter.writeNote(folder.path, trimmedMessage, new Date());
   // ... existing logging ...
-  
+
   return true; // ← Note created successfully
 }
 ```
@@ -315,6 +321,7 @@ private async createNoteInFolder(
 Create new method `promptAndCreateContact()` in `eventsJobsSync.ts`:
 
 **Responsibilities:**
+
 1. Validate `lastSelectedFolder` exists and folder still exists on disk (defensive check against renamed/deleted folders)
 2. Log which folder context is being used
 3. Display folder context to user: `"Create a new contact for {folderName}? (y/n)"`
@@ -334,8 +341,12 @@ const { firstName, lastName } = TextUtils.parseFullName(fullName);
 
 // NEW: Always perform duplicate detection
 if (firstName && lastName) {
-  const nameDuplicates = await this.duplicateDetector.checkDuplicateName(firstName, lastName);
-  const shouldContinue = await this.duplicateDetector.promptForDuplicateContinue(nameDuplicates);
+  const nameDuplicates = await this.duplicateDetector.checkDuplicateName(
+    firstName,
+    lastName
+  );
+  const shouldContinue =
+    await this.duplicateDetector.promptForDuplicateContinue(nameDuplicates);
   if (!shouldContinue) {
     throw new Error('User cancelled due to duplicate');
   }
@@ -356,19 +367,19 @@ private async promptAndCreateContact(): Promise<void> {
     console.log('\n===⚠️ No folder context available===\n');
     return;
   }
-  
+
   // NEW: Validate folder still exists AND metadata is accurate (protect against renamed/deleted folders)
   try {
     await fs.access(this.lastSelectedFolder.path);
-    
+
     // NEW: Verify metadata is still accurate by re-parsing the folder name
     const folderName = this.lastSelectedFolder.path.split('/').pop() || '';
-    const isJobOrHR = this.lastSelectedFolder.type === FolderTypeEnum.JOB || 
+    const isJobOrHR = this.lastSelectedFolder.type === FolderTypeEnum.JOB ||
                       this.lastSelectedFolder.type === FolderTypeEnum.HR;
-    
+
     try {
       const parsedMetadata = this.folderManager.parseFolderName(folderName, isJobOrHR);
-      
+
       // Verify parsed metadata matches stored metadata
       if (parsedMetadata.label !== this.lastSelectedFolder.label ||
           parsedMetadata.companyName !== this.lastSelectedFolder.companyName) {
@@ -403,11 +414,11 @@ private async promptAndCreateContact(): Promise<void> {
     this.lastSelectedFolder = null; // Clear stale context
     return;
   }
-  
+
   // Show context to user
   const folderDisplay = this.lastSelectedFolder.name;
   await this.logger.logMain(`Prompting contact creation for folder: '${folderDisplay}'`);
-  
+
   const { shouldAddContact } = await inquirer.prompt([
     {
       type: 'confirm',
@@ -416,14 +427,14 @@ private async promptAndCreateContact(): Promise<void> {
       default: false,
     },
   ]);
-  
+
   if (!shouldAddContact) {
     await this.logger.logMain('User declined contact creation');
     return;
   }
-  
+
   await this.logger.logMain('User confirmed contact creation');
-  
+
   // Handle errors gracefully - don't propagate
   try {
     // Authentication check
@@ -433,7 +444,7 @@ private async promptAndCreateContact(): Promise<void> {
       this.isAuthenticated = true;
       await this.logger.logMain('✅ Authentication successful');
     }
-    
+
     // Contact groups caching
     if (!this.cachedContactGroups || this.cachedContactGroups.length === 0) {
       await this.logger.logMain('Fetching contact groups...');
@@ -446,9 +457,9 @@ private async promptAndCreateContact(): Promise<void> {
         `Using cached contact groups (${this.cachedContactGroups.length} groups)`
       );
     }
-    
+
     let labelString = this.lastSelectedFolder.label;
-    
+
     // For life events, try to infer label
     if (this.lastSelectedFolder.type === FolderTypeEnum.LIFE_EVENT) {
       const inferredLabel = this.labelResolver.inferLabelFromExisting(
@@ -460,7 +471,7 @@ private async promptAndCreateContact(): Promise<void> {
         await this.logger.logMain(`Inferred label: '${inferredLabel}'`);
       }
     }
-    
+
     // NEW: Check if labelString is empty BEFORE resolution
     let resourceName = '';
     if (!labelString || !labelString.trim()) {
@@ -472,15 +483,15 @@ private async promptAndCreateContact(): Promise<void> {
       const isRequired =
         this.lastSelectedFolder.type === FolderTypeEnum.JOB ||
         this.lastSelectedFolder.type === FolderTypeEnum.HR;
-      
+
       const result = this.labelResolver.resolveLabel(
         labelString,
         isRequired,
         this.cachedContactGroups
       );
-      
+
       resourceName = result.resourceName;
-      
+
       // If label doesn't exist and is required, prompt to create
       if (!resourceName && isRequired) {
         console.log(
@@ -494,11 +505,11 @@ private async promptAndCreateContact(): Promise<void> {
             default: true,
           },
         ]);
-        
+
         await this.logger.logMain(
           `Prompting user to create missing label: '${labelString}'`
         );
-        
+
         if (!shouldCreateLabel) {
           await this.logger.logMain(
             'User declined label creation - cancelling contact creation'
@@ -506,7 +517,7 @@ private async promptAndCreateContact(): Promise<void> {
           console.log('===❌ Contact creation cancelled===');
           return;
         }
-        
+
         console.log(`Creating label: '${labelString}'...`);
         resourceName = await this.labelResolver.createLabel(labelString);
         this.cachedContactGroups.push({
@@ -517,68 +528,68 @@ private async promptAndCreateContact(): Promise<void> {
         console.log('✅ Label created successfully');
       }
     }
-    
+
     const prePopulatedData: Partial<any> = {
       labelResourceNames: resourceName ? [resourceName] : [],
       company: this.lastSelectedFolder.companyName || '',
     };
-    
+
     // Set up logging for contact editor
     this.contactEditor.setApiLogging(true);
     this.contactEditor.setLogCallback(async (msg: string) => {
       await this.logger.logMain(msg);
     });
-    
+
     // Collect initial input (now with duplicate detection)
     const initialData =
       await this.contactEditor.collectInitialInput(prePopulatedData);
-    
+
     // Show summary and allow editing
     const finalData = await this.contactEditor.showSummaryAndEdit(
       initialData,
       'Create'
     );
-    
+
     if (finalData === null) {
       await this.logger.logMain('Contact creation cancelled by user');
       console.log('\n===❌ Contact creation cancelled===\n');
       this.contactEditor.setApiLogging(false);
       return;
     }
-    
+
     // Create contact with date stamp
     const currentDate = formatDateDDMMYYYY(new Date());
     const note = `Added by events & jobs sync script - Last update: ${currentDate}`;
-    
+
     await this.contactEditor.createContact(finalData, note);
-    
+
     // Only increment stats AFTER successful API call
     this.stats.contacts++;
     await this.logger.logMain('✅ Contact created successfully');
     console.log('✅ Contact created');
     this.contactEditor.setApiLogging(false);
-    
+
   } catch (error) {
     // Special handling for token expiration
-    if (error instanceof Error && 
-        (error.message.includes('invalid_grant') || 
+    if (error instanceof Error &&
+        (error.message.includes('invalid_grant') ||
          error.message.includes('Token has been expired'))) {
       await this.logger.logError(`Token expired: ${error.message}`);
       console.log('\n===⚠️ Authentication token expired===');
       console.log('Clearing authentication state. Please try creating the contact again.\n');
-      
+
       // Clear auth state instead of exiting (Point 10)
       this.isAuthenticated = false;
       this.auth = null as any; // Force re-authentication on next attempt
       this.cachedContactGroups = null; // Clear cached groups
-      
+
       console.log('Note: The note was still created successfully.');
       console.log('You can try creating the contact again, which will trigger re-authentication.\n');
-      
+
       // Return gracefully to main menu instead of throwing
       return;
     }
-    
+
     // Log error but don't propagate - note is already created
     await this.logger.logError(`Contact creation error: ${(error as Error).message}`);
     console.log(`\n===⚠️ Contact creation failed: ${(error as Error).message}===\n`);
@@ -590,6 +601,7 @@ private async promptAndCreateContact(): Promise<void> {
 ```
 
 **Key Error Handling Strategy:**
+
 - All errors are caught and logged
 - Token expiration errors cause script to exit (user must restart and re-authenticate)
 - Other errors are displayed with clear guidance
@@ -629,24 +641,24 @@ private async writeNotesFlow(): Promise<void> {
   await this.logger.logMain('Starting write notes flow');
   let noteCount: number = 0;
   let successfulNoteCount: number = 0; // NEW: Track actual successful creations
-  
+
   const selectedFolder = await this.selectOrCreateFolder();
   if (!selectedFolder) {
     await this.logger.logMain('Folder selection cancelled - exiting write notes flow');
     return;
   }
-  
+
   await this.logger.logMain(`Selected folder for batch notes: '${selectedFolder.name}'`);
-  
+
   while (true) {
     // ... existing folder existence check ...
-    
+
     try {
       const noteCreated = await this.createNoteInFolder(selectedFolder, {
         noteCount,
         allowCancel: true,
       });
-      
+
       if (noteCreated) {
         noteCount++;
         successfulNoteCount++; // NEW: Only increment on success
@@ -669,14 +681,14 @@ private async writeNotesFlow(): Promise<void> {
         await this.logger.logMain(
           `User exited write notes loop after ${successfulNoteCount} successful notes`
         );
-        
+
         // NEW: Only prompt if at least one note was successfully created
         if (successfulNoteCount > 0) {
           await this.promptAndCreateContact();
         }
         return;
       }
-      
+
       // ... existing error handling ...
     }
   }
@@ -684,6 +696,7 @@ private async writeNotesFlow(): Promise<void> {
 ```
 
 **Key changes:**
+
 - Added `successfulNoteCount` to track only successfully created notes
 - Only increment counters when `noteCreated === true`
 - Only prompt for contact creation if `successfulNoteCount > 0`
@@ -754,6 +767,7 @@ The `promptAndCreateContact()` method must handle:
   - A contact created after notes simply uses the same folder metadata
 
 **UX consideration for batch flow:**
+
 - In "Write notes" flow, user creates multiple notes about potentially different people
 - After creating all notes, user is prompted ONCE: "Create a new contact for {folderName}?"
 - If yes, user can create **ONLY ONE contact** using the folder's label/company
@@ -833,7 +847,8 @@ Full wizard order from `ContactEditor.collectInitialInput`:
 8. Summary and edit loop
 9. Create contact in Google
 
-**Key clarification:** 
+**Key clarification:**
+
 - Label selection is conditionally skipped based on pre-population and user confirmation
 - Company input is always shown but with default value when available
 - No new skip flags are needed - existing behavior is acceptable
@@ -872,12 +887,12 @@ async promptForLabels(): Promise<string[]> {
   console.log('\n===Select Labels===\n');
   const existingGroups = await this.fetchContactGroups();
   let selectedResourceNames: string[] = [];
-  
+
   // NEW: Handle case where no labels exist
   if (existingGroups.length === 0) {
     console.log('===⚠️ At least 1 label is required to create a new contact===');
     console.log('No existing labels found. Creating new label...\n');
-    
+
     // Trigger create label wizard
     const { labelName } = await inquirer.prompt([
       {
@@ -892,22 +907,22 @@ async promptForLabels(): Promise<string[]> {
         },
       },
     ]);
-    
+
     // Create the label (implementation depends on where this is called)
     // This might need to be handled at a higher level in the call stack
     // where we have access to labelResolver
-    
+
     // After creation, fetch groups again and continue
     const updatedGroups = await this.fetchContactGroups();
     existingGroups = updatedGroups;
   }
-  
+
   if (existingGroups.length > 0) {
     const choices = existingGroups.map((group) => ({
       name: group.name,
       value: group.resourceName,
     }));
-    
+
     const { selectedLabels } = await inquirer.prompt([
       {
         type: 'checkbox',
@@ -927,12 +942,13 @@ async promptForLabels(): Promise<string[]> {
     ]);
     selectedResourceNames = selectedLabels;
   }
-  
+
   return selectedResourceNames;
 }
 ```
 
 **Implementation Notes:**
+
 - Uses `this.createContactGroup()` which is a built-in method of `ContactEditor` (confirmed at line 883 of contactEditor.ts)
 - No mixing with `LabelResolver` - all label creation happens through ContactEditor's own API
 - The while loop ensures at least one label exists before proceeding to selection
@@ -958,6 +974,7 @@ async promptForLabels(): Promise<string[]> {
 **NOTE:** The authentication check at startup (Step 0) eliminates the need for a separate network connectivity check. Authentication testing validates both network access and Google API availability.
 
 **Key implementation notes:**
+
 - The `createNoteInFolder` method loops until valid clipboard content is found (lines 910-986)
 - Validation failures now return `false` instead of silent `return`
 - Both flows verify note creation success before prompting for contacts
@@ -1016,6 +1033,7 @@ protected async checkAndHandleLinkedInDuplicate(url: string): Promise<boolean> {
 ```
 
 **VERIFICATION REQUIRED (CRITICAL - Point 13):** Before implementing these protected methods, verify that:
+
 1. Adding them won't change existing behavior of the base `ContactEditor.collectInitialInput()`
 2. The base class should continue to work exactly as before
 3. No existing logic is broken
@@ -1037,7 +1055,10 @@ The current `EventsContactEditor.collectInitialInput()` does NOT perform duplica
 // After line 87: const { firstName, lastName } = TextUtils.parseFullName(fullName);
 
 // NEW: Always perform duplicate detection for name
-const shouldContinueAfterNameCheck = await this.checkAndHandleNameDuplicate(firstName, lastName);
+const shouldContinueAfterNameCheck = await this.checkAndHandleNameDuplicate(
+  firstName,
+  lastName
+);
 if (!shouldContinueAfterNameCheck) {
   throw new Error('User cancelled due to duplicate');
 }
@@ -1052,12 +1073,14 @@ const { emailValue } = await inquirer.prompt([
     name: 'emailValue',
     message: '📧 Email address:',
     default: '',
-    validate: (input: string): boolean | string => InputValidator.validateEmail(input, true),
+    validate: (input: string): boolean | string =>
+      InputValidator.validateEmail(input, true),
   },
 ]);
 if (emailValue.trim()) {
   const trimmedEmail = emailValue.trim();
-  const shouldContinueAfterEmailCheck = await this.checkAndHandleEmailDuplicate(trimmedEmail);
+  const shouldContinueAfterEmailCheck =
+    await this.checkAndHandleEmailDuplicate(trimmedEmail);
   if (!shouldContinueAfterEmailCheck) {
     throw new Error('User cancelled due to duplicate');
   }
@@ -1077,7 +1100,8 @@ const { phoneNumber } = await inquirer.prompt([
 ]);
 if (phoneNumber.trim()) {
   const trimmedPhone = phoneNumber.trim();
-  const shouldContinueAfterPhoneCheck = await this.checkAndHandlePhoneDuplicate(trimmedPhone);
+  const shouldContinueAfterPhoneCheck =
+    await this.checkAndHandlePhoneDuplicate(trimmedPhone);
   if (!shouldContinueAfterPhoneCheck) {
     throw new Error('User cancelled due to duplicate');
   }
@@ -1097,7 +1121,8 @@ const { linkedInUrlInput } = await inquirer.prompt([
 ]);
 if (linkedInUrlInput.trim()) {
   linkedInUrl = InputValidator.normalizeLinkedInUrl(linkedInUrlInput);
-  const shouldContinueAfterLinkedInCheck = await this.checkAndHandleLinkedInDuplicate(linkedInUrl);
+  const shouldContinueAfterLinkedInCheck =
+    await this.checkAndHandleLinkedInDuplicate(linkedInUrl);
   if (!shouldContinueAfterLinkedInCheck) {
     throw new Error('User cancelled due to duplicate');
   }
@@ -1111,6 +1136,7 @@ if (linkedInUrlInput.trim()) {
 **Scenario:** User creates a life event folder and skips label selection during folder creation.
 
 **Handling:**
+
 - Folder label is empty string
 - In `promptAndCreateContact`, empty `labelString` is detected before calling `resolveLabel`
 - `prePopulatedData.labelResourceNames` will be empty array
@@ -1128,6 +1154,7 @@ if (linkedInUrlInput.trim()) {
 **Scenario:** User has a Job_AcmeInc folder but "Job" label doesn't exist in Google Contacts.
 
 **Handling:**
+
 - `LabelResolver.resolveLabel` with `isRequired=true` throws error
 - Error is caught in `promptAndCreateContact` (Step 3 implementation)
 - User is prompted: "Would you like to create it now?"
@@ -1139,6 +1166,7 @@ if (linkedInUrlInput.trim()) {
 **Scenario:** API error during label creation in Google Contacts.
 
 **Handling:**
+
 - Error is thrown from `labelResolver.createLabel` or `contactEditor.createContactGroup`
 - Caught by `promptAndCreateContact` error handler
 - User sees error message: "===⚠️ Contact creation failed: [error message]==="
@@ -1151,6 +1179,7 @@ if (linkedInUrlInput.trim()) {
 **Scenario:** Network drops after note creation but during contact creation.
 
 **Handling:**
+
 - `retryWithBackoff` utility will attempt retries with exponential backoff
 - If persistent failure, error caught by `promptAndCreateContact` error handler
 - User sees: `"===⚠️ Contact creation failed: [error message]==="`
@@ -1163,6 +1192,7 @@ if (linkedInUrlInput.trim()) {
 **Scenario:** User starts contact creation but cancels in the summary/edit step.
 
 **Handling:**
+
 - `contactEditor.showSummaryAndEdit` returns `null`
 - Log message: "Contact creation cancelled by user"
 - Display: "===❌ Contact creation cancelled==="
@@ -1175,6 +1205,7 @@ if (linkedInUrlInput.trim()) {
 **Scenario:** First time creating a contact in the session.
 
 **Handling:**
+
 - Check `this.isAuthenticated` flag in `promptAndCreateContact`
 - If false, call `AuthService.authorize()`
 - Set `this.isAuthenticated = true` after success
@@ -1186,6 +1217,7 @@ if (linkedInUrlInput.trim()) {
 **Scenario:** First contact creation in session, cache is empty.
 
 **Handling:**
+
 - Check `!this.cachedContactGroups || this.cachedContactGroups.length === 0`
 - Call `this.fetchContactGroups()` to fetch from Google API
 - Cache results in `this.cachedContactGroups`
@@ -1194,12 +1226,14 @@ if (linkedInUrlInput.trim()) {
 
 ### 8. Folder renamed after note creation (NEW - CRITICAL)
 
-**Scenario:** 
+**Scenario:**
+
 1. User creates note in "Job_AcmeInc" folder
 2. User renames folder to "Job_AcmeCorp" via rename folder flow
 3. User attempts to create contact (either via prompt after note or later)
 
 **Handling:**
+
 - `lastSelectedFolder` contains stale path and company name
 - In `promptAndCreateContact`, check folder existence: `await fs.access(this.lastSelectedFolder.path)`
 - If folder doesn't exist:
@@ -1211,6 +1245,7 @@ if (linkedInUrlInput.trim()) {
   - User must create a new note in the renamed folder to refresh context
 
 **Why this matters:**
+
 - Only the **parent directories** (life-events, job-interviews) are guaranteed stable
 - **Sub-folders** can be renamed via the rename folder flow
 - External renames (outside script) are not detected during note creation
@@ -1221,6 +1256,7 @@ if (linkedInUrlInput.trim()) {
 **Scenario:** User creates note, waits > 1 hour idle, then tries to create contact.
 
 **Handling:**
+
 - OAuth tokens typically expire after 1 hour of inactivity
 - Token expiration error thrown during any Google API call in contact creation flow
 - Error caught in `promptAndCreateContact` error handler
@@ -1243,12 +1279,14 @@ if (linkedInUrlInput.trim()) {
 ### 10. Label inference ambiguity (NEW - DOCUMENTED LIMITATION)
 
 **Scenario:**
+
 - Folder: "Added Trip"
 - Existing labels: ["Trip", "Added"]
 - Inference matches "Added" (left-to-right first-match)
 - But "Trip" might be the intended label
 
 **Handling:**
+
 - Label inference is a best-effort heuristic, not guaranteed correct
 - Uses simple left-to-right word matching, no semantic analysis
 - User is always shown confirmation: "Use suggested labels: Added?"
@@ -1381,20 +1419,7 @@ if (linkedInUrlInput.trim()) {
     - Complete contact creation
     - Verify contact has manually selected labels
 
-15a. **User declines pre-populated label + No labels exist (NEW - Point 11)**
-    - Ensure "Job" label does NOT exist in Google Contacts
-    - Create note in Job_TestCompany folder
-    - Accept contact creation prompt
-    - See: "Use suggested labels: Job?"
-    - Decline (select No)
-    - See full label selection list
-    - **Edge case:** No labels exist in Google Contacts
-    - Verify message: "===⚠️ At least 1 label is required to create a new contact==="
-    - Verify automatic prompt to create new label
-    - Create label (can be "Job" or any other label)
-    - Verify label selection shows the newly created label
-    - Select it and complete contact creation
-    - Verify contact created successfully
+15a. **User declines pre-populated label + No labels exist (NEW - Point 11)** - Ensure "Job" label does NOT exist in Google Contacts - Create note in Job_TestCompany folder - Accept contact creation prompt - See: "Use suggested labels: Job?" - Decline (select No) - See full label selection list - **Edge case:** No labels exist in Google Contacts - Verify message: "===⚠️ At least 1 label is required to create a new contact===" - Verify automatic prompt to create new label - Create label (can be "Job" or any other label) - Verify label selection shows the newly created label - Select it and complete contact creation - Verify contact created successfully
 
 ### Authentication & Caching
 
@@ -1499,7 +1524,7 @@ if (linkedInUrlInput.trim()) {
     - Verify authentication attempt at startup before main menu
     - If authentication succeeds: Script continues normally
     - If authentication fails: Verify warning message displayed
-    - Verify message: "⚠️  Google authentication failed."
+    - Verify message: "⚠️ Google authentication failed."
     - Verify message: "You can still create notes, but contact features will be unavailable."
     - Verify script continues to main menu (doesn't exit)
     - Create note successfully (verify notes work without auth)
@@ -1616,67 +1641,79 @@ if (linkedInUrlInput.trim()) {
 ### Issues Addressed from Code Review
 
 ✅ **Label validation contradiction RESOLVED:**
+
 - Added requirement for at least one label in `InputValidator.validateMinimumRequirements`
 - Updated `promptForLabels()` UI message to indicate requirement
 - Added checkbox validation to prevent empty selection
 - Added automatic create label wizard when no labels exist
 
 ✅ **Empty labelString handling FIXED:**
+
 - Added explicit check for empty `labelString` before calling `resolveLabel`
 - Prevents confusing "Label '' does not exist" prompt
 - Skips resolution for life events without labels
 - Wizard handles empty label scenario gracefully
 
 ✅ **Note creation validation tracking FIXED:**
+
 - Changed `createNoteInFolder` return type to `Promise<boolean>`
 - Validation failures return `false` instead of silent `return`
 - Both flows check return value before prompting for contact
 - Separate `successfulNoteCount` tracker in batch flow
 
 ✅ **Folder context validation ADDED:**
+
 - Added defensive check in `promptAndCreateContact` for undefined `lastSelectedFolder`
 - Displays folder name in prompt: "Create a new contact for {folderName}?"
 - Logs which folder context is being used
 - Documented that folder names are stable (single-user, no renames)
 
 ✅ **Error handling strategy DEFINED:**
+
 - All errors caught in `promptAndCreateContact`
 - User-friendly messages with retry guidance
 - Graceful return to main menu (no propagation)
 - Note remains created, contact creation can be retried
 
 ✅ **Network connectivity check ADDED:**
+
 - Pre-flight check at script startup
 - Graceful exit if no connectivity
 - Prevents confusing mid-flow errors
 
 ✅ **One contact per batch CLARIFIED:**
+
 - Explicitly documented in plan
 - Prompt appears once after batch completion
 - Additional contacts via "Add contact" menu option
 - Clear UX messaging
 
 ✅ **Stats tracking accuracy CONFIRMED:**
+
 - `this.stats.contacts++` only after successful API call
 - Not incremented on cancellation or errors
 - Only successful operations counted
 
 ✅ **Single-user context DOCUMENTED:**
+
 - No concurrent modifications
 - Folders never renamed externally
 - Clarified in Overview section
 
 ✅ **Label inference behavior DOCUMENTED:**
+
 - Left-to-right first-match strategy explicitly noted
 - Example provided in test cases
 - User can accept or decline inferred label
 
 ✅ **Empty labels edge case HANDLED:**
+
 - Automatic create label wizard trigger
 - Clear messaging to user
 - Prevents confusion when no labels exist
 
 ✅ **Token expiration NOTED:**
+
 - `retryWithBackoff` handles re-authentication
 - Errors caught by main error handler
 - Documented in edge cases section
@@ -1696,12 +1733,14 @@ if (linkedInUrlInput.trim()) {
 ### Implementation Checklist
 
 **Phase 0: Pre-Implementation Setup**
+
 - [ ] Review all 32 test scenarios (including new 15a) to understand expected behavior
 - [ ] Ensure development environment has internet connectivity
 - [ ] Backup current codebase before making changes
 - [ ] **NOTE (Point 1):** Label requirement change is intentional and expected for ALL scripts
 
 **Phase 1: Validation and Label Selection (MUST DO FIRST)**
+
 - [ ] **Point 13 - CRITICAL VERIFICATION:** Verify that adding protected helper methods to ContactEditor won't break existing base class logic
 - [ ] Update `src/validators/inputValidator.ts` - add label validation to `validateMinimumRequirements`
 - [ ] **Point 12:** Note that validation is consistent with existing remove_label behavior
@@ -1716,6 +1755,7 @@ if (linkedInUrlInput.trim()) {
 - [ ] **Point 13:** Verify protected methods don't affect base ContactEditor behavior
 
 **Phase 2: Note Creation Return Type**
+
 - [ ] Modify `createNoteInFolder` signature to return `Promise<boolean>`
 - [ ] Change validation failure returns from silent `return` to `return false`
 - [ ] Add `return true` after successful note creation
@@ -1725,6 +1765,7 @@ if (linkedInUrlInput.trim()) {
 - [ ] Verify validation failures return `false` correctly
 
 **Phase 3: Core Implementation - promptAndCreateContact**
+
 - [ ] Create `promptAndCreateContact()` method in `eventsJobsSync.ts`:
   - [ ] Add `lastSelectedFolder` validation
   - [ ] **Point 2:** Add folder staleness check (fs.access) AND metadata validation
@@ -1741,6 +1782,7 @@ if (linkedInUrlInput.trim()) {
 - [ ] Verify folder context display works correctly
 
 **Phase 4: Modify createNoteFlow**
+
 - [ ] Update `createNoteFlow` to check `noteCreated` boolean
 - [ ] Call `promptAndCreateContact()` only if `noteCreated === true`
 - [ ] Test single note creation → contact creation (accept)
@@ -1748,6 +1790,7 @@ if (linkedInUrlInput.trim()) {
 - [ ] Test validation failure → no contact prompt
 
 **Phase 5: Modify writeNotesFlow**
+
 - [ ] Add `successfulNoteCount` variable
 - [ ] Update note creation loop to check boolean and increment correctly
 - [ ] Update "Created X notes" message to use `successfulNoteCount`
@@ -1758,6 +1801,7 @@ if (linkedInUrlInput.trim()) {
 - [ ] Test batch creation → contact creation flow
 
 **Phase 6: Integration Testing**
+
 - [ ] Run all 32 test scenarios from Testing Considerations section (including new 15a)
 - [ ] **Point 2:** Test folder staleness detection with metadata validation (Test #29)
 - [ ] **Point 10:** Test token expiration handling with auth clearing (Test #30)
@@ -1771,6 +1815,7 @@ if (linkedInUrlInput.trim()) {
 - [ ] Test error recovery scenarios
 
 **Phase 7: Code Quality**
+
 - [ ] Run linter on all modified files
 - [ ] Fix any linting errors
 - [ ] Review all error messages for clarity
@@ -1779,6 +1824,7 @@ if (linkedInUrlInput.trim()) {
 - [ ] Verify import statements are correct
 
 **Phase 8: Documentation**
+
 - [ ] Update code comments in modified functions
 - [ ] Document error handling strategy
 - [ ] **Point 7:** Document one-contact-per-batch limitation with design rationale
@@ -1788,20 +1834,20 @@ if (linkedInUrlInput.trim()) {
 
 ### Potential Risks & Mitigations
 
-| Risk | Mitigation | Priority |
-|------|------------|----------|
-| **Label requirement change (Point 1):** Changes behavior across all scripts | **Expected change** - improves data quality; consistent with existing remove_label behavior; all contact management benefits | **MEDIUM** |
-| **Protected methods (Point 13):** Adding methods to ContactEditor might affect base class | **CRITICAL VERIFICATION** required before implementation; must verify base class behavior unchanged | **HIGH** |
-| Label resolution logic errors | Comprehensive unit tests for all folder types; empty string check added | HIGH |
-| Note creation boolean breaks existing callers (Point 6) | Only two callers verified; both updated in same commit; test thoroughly | HIGH |
-| Folder staleness causes crashes (Point 2) | Added fs.access check + metadata validation before contact creation; clear error messaging | HIGH |
-| User confusion about label requirement | Clear error messages in validation; updated UI prompts | MEDIUM |
-| API failures during label creation | Error caught by main handler with clear message and retry guidance | MEDIUM |
-| Token expiration mid-session (Point 10) | Special error handling clears auth state; user can retry immediately with auto re-auth | MEDIUM |
-| Performance impact from extra prompts | Minimal - single prompt after note(s), user can decline quickly | LOW |
-| Label inference picks wrong label (Point 8) | Documented behavior (left-to-right); user can decline and select manually; don't change logic | LOW |
-| Empty label list confusion (Point 5) | Automatic create label wizard loop guides user; uses ContactEditor.createContactGroup() | LOW |
-| Folder context stale or undefined (Point 2) | Defensive check + metadata validation in `promptAndCreateContact` with clear error message | LOW |
+| Risk                                                                                      | Mitigation                                                                                                                   | Priority   |
+| ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| **Label requirement change (Point 1):** Changes behavior across all scripts               | **Expected change** - improves data quality; consistent with existing remove_label behavior; all contact management benefits | **MEDIUM** |
+| **Protected methods (Point 13):** Adding methods to ContactEditor might affect base class | **CRITICAL VERIFICATION** required before implementation; must verify base class behavior unchanged                          | **HIGH**   |
+| Label resolution logic errors                                                             | Comprehensive unit tests for all folder types; empty string check added                                                      | HIGH       |
+| Note creation boolean breaks existing callers (Point 6)                                   | Only two callers verified; both updated in same commit; test thoroughly                                                      | HIGH       |
+| Folder staleness causes crashes (Point 2)                                                 | Added fs.access check + metadata validation before contact creation; clear error messaging                                   | HIGH       |
+| User confusion about label requirement                                                    | Clear error messages in validation; updated UI prompts                                                                       | MEDIUM     |
+| API failures during label creation                                                        | Error caught by main handler with clear message and retry guidance                                                           | MEDIUM     |
+| Token expiration mid-session (Point 10)                                                   | Special error handling clears auth state; user can retry immediately with auto re-auth                                       | MEDIUM     |
+| Performance impact from extra prompts                                                     | Minimal - single prompt after note(s), user can decline quickly                                                              | LOW        |
+| Label inference picks wrong label (Point 8)                                               | Documented behavior (left-to-right); user can decline and select manually; don't change logic                                | LOW        |
+| Empty label list confusion (Point 5)                                                      | Automatic create label wizard loop guides user; uses ContactEditor.createContactGroup()                                      | LOW        |
+| Folder context stale or undefined (Point 2)                                               | Defensive check + metadata validation in `promptAndCreateContact` with clear error message                                   | LOW        |
 
 ### Success Criteria
 
@@ -1820,6 +1866,7 @@ if (linkedInUrlInput.trim()) {
 ✅ **No labels exist scenario** automatically triggers create label wizard loop with clear messaging (Point 5)
 
 ✅ **All validations work correctly:**
+
 - First name required
 - At least one label required (enforced at checkbox level and final validation) (Point 1, 12)
 - Validation failures show clear error messages
@@ -1835,11 +1882,13 @@ if (linkedInUrlInput.trim()) {
 ✅ **Stats accurately track all contacts** - only increment after successful API calls (immediately after createContact() returns); single counter for all sources (intentional - Point 9)
 
 ✅ **No data loss if user cancels or encounters errors:**
+
 - Notes remain created
 - User can retry contact creation by creating another note
 - Clear retry guidance provided
 
 ✅ **Error handling is comprehensive:**
+
 - All errors caught and logged
 - User-friendly messages displayed
 - Script returns gracefully to main menu (including token expiration - Point 10)
@@ -1847,6 +1896,7 @@ if (linkedInUrlInput.trim()) {
 - No unhandled exceptions or crashes
 
 ✅ **Folder staleness detected and handled (Point 2):**
+
 - Folder existence checked before contact creation
 - Folder metadata validated (name format matches expected pattern)
 - Clear error message if folder renamed/deleted/format changed
@@ -1854,6 +1904,7 @@ if (linkedInUrlInput.trim()) {
 - User must create new note to refresh context
 
 ✅ **Folder stability clarified:**
+
 - Parent directories (life-events, job-interviews) never renamed
 - Sub-folders CAN be renamed via rename flow
 - Documented in plan
@@ -1938,6 +1989,7 @@ This updated plan addresses all review points and includes the following enhance
 The plan is now production-ready with all identified gaps, edge cases, and concerns addressed based on your feedback. All 15 review points have been systematically incorporated:
 
 **Critical updates made:**
+
 - Point 1: Label requirement clarified as intentional change for all scripts
 - Point 2: Folder metadata validation added alongside existence check
 - Point 3: Network check removed (auth check at startup is sufficient)

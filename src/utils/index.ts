@@ -1,5 +1,9 @@
 export { retryWithBackoff } from './retryWithBackoff';
-export { formatHebrewText, extractEnglishFromMixed, formatMixedHebrewEnglish } from './hebrewFormatter';
+export {
+  formatHebrewText,
+  extractEnglishFromMixed,
+  formatMixedHebrewEnglish,
+} from './hebrewFormatter';
 export {
   cleanCompany,
   formatCompanyToPascalCase,

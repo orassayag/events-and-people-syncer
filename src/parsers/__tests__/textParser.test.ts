@@ -41,7 +41,9 @@ describe('TextParser', () => {
     });
 
     it('should handle mixed Hebrew and non-Hebrew words', () => {
-      expect(TextParser.reverseHebrewText('Hello שלום World')).toBe('Hello םולש World');
+      expect(TextParser.reverseHebrewText('Hello שלום World')).toBe(
+        'Hello םולש World'
+      );
     });
   });
 

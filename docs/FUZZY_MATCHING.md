@@ -10,10 +10,10 @@ The system uses [Fuse.js](https://fusejs.io/) for fuzzy string matching with the
 
 ```typescript
 const fuse = new Fuse(contacts, {
-  keys: ['fullName'],           // Search against "FirstName LastName"
-  threshold: 0.2,               // Maximum acceptable score (0.0 = perfect, 1.0 = no match)
-  ignoreLocation: true,         // Match anywhere in the string
-  includeScore: true,           // Return similarity scores
+  keys: ['fullName'], // Search against "FirstName LastName"
+  threshold: 0.2, // Maximum acceptable score (0.0 = perfect, 1.0 = no match)
+  ignoreLocation: true, // Match anywhere in the string
+  includeScore: true, // Return similarity scores
 });
 ```
 
@@ -22,7 +22,7 @@ const fuse = new Fuse(contacts, {
 The system tries to match connections in the following order (first match wins):
 
 1. **LinkedIn URL** (exact match) - Highest confidence
-2. **Email Address** (exact match) - High confidence  
+2. **Email Address** (exact match) - High confidence
 3. **Full Name** (fuzzy match) - Medium to low confidence, score-dependent
 
 ## Fuzzy Score Explained
@@ -41,6 +41,7 @@ The fuzzy score is a number between **0.0** and **1.0** that indicates how close
 Fuse.js uses the [Levenshtein distance algorithm](https://en.wikipedia.org/wiki/Levenshtein_distance) which counts the minimum number of single-character edits (insertions, deletions, or substitutions) needed to transform one string into another, normalized to a 0-1 scale.
 
 **Formula (simplified):**
+
 ```
 score = (number of character differences) / (length of longer string)
 ```
@@ -50,9 +51,10 @@ score = (number of character differences) / (length of longer string)
 The system uses two configurable thresholds to determine how to handle fuzzy matches:
 
 ### Configuration
+
 ```typescript
-FUZZY_ACCEPT_THRESHOLD = 0.2   // Auto-accept matches with score ≤ 0.2
-FUZZY_WARNING_THRESHOLD = 0.4  // Flag for review matches with score ≤ 0.4
+FUZZY_ACCEPT_THRESHOLD = 0.2; // Auto-accept matches with score ≤ 0.2
+FUZZY_WARNING_THRESHOLD = 0.4; // Flag for review matches with score ≤ 0.4
 ```
 
 ### Match Type Decision Tree
@@ -102,8 +104,9 @@ FUZZY_WARNING_THRESHOLD = 0.4  // Flag for review matches with score ≤ 0.4
 ## Match Types and Actions
 
 ### 1. EXACT Match
-**Trigger:** LinkedIn URL or Email matches exactly (single match)  
-**Action:** Update the existing contact  
+
+**Trigger:** LinkedIn URL or Email matches exactly (single match)
+**Action:** Update the existing contact
 **Confidence:** Very High (99%+)
 
 ```typescript
@@ -113,8 +116,9 @@ Action: Update that contact
 ```
 
 ### 2. FUZZY Match
-**Trigger:** Name fuzzy score ≤ 0.2 (single match)  
-**Action:** Update the existing contact  
+
+**Trigger:** Name fuzzy score ≤ 0.2 (single match)
+**Action:** Update the existing contact
 **Confidence:** High (~90-95%)
 
 ```typescript
@@ -127,11 +131,14 @@ Match:  "John A Smith"    → score: ~0.15 (middle initial)
 ```
 
 ### 3. UNCERTAIN Match
+
 **Trigger:**
+
 - Multiple matches found (2+ contacts), OR
 - Name fuzzy score between 0.2 and 0.4 (single match)
 
-**Action:** 
+**Action:**
+
 - Increment warning counter
 - Log to warning log file
 - **Skip updating** (contact remains unchanged)
@@ -152,11 +159,13 @@ Match:  "Michael Jonsson"  → score: ~0.35 (spelling variant)
 ```
 
 ### 4. NONE Match
+
 **Trigger:**
+
 - No matches found, OR
 - Name fuzzy score > 0.4 (too dissimilar)
 
-**Action:** Create a new contact  
+**Action:** Create a new contact
 **Confidence:** High that this is a new person
 
 ```typescript
@@ -173,6 +182,7 @@ Action: Treat as NONE, create new contact
 ## Real-World Examples
 
 ### Example 1: Perfect Match via LinkedIn URL
+
 ```
 LinkedIn Connection: John Doe (linkedin.com/in/john-doe)
 Google Contact: John Doe (linkedin.com/in/john-doe)
@@ -181,6 +191,7 @@ Google Contact: John Doe (linkedin.com/in/john-doe)
 ```
 
 ### Example 2: Good Fuzzy Match
+
 ```
 LinkedIn Connection: Michael O'Brien
 Google Contact: Micheal OBrien (score: 0.18)
@@ -189,6 +200,7 @@ Google Contact: Micheal OBrien (score: 0.18)
 ```
 
 ### Example 3: Uncertain Match Requiring Review
+
 ```
 LinkedIn Connection: Mike Johnson
 Google Contacts:
@@ -199,6 +211,7 @@ Google Contacts:
 ```
 
 ### Example 4: Borderline Match Flagged
+
 ```
 LinkedIn Connection: Catherine Smith
 Google Contact: Cathrine Smyth (score: 0.35)
@@ -207,6 +220,7 @@ Google Contact: Cathrine Smyth (score: 0.35)
 ```
 
 ### Example 5: Poor Match Rejected
+
 ```
 LinkedIn Connection: Alexander Peterson
 Google Contact: Alexandra Petersen (score: 0.50)
@@ -216,52 +230,58 @@ Google Contact: Alexandra Petersen (score: 0.50)
 
 ## Common Score Ranges
 
-| Score Range | Interpretation | Typical Causes | Action |
-|-------------|----------------|----------------|--------|
-| 0.00 - 0.05 | Identical or near-identical | Same name, case differences | Auto-update (FUZZY) |
-| 0.06 - 0.15 | Very similar | Minor typo, nickname (Jon/John) | Auto-update (FUZZY) |
-| 0.16 - 0.20 | Similar | Middle initial, hyphenation | Auto-update (FUZZY) |
-| 0.21 - 0.30 | Moderately similar | Multiple typos, name variant | Flag for review (UNCERTAIN) |
-| 0.31 - 0.40 | Questionable | Different spelling, similar sound | Flag for review (UNCERTAIN) |
-| 0.41 - 0.60 | Dissimilar | Different names, wrong person | Create new (NONE) |
-| 0.61 - 1.00 | Very dissimilar | Completely different | Create new (NONE) |
+| Score Range | Interpretation              | Typical Causes                    | Action                      |
+| ----------- | --------------------------- | --------------------------------- | --------------------------- |
+| 0.00 - 0.05 | Identical or near-identical | Same name, case differences       | Auto-update (FUZZY)         |
+| 0.06 - 0.15 | Very similar                | Minor typo, nickname (Jon/John)   | Auto-update (FUZZY)         |
+| 0.16 - 0.20 | Similar                     | Middle initial, hyphenation       | Auto-update (FUZZY)         |
+| 0.21 - 0.30 | Moderately similar          | Multiple typos, name variant      | Flag for review (UNCERTAIN) |
+| 0.31 - 0.40 | Questionable                | Different spelling, similar sound | Flag for review (UNCERTAIN) |
+| 0.41 - 0.60 | Dissimilar                  | Different names, wrong person     | Create new (NONE)           |
+| 0.61 - 1.00 | Very dissimilar             | Completely different              | Create new (NONE)           |
 
 ## Factors Affecting Fuzzy Scores
 
 ### Increases Score (Worse Match)
+
 - Extra characters: "John" vs "Johnny" (+2 chars, ~15% worse)
 - Different characters: "Smith" vs "Smyth" (1 char different, ~20% worse)
 - Length difference: "Li" vs "Williams" (large difference, ~70% worse)
 - Word order: "Doe John" vs "John Doe" (many edits needed)
 
 ### Minimizes Score (Better Match)
+
 - Identical strings: "John Smith" vs "John Smith" (0.00)
 - Case only: "john smith" vs "John Smith" (ignored by Fuse.js)
-- Whitespace variations: "John  Smith" vs "John Smith" (minimal impact)
+- Whitespace variations: "John Smith" vs "John Smith" (minimal impact)
 
 ## Configuration Recommendations
 
 ### Conservative (Reduce False Positives)
+
 ```typescript
-FUZZY_ACCEPT_THRESHOLD = 0.15   // Only accept very close matches
-FUZZY_WARNING_THRESHOLD = 0.35  // Wider review range
+FUZZY_ACCEPT_THRESHOLD = 0.15; // Only accept very close matches
+FUZZY_WARNING_THRESHOLD = 0.35; // Wider review range
 ```
 
 ### Aggressive (Reduce Manual Review)
+
 ```typescript
-FUZZY_ACCEPT_THRESHOLD = 0.25   // Accept more variations
-FUZZY_WARNING_THRESHOLD = 0.45  // Narrower review range
+FUZZY_ACCEPT_THRESHOLD = 0.25; // Accept more variations
+FUZZY_WARNING_THRESHOLD = 0.45; // Narrower review range
 ```
 
 ### Current (Balanced)
+
 ```typescript
-FUZZY_ACCEPT_THRESHOLD = 0.2    // Good balance
-FUZZY_WARNING_THRESHOLD = 0.4   // Reasonable review threshold
+FUZZY_ACCEPT_THRESHOLD = 0.2; // Good balance
+FUZZY_WARNING_THRESHOLD = 0.4; // Reasonable review threshold
 ```
 
 ## Monitoring and Tuning
 
 ### Check Warning Log
+
 Review the warning log file to see contacts that need manual review:
 
 ```bash
@@ -269,6 +289,7 @@ cat logs/linkedin-sync/[timestamp]-warnings.log
 ```
 
 ### Analyze Patterns
+
 - **Many UNCERTAIN matches?** → Consider lowering `FUZZY_ACCEPT_THRESHOLD`
 - **Wrong contacts being updated?** → Raise `FUZZY_ACCEPT_THRESHOLD` (more strict)
 - **Too many warnings?** → Adjust `FUZZY_WARNING_THRESHOLD`
@@ -276,10 +297,12 @@ cat logs/linkedin-sync/[timestamp]-warnings.log
 ## Code References
 
 ### Configuration Files
+
 - **Thresholds**: `src/services/linkedin/connectionMatcher.ts` (lines 8-9)
 - **Fuse.js Setup**: `src/services/contacts/duplicateDetector.ts` (line 24, 38-43)
 
 ### Key Functions
+
 - **Name Matching**: `DuplicateDetector.checkDuplicateName()` (duplicateDetector.ts:28)
 - **Match Evaluation**: `ConnectionMatcher.matchByName()` (connectionMatcher.ts:57)
 - **Overall Flow**: `ConnectionMatcher.match()` (connectionMatcher.ts:13)
@@ -287,15 +310,19 @@ cat logs/linkedin-sync/[timestamp]-warnings.log
 ## Troubleshooting
 
 ### Problem: Too many false positives (wrong contacts updated)
+
 **Solution:** Decrease `FUZZY_ACCEPT_THRESHOLD` to 0.15 or lower
 
 ### Problem: Too many warnings to review
+
 **Solution:** Increase `FUZZY_ACCEPT_THRESHOLD` to 0.25 or adjust `FUZZY_WARNING_THRESHOLD`
 
 ### Problem: Common names causing UNCERTAIN matches
+
 **Solution:** Ensure LinkedIn URLs and emails are present in contacts for exact matching priority
 
 ### Problem: Cultural name variations (e.g., "Mohammed" vs "Muhammad")
+
 **Solution:** These will likely score 0.20-0.30 and be flagged as UNCERTAIN for manual review
 
 ## Best Practices

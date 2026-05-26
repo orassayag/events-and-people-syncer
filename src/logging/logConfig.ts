@@ -4,5 +4,5 @@ export const LOG_CONFIG = {
   maxFileSize: 10 * 1024 * 1024,
   logRetentionDays: 30,
   enableConsole: true,
-  enableFile: false,
+  enableFile: true,
 };

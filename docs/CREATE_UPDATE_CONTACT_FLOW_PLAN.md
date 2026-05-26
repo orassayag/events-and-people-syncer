@@ -11,6 +11,7 @@ If "Yes" is chosen and duplicates are found at **any point** during the create f
 > `Continue anyway?` (Yes/No)
 
 ### Goal
+
 Replace these two behaviours with a richer flow:
 
 1. Rename the initial prompt to **"Create / Update contact for HR_ProRecruiting?"**
@@ -25,11 +26,11 @@ Replace these two behaviours with a richer flow:
 
 ## Resolved Design Decisions
 
-| # | Question | Decision |
-|---|---|---|
-| 1 | Should all duplicate checks (email, phone, LinkedIn) also use the new dropdown? | **Yes — all checks get the dropdown** |
-| 2 | Should biography be updated with a timestamp? | **Yes — date + time** using existing `formatDateTimeDDMMYYYY_HHMMSS` |
-| 3 | Should the folder's label be auto-added to the existing contact? | **Yes — auto-add if not already present** |
+| #   | Question                                                                        | Decision                                                             |
+| --- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| 1   | Should all duplicate checks (email, phone, LinkedIn) also use the new dropdown? | **Yes — all checks get the dropdown**                                |
+| 2   | Should biography be updated with a timestamp?                                   | **Yes — date + time** using existing `formatDateTimeDDMMYYYY_HHMMSS` |
+| 3   | Should the folder's label be auto-added to the existing contact?                | **Yes — auto-add if not already present**                            |
 
 ---
 
@@ -37,16 +38,16 @@ Replace these two behaviours with a richer flow:
 
 ### Files to Modify / Create
 
-| File | Action | Change Summary |
-|---|---|---|
-| `src/scripts/eventsJobsSync.ts` | Modify | Rename prompt; add `handleExistingContactSelected()`, `displayContactDetails()` |
-| `src/services/contacts/duplicateDetector.ts` | Modify | Add `promptDuplicateSelectOrCreate()` alongside existing method |
-| `src/services/contacts/eventsContactEditor.ts` | Modify | Reorder fields (name first); use new dropdown for all duplicate checks |
-| `src/services/contacts/contactEditor.ts` | Modify | Update all `checkAndHandle*` methods + inline calls to use new dropdown; add `updateExistingContact()` |
-| `src/types/services.ts` | Modify | Add `DuplicatePromptResult` type |
-| `src/errors/existingContactSelected.ts` | **New** | New error class for signaling an existing contact was selected |
-| `src/errors/index.ts` | Modify / New | Export the new error class |
-| `src/utils/index.ts` | Modify | Ensure `formatDateTimeDDMMYYYY_HHMMSS` is exported |
+| File                                           | Action       | Change Summary                                                                                         |
+| ---------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------ |
+| `src/scripts/eventsJobsSync.ts`                | Modify       | Rename prompt; add `handleExistingContactSelected()`, `displayContactDetails()`                        |
+| `src/services/contacts/duplicateDetector.ts`   | Modify       | Add `promptDuplicateSelectOrCreate()` alongside existing method                                        |
+| `src/services/contacts/eventsContactEditor.ts` | Modify       | Reorder fields (name first); use new dropdown for all duplicate checks                                 |
+| `src/services/contacts/contactEditor.ts`       | Modify       | Update all `checkAndHandle*` methods + inline calls to use new dropdown; add `updateExistingContact()` |
+| `src/types/services.ts`                        | Modify       | Add `DuplicatePromptResult` type                                                                       |
+| `src/errors/existingContactSelected.ts`        | **New**      | New error class for signaling an existing contact was selected                                         |
+| `src/errors/index.ts`                          | Modify / New | Export the new error class                                                                             |
+| `src/utils/index.ts`                           | Modify       | Ensure `formatDateTimeDDMMYYYY_HHMMSS` is exported                                                     |
 
 ---
 
@@ -59,6 +60,7 @@ Replace these two behaviours with a richer flow:
 **Location:** `promptAndCreateContact()` method, line ~1560–1562
 
 #### Current code
+
 ```typescript
 const shouldAddContactResult = await confirmWithEscape({
   message: `Create a new contact for ${folderDisplay}?`,
@@ -67,6 +69,7 @@ const shouldAddContactResult = await confirmWithEscape({
 ```
 
 #### Change to
+
 ```typescript
 const shouldAddContactResult = await confirmWithEscape({
   message: `Create / Update contact for ${folderDisplay}?`,
@@ -204,6 +207,7 @@ There are **four** protected helper methods that must be updated to use the new 
 - `checkAndHandleLinkedInDuplicate` (line ~102)
 
 Add import at the top:
+
 ```typescript
 import { ExistingContactSelected } from '../../errors';
 ```
@@ -294,6 +298,7 @@ async updateExistingContact(
 Reorder `collectInitialInput` to ask **Full Name first**, then Company. All duplicate checks use the new `promptDuplicateSelectOrCreate` and throw `ExistingContactSelected` on selection.
 
 Add imports:
+
 ```typescript
 import { ExistingContactSelected } from '../../errors';
 import type { DuplicatePromptResult } from '../../types';
@@ -354,9 +359,13 @@ async collectInitialInput(prePopulated?: PrePopulatedData): Promise<EditableCont
 ### 7. `src/scripts/eventsJobsSync.ts` — Handle `ExistingContactSelected`
 
 Add import:
+
 ```typescript
 import { ExistingContactSelected } from '../errors';
-import { formatMixedHebrewEnglish, formatDateTimeDDMMYYYY_HHMMSS } from '../utils';
+import {
+  formatMixedHebrewEnglish,
+  formatDateTimeDDMMYYYY_HHMMSS,
+} from '../utils';
 ```
 
 In `promptAndCreateContact()`, update the catch block (currently around line 1676):
@@ -446,7 +455,11 @@ private displayContactDetails(contact: ContactData): void {
 The function already exists in `src/utils/dateFormatter.ts` (line 15, produces `DD/MM/YYYY HH:MM:SS`). Verify it is listed in `src/utils/index.ts`. If not, add it:
 
 ```typescript
-export { formatDateDDMMYYYY, formatDateDDMMYYYYCompact, formatDateTimeDDMMYYYY_HHMMSS } from './dateFormatter';
+export {
+  formatDateDDMMYYYY,
+  formatDateDDMMYYYYCompact,
+  formatDateTimeDDMMYYYY_HHMMSS,
+} from './dateFormatter';
 ```
 
 ---
@@ -505,10 +518,12 @@ PATH B: "🔍 Anat Cohen Matkal" selected
 ## Verification Plan
 
 ### Automated Tests
+
 - Run `npx vitest run` — existing tests must pass (old `promptForDuplicateContinue` mock in `contactEditor.dryMode.test.ts` is kept).
 - The test mock at line 52 of `contactEditor.dryMode.test.ts` does **NOT** need to change.
 
 ### Manual Verification
+
 1. Run `npm run start` (dry mode).
 2. Create a note in an HR folder.
 3. Confirm prompt reads **"Create / Update contact for HR_ProRecruiting?"**.

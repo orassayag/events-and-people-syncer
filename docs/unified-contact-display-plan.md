@@ -30,7 +30,7 @@ Extend the existing `ContactDisplay` class with a new unified display method tha
 ```typescript
 interface ContactDisplayOptions {
   mode: 'sync' | 'summary' | 'success' | 'duplicate';
-  
+
   // Extended fields (sync/warning scenarios)
   showReason?: boolean;
   showContactIndex?: boolean;
@@ -38,15 +38,15 @@ interface ContactDisplayOptions {
   reason?: string[];
   currentIndex?: number;
   totalCount?: number;
-  
+
   // Duplicate-specific fields
   showSimilarityType?: boolean;
   similarityType?: string;
   matchNumber?: number;
-  
+
   // Success message
   showResourceName?: boolean;
-  
+
   // Header customization
   header?: string;
 }
@@ -66,6 +66,7 @@ interface UnifiedContactData {
 ```
 
 **Key method signature:**
+
 ```typescript
 static displayContactUnified(
   contactData: UnifiedContactData,
@@ -76,24 +77,28 @@ static displayContactUnified(
 ### 2. Display Mode Behaviors
 
 #### `mode: 'sync'`
+
 - Shows: Reason, Contact Index, Contact ID + all contact fields
 - Hebrew text reversal applied
 - First email/phone only (as currently implemented)
 - Uses `TextUtils.reverseHebrewText()` internally
 
 #### `mode: 'summary'`
+
 - Shows: Header "===Contact Summary===" + all contact fields
 - **All emails/phones** displayed with indentation if multiple
 - Hebrew text reversal applied
 - No Reason/Index/ID
 
 #### `mode: 'success'`
+
 - Shows: Header "===✅ Contact created successfully!===" + Resource Name + all contact fields
 - **All emails/phones** displayed with indentation if multiple
 - NO Hebrew text reversal (raw data displayed)
 - Includes Resource Name field
 
 #### `mode: 'duplicate'`
+
 - Shows: Match number, Similarity Type + subset of contact fields
 - Format: `===Match X:===` followed by indented fields
 - Hebrew text reversal applied
@@ -101,6 +106,7 @@ static displayContactUnified(
 ### 3. Hebrew Text Handling
 
 The unified function will:
+
 - Accept **raw contact data** from callers
 - Apply `TextUtils.reverseHebrewText()` internally based on display mode
 - `mode: 'success'` → NO reversal (shows raw data)
@@ -115,13 +121,17 @@ The unified function will:
 ### 5. Implementation Steps
 
 #### Step 1: Create New Types File
+
 Create `src/services/contacts/contactDisplayTypes.ts` with:
+
 - `ContactDisplayOptions` interface
 - `UnifiedContactData` interface
 - `DisplayMode` type
 
 #### Step 2: Extend ContactDisplay Class
+
 Add to `src/services/contacts/contactDisplay.ts`:
+
 - New `displayContactUnified()` static method
 - Private helper methods:
   - `formatFullName()` - combines first/last/label/company
@@ -132,35 +142,45 @@ Add to `src/services/contacts/contactDisplay.ts`:
   - `buildDisplayHeader()` - generates header based on mode
 
 #### Step 3: Refactor ContactDisplay Usage
+
 Update `src/scripts/contactsSync.ts`:
+
 - Replace existing `ContactDisplay.displayContact()` calls
 - Convert `SyncableContact` to `UnifiedContactData`
 - Pass options with `mode: 'sync'`, reason, index, totalCount
 
 #### Step 4: Refactor ContactEditor Summary Display
+
 Update `src/services/contacts/contactEditor.ts` (lines 191-235):
+
 - Replace inline display code with `ContactDisplay.displayContactUnified()`
 - Convert `editableData` to `UnifiedContactData`
 - Pass options with `mode: 'summary'`
 - Map `currentSelectedLabelNames` to `labels` array
 
 #### Step 5: Refactor ContactEditor Success Display
+
 Update `src/services/contacts/contactEditor.ts` (lines 721-757):
+
 - Replace inline display code with `ContactDisplay.displayContactUnified()`
 - Convert `data` + `finalSelectedLabelNames` to `UnifiedContactData`
 - Pass options with `mode: 'success'`, `showResourceName: true`
 
 #### Step 6: Refactor Duplicate Display
+
 Update `src/services/contacts/duplicateDetector.ts` (lines 147-164):
+
 - Replace inline display code with `ContactDisplay.displayContactUnified()`
 - Convert `ContactData` to `UnifiedContactData`
 - Pass options with `mode: 'duplicate'`, `similarityType`, `matchNumber`
 
 #### Step 7: Deprecate Old Method
+
 - Mark `ContactDisplay.displayContact()` as deprecated
 - Keep it temporarily for backward compatibility (can remove after all usages replaced)
 
 #### Step 8: Testing & Validation
+
 - Run contact sync script to verify sync display
 - Test contact editor flow (create/edit) to verify summary and success displays
 - Test duplicate detection to verify duplicate display format
@@ -169,29 +189,32 @@ Update `src/services/contacts/duplicateDetector.ts` (lines 147-164):
 
 ### 6. Data Structure Mapping
 
-| Source Type | Field Mapping | Target Field |
-|------------|--------------|--------------|
-| `ContactData` | `firstName`, `lastName` | Direct mapping |
-| `ContactData` | `label` (single) | `label` |
-| `ContactData` | `emails[]` → `emails[].value` | `emails[]` |
-| `ContactData` | `phones[]` → `phones[].number` | `phones[]` |
-| `ContactData` | `websites[]` → find LinkedIn | `linkedInUrl` |
-| `EditableContactData` | `labelResourceNames[]` | Resolve to names → `labels[]` |
-| `EditableContactData` | `emails[]`, `phones[]` | Direct (already strings) |
-| `EditableContactData` | `linkedInUrl` | Direct |
+| Source Type           | Field Mapping                  | Target Field                  |
+| --------------------- | ------------------------------ | ----------------------------- |
+| `ContactData`         | `firstName`, `lastName`        | Direct mapping                |
+| `ContactData`         | `label` (single)               | `label`                       |
+| `ContactData`         | `emails[]` → `emails[].value`  | `emails[]`                    |
+| `ContactData`         | `phones[]` → `phones[].number` | `phones[]`                    |
+| `ContactData`         | `websites[]` → find LinkedIn   | `linkedInUrl`                 |
+| `EditableContactData` | `labelResourceNames[]`         | Resolve to names → `labels[]` |
+| `EditableContactData` | `emails[]`, `phones[]`         | Direct (already strings)      |
+| `EditableContactData` | `linkedInUrl`                  | Direct                        |
 
 ### 7. File Changes Summary
 
 **New Files:**
+
 - `src/services/contacts/contactDisplayTypes.ts` - Type definitions
 
 **Modified Files:**
+
 - `src/services/contacts/contactDisplay.ts` - Add unified display method
 - `src/scripts/contactsSync.ts` - Replace display calls
 - `src/services/contacts/contactEditor.ts` - Replace 2 display locations
 - `src/services/contacts/duplicateDetector.ts` - Replace display logic
 
 **Expected Code Reduction:**
+
 - Remove ~150 lines of duplicated display logic
 - Centralize formatting rules in one place
 - Improve maintainability for future display changes

@@ -11,14 +11,16 @@ This refactoring plan addresses critical code duplication (DRY violations), impo
 ## Overview of Issues
 
 ### Critical Problems
+
 - **ContactGroup** defined in 6 places
-- **EditableContactData** defined in 3 places  
+- **EditableContactData** defined in 3 places
 - **OAuth2Client** type alias in 10+ files
 - **TextParser** duplicates 100% of TextUtils functionality
 - Error message extraction pattern repeated 15+ times
 - Import patterns inconsistent (direct file imports vs barrel exports)
 
 ### Impact
+
 - 1000+ lines of duplicate code
 - 100+ files with incorrect import patterns
 - 20+ types scattered in implementation files instead of types/ folder
@@ -29,6 +31,7 @@ This refactoring plan addresses critical code duplication (DRY violations), impo
 This refactoring plan is split into 5 phases:
 
 ### [Phase 0: Pre-Flight Checks](./REFACTORING_PLAN_PHASE0.md) (MANDATORY - Do First)
+
 - Capture current state baseline
 - Identify test coverage gaps
 - Check for test mocks and dynamic imports
@@ -39,6 +42,7 @@ This refactoring plan is split into 5 phases:
 **Impact:** Establishes safety net, prevents mistakes, enables rollback
 
 ### [Phase 1: Critical Foundation](./REFACTORING_PLAN_PHASE1.md) (High Impact, High Priority)
+
 - Consolidate duplicate type definitions
 - Fix import patterns to use barrel exports
 - Remove TextParser duplicate
@@ -47,6 +51,7 @@ This refactoring plan is split into 5 phases:
 **Impact:** Fixes 100+ files, eliminates major type duplication
 
 ### [Phase 2: Important Consolidations](./REFACTORING_PLAN_PHASE2.md) (Medium-High Impact)
+
 - Consolidate summary box formatting
 - Consolidate validation logic
 - Consolidate formatting utilities
@@ -56,6 +61,7 @@ This refactoring plan is split into 5 phases:
 **Impact:** Eliminates 500+ lines of duplicate code
 
 ### [Phase 3: Structural Improvements](./REFACTORING_PLAN_PHASE3.md) (Medium Impact)
+
 - Move types to types/ folder
 - Consolidate cache implementation
 - Consolidate API call patterns
@@ -65,6 +71,7 @@ This refactoring plan is split into 5 phases:
 **Impact:** Improves architecture, reduces code by ~300 lines
 
 ### [Phase 4: Documentation and Polish](./REFACTORING_PLAN_PHASE4.md) (Lower Priority, High Value)
+
 - Update critical documentation
 - Update implementation documentation
 - Consolidate console usage (optional)
@@ -108,6 +115,7 @@ This refactoring plan is split into 5 phases:
 - ✅ **Security checklist** - review new utilities
 
 **New safeguards added:**
+
 - Pre-flight checks to identify risks before starting
 - Rollback procedures documented
 - Automated testing between changes
@@ -115,12 +123,12 @@ This refactoring plan is split into 5 phases:
 
 ## Quick Reference
 
-| Phase | Files Changed | Lines Removed | Priority |
-|-------|---------------|---------------|----------|
-| Phase 1 | ~100 | ~200 | Critical |
-| Phase 2 | ~30 | ~500 | High |
-| Phase 3 | ~50 | ~300 | Medium |
-| Phase 4 | ~15 docs | N/A | Medium |
+| Phase   | Files Changed | Lines Removed | Priority |
+| ------- | ------------- | ------------- | -------- |
+| Phase 1 | ~100          | ~200          | Critical |
+| Phase 2 | ~30           | ~500          | High     |
+| Phase 3 | ~50           | ~300          | Medium   |
+| Phase 4 | ~15 docs      | N/A           | Medium   |
 
 ## Getting Started
 
@@ -150,6 +158,7 @@ This refactoring plan is split into 5 phases:
 ## Critical Notes and Decisions
 
 ### Edge Cases Addressed
+
 1. **Settings type NOT moved** - Stays in `settings/settings.ts` co-located with implementation
 2. **BaseCache type-safe** - Uses `T extends { timestamp: number }` for type safety
 3. **ContactCache keeps extra methods** - getByEmail, getByLinkedInSlug, etc. preserved
@@ -160,7 +169,9 @@ This refactoring plan is split into 5 phases:
 8. **Test coverage gaps documented** - New utilities need tests added
 
 ### Suspicious Patterns to Resolve
+
 These are documented in `refactoring-decisions.md` created during Phase 0:
+
 - Cache TTL inconsistency (different constants used)
 - Cache singleton pattern inconsistency
 - FolderCache schema validation differs from others
@@ -171,6 +182,6 @@ Make decisions on these during implementation.
 
 ---
 
-**Created:** March 18, 2026  
-**Status:** Planning Phase  
+**Created:** March 18, 2026
+**Status:** Planning Phase
 **Next Step:** Begin Phase 1

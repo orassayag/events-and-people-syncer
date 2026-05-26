@@ -1,6 +1,11 @@
 import inquirer from 'inquirer';
 import { validateEnvironment } from './config.js';
-import { AuthService, ContactReader, ContactWriter, ContactDeleter } from './services/index.js';
+import {
+  AuthService,
+  ContactReader,
+  ContactWriter,
+  ContactDeleter,
+} from './services/index.js';
 
 const args = process.argv.slice(2);
 const isVerbose = args.includes('--verbose');
@@ -57,7 +62,10 @@ async function main(): Promise<void> {
       }
     } catch (error) {
       if (error instanceof Error) {
-        if (error.message === 'User cancelled' || error.message === 'User cancelled due to duplicate') {
+        if (
+          error.message === 'User cancelled' ||
+          error.message === 'User cancelled due to duplicate'
+        ) {
           continue;
         }
         console.error('\nError:', error.message);

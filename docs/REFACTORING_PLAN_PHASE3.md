@@ -1,7 +1,7 @@
 # Phase 3: Structural Improvements (Medium Impact)
 
-**Estimated Time:** 3-4 days (revised from 2-3 days)  
-**Files Affected:** ~50 files  
+**Estimated Time:** 3-4 days (revised from 2-3 days)
+**Files Affected:** ~50 files
 **Lines Removed:** ~300 lines
 
 ## Overview
@@ -17,9 +17,11 @@ Phase 3 focuses on architectural improvements: moving scattered types to the typ
 ## 3.1 Move Types to types/ Folder
 
 ### Problem
+
 Type definitions scattered across the codebase instead of centralized in the types/ folder.
 
 **⚠️ CRITICAL NOTES:**
+
 1. **DO NOT move Settings type** - Keep it in `settings/settings.ts` co-located with SETTINGS constant
 2. Follow dependency order from Phase 0 `type-dependencies.md`
 3. Move leaf types first (no dependencies), then types that depend on them
@@ -30,6 +32,7 @@ Type definitions scattered across the codebase instead of centralized in the typ
 #### Types to NOT Move
 
 **Keep these types in their current locations:**
+
 - `Settings` interface in `src/settings/settings.ts` (co-located with implementation)
 - Any types tightly coupled to their implementation
 
@@ -40,6 +43,7 @@ Type definitions scattered across the codebase instead of centralized in the typ
 **1. Create `src/types/prompt.ts`**
 
 Move from `promptWithEnquirer.ts`:
+
 ```typescript
 export interface PromptResult<T> {
   escaped: boolean;
@@ -84,6 +88,7 @@ export interface CheckboxConfig {
 **3. Create `src/types/monitoring.ts`**
 
 Move from `healthCheck.ts`:
+
 ```typescript
 export interface HealthStatus {
   service: string;
@@ -96,6 +101,7 @@ export interface HealthStatus {
 **4. Create `src/types/labels.ts`**
 
 Move from `labelResolver.ts`:
+
 ```typescript
 export interface LabelResolutionResult {
   resolved: boolean;
@@ -109,6 +115,7 @@ export interface LabelResolutionResult {
 **⚠️ NOTE:** Review cache inconsistencies in `refactoring-decisions.md` from Phase 0 before creating this!
 
 Move from cache files:
+
 ```typescript
 // Base interface that all cache data must extend
 export interface BaseCacheData {
@@ -134,6 +141,7 @@ export interface FolderCacheData extends BaseCacheData {
 #### Move Inline Types to Existing Type Files
 
 **Add to `src/types/validation.ts`:**
+
 ```typescript
 export interface PathValidationResult {
   valid: boolean;
@@ -142,6 +150,7 @@ export interface PathValidationResult {
 ```
 
 **Add to `src/types/linkedin.ts`:**
+
 ```typescript
 export interface NoteUpdateResult {
   updated: boolean;
@@ -161,6 +170,7 @@ export type ContactGroupMap = Record<string, string>;
 ```
 
 **Add to `src/types/contact.ts`:**
+
 ```typescript
 export interface SyncableContact {
   resourceName: string;
@@ -180,6 +190,7 @@ export interface DuplicateMatch {
 ```
 
 **Create `src/types/syncStats.ts` or add to `src/types/script.ts`:**
+
 ```typescript
 export interface Stats {
   created: number;
@@ -190,6 +201,7 @@ export interface Stats {
 ```
 
 **Add to `src/types/logger.ts`:**
+
 ```typescript
 export interface WarningEntry {
   message: string;
@@ -199,6 +211,7 @@ export interface WarningEntry {
 ```
 
 **Add to `src/types/statistics.ts`:**
+
 ```typescript
 export interface FileMetadata {
   path: string;
@@ -231,6 +244,7 @@ export * from './syncStats';
 ```
 
 ### Success Criteria
+
 - ✅ All new type files created (EXCEPT settings.ts)
 - ✅ Settings type remains in settings/settings.ts
 - ✅ All inline types moved
@@ -244,9 +258,11 @@ export * from './syncStats';
 ## 3.2 Consolidate Cache Implementation
 
 ### Problem
+
 `companyCache.ts`, `contactCache.ts`, and `folderCache.ts` have nearly identical read/write/invalidate patterns with only schema and TTL differences.
 
 **⚠️ CRITICAL NOTES:**
+
 1. Review decisions in `refactoring-decisions.md` from Phase 0 first!
 2. Decide on singleton pattern (getInstance vs constructor)
 3. Decide on error handling (safeParse vs parse)
@@ -258,6 +274,7 @@ export * from './syncStats';
 #### Resolve Pre-Flight Decisions
 
 Before implementing, decide:
+
 - [ ] Singleton or not? (Recommend: all singletons for consistency)
 - [ ] safeParse or parse? (Recommend: safeParse + invalidate for safety)
 - [ ] TTL source? (Recommend: standardize to one constant)
@@ -265,6 +282,7 @@ Before implementing, decide:
 #### Create Generic Base Cache
 
 **Create `src/cache/baseCache.ts`:**
+
 ```typescript
 import { promises as fs } from 'fs';
 import { z } from 'zod';
@@ -281,24 +299,24 @@ export abstract class BaseCache<T extends { timestamp: number }> {
   async get(): Promise<T | null> {
     try {
       const fileContent = await fs.readFile(this.cacheFilePath, 'utf-8');
-      
+
       // Use safeParse for better error handling (standardized approach)
       const result = this.schema.safeParse(JSON.parse(fileContent));
-      
+
       if (!result.success) {
         // Invalid schema - invalidate cache
         await this.invalidate();
         return null;
       }
-      
+
       const data = result.data;
       const now = Date.now();
-      
+
       // Type-safe now that T extends { timestamp: number }
       if (now - data.timestamp < this.expirationMs) {
         return data;
       }
-      
+
       // Expired - invalidate
       await this.invalidate();
       return null;
@@ -309,7 +327,10 @@ export abstract class BaseCache<T extends { timestamp: number }> {
 
   async set(data: T): Promise<void> {
     try {
-      const dir = this.cacheFilePath.substring(0, this.cacheFilePath.lastIndexOf('/'));
+      const dir = this.cacheFilePath.substring(
+        0,
+        this.cacheFilePath.lastIndexOf('/')
+      );
       await fs.mkdir(dir, { recursive: true });
       await fs.writeFile(
         this.cacheFilePath,
@@ -317,10 +338,7 @@ export abstract class BaseCache<T extends { timestamp: number }> {
         'utf-8'
       );
     } catch (error: unknown) {
-      console.warn(
-        'Failed to write cache:',
-        ErrorUtils.getErrorMessage(error)
-      );
+      console.warn('Failed to write cache:', ErrorUtils.getErrorMessage(error));
     }
   }
 
@@ -333,6 +351,7 @@ export abstract class BaseCache<T extends { timestamp: number }> {
 ```
 
 **Key improvements from original plan:**
+
 1. ✅ `T extends { timestamp: number }` for type safety
 2. ✅ Uses `safeParse()` and invalidates on schema failure (standardized)
 3. ✅ Uses `ErrorUtils.getErrorMessage()` from Phase 1
@@ -345,19 +364,29 @@ export abstract class BaseCache<T extends { timestamp: number }> {
 **1. Update `src/cache/companyCache.ts`:**
 
 **Before (57 lines):**
+
 ```typescript
 export class CompanyCache {
   private readonly cacheFilePath: string;
   private readonly expirationMs: number;
-  
-  constructor() { /* ... */ }
-  async get(): Promise<CompanyCacheData | null> { /* 15 lines */ }
-  async set(data: CompanyCacheData): Promise<void> { /* 15 lines */ }
-  async invalidate(): Promise<void> { /* 5 lines */ }
+
+  constructor() {
+    /* ... */
+  }
+  async get(): Promise<CompanyCacheData | null> {
+    /* 15 lines */
+  }
+  async set(data: CompanyCacheData): Promise<void> {
+    /* 15 lines */
+  }
+  async invalidate(): Promise<void> {
+    /* 5 lines */
+  }
 }
 ```
 
 **After (~15 lines):**
+
 ```typescript
 import { BaseCache } from './baseCache';
 import { CompanyCacheData } from '../types/cache';
@@ -367,7 +396,7 @@ import { join } from 'path';
 
 export class CompanyCache extends BaseCache<CompanyCacheData> {
   private static instance: CompanyCache;
-  
+
   private constructor() {
     super(
       join(SETTINGS.linkedin.cachePath, 'company-mappings.json'),
@@ -375,7 +404,7 @@ export class CompanyCache extends BaseCache<CompanyCacheData> {
       companyCacheDataSchema
     );
   }
-  
+
   static getInstance(): CompanyCache {
     if (!CompanyCache.instance) {
       CompanyCache.instance = new CompanyCache();
@@ -390,6 +419,7 @@ export class CompanyCache extends BaseCache<CompanyCacheData> {
 **⚠️ CRITICAL:** ContactCache has cache-specific methods - keep them!
 
 **After (~40 lines - still reduced from 125):**
+
 ```typescript
 import { BaseCache } from './baseCache';
 import { ContactCacheData } from '../types/cache';
@@ -418,11 +448,11 @@ export class ContactCache extends BaseCache<ContactCacheData> {
   }
 
   // KEEP THESE CACHE-SPECIFIC METHODS:
-  
+
   async getByLinkedInSlug(url: string): Promise<ContactData | null> {
     const data = await this.get();
     if (!data) return null;
-    
+
     const slug = UrlNormalizer.extractProfileSlug(url);
     for (const contact of data.contacts) {
       for (const website of contact.websites) {
@@ -440,10 +470,10 @@ export class ContactCache extends BaseCache<ContactCacheData> {
   async getByEmail(email: string): Promise<ContactData[]> {
     const data = await this.get();
     if (!data) return [];
-    
+
     const emailLower = email.toLowerCase();
     const matches: ContactData[] = [];
-    
+
     for (const contact of data.contacts) {
       for (const contactEmail of contact.emails) {
         if (contactEmail.value.toLowerCase() === emailLower) {
@@ -458,7 +488,7 @@ export class ContactCache extends BaseCache<ContactCacheData> {
   async getByResourceName(resourceName: string): Promise<ContactData | null> {
     const data = await this.get();
     if (!data) return null;
-    
+
     for (const contact of data.contacts) {
       if (contact.resourceName === resourceName) {
         return contact;
@@ -474,6 +504,7 @@ export class ContactCache extends BaseCache<ContactCacheData> {
 Similar to CompanyCache - extend BaseCache, add getInstance(). Reduce to ~15 lines.
 
 ### Success Criteria
+
 - ✅ BaseCache created with type-safe `T extends { timestamp: number }`
 - ✅ Cache inconsistencies resolved (review `refactoring-decisions.md`)
 - ✅ CompanyCache extends BaseCache with getInstance() (~15 lines)
@@ -490,6 +521,7 @@ Similar to CompanyCache - extend BaseCache, add getInstance(). Reduce to ~15 lin
 ## 3.3 Consolidate API Call Patterns
 
 ### Problem
+
 Repeated "load groups, then paginate connections" pattern across 5+ files.
 
 ### Actions
@@ -497,6 +529,7 @@ Repeated "load groups, then paginate connections" pattern across 5+ files.
 #### Create API Helpers
 
 **Create `src/services/api/apiHelpers.ts`:**
+
 ```typescript
 import { people_v1 } from 'googleapis';
 import { ApiTracker } from './apiTracker';
@@ -509,7 +542,7 @@ export class ApiHelpers {
   ): Promise<ContactGroup[]> {
     const response = await service.contactGroups.list();
     apiTracker.trackRead();
-    
+
     return (response.data.contactGroups || [])
       .filter((group) => group.resourceName && group.name)
       .map((group) => ({
@@ -531,7 +564,8 @@ export class ApiHelpers {
         resourceName: 'people/me',
         pageSize,
         pageToken,
-        personFields: 'names,emailAddresses,phoneNumbers,organizations,urls,memberships',
+        personFields:
+          'names,emailAddresses,phoneNumbers,organizations,urls,memberships',
       });
       apiTracker.trackRead();
 
@@ -548,6 +582,7 @@ export class ApiHelpers {
 ```
 
 **Add to `src/services/api/index.ts`:**
+
 ```typescript
 export { ApiHelpers } from './apiHelpers';
 ```
@@ -559,6 +594,7 @@ export { ApiHelpers } from './apiHelpers';
 1. **contactSyncer.ts (lines 46-72, 305-333)**
 
 **Before:**
+
 ```typescript
 const groupsResponse = await service.contactGroups.list();
 this.apiTracker.trackRead();
@@ -567,11 +603,15 @@ const groups = groupsResponse.data.contactGroups || [];
 ```
 
 **After:**
+
 ```typescript
 import { ApiHelpers } from '../api';
 
 const groups = await ApiHelpers.fetchContactGroups(service, this.apiTracker);
-const connections = await ApiHelpers.fetchAllConnections(service, this.apiTracker);
+const connections = await ApiHelpers.fetchAllConnections(
+  service,
+  this.apiTracker
+);
 ```
 
 2. **duplicateDetector.ts (lines 285-318)**
@@ -580,6 +620,7 @@ const connections = await ApiHelpers.fetchAllConnections(service, this.apiTracke
 5. **eventsJobsSync.ts (lines 1784-1787)**
 
 ### Success Criteria
+
 - ✅ ApiHelpers utility created
 - ✅ All 5+ call sites updated
 - ✅ Consistent API call patterns
@@ -591,7 +632,9 @@ const connections = await ApiHelpers.fetchAllConnections(service, this.apiTracke
 ## 3.4 Consolidate Folder Scanning Logic
 
 ### Problem
+
 Similar folder scanning logic in:
+
 1. `src/scripts/eventsJobsSync.ts` (lines 249-276)
 2. `src/services/statistics/statisticsCollector.ts` (lines 151-173)
 
@@ -600,6 +643,7 @@ Similar folder scanning logic in:
 #### Create Shared Folder Scanner
 
 **Create `src/services/folders/folderScanner.ts`:**
+
 ```typescript
 import { promises as fs } from 'fs';
 import { join } from 'path';
@@ -624,19 +668,19 @@ export class FolderScanner {
     options: ScanOptions = {}
   ): Promise<FolderScanResult[]> {
     const results: FolderScanResult[] = [];
-    
+
     try {
       const entries = await fs.readdir(basePath, { withFileTypes: true });
-      
+
       for (const entry of entries) {
         if (!options.includeHidden && entry.name.startsWith('.')) {
           continue;
         }
-        
+
         if (entry.isDirectory()) {
           const folderPath = join(basePath, entry.name);
           const files = await fs.readdir(folderPath);
-          
+
           results.push({
             path: folderPath,
             name: entry.name,
@@ -648,13 +692,14 @@ export class FolderScanner {
     } catch (error) {
       console.error('Error scanning folders:', error);
     }
-    
+
     return results;
   }
 }
 ```
 
 **Add to `src/services/folders/index.ts`:**
+
 ```typescript
 export { FolderScanner } from './folderScanner';
 ```
@@ -664,6 +709,7 @@ export { FolderScanner } from './folderScanner';
 **1. Update `src/scripts/eventsJobsSync.ts` (lines 249-276)**
 
 **Before:**
+
 ```typescript
 const entries = await fs.readdir(basePath, { withFileTypes: true });
 for (const entry of entries) {
@@ -674,6 +720,7 @@ for (const entry of entries) {
 ```
 
 **After:**
+
 ```typescript
 import { FolderScanner } from '../services/folders';
 
@@ -686,6 +733,7 @@ const folders = await FolderScanner.scanJobLifeEventFolders(basePath);
 Similar pattern - replace with FolderScanner call.
 
 ### Success Criteria
+
 - ✅ FolderScanner utility created
 - ✅ Both call sites updated
 - ✅ Consistent folder scanning
@@ -697,7 +745,9 @@ Similar pattern - replace with FolderScanner call.
 ## 3.5 Consolidate ENOENT/EEXIST Error Handling
 
 ### Problem
+
 Repeated ENOENT/EEXIST handling patterns in:
+
 - `eventsJobsSync.ts` (6 locations)
 - `statisticsCollector.ts` (3 locations)
 
@@ -706,6 +756,7 @@ Repeated ENOENT/EEXIST handling patterns in:
 #### Enhance ErrorUtils
 
 **Update `src/utils/errorUtils.ts`:**
+
 ```typescript
 export class ErrorUtils {
   static getErrorMessage(error: unknown): string {
@@ -754,6 +805,7 @@ export class ErrorUtils {
 **Update `src/scripts/eventsJobsSync.ts`:**
 
 **Before (repeated pattern):**
+
 ```typescript
 try {
   await fs.readFile(path, 'utf-8');
@@ -766,11 +818,12 @@ try {
 ```
 
 **After:**
+
 ```typescript
 import { ErrorUtils } from '../utils';
 
-const content = await ErrorUtils.ignoreFileNotFound(
-  () => fs.readFile(path, 'utf-8')
+const content = await ErrorUtils.ignoreFileNotFound(() =>
+  fs.readFile(path, 'utf-8')
 );
 if (!content) {
   // handle not found
@@ -778,6 +831,7 @@ if (!content) {
 ```
 
 **Locations in eventsJobsSync.ts:**
+
 - Line ~406
 - Line ~485
 - Line ~530
@@ -789,6 +843,7 @@ if (!content) {
 Similar pattern in 3 locations.
 
 ### Success Criteria
+
 - ✅ ErrorUtils enhanced with file error helpers
 - ✅ All 6 locations in eventsJobsSync updated
 - ✅ All 3 locations in statisticsCollector updated

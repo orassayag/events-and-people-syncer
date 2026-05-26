@@ -13,8 +13,16 @@ type KeypressEvent = {
 };
 
 const PASSTHROUGH_KEYS = new Set([
-  'up', 'down', 'return', 'enter', 'escape',
-  'tab', 'pageup', 'pagedown', 'home', 'end',
+  'up',
+  'down',
+  'return',
+  'enter',
+  'escape',
+  'tab',
+  'pageup',
+  'pagedown',
+  'home',
+  'end',
   'space',
 ]);
 
@@ -52,7 +60,9 @@ export class SearchableMultiSelect extends (Enquirer as any).MultiSelect {
   private _syncSelections(): void {
     if (!this._allChoices) return;
     for (const choice of this.choices) {
-      const master = this._allChoices.find((c: Choice) => c.name === choice.name);
+      const master = this._allChoices.find(
+        (c: Choice) => c.name === choice.name
+      );
       if (master) {
         master.enabled = choice.enabled;
       }
@@ -62,8 +72,9 @@ export class SearchableMultiSelect extends (Enquirer as any).MultiSelect {
   private _applyFilter(): void {
     if (!this._allChoices) return;
     const term = this.searchTerm.toLowerCase();
-    const filtered = this._allChoices
-      .filter((c: Choice) => c.name.toLowerCase().includes(term));
+    const filtered = this._allChoices.filter((c: Choice) =>
+      c.name.toLowerCase().includes(term)
+    );
     this.choices = filtered;
     this.index = Math.min(this.index, filtered.length - 1);
     if (this.index < 0) this.index = 0;

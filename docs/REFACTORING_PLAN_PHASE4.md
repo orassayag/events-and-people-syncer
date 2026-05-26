@@ -1,7 +1,7 @@
 # Phase 4: Documentation and Polish (Lower Priority, High Value)
 
-**Estimated Time:** 1-2 days  
-**Files Affected:** ~15 documentation files  
+**Estimated Time:** 1-2 days
+**Files Affected:** ~15 documentation files
 **Lines Removed:** N/A (mostly updates and corrections)
 
 ## Overview
@@ -17,25 +17,33 @@ Phase 4 ensures all documentation accurately reflects the current codebase state
 #### CHANGELOG.md
 
 **Issues:**
+
 - Migration direction incorrect (says "inquirer v9 to @inquirer/prompts v8" but should be "to enquirer")
 - Package names need updating (remove @inquirer/prompts references, add enquirer)
 - Missing enquirer migration entry
 - References to promptWithEscape need updating to promptWithEnquirer
 
 **Actions:**
+
 1. **Fix migration entry:**
 
 **Before:**
+
 ```markdown
 ## [1.2.0] - 2026-03-XX
+
 ### Changed
+
 - Migrated from inquirer v9 to @inquirer/prompts v8
 ```
 
 **After:**
+
 ```markdown
 ## [1.2.0] - 2026-03-18
+
 ### Changed
+
 - Migrated from @inquirer/prompts to enquirer v2.4.1 for native ESC handling
 - Replaced promptWithEscape.ts with simpler promptWithEnquirer.ts
 - Eliminated screen overlap issues during navigation
@@ -49,6 +57,7 @@ Phase 4 ensures all documentation accurately reflects the current codebase state
 #### INQUIRER_MIGRATION_GUIDE.md
 
 **Issues:**
+
 - Document is obsolete or needs complete rewrite
 - References deleted promptWithEscape files
 - Install commands reference wrong package
@@ -56,6 +65,7 @@ Phase 4 ensures all documentation accurately reflects the current codebase state
 **Actions:**
 
 **Option A: Mark as obsolete**
+
 ```markdown
 # ⚠️ OBSOLETE - See ENQUIRER_MIGRATION_COMPLETE.md
 
@@ -64,6 +74,7 @@ See [ENQUIRER_MIGRATION_COMPLETE.md](./ENQUIRER_MIGRATION_COMPLETE.md) for curre
 ```
 
 **Option B: Rewrite completely**
+
 - Update to reflect migration to enquirer
 - Update code examples to use promptWithEnquirer
 - Fix install commands to use enquirer
@@ -74,6 +85,7 @@ See [ENQUIRER_MIGRATION_COMPLETE.md](./ENQUIRER_MIGRATION_COMPLETE.md) for curre
 #### ESC_IMPLEMENTATION_COMPLETE.md
 
 **Issues:**
+
 - References deleted promptWithEscape.ts files (lines 89-92)
 - Usage examples import from wrong file (lines 159-175)
 - Test file references incorrect
@@ -83,27 +95,33 @@ See [ENQUIRER_MIGRATION_COMPLETE.md](./ENQUIRER_MIGRATION_COMPLETE.md) for curre
 1. **Update "New Files" section (lines 89-92):**
 
 **Before:**
+
 ```markdown
 New Files:
+
 - src/utils/promptWithEscape.ts
-- src/utils/__tests__/promptWithEscape.test.ts
+- src/utils/**tests**/promptWithEscape.test.ts
 ```
 
 **After:**
+
 ```markdown
 New Files:
+
 - src/utils/promptWithEnquirer.ts
-- src/utils/__tests__/promptWithEnquirer.test.ts
+- src/utils/**tests**/promptWithEnquirer.test.ts
 ```
 
 2. **Fix usage examples (lines 159-175):**
 
 **Before:**
+
 ```typescript
 import { selectWithEscape } from '../utils/promptWithEscape';
 ```
 
 **After:**
+
 ```typescript
 import { selectWithEscape } from '../utils/promptWithEnquirer';
 ```
@@ -113,6 +131,7 @@ import { selectWithEscape } from '../utils/promptWithEnquirer';
 #### README.md
 
 **Issues:**
+
 - Claims "No Utils Folder" but utils folder exists with 5 files
 - Menu example only shows 2 options, should show all 5
 - Project structure diagram may be inaccurate
@@ -122,11 +141,13 @@ import { selectWithEscape } from '../utils/promptWithEnquirer';
 1. **Fix "No Utils Folder" claim (line ~152):**
 
 **Before:**
+
 ```markdown
 - **No Utils Folder**: Code organized by purpose, not generality
 ```
 
 **After:**
+
 ```markdown
 - **Minimal Utils Folder**: Only truly generic utilities (retry, formatting)
 - **Domain Folders**: Most code organized by purpose (validators/, cache/, parsers/)
@@ -135,28 +156,32 @@ import { selectWithEscape } from '../utils/promptWithEnquirer';
 2. **Update menu example to show all options:**
 
 **Before:**
+
 ```markdown
 Select a script to run:
-  ❯ 📧 LinkedIn Sync
-    🚪 Exit
+❯ 📧 LinkedIn Sync
+🚪 Exit
 ```
 
 **After:**
+
 ```markdown
 Select a script to run:
-  ❯ 📧 Contacts Sync - Manual contact management with duplicate detection
-    💼 LinkedIn Sync - Sync LinkedIn connections from CSV
-    📁 Events/Jobs Sync - Organize contacts by life events and jobs
-    📊 Statistics - View contact statistics and cache info
-    🚪 Exit
+❯ 📧 Contacts Sync - Manual contact management with duplicate detection
+💼 LinkedIn Sync - Sync LinkedIn connections from CSV
+📁 Events/Jobs Sync - Organize contacts by life events and jobs
+📊 Statistics - View contact statistics and cache info
+🚪 Exit
 ```
 
 3. **Verify project structure diagram accuracy:**
+
 - Check all folder names
 - Verify folder descriptions
 - Update if any folders added/removed
 
 ### Success Criteria
+
 - ✅ CHANGELOG.md has correct migration info
 - ✅ INQUIRER_MIGRATION_GUIDE.md marked obsolete or rewritten
 - ✅ ESC_IMPLEMENTATION_COMPLETE.md references correct files
@@ -171,6 +196,7 @@ Select a script to run:
 #### LOGGING_STRATEGY.md
 
 **Issues:**
+
 - SyncLogger API incorrect (getInstance() vs new SyncLogger())
 - Example code shows old pattern (lines 34-36)
 - References "inquirer" should be "enquirer" (line 45)
@@ -180,11 +206,13 @@ Select a script to run:
 1. **Fix SyncLogger API (lines 34-36):**
 
 **Before:**
+
 ```typescript
 const logger = SyncLogger.getInstance();
 ```
 
 **After:**
+
 ```typescript
 const logger = new SyncLogger('script-name');
 ```
@@ -192,11 +220,13 @@ const logger = new SyncLogger('script-name');
 2. **Fix package reference (line 45):**
 
 **Before:**
+
 ```markdown
 Interactive menu (inquirer)
 ```
 
 **After:**
+
 ```markdown
 Interactive menu (enquirer)
 ```
@@ -204,6 +234,7 @@ Interactive menu (enquirer)
 #### SYNC_EXECUTION_FLOW.md
 
 **Issues:**
+
 - Hardcoded limit "5" should reference TEST_CONNECTION_LIMIT (default 50)
 - Stale line numbers (lines 44, 49, 86)
 - References "TODO comment" about removed slice limit
@@ -213,28 +244,33 @@ Interactive menu (enquirer)
 1. **Update connection limit reference:**
 
 **Before:**
+
 ```markdown
 Limit connections to 5 for testing
 ```
 
 **After:**
+
 ```markdown
 Limit connections to TEST_CONNECTION_LIMIT (default: 50, configurable via .env)
 Set TEST_CONNECTION_LIMIT=0 to process all connections
 ```
 
 2. **Update line number references:**
+
 - Review actual line numbers in current code
 - Update references to match current state
 - Remove references to deleted code
 
 3. **Remove TODO reference:**
+
 - Delete mention of removed slice limit
 - Update to reflect current implementation
 
 #### CONTACTS_SYNC_BEHAVIOR.md
 
 **Issues:**
+
 - Line number references off by 100-150 lines
 - References to contactsSync.ts need updating
 - References to contactSyncer.ts need updating
@@ -242,18 +278,21 @@ Set TEST_CONNECTION_LIMIT=0 to process all connections
 **Actions:**
 
 1. **Update all line number references:**
+
 - Read current files
 - Find referenced code sections
 - Update line numbers
 - Add note: "Line numbers as of [date]"
 
 2. **Verify function references:**
+
 - isMissingField location
 - checkHebrewInAllFields location
 
 #### INFRASTRUCTURE_MIGRATION_PLAN.md
 
 **Issues:**
+
 - Command incorrect: `pnpm script list` → `pnpm script:list`
 
 **Actions:**
@@ -261,11 +300,13 @@ Set TEST_CONNECTION_LIMIT=0 to process all connections
 **Fix command (line ~936):**
 
 **Before:**
+
 ```bash
 pnpm script list
 ```
 
 **After:**
+
 ```bash
 pnpm script:list
 ```
@@ -273,6 +314,7 @@ pnpm script:list
 #### DISPLAY_LOGGER_REFACTORING_PLAN.md
 
 **Issues:**
+
 - Verify duplicate menu bug status (lines 79-94)
 - Update prompt API references to promptWithEnquirer
 - Update ContactDisplay line references
@@ -280,11 +322,13 @@ pnpm script:list
 **Actions:**
 
 1. **Check duplicate menu bug:**
+
 - Test if bug still exists
 - Update status (fixed/still present)
 - Update line references if applicable
 
 2. **Update prompt references:**
+
 - Change all promptWithEscape → promptWithEnquirer
 - Update import paths
 
@@ -293,12 +337,14 @@ pnpm script:list
 #### unified-contact-display-plan.md
 
 **Issues:**
+
 - Line ranges for files may have shifted
 - Verify references are still accurate
 
 **Actions:**
 
 1. **Verify line ranges:**
+
 - contactDisplay.ts references
 - contactEditor.ts references
 - duplicateDetector.ts references
@@ -308,12 +354,14 @@ pnpm script:list
 #### EVENTS_JOBS_SYNC_SETUP.md
 
 **Issues:**
+
 - Missing documentation for --no-cache alternatives
 
 **Actions:**
 
 **Add to setup instructions:**
-```markdown
+
+````markdown
 ## Running Without Cache
 
 You can bypass cache in multiple ways:
@@ -328,7 +376,9 @@ pnpm start:no-cache
 # Via runner with flag
 pnpm script events-jobs-sync --no-cache
 ```
-```
+````
+
+````
 
 #### API_LIMITS.md
 
@@ -349,9 +399,10 @@ Default: 50 (configurable)
 - Set in .env: `TEST_CONNECTION_LIMIT=50`
 - Set to 0 to process all connections
 - Only applies in test/development mode
-```
+````
 
 ### Success Criteria
+
 - ✅ All line numbers accurate (within 5 lines)
 - ✅ All API references correct
 - ✅ All commands tested and working
@@ -362,11 +413,13 @@ Default: 50 (configurable)
 ## 4.3 Consolidate Console Usage (Optional)
 
 ### Problem
+
 100+ direct console.log/console.warn/console.error calls mixed with Logger usage, making output inconsistent.
 
 ### Analysis
 
 **Files with highest console usage:**
+
 - statistics.ts (22 calls)
 - contactDisplay.ts (18 calls)
 - contactEditor.ts (37 calls)
@@ -376,12 +429,14 @@ Default: 50 (configurable)
 ### Guidelines
 
 **Use console.log for:**
+
 - User-facing output (menus, summaries)
 - Interactive prompts
 - Raw data display (URLs, codes)
 - Exit messages
 
 **Use Logger for:**
+
 - Backend operations
 - Debugging information
 - PHI-safe logging
@@ -390,11 +445,13 @@ Default: 50 (configurable)
 ### Actions (Optional)
 
 **Only proceed if:**
+
 - Output inconsistency causes user confusion
 - Logs need better structure for debugging
 - PHI safety concerns exist
 
 **Steps:**
+
 1. Audit all console usage in top 5 files
 2. Define clear guidelines for each file
 3. Update inconsistent usage
@@ -403,6 +460,7 @@ Default: 50 (configurable)
 **Estimated effort:** 1-2 days
 
 ### Recommendation
+
 **Skip this step** unless specific issues arise. Console.log is appropriate for user-facing scripts.
 
 ---
@@ -410,11 +468,13 @@ Default: 50 (configurable)
 ## 4.4 Test Infrastructure Improvements (Optional)
 
 ### Problem
+
 Repeated mock setup code across test files.
 
 ### Actions (Optional)
 
 **Only proceed if:**
+
 - Test maintenance becomes difficult
 - Mock code duplication causes issues
 - Tests are hard to understand
@@ -422,6 +482,7 @@ Repeated mock setup code across test files.
 #### Create Mock Factory
 
 **Create `src/__tests__/helpers/mockFactory.ts`:**
+
 ```typescript
 export class MockFactory {
   static createEventsJobsSyncDeps() {
@@ -459,6 +520,7 @@ export class MockFactory {
 #### Create FS Test Utils
 
 **Create `src/__tests__/helpers/fsTestUtils.ts`:**
+
 ```typescript
 import { vi } from 'vitest';
 
@@ -478,6 +540,7 @@ export class FsTestUtils {
 #### Update Test Files
 
 **Files to update:**
+
 - eventsJobsSync.test.ts (multiple beforeEach blocks)
 - folderCache.test.ts
 - noteWriter.test.ts
@@ -485,6 +548,7 @@ export class FsTestUtils {
 - folderManager.test.ts
 
 ### Recommendation
+
 **Skip this step** unless test maintenance becomes a problem. Current tests are functional.
 
 ---
@@ -542,6 +606,7 @@ After completing all 4 phases:
 ### What Was Accomplished
 
 **Phase 1 - Critical Foundation:**
+
 - ✅ Consolidated 6 → 1 ContactGroup definitions
 - ✅ Consolidated 3 → 1 EditableContactData definitions
 - ✅ Consolidated 10+ → 1 OAuth2Client definitions
@@ -550,6 +615,7 @@ After completing all 4 phases:
 - ✅ Consolidated error message extraction (15+ locations)
 
 **Phase 2 - Important Consolidations:**
+
 - ✅ Consolidated summary formatting (4 locations)
 - ✅ Consolidated validation logic (10+ locations)
 - ✅ Consolidated formatting utilities (6 locations)
@@ -557,6 +623,7 @@ After completing all 4 phases:
 - ✅ Consolidated Person → ContactData mapping (2 locations)
 
 **Phase 3 - Structural Improvements:**
+
 - ✅ Moved 20+ types to types/ folder
 - ✅ Created BaseCache (reduced 3 files by ~150 lines)
 - ✅ Consolidated API call patterns (5+ locations)
@@ -564,6 +631,7 @@ After completing all 4 phases:
 - ✅ Consolidated error handling (9 locations)
 
 **Phase 4 - Documentation:**
+
 - ✅ Updated 12+ documentation files
 - ✅ Fixed inaccurate line numbers
 - ✅ Corrected API references
@@ -571,13 +639,13 @@ After completing all 4 phases:
 
 ### Impact Metrics
 
-| Metric | Target | Achieved |
-|--------|--------|----------|
-| Lines Removed | 1000+ | ✅ |
-| Type Consolidation | 6→1 ContactGroup | ✅ |
-| Import Fixes | 100+ files | ✅ |
-| Types Moved | 20+ types | ✅ |
-| Docs Updated | 12 files | ✅ |
+| Metric             | Target           | Achieved |
+| ------------------ | ---------------- | -------- |
+| Lines Removed      | 1000+            | ✅       |
+| Type Consolidation | 6→1 ContactGroup | ✅       |
+| Import Fixes       | 100+ files       | ✅       |
+| Types Moved        | 20+ types        | ✅       |
+| Docs Updated       | 12 files         | ✅       |
 
 ### Maintenance Improvements
 
@@ -593,6 +661,7 @@ After completing all 4 phases:
 **Congratulations!** The refactoring is complete. The codebase is now more maintainable, consistent, and well-documented.
 
 **Next Steps:**
+
 1. Run full test suite one more time
 2. Deploy to test environment
 3. Monitor for any issues

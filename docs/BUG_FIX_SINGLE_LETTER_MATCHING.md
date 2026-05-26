@@ -8,7 +8,7 @@
 
 ### Problem
 
-The contact "Gevit Azulay" from company "Gevit Azulay" was incorrectly assigned the label "HR" instead of the default label "Job". 
+The contact "Gevit Azulay" from company "Gevit Azulay" was incorrectly assigned the label "HR" instead of the default label "Job".
 
 ### Root Cause
 
@@ -28,7 +28,7 @@ Result: Incorrectly assigned label "HR"
 
 ### Code Changes
 
-**File**: `src/services/linkedin/companyMatcher.ts`  
+**File**: `src/services/linkedin/companyMatcher.ts`
 **Lines**: 146-155
 
 Added a check to skip single-character segments in CamelCase matching:
@@ -36,7 +36,8 @@ Added a check to skip single-character segments in CamelCase matching:
 ```typescript
 const folderSegments: string[] = this.splitCamelCase(folderCompany);
 for (const segment of folderSegments) {
-  if (segment.length <= 1) {  // ← NEW: Skip single characters
+  if (segment.length <= 1) {
+    // ← NEW: Skip single characters
     continue;
   }
   const normalizedSegment: string = segment.toLowerCase().trim();
@@ -52,6 +53,7 @@ for (const segment of folderSegments) {
 ### Rationale
 
 Single-character matches are too broad and lead to false positives. Most legitimate company name matches require at least 2 characters to be meaningful. Examples:
+
 - "IBM" splitting to ["I", "B", "M"] would match almost any company with these common letters
 - "ADAM+" splitting to ["A", "D", "A", "M"] would match any company with "a", "d", or "m"
 - Multi-character segments like "Elbit" or "Systems" are much more specific
@@ -69,7 +71,7 @@ describe('bug fixes', () => {
     const result = (matcher as any).matchesCompany('Gevit Azulay', 'ADAM+');
     expect(result).toBe(false);
   });
-  
+
   it('should not match unrelated companies with coincidental single letters', () => {
     const matcher = new CompanyMatcher();
     const result = (matcher as any).matchesCompany(
@@ -83,13 +85,14 @@ describe('bug fixes', () => {
 
 ### Test Results
 
-✅ All 21 tests in `companyMatcher.test.ts` pass  
-✅ No linter errors introduced  
+✅ All 21 tests in `companyMatcher.test.ts` pass
+✅ No linter errors introduced
 ✅ Build successful
 
 ## Verification
 
 ### Before Fix
+
 ```
 Company: "Gevit Azulay"
 Matched: HR_ADAM+ (via single letter "A")
@@ -97,6 +100,7 @@ Label: "HR" ✗ INCORRECT
 ```
 
 ### After Fix
+
 ```
 Company: "Gevit Azulay"
 Matched: None (single letter segments skipped)
@@ -108,6 +112,7 @@ Label: "Job" ✓ CORRECT (default)
 ### Affected Scenarios
 
 This fix prevents false positive matches in scenarios where:
+
 1. Folder names contain acronyms (IBM, ADAM, HP, etc.)
 2. Folder names use CamelCase with single letters (ACompany, TechA, etc.)
 3. LinkedIn company names happen to contain common single letters
@@ -115,6 +120,7 @@ This fix prevents false positive matches in scenarios where:
 ### Backward Compatibility
 
 This change is backward compatible. It only restricts overly broad matches that were causing false positives. Legitimate multi-character matches continue to work as expected:
+
 - ✅ "Elbit Systems" still matches "ElbitSystems"
 - ✅ "Microsoft" still matches "MicrosoftCorporation"
 - ✅ "Google" still matches "GoogleInc"

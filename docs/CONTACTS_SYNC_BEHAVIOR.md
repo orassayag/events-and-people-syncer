@@ -41,11 +41,13 @@ The `skipped` counter tracks contacts that were displayed to the user but not su
 ### Rationale:
 
 The skipped counter provides users with insight into:
+
 - How many contacts they reviewed but chose not to fix
 - How many contacts they started editing but abandoned
 - How many contacts failed to update due to errors
 
 This helps users understand:
+
 - Total work completed vs. remaining
 - Whether they need to re-run the script
 - If there are systemic issues causing failures
@@ -59,6 +61,7 @@ This helps users understand:
 ```
 
 In this example:
+
 - 1 contact was created via "Add Contact" flow
 - 9,042 contacts were successfully fixed
 - 23 contacts were viewed but not updated (declined, cancelled, or failed)
@@ -81,7 +84,8 @@ The `allowHebrew: true` parameter in validation is critical because:
 ### Workflow Example:
 
 #### Session 1 (13/03/2026):
-- **Before**: 
+
+- **Before**:
   - firstName: "יוסי"
   - lastName: "כהן"
   - company: "אלביט מערכות"
@@ -94,6 +98,7 @@ The `allowHebrew: true` parameter in validation is critical because:
   - note: "Updated by the contacts sync script - Last update: 13/03/2026"
 
 #### Session 2 (14/03/2026):
+
 - **Before**: (State from Session 1)
 - **User fixes**: lastName and company
 - **After**:
@@ -103,6 +108,7 @@ The `allowHebrew: true` parameter in validation is critical because:
   - note: "Updated by the contacts sync script - Last update: 14/03/2026"
 
 #### Result:
+
 - Contact is detected as needing fixing in both sessions (Hebrew present)
 - "Updated by..." note allows contact to be included in fix list again
 - User gradually converts all Hebrew to English
@@ -111,12 +117,13 @@ The `allowHebrew: true` parameter in validation is critical because:
 
 ```typescript
 // In contactEditor.ts - all text validations allow Hebrew:
-validate: (input: string) => InputValidator.validateText(input, true)
+validate: (input: string) => InputValidator.validateText(input, true);
 //                                                             ^^^^
 //                                                        allowHebrew = true
 ```
 
 This means:
+
 - ✅ Hebrew input accepted during editing
 - ✅ English input accepted during editing
 - ✅ Mixed Hebrew/English accepted during editing
@@ -139,6 +146,7 @@ private isMissingField(value: string | null | undefined): boolean {
 ### Usage Patterns:
 
 #### Single Text Fields (Consistent):
+
 ```typescript
 if (this.isMissingField(contact.jobTitle)) {
   missing.push('Missing job title');
@@ -146,10 +154,14 @@ if (this.isMissingField(contact.jobTitle)) {
 ```
 
 #### Array Fields (Also Consistent):
+
 ```typescript
 // Checks if array is empty OR all values are missing
-if (!contact.emails || contact.emails.length === 0 || 
-    contact.emails.every((e) => this.isMissingField(e.value))) {
+if (
+  !contact.emails ||
+  contact.emails.length === 0 ||
+  contact.emails.every((e) => this.isMissingField(e.value))
+) {
   missing.push('Missing email');
 }
 ```
@@ -159,17 +171,19 @@ if (!contact.emails || contact.emails.length === 0 ||
 1. **null** - Field explicitly set to null
 2. **undefined** - Field not set or optional field missing
 3. **Empty string** - Field set to ""
-4. **Whitespace only** - Field set to "   " (trimmed to "")
+4. **Whitespace only** - Field set to " " (trimmed to "")
 
 ### Why This Matters:
 
 Google Contacts API can return fields in various states:
+
 - Some fields may be `undefined` (not present in API response)
 - Some fields may be `null` (explicitly cleared)
 - Some fields may be `""` (empty string)
 - Some fields may be `"   "` (whitespace only)
 
 The `isMissingField()` method handles all these cases consistently, ensuring:
+
 - Contacts with any form of "missing" data are detected
 - Priority categorization works correctly
 - No false positives (e.g., whitespace-only fields treated as present)
@@ -202,11 +216,13 @@ private checkHebrewInAllFields(contact: ContactData): boolean {
 ### Rationale:
 
 LinkedIn automatically converts all profile URLs to ASCII format:
+
 - "יוסי כהן" → `linkedin.com/in/yossi-cohen`
 - "محمد علي" → `linkedin.com/in/mohammed-ali`
 - "北京" → `linkedin.com/in/beijing`
 
 Therefore:
+
 - ✅ LinkedIn URLs will NEVER contain Hebrew characters
 - ✅ Including websites in Hebrew check would be wasteful
 - ✅ Focus Hebrew detection on user-editable fields
@@ -214,6 +230,7 @@ Therefore:
 ### Test Coverage:
 
 See `hebrewWorkflow.test.ts` for comprehensive test coverage of:
+
 - Hebrew detection in all relevant fields
 - Hebrew exclusion from LinkedIn URLs
 - Hebrew-to-English conversion workflows

@@ -84,11 +84,13 @@ src/
 **Required vs Optional Fields**:
 
 **Required** (missing = skip row with "Skipped" status):
+
 - First Name
-- Last Name  
+- Last Name
 - LinkedIn URL
 
 **Optional** (missing = empty string):
+
 - Email Address
 - Company
 - Position
@@ -126,17 +128,19 @@ src/
      - Empty company: `Job_`
      - Multiple underscores in folder name: Throw error (folder structure issue)
 3. Cache structure:
+
    ```typescript
    interface CompanyMapping {
      label: string;
      companyName: string;
    }
-   
+
    interface CompanyCacheData {
      timestamp: number;
      mappings: CompanyMapping[];
    }
    ```
+
 4. Cache validation:
    - Check if cache file exists: `/sources/.cache/company-mappings.json`
    - If exists and timestamp < 1 day, use cached data
@@ -202,13 +206,14 @@ src/
 
 Fuse.js uses distance-based scoring where **lower score = better match**:
 
-| Score Range | Quality | Action | Example |
-|------------|---------|---------|---------|
-| **0.0 - 0.2** | Excellent-Good | ✅ **Accept Match** | "John Smith" → "Jon Smith" (minor typo) |
-| **0.2 - 0.4** | Borderline | ⚠️ **Need Clarification** | "John Smith" → "John S" (abbreviated) |
-| **> 0.4** | Poor | ❌ **No Match** | "John Smith" → "Jane Doe" (different person) |
+| Score Range   | Quality        | Action                    | Example                                      |
+| ------------- | -------------- | ------------------------- | -------------------------------------------- |
+| **0.0 - 0.2** | Excellent-Good | ✅ **Accept Match**       | "John Smith" → "Jon Smith" (minor typo)      |
+| **0.2 - 0.4** | Borderline     | ⚠️ **Need Clarification** | "John Smith" → "John S" (abbreviated)        |
+| **> 0.4**     | Poor           | ❌ **No Match**           | "John Smith" → "Jane Doe" (different person) |
 
 **Implementation Logic**:
+
 ```typescript
 if (score <= 0.2) {
   // Good match - accept and process
@@ -223,6 +228,7 @@ if (score <= 0.2) {
 ```
 
 **Score Explanation**:
+
 - **0.0**: Perfect match (identical strings)
 - **0.1-0.2**: Good match (minor typos, spacing issues, missing characters)
 - **0.2-0.4**: Uncertain (could be same person with variations, needs human verification)
@@ -251,10 +257,10 @@ interface ContactData {
 
 ```typescript
 enum MatchType {
-  EXACT = "exact", // URL or Email match (1 match only)
-  FUZZY = "fuzzy", // Name fuzzy match within threshold (1 match only)
-  UNCERTAIN = "uncertain", // Multiple matches OR fuzzy score 0.2-0.4
-  NONE = "none", // No match, create new
+  EXACT = 'exact', // URL or Email match (1 match only)
+  FUZZY = 'fuzzy', // Name fuzzy match within threshold (1 match only)
+  UNCERTAIN = 'uncertain', // Multiple matches OR fuzzy score 0.2-0.4
+  NONE = 'none', // No match, create new
 }
 ```
 
@@ -267,12 +273,14 @@ enum MatchType {
 - Any ambiguity in primary identifiers
 - Duplicate LinkedIn URLs within the CSV (second occurrence onwards)
 
-**"Need Clarification" Action**: 
+**"Need Clarification" Action**:
+
 - **Skip the contact** - do not add or update
 - Log to separate file for manual review
 - User will add rules or fix manually later
 
 **Need Clarification Logging**:
+
 - Separate log file: `logs/linkedin-sync/need-clarification-{timestamp}.log`
 - Contains: LinkedIn connection details, matched contact(s), similarity scores, reasons
 
@@ -369,6 +377,7 @@ Extends existing `StatusBar` class to show:
 ```
 
 **Progress Indicator**:
+
 - Animated spinner (like POC): ⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏
 - **Phase 1**: Initial contact fetch: `⠋ Fetching Google Contacts: 8,234 contacts fetched...`
   - No total count shown (API doesn't provide it)
@@ -458,6 +467,7 @@ linkedin: {
 ```
 
 **Note on bypassContactCache**: When enabled, show warning:
+
 ```
 ⚠️  Contact cache bypassed - fetching fresh data from Google Contacts
 ```
@@ -472,6 +482,7 @@ pnpm add -D @types/adm-zip
 ```
 
 **Package Purposes**:
+
 - `adm-zip`: ZIP file extraction
 - `csv-parse`: Robust CSV parsing with support for quoted fields, escaped commas, etc.
 
@@ -518,7 +529,7 @@ LINKEDIN_CSV_ENCODING_ERROR = 2004012,
    - **Enhance** `DuplicateDetector` to return scores with matches
    - Use `ContactCache` for Google contacts caching (fetch once at start)
      - Add `bypassContactCache` setting for re-fetching contacts
-     - If enabled, show warning: "⚠️  Contact cache bypassed - fetching fresh data"
+     - If enabled, show warning: "⚠️ Contact cache bypassed - fetching fresh data"
    - Use `ApiTracker` for API call tracking
    - Extend `StatusBar` for enhanced sync status with progress indicator (fetch + sync phases)
    - Use `Logger` as base for sync logging infrastructure
@@ -590,7 +601,7 @@ LINKEDIN_CSV_ENCODING_ERROR = 2004012,
    - No delay between reads (only fetch contacts once at start)
    - Existing `RetryHandler` handles API errors with exponential backoff
    - **429 (Rate Limit) specific handling**:
-     - Log clear message: "⚠️  Rate limited by Google API, retrying in X seconds..."
+     - Log clear message: "⚠️ Rate limited by Google API, retrying in X seconds..."
      - Exponential backoff via RetryHandler
      - Don't count as "Error" if retry succeeds
      - Only mark as "Error" if all retries exhausted
@@ -607,36 +618,38 @@ LINKEDIN_CSV_ENCODING_ERROR = 2004012,
    - Prevents race conditions and duplicate groups
 
 10. **Error Recovery & Interruption Handling**:
-   - Individual connection failures don't stop entire sync
-   - Failed connections logged and counted
-   - Partial success supported - no rollback mechanism
-   - Re-running script is safe (idempotent)
-   - Skipped connections logged with partial data for debugging
-   - **Graceful shutdown** on Ctrl+C (SIGINT):
-     ```typescript
-     process.on('SIGINT', async () => {
-       console.log('\n\n⚠️  Sync interrupted by user');
-       console.log('Progress: New: X, Updated: Y, Errors: Z');
-       console.log('Re-run script to continue (idempotent)');
-       process.exit(0);
-     });
-     ```
-   - **ZIP password protection**: Throw error with helpful message
-   - If script crashes mid-sync: User should re-run (safe, idempotent)
+
+- Individual connection failures don't stop entire sync
+- Failed connections logged and counted
+- Partial success supported - no rollback mechanism
+- Re-running script is safe (idempotent)
+- Skipped connections logged with partial data for debugging
+- **Graceful shutdown** on Ctrl+C (SIGINT):
+  ```typescript
+  process.on('SIGINT', async () => {
+    console.log('\n\n⚠️  Sync interrupted by user');
+    console.log('Progress: New: X, Updated: Y, Errors: Z');
+    console.log('Re-run script to continue (idempotent)');
+    process.exit(0);
+  });
+  ```
+- **ZIP password protection**: Throw error with helpful message
+- If script crashes mid-sync: User should re-run (safe, idempotent)
 
 11. **Duplicate URL Handling & Re-Sync Behavior**:
-   - **Within Same CSV Session**:
-     - Track all processed LinkedIn URLs in a Set during current sync
-     - First occurrence of URL: process normally (add or update contact)
-     - Second+ occurrence of same URL: mark as "Need Clarification" and skip
-     - Log to need-clarification file with reason: "Duplicate URL found in CSV file"
-     - This prevents processing the same person multiple times in one session
-   - **Across Different Sessions** (Re-running Script):
-     - If LinkedIn URL matches existing Google contact from previous sync:
-       - First occurrence in current CSV: treat as normal match (not duplicate)
-       - Process as "Up-To-Date" (no changes) or "Updated" (if data changed)
-       - This is expected behavior - allows updating contacts from LinkedIn over time
-   - **Implementation**: URL deduplication happens BEFORE matching logic runs
+
+- **Within Same CSV Session**:
+  - Track all processed LinkedIn URLs in a Set during current sync
+  - First occurrence of URL: process normally (add or update contact)
+  - Second+ occurrence of same URL: mark as "Need Clarification" and skip
+  - Log to need-clarification file with reason: "Duplicate URL found in CSV file"
+  - This prevents processing the same person multiple times in one session
+- **Across Different Sessions** (Re-running Script):
+  - If LinkedIn URL matches existing Google contact from previous sync:
+    - First occurrence in current CSV: treat as normal match (not duplicate)
+    - Process as "Up-To-Date" (no changes) or "Updated" (if data changed)
+    - This is expected behavior - allows updating contacts from LinkedIn over time
+- **Implementation**: URL deduplication happens BEFORE matching logic runs
 
 ## Files to Create/Modify
 

@@ -87,7 +87,7 @@ Modify [`src/services/linkedin/contactSyncer.ts`](../src/services/linkedin/conta
 **Key Logic:**
 
 - English extraction: Match `[A-Za-z0-9\s\-'&.]+` and ignore Hebrew chars (0x0590-0x05FF range)
-- Display format: Always Hebrew first (if exists), then ` - `, then English (if exists)
+- Display format: Always Hebrew first (if exists), then `-`, then English (if exists)
 - Label calculation: Clean → Extract English → Convert to PascalCase
 - Display spacing: Use `.trim()` on email labels to avoid trailing spaces when formattedCompany is empty
 
@@ -111,6 +111,7 @@ Modify [`src/services/linkedin/contactSyncer.ts`](../src/services/linkedin/conta
 ## Expected Results
 
 **Before:**
+
 ```
 -Full name: kaldidan Asmara HR מערך הסייבר הלאומי Israel National Cyber Directorate -
 -Company: מערך הסייבר הלאומי Israel National Cyber Directorate -
@@ -118,6 +119,7 @@ Modify [`src/services/linkedin/contactSyncer.ts`](../src/services/linkedin/conta
 ```
 
 **After:**
+
 ```
 -Full name: kaldidan Asmara HR IsraelNationalCyberDirectorate
 -Company: מערך הסייבר הלאומי - Israel National Cyber Directorate
@@ -129,6 +131,7 @@ Modify [`src/services/linkedin/contactSyncer.ts`](../src/services/linkedin/conta
 ### Unit Tests (hebrewFormatter.test.ts)
 
 **`extractEnglishFromMixed` tests:**
+
 1. Mixed Hebrew-English with dash: "מערך הסייבר הלאומי - Israel National Cyber Directorate" → "Israel National Cyber Directorate"
 2. English first with dash: "Israel National Cyber Directorate - מערך הסייבר הלאומי" → "Israel National Cyber Directorate"
 3. Mixed without separator: "Microsoft ישראל" → "Microsoft"
@@ -140,9 +143,10 @@ Modify [`src/services/linkedin/contactSyncer.ts`](../src/services/linkedin/conta
 9. Company with ampersand: "AT&T - חברת תקשורת" → "AT&T"
 10. Company with hyphen: "Hewlett-Packard - חברה" → "Hewlett-Packard"
 11. Multiple English segments: "Microsoft - מיקרוסופט - Israel" → "Microsoft Israel"
-12. Whitespace only: "   " → ""
+12. Whitespace only: " " → ""
 
 **`formatMixedHebrewEnglish` tests:**
+
 1. Mixed Hebrew-English with dash: "מערך הסייבר הלאומי - Israel National Cyber Directorate" → "מערך הסייבר הלאומי - Israel National Cyber Directorate" (Hebrew properly reversed)
 2. English first with dash: "Israel National Cyber Directorate - מערך הסייבר הלאומי" → "מערך הסייבר הלאומי - Israel National Cyber Directorate" (reordered)
 3. Mixed without separator: "Microsoft ישראל" → "ישראל - Microsoft"
@@ -150,14 +154,16 @@ Modify [`src/services/linkedin/contactSyncer.ts`](../src/services/linkedin/conta
 5. English only: "Microsoft Corporation" → "Microsoft Corporation"
 6. Empty string: "" → ""
 7. Multiple segments: "Microsoft - מיקרוסופט - Israel" → "מיקרוסופט - Microsoft Israel"
-8. Whitespace only: "   " → ""
+8. Whitespace only: " " → ""
 9. Hebrew with English number: "מערך 8200" → "מערך 8200" (preserve together)
 10. Mixed name: "John יוחנן" → "יוחנן - John"
 
 **Integration test:**
+
 - Full flow: "Microsoft Corporation - מיקרוסופט" → Display: "מיקרוסופט - Microsoft" → Label: "Microsoft" → PascalCase: "Microsoft"
 
 ### Edge Case Tests
+
 1. Hebrew-only company produces empty formattedCompany → emailLabel trims correctly
 2. Display lines handle empty formattedCompany without trailing spaces
 3. Existing logic (filter empty strings) works correctly for lastName composition

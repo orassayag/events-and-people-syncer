@@ -53,7 +53,11 @@ describe('ClearCacheScript', () => {
     await script.run();
 
     expect(fs.unlinkSync).toHaveBeenCalledTimes(2);
-    expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('file1.json'));
-    expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('file2.json'));
+    expect(fs.unlinkSync).toHaveBeenCalledWith(
+      expect.stringContaining('file1.json')
+    );
+    expect(fs.unlinkSync).toHaveBeenCalledWith(
+      expect.stringContaining('file2.json')
+    );
   });
 });

@@ -17,7 +17,7 @@ EXAMPLES:
 Contact:
 Contact: undefined
 Contact: null
-Contact:      
+Contact:
 
 4.3. Find duplicate contacts. (For enum: DUPLICATE CONTACTS).
 
@@ -29,7 +29,7 @@ Contact: Avi Cohen HR Mosher
 
 EXAMPLES:
 NEED TO BE FIXED:
-Labels: 
+Labels:
 Contact: Avi Cohen Job Netbiz
 
 NEED TO BE FIXED:
@@ -44,10 +44,10 @@ Contact: Avi Cohen (No HR label attached after the end of the last name)
 
 EXAMPLES:
 Contact: Avi Cohen Job Netbiz
-Phone: 052-234567 | Phone Label: 
+Phone: 052-234567 | Phone Label:
 
 Contact: Avi Cohen Job Netbiz
-Phone: 052-234567 | Phone Label:    
+Phone: 052-234567 | Phone Label:
 
 Contact: Avi Cohen Job Netbiz
 Phone: 052-234567 | Phone Label: undefined
@@ -56,10 +56,10 @@ Contact: Avi Cohen Job Netbiz
 Phone: 052-234567 | Phone Label: null
 
 Contact: Avi Cohen Job Netbiz
-Email: oraassayag@gmail.com | Email Label: 
+Email: oraassayag@gmail.com | Email Label:
 
 Contact: Avi Cohen Job Netbiz
-Email: oraassayag@gmail.com | Email Label:      
+Email: oraassayag@gmail.com | Email Label:
 
 Contact: Avi Cohen Job Netbiz
 Email: oraassayag@gmail.com | Email Label: undefined
@@ -80,10 +80,10 @@ Email: oraassayag@gmail.com | Email Label: Other
 
 EXAMPLES:
 Contact: Avi Cohen Job Netbiz
-URL: linkedin/in/test | URL Label: 
+URL: linkedin/in/test | URL Label:
 
 Contact: Avi Cohen Job Netbiz
-URL: linkedin/in/test | URL Label:      
+URL: linkedin/in/test | URL Label:
 
 Contact: Avi Cohen Job Netbiz
 URL: linkedin/in/test | URL Label: undefined
@@ -153,11 +153,11 @@ URL: linkedin/in/test | URL Label: LinkedIn
 EXAMPLES:
 
 NEED TO BE FIXED:
-Labels: 
+Labels:
 Contact: Avi Cohen Job Netbiz
 
 NEED TO BE FIXED:
-Labels: 
+Labels:
 Contact: Avi Cohen
 
 NEED TO BE FIXED:
@@ -199,8 +199,8 @@ Test 2
 
 EXAMPLES:
 
-Contact: Avi Cohen Job Netbiz     
-Email: orassayag@gmail.com    | Email Label: Job Netbiz    
+Contact: Avi Cohen Job Netbiz
+Email: orassayag@gmail.com    | Email Label: Job Netbiz
 
 5. We will add exceptions list, that if the contact name or URL there with the exception reason, it will ignore and not list it in the report.
 6. A contact can be with several issues, so we will list them all in the report.

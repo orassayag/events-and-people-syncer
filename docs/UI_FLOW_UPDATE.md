@@ -19,10 +19,12 @@ Replaced the command-line argument-based runner with an interactive CLI menu ins
 ### 2. Updated package.json
 
 **Changed**:
+
 - `"start"`: Now runs `tsx src/index.ts` (interactive menu)
 - `"dev"`: Now watches `tsx watch src/index.ts` (interactive menu)
 
 **Preserved**:
+
 - `"script"`: Still available for direct script execution via `tsx src/runner.ts`
 - All named script commands (`linkedin-sync`, `health`, etc.) still work
 
@@ -35,16 +37,19 @@ Replaced the command-line argument-based runner with an interactive CLI menu ins
 ## Usage
 
 ### Primary Method (Interactive)
+
 ```bash
 pnpm start
 ```
 
 ### Alternative Method (Direct)
+
 ```bash
 pnpm script linkedin-sync
 ```
 
 ### List Scripts
+
 ```bash
 pnpm script:list
 ```

@@ -94,6 +94,7 @@ if (!RegexPatterns.isValidEmail(trimmed)) {
 ```
 
 The `RegexPatterns.isValidEmail()` method handles:
+
 - Standard email format validation
 - No consecutive dots check
 - No leading/trailing dots check
@@ -245,7 +246,7 @@ export class ContactWriter {
    * Display summary and handle edit loop
    */
   private async showSummaryAndEdit(
-    data: EditableContactData,
+    data: EditableContactData
   ): Promise<EditableContactData> {
     // Phase 2: Display summary, handle edit actions loop
   }
@@ -258,10 +259,10 @@ export class ContactWriter {
   }
 
   // Helper methods
-  private async promptForLabels(): Promise<string[]> { }
-  private async fetchContactGroups(): Promise<ContactGroup[]> { }
-  private async createContactGroup(name: string): Promise<string> { }
-  private buildRequestBody(data: EditableContactData): CreateContactRequest { }
+  private async promptForLabels(): Promise<string[]> {}
+  private async fetchContactGroups(): Promise<ContactGroup[]> {}
+  private async createContactGroup(name: string): Promise<string> {}
+  private buildRequestBody(data: EditableContactData): CreateContactRequest {}
 }
 ```
 
@@ -293,7 +294,11 @@ export class ContactReader {
     // Display logic
   }
 
-  private displayContact(contact: ContactData, index: number, total: number): void { }
+  private displayContact(
+    contact: ContactData,
+    index: number,
+    total: number
+  ): void {}
 }
 ```
 
@@ -309,24 +314,24 @@ export class AuthService {
   async authorize(): Promise<OAuth2Client> {
     const credentials = this.loadCredentials();
     this.oAuth2Client = this.createOAuth2Client(credentials);
-    
+
     const token = this.loadToken();
     if (token) {
       this.oAuth2Client.setCredentials(token);
       return this.oAuth2Client;
     }
-    
+
     await this.getNewToken();
     return this.oAuth2Client;
   }
 
-  private loadCredentials(): GoogleCredentials { }
-  private loadToken(): TokenData | null { }
-  private saveToken(token: TokenData): void { }
-  private createOAuth2Client(credentials: GoogleCredentials): OAuth2Client { }
-  private async getNewToken(): Promise<void> { }
-  private async startAuthServer(): Promise<void> { }
-  private openBrowser(url: string): void { }
+  private loadCredentials(): GoogleCredentials {}
+  private loadToken(): TokenData | null {}
+  private saveToken(token: TokenData): void {}
+  private createOAuth2Client(credentials: GoogleCredentials): OAuth2Client {}
+  private async getNewToken(): Promise<void> {}
+  private async startAuthServer(): Promise<void> {}
+  private openBrowser(url: string): void {}
 }
 ```
 
@@ -351,16 +356,16 @@ export class ApiTracker {
   /**
    * Track a read API call
    */
-  async trackRead(): Promise<void> { }
+  async trackRead(): Promise<void> {}
 
   /**
    * Track a write API call
    */
-  async trackWrite(): Promise<void> { }
+  async trackWrite(): Promise<void> {}
 
-  private async loadStats(): Promise<ApiStats> { }
-  private async saveStats(stats: ApiStats): Promise<void> { }
-  private shouldResetCounter(currentDate: string, statsDate: string): boolean { }
+  private async loadStats(): Promise<ApiStats> {}
+  private async saveStats(stats: ApiStats): Promise<void> {}
+  private shouldResetCounter(currentDate: string, statsDate: string): boolean {}
 }
 ```
 
@@ -391,7 +396,7 @@ export class DuplicateDetector {
    */
   async checkDuplicateName(
     firstName: string,
-    lastName: string,
+    lastName: string
   ): Promise<DuplicateMatch[]> {
     const contacts = await this.fetchAllContacts();
     const matches: DuplicateMatch[] = [];
@@ -443,7 +448,10 @@ export class DuplicateDetector {
 
     for (const contact of contacts) {
       for (const contactPhone of contact.phones) {
-        const normalizedContactPhone = contactPhone.number.replace(/[\s\-()]/g, '');
+        const normalizedContactPhone = contactPhone.number.replace(
+          /[\s\-()]/g,
+          ''
+        );
         if (normalizedContactPhone === normalizedPhone) {
           matches.push({
             contact,
@@ -460,7 +468,9 @@ export class DuplicateDetector {
   /**
    * Display duplicate warning and ask user to continue
    */
-  async promptForDuplicateContinue(duplicates: DuplicateMatch[]): Promise<boolean> {
+  async promptForDuplicateContinue(
+    duplicates: DuplicateMatch[]
+  ): Promise<boolean> {
     if (duplicates.length === 0) {
       return true;
     }
@@ -511,7 +521,8 @@ export class DuplicateDetector {
       const response = await service.people.connections.list({
         resourceName: 'people/me',
         pageSize: 1000,
-        personFields: 'names,emailAddresses,phoneNumbers,organizations,memberships',
+        personFields:
+          'names,emailAddresses,phoneNumbers,organizations,memberships',
         pageToken,
       });
 
@@ -625,9 +636,12 @@ export class InputValidator {
   /**
    * Validate label name
    */
-  static validateLabelName(name: string, existingGroups: ContactGroup[]): string | true {
+  static validateLabelName(
+    name: string,
+    existingGroups: ContactGroup[]
+  ): string | true {
     const trimmed = name.trim().toLowerCase();
-    
+
     if (trimmed === 'cancel') {
       return true;
     }
@@ -640,9 +654,7 @@ export class InputValidator {
       return 'Label name can only contain letters, numbers, spaces, hyphens, and underscores.';
     }
 
-    const exists = existingGroups.find(
-      (g) => g.name.toLowerCase() === trimmed,
-    );
+    const exists = existingGroups.find((g) => g.name.toLowerCase() === trimmed);
     if (exists) {
       return `Label "${name.trim()}" already exists.`;
     }
@@ -653,7 +665,10 @@ export class InputValidator {
   /**
    * Validate field length (Google API limits)
    */
-  static validateFieldLength(value: string, maxLength: number = SETTINGS.MAX_FIELD_LENGTH): string | true {
+  static validateFieldLength(
+    value: string,
+    maxLength: number = SETTINGS.MAX_FIELD_LENGTH
+  ): string | true {
     if (value.length > maxLength) {
       return `Value too long. Maximum ${maxLength} characters allowed.`;
     }
@@ -680,7 +695,8 @@ export class InputValidator {
   }
 }
 ```
-```
+
+````
 
 **Create `poc/src/utils/RegexPatterns.ts`:**
 
@@ -758,7 +774,7 @@ export class RegexPatterns {
     return phone.replace(this.PHONE_NON_DIGITS, '');
   }
 }
-```
+````
 
 **Create `poc/src/utils/TextUtils.ts`:**
 
@@ -781,7 +797,7 @@ export class TextUtils {
       return text;
     }
     const words = text.split(' ');
-    const processedWords = words.map(word => {
+    const processedWords = words.map((word) => {
       if (this.hasHebrewCharacters(word) && !this.hasMixedContent(word)) {
         return word.split('').reverse().join('');
       }
@@ -812,7 +828,10 @@ export class TextUtils {
   /**
    * Parse full name into first and last name
    */
-  static parseFullName(fullName: string): { firstName: string; lastName: string } {
+  static parseFullName(fullName: string): {
+    firstName: string;
+    lastName: string;
+  } {
     const trimmed = fullName.trim();
     const nameParts = trimmed.split(RegexPatterns.MULTIPLE_SPACES);
     return {
@@ -829,7 +848,8 @@ export class TextUtils {
   }
 }
 ```
-```
+
+````
 
 **Create `poc/src/utils/PortManager.ts`:**
 
@@ -850,7 +870,7 @@ export class PortManager {
   private static async killProcessOnPort(port: number): Promise<void> { }
   private static async findProcessOnPort(port: number): Promise<number | null> { }
 }
-```
+````
 
 ### Refactoring Benefits
 
@@ -919,6 +939,7 @@ Remove `_rl` parameter from `promptForLabels()` (line 49)
 Create comprehensive interfaces in `poc/src/types.ts` for all data structures:
 
 **Environment Configuration:**
+
 ```typescript
 interface EnvironmentConfig {
   CLIENT_ID: string;
@@ -932,6 +953,7 @@ interface EnvironmentConfig {
 ```
 
 **Contact Input Data (for function parameters):**
+
 ```typescript
 interface InitialContactData {
   labelResourceNames: string[];
@@ -990,11 +1012,13 @@ const { firstName, lastName } = TextUtils.parseFullName(fullName);
 ```
 
 This handles:
+
 - Multiple spaces between names
 - Leading/trailing spaces
 - Empty string edge cases
 
 Special cases to document (not implement):
+
 - Names with prefixes (Dr., Mr.) - user should include in first/last name as desired
 - Mononyms - user leaves last name empty
 - International names - user controls splitting
@@ -1010,6 +1034,7 @@ console.log(TextUtils.reverseHebrewText(contact.label));
 ```
 
 This implementation:
+
 - Splits text into words by spaces
 - Checks each word with `RegexPatterns.HEBREW`
 - Reverses only pure Hebrew words
@@ -1021,7 +1046,7 @@ This implementation:
 Update all 'cancel' checks throughout `contacts-writer.ts`:
 
 ```typescript
-if (trimmed.toLowerCase() === "cancel") {
+if (trimmed.toLowerCase() === 'cancel') {
   return; // or continue
 }
 ```
@@ -1032,7 +1057,7 @@ Add safety check before accessing `currentSelectedLabelNames[0]` (line 199):
 
 ```typescript
 const firstLabelName =
-  currentSelectedLabelNames.length > 0 ? currentSelectedLabelNames[0] : "";
+  currentSelectedLabelNames.length > 0 ? currentSelectedLabelNames[0] : '';
 ```
 
 ### Issue #32 - Log contact creation details
@@ -1127,6 +1152,7 @@ const personNum = TextUtils.formatNumberWithLeadingZeros(index + 1);
 ### Issue #55 - All regex centralized
 
 All regex patterns now in `RegexPatterns.ts`:
+
 - `HEBREW` - Hebrew character detection
 - `EMAIL` - Email validation
 - `EMAIL_CONSECUTIVE_DOTS`, `EMAIL_LEADING_DOT`, `EMAIL_TRAILING_DOT` - Email checks
@@ -1138,10 +1164,12 @@ All regex patterns now in `RegexPatterns.ts`:
 - `MIXED_CONTENT` - Mixed language detection
 
 Helper methods:
+
 - `isValidEmail()` - Complete email validation
 - `extractDigits()` - Extract digits from phone
 
 **Import pattern:**
+
 ```typescript
 import { RegexPatterns } from '../utils/index.js';
 ```
@@ -1198,6 +1226,7 @@ import { AuthService } from '../services/AuthService.js';
 ```
 
 This approach:
+
 - Provides clean, organized imports
 - Makes it easy to refactor internal file structure
 - Reduces import statement clutter
@@ -1226,7 +1255,7 @@ Add instructions in README about running in screen-reader friendly mode
 ## Implementation Order
 
 1. **Setup phase**: .env, settings.ts, .gitignore, comprehensive types
-2. **Utility classes first**: 
+2. **Utility classes first**:
    - `TextUtils` (no dependencies)
    - `PortManager` (no dependencies)
    - `InputValidator` (no dependencies, uses settings)
@@ -1257,6 +1286,7 @@ Add instructions in README about running in screen-reader friendly mode
   - Validation utility types
 
 **New Service Classes:**
+
 - `poc/src/services/AuthService.ts` - Authentication logic
 - `poc/src/services/ContactWriter.ts` - Contact creation logic
 - `poc/src/services/ContactReader.ts` - Contact reading and display logic
@@ -1265,6 +1295,7 @@ Add instructions in README about running in screen-reader friendly mode
 - `poc/src/services/index.ts` - Barrel export for services
 
 **New Utility Classes:**
+
 - `poc/src/validators/InputValidator.ts` - All input validation logic
 - `poc/src/validators/index.ts` - Barrel export for validators
 - `poc/src/utils/TextUtils.ts` - Text manipulation utilities (Hebrew, formatting, parsing)
@@ -1277,19 +1308,22 @@ Add instructions in README about running in screen-reader friendly mode
 - `poc/.gitignore`
 - `poc/src/config.ts` - Load from environment variables
 - `poc/src/index.ts` - Refactor to use service classes:
+
   ```typescript
   async function main(): Promise<void> {
     const authService = new AuthService();
     const auth = await authService.authorize();
-    
+
     const contactReader = new ContactReader(auth);
     const contactWriter = new ContactWriter(auth);
-    
+
     let continueRunning = true;
     while (continueRunning) {
       console.log('\n=== Google People API POC ===\n');
-      const { choice } = await inquirer.prompt([/* menu */]);
-      
+      const { choice } = await inquirer.prompt([
+        /* menu */
+      ]);
+
       try {
         switch (choice) {
           case 'read':
@@ -1310,6 +1344,7 @@ Add instructions in README about running in screen-reader friendly mode
   ```
 
 **Files to Delete (replaced by classes):**
+
 - `poc/src/auth.ts` → replaced by `AuthService`
 - `poc/src/contacts-writer.ts` → replaced by `ContactWriter`
 - `poc/src/contacts-reader.ts` → replaced by `ContactReader`

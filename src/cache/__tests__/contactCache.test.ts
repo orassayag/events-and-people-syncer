@@ -1,9 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { promises as fs } from 'fs';
 import { ContactCache } from '../contactCache';
-import { SETTINGS } from '../../settings';
-import { PhoneNormalizer } from '../../services/contacts';
-import { UrlNormalizer } from '../../services/linkedin';
 import type { ContactData } from '../../types';
 
 vi.mock('fs', () => ({
@@ -27,6 +24,7 @@ describe('ContactCache', () => {
   let cache: ContactCache;
   const mockContacts: ContactData[] = [
     {
+      label: 'Test',
       firstName: 'John',
       lastName: 'Doe',
       company: 'Acme',
@@ -37,13 +35,9 @@ describe('ContactCache', () => {
         { url: 'https://www.linkedin.com/in/johndoe', label: 'linkedin' },
       ],
       resourceName: 'people/1',
-      addresses: [],
-      organizations: [],
-      notes: [],
-      birthdays: [],
-      metadata: { sources: [] },
     },
     {
+      label: 'Test',
       firstName: 'Jane',
       lastName: 'Smith',
       company: 'Tech Corp',
@@ -55,11 +49,6 @@ describe('ContactCache', () => {
       phones: [],
       websites: [],
       resourceName: 'people/2',
-      addresses: [],
-      organizations: [],
-      notes: [],
-      birthdays: [],
-      metadata: { sources: [] },
     },
   ];
 

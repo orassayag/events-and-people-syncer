@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ContactEditor } from '../contactEditor';
-import { DuplicateDetector } from '../duplicateDetector';
 import { google } from 'googleapis';
 import type { OAuth2Client } from '../../../types';
 

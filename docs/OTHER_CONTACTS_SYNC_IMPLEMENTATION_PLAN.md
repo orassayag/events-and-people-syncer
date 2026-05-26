@@ -4,7 +4,7 @@
 
 This script fetches contacts from Google's "Other Contacts" (auto-saved contacts from email interactions) and provides an interactive CLI to review and sync them into the user's main Google Contacts.
 
-**Menu Position**: Above "SMS & WhatsApp Sync" in the scripts menu  
+**Menu Position**: Above "SMS & WhatsApp Sync" in the scripts menu
 **Emoji**: 🗄️ (File Cabinet)
 
 ---
@@ -16,8 +16,8 @@ The current application uses only `https://www.googleapis.com/auth/contacts` sco
 ```typescript
 scopes: [
   'https://www.googleapis.com/auth/contacts',
-  'https://www.googleapis.com/auth/contacts.other.readonly'  // NEW
-]
+  'https://www.googleapis.com/auth/contacts.other.readonly', // NEW
+];
 ```
 
 **User Impact**: After this change, users will need to re-authenticate (delete `token.json` and re-run) to grant the new permission.
@@ -105,6 +105,7 @@ export interface OtherContactEntry {
 ```
 
 **Note**: Other Contacts from Google can contain:
+
 - Display name (if available)
 - Email address(es)
 - Phone number(s) (if available)
@@ -117,7 +118,7 @@ New service to fetch Other Contacts from Google API:
 @injectable()
 export class OtherContactsFetcher {
   constructor(@inject('OAuth2Client') private auth: OAuth2Client) {}
-  
+
   async fetchOtherContacts(
     onProgress?: (fetched: number, total: number) => void
   ): Promise<OtherContactEntry[]> {
@@ -141,10 +142,10 @@ export class OtherContactsFetcher {
       const otherContacts = response.data.otherContacts || [];
       for (const person of otherContacts) {
         const emails = (person.emailAddresses || [])
-          .map(e => e.value)
+          .map((e) => e.value)
           .filter((v): v is string => !!v);
         const phones = (person.phoneNumbers || [])
-          .map(p => p.value)
+          .map((p) => p.value)
           .filter((v): v is string => !!v);
         const displayName = person.names?.[0]?.displayName;
         const resourceName = person.resourceName;
@@ -168,6 +169,7 @@ export class OtherContactsFetcher {
 ```
 
 **API Requirements**:
+
 - `readMask` is **REQUIRED** by the API - must specify fields to return
 - Valid fields for Other Contacts: `names`, `emailAddresses`, `phoneNumbers`, `metadata`, `photos`
 - Use `pageToken` and `pageSize` (from `SETTINGS.api.pageSize`, max 1000) like existing contact fetching
@@ -183,14 +185,17 @@ export class EmailNormalizer {
   static normalize(email: string): string {
     return email.toLowerCase().trim();
   }
-  
+
   static emailsMatch(email1: string, email2: string): boolean {
-    return EmailNormalizer.normalize(email1) === EmailNormalizer.normalize(email2);
+    return (
+      EmailNormalizer.normalize(email1) === EmailNormalizer.normalize(email2)
+    );
   }
 }
 ```
 
-**Note**: 
+**Note**:
+
 - Plus addressing (e.g., `user+tag@domain.com`) is NOT normalized - treated as different email.
 - No DI needed - uses static methods only (matches `PhoneNormalizer` pattern).
 
@@ -203,6 +208,7 @@ otherContactsSync: {
 ```
 
 **Shared settings used**:
+
 - `SETTINGS.api.pageSize` - for API pagination
 - `SETTINGS.contactsSync.writeDelayMs` - for write delay (or use own setting above)
 
@@ -232,7 +238,7 @@ const scriptOrder = [
   'contacts-sync',
   'events-jobs-sync',
   'linkedin-sync',
-  'other-contacts-sync',  // NEW - above sms-whatsapp-sync
+  'other-contacts-sync', // NEW - above sms-whatsapp-sync
   'sms-whatsapp-sync',
   'statistics',
 ];
@@ -246,6 +252,7 @@ const scriptOrder = [
 ### 4. `src/di/container.ts`
 
 Register new services:
+
 - `OtherContactsFetcher`
 - `OtherContactsSyncScript`
 
@@ -279,6 +286,7 @@ async collectInitialInput(prePopulatedData?: Partial<EditableContactData>): Prom
 ```
 
 This allows the Other Contacts Sync script to pre-populate:
+
 - `firstName` and `lastName` parsed from `displayName`
 - `emails` from the Other Contact entry
 - `phones` from the Other Contact entry
@@ -300,7 +308,7 @@ async addPhoneToExistingContact(resourceName: string, phone: string): Promise<vo
   await apiTracker.trackRead();
   const existingPhones = currentContact.data.phoneNumbers || [];
   // NEW: Check if phone already exists
-  const phoneAlreadyExists = existingPhones.some(p => 
+  const phoneAlreadyExists = existingPhones.some(p =>
     PhoneNormalizer.phonesMatch(p.value || '', phone)
   );
   if (phoneAlreadyExists) {
@@ -325,7 +333,7 @@ async addEmailToExistingContact(resourceName: string, email: string): Promise<vo
   });
   await apiTracker.trackRead();
   const existingEmails = currentContact.data.emailAddresses || [];
-  const emailAlreadyExists = existingEmails.some(e => 
+  const emailAlreadyExists = existingEmails.some(e =>
     EmailNormalizer.emailsMatch(e.value || '', email)
   );
   if (emailAlreadyExists) {
@@ -358,7 +366,7 @@ async addEmailToExistingContact(resourceName: string, email: string): Promise<vo
       });
       await apiTracker.trackRead();
       const refreshedEmails = refreshedContact.data.emailAddresses || [];
-      const emailExistsAfterRefresh = refreshedEmails.some(e => 
+      const emailExistsAfterRefresh = refreshedEmails.some(e =>
         EmailNormalizer.emailsMatch(e.value || '', email)
       );
       if (emailExistsAfterRefresh) {
@@ -424,7 +432,7 @@ Name: John Doe
 Emails: john@work.com, john@home.com
 Phones: +1-234-567-8900
 ═════════════════════════════════════════════════════════════════════
-? What would you like to do? 
+? What would you like to do?
 ❯ 🔍 Search in contacts
   ➕ Add a new contact
   ⏭️  Skip this entry
@@ -439,7 +447,7 @@ Name: (none)
 Emails: unknown@test.com
 Phones: (none)
 ═════════════════════════════════════════════════════════════════════
-? What would you like to do? 
+? What would you like to do?
 ❯ 🔍 Search in contacts
   ➕ Add a new contact
   ⏭️  Skip this entry
@@ -454,7 +462,7 @@ Name: Jane Smith
 Emails: (none)
 Phones: +972-52-123-4567
 ═════════════════════════════════════════════════════════════════════
-? What would you like to do? 
+? What would you like to do?
 ❯ 🔍 Search in contacts
   ➕ Add a new contact
   ⏭️  Skip this entry
@@ -483,16 +491,16 @@ Using `totalWidth = 56` to match `ContactDisplay.displaySummary()` pattern used 
 
 ## Behavior Decisions
 
-| Scenario | Behavior |
-|----------|----------|
-| Email already in Google Contacts | Auto-skip with success message |
-| Other Contact has multiple emails | Display ALL emails together as single entry |
-| Other Contact has phone numbers | Display phones alongside emails |
-| Other Contact has no email but has name | Include - show name, allow user to search/add/skip |
-| Other Contact has no email AND no name | Filter out - not processable |
-| Contact creation | Manual creation (not copy API) - gives user control to edit |
+| Scenario                                              | Behavior                                                                  |
+| ----------------------------------------------------- | ------------------------------------------------------------------------- |
+| Email already in Google Contacts                      | Auto-skip with success message                                            |
+| Other Contact has multiple emails                     | Display ALL emails together as single entry                               |
+| Other Contact has phone numbers                       | Display phones alongside emails                                           |
+| Other Contact has no email but has name               | Include - show name, allow user to search/add/skip                        |
+| Other Contact has no email AND no name                | Filter out - not processable                                              |
+| Contact creation                                      | Manual creation (not copy API) - gives user control to edit               |
 | Same email appears in different Other Contact entries | Auto-skip the second occurrence (already processed or exists in contacts) |
-| Email already exists in target contact | Warn user and skip adding |
+| Email already exists in target contact                | Warn user and skip adding                                                 |
 
 ---
 
@@ -518,6 +526,7 @@ private deduplicateEmails(entries: OtherContactEntry[]): OtherContactEntry[] {
 ```
 
 This ensures:
+
 1. Each email is only processed once across all entries
 2. Duplicate emails within the same entry are removed
 3. Entries left with no emails but still having a name are kept
@@ -564,6 +573,7 @@ async run(): Promise<void> {
 **Log File Location**: `logs/other-contacts-sync_DD_MM_YYYY.log`
 
 **What to Log:**
+
 - Script start/end with summary stats
 - Fetch results (total count, filtered count)
 - Each entry processing action (search, add, update, skip)
@@ -572,6 +582,7 @@ async run(): Promise<void> {
 - User interactions (ESC, menu selections)
 
 **Log Levels:**
+
 - `logMain()` - Normal operations, user actions
 - `logError()` - Errors and exceptions
 
@@ -583,8 +594,8 @@ Use `ApiTracker` for monitoring API usage:
 
 ```typescript
 const apiTracker = ApiTracker.getInstance();
-await apiTracker.trackRead();  // After each otherContacts.list page
-await apiTracker.trackRead();  // After each contact fetch for update
+await apiTracker.trackRead(); // After each otherContacts.list page
+await apiTracker.trackRead(); // After each contact fetch for update
 await apiTracker.trackWrite(); // After each contact create/update
 ```
 
@@ -624,7 +635,10 @@ const nameResult = await inputWithEscape({
 const nameParts = searchName.split(' ');
 const firstName = nameParts[0] || '';
 const lastName = nameParts.slice(1).join(' ') || '';
-const matches = await this.duplicateDetector.checkDuplicateName(firstName, lastName);
+const matches = await this.duplicateDetector.checkDuplicateName(
+  firstName,
+  lastName
+);
 ```
 
 ---
@@ -639,6 +653,7 @@ Host: people.googleapis.com
 ```
 
 **IMPORTANT**: The `readMask` parameter is **REQUIRED** by the API. Valid fields for Other Contacts with `READ_SOURCE_TYPE_CONTACT`:
+
 - `names`
 - `emailAddresses`
 - `phoneNumbers`
@@ -721,23 +736,25 @@ Host: people.googleapis.com
 
 ## Potential Risks and Mitigations
 
-| Risk | Mitigation |
-|------|------------|
+| Risk                                     | Mitigation                                                                        |
+| ---------------------------------------- | --------------------------------------------------------------------------------- |
 | OAuth scope change breaks existing users | Document in README, provide clear re-auth instructions; script prompts at startup |
-| Large number of Other Contacts (10K+) | Pagination handled; progress indicator shows fetched/total during fetch |
-| API quota exhaustion | Use existing `retryWithBackoff` patterns, track via ApiTracker |
-| Other Contacts API returns limited data | Accept limitation; user can enrich during creation |
-| `readMask` parameter missing | Code explicitly includes required `readMask` parameter |
+| Large number of Other Contacts (10K+)    | Pagination handled; progress indicator shows fetched/total during fetch           |
+| API quota exhaustion                     | Use existing `retryWithBackoff` patterns, track via ApiTracker                    |
+| Other Contacts API returns limited data  | Accept limitation; user can enrich during creation                                |
+| `readMask` parameter missing             | Code explicitly includes required `readMask` parameter                            |
 
 ---
 
 ## Implementation Checklist
 
 ### Pre-requisites
+
 - [ ] Add `contacts.other.readonly` scope to `settings.ts`
 - [ ] Add phone-exists check to existing `addPhoneToExistingContact` method in `ContactEditor` (for consistency with new `addEmailToExistingContact`)
 
 ### Core Implementation
+
 - [ ] Create `src/types/otherContactsSync.ts` with stats and entry interfaces (including phones)
 - [ ] Create `src/services/contacts/emailNormalizer.ts` for email matching
 - [ ] Create `src/services/otherContacts/otherContactsFetcher.ts` to fetch and paginate Other Contacts with progress

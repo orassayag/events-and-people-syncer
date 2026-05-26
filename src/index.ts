@@ -2,10 +2,12 @@ import { selectWithEscape, confirmWithEscape } from './utils';
 import { initiate } from './settings';
 import { AVAILABLE_SCRIPTS } from './scripts';
 import type { Script } from './types/script';
-import { Logger } from './logging';
+import { Logger, LogCleanup } from './logging';
 import { initializeAuth } from './services/auth/initAuth';
 import { EMOJIS } from './constants';
 import { SETTINGS } from './settings';
+
+const uiLogger = new Logger('Main');
 
 process.removeAllListeners('warning');
 
@@ -18,6 +20,10 @@ process.on('uncaughtException', (error) => {
   ) {
     return;
   }
+  uiLogger.error(
+    'Fatal uncaught exception',
+    error instanceof Error ? error : new Error(errorString)
+  );
   console.error(`${EMOJIS.STATUS.ERROR} Fatal error:`, error);
   process.exit(1);
 });
@@ -31,6 +37,10 @@ process.on('unhandledRejection', (reason) => {
   ) {
     return;
   }
+  uiLogger.error(
+    'Unhandled rejection',
+    error instanceof Error ? error : new Error(errorString)
+  );
   console.error(`${EMOJIS.STATUS.ERROR} Unhandled rejection:`, reason);
   process.exit(1);
 });
@@ -45,16 +55,24 @@ if (noCacheFlag) {
   process.env.NO_CACHE = 'true';
 }
 
-const uiLogger = new Logger('Main');
-
 async function main(): Promise<void> {
+  uiLogger.info('Application starting...', { flags });
+  try {
+    await LogCleanup.cleanOldLogs();
+  } catch (error) {
+    uiLogger.warn('Failed to clean old logs', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
   initiate();
+  uiLogger.debug('Settings initiated');
   await initializeAuth();
-  const flags = process.argv.slice(2);
+  uiLogger.debug('Authentication initialized');
   const skipPrompt = flags.some((f) =>
     ['--yes', '-y', '--auto', 'AUTO', 'auto', '-auto'].includes(f)
   );
   if (SETTINGS.dryMode && !skipPrompt) {
+    uiLogger.info('Running in DRY MODE - awaiting user confirmation');
     console.log('');
     console.log(`${EMOJIS.STATUS.WARNING}  You are running in DRY MODE`);
     console.log('');
@@ -77,11 +95,14 @@ async function main(): Promise<void> {
       default: true,
     });
     if (proceedResult.escaped || !proceedResult.value) {
+      uiLogger.info('Dry mode execution cancelled by user');
       console.log('Operation cancelled.');
       process.exit(0);
     }
+    uiLogger.info('Dry mode execution confirmed by user');
     console.log('');
   } else if (SETTINGS.dryMode && skipPrompt) {
+    uiLogger.info('Running in DRY MODE (auto-confirmed)');
     console.log(
       `${EMOJIS.STATUS.WARNING} Running in DRY MODE (prompt skipped via flag)`
     );
@@ -133,10 +154,12 @@ async function main(): Promise<void> {
     );
 
     if (isAuto) {
+      uiLogger.info('Auto-mode detected, selecting Google Contacts Maintainer');
       uiLogger.displayInfo('Auto-selecting Google Contacts Maintainer...');
       choice = 'google-contacts-maintainer';
       continueRunning = false;
     } else {
+      uiLogger.debug('Awaiting user script selection');
       const result = await selectWithEscape<string>({
         message: 'Select a script to run (ESC to exit):',
         loop: false,
@@ -145,14 +168,17 @@ async function main(): Promise<void> {
       });
 
       if (result.escaped) {
+        uiLogger.info('Script selection escaped by user');
         uiLogger.displayExit();
         continueRunning = false;
         break;
       }
 
       choice = result.value;
+      uiLogger.info('Script selected', { choice });
 
       if (choice === 'exit') {
+        uiLogger.info('Exit selected by user');
         uiLogger.displayExit();
         continueRunning = false;
         break;
@@ -161,8 +187,17 @@ async function main(): Promise<void> {
 
     try {
       const script: Script = AVAILABLE_SCRIPTS[choice];
+      uiLogger.info(`Starting script execution: ${choice}`, {
+        scriptName: script.metadata.name,
+        category: script.metadata.category,
+      });
       await script.run();
+      uiLogger.info(`Finished script execution: ${choice}`);
     } catch (error) {
+      uiLogger.error(
+        `Error during script execution: ${choice}`,
+        error instanceof Error ? error : new Error(String(error))
+      );
       if (error instanceof Error) {
         console.error(`${EMOJIS.STATUS.ERROR} Error:`, error.message);
       } else {

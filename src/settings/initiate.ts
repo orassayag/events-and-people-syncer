@@ -1,5 +1,8 @@
 import { config } from 'dotenv';
 import { SETTINGS } from './settings';
+import { Logger } from '../logging';
+
+const logger = new Logger('Settings');
 
 const requiredVars: string[] = [
   'CLIENT_ID',
@@ -12,30 +15,34 @@ const requiredVars: string[] = [
 ];
 
 function validateEnvironment(): void {
+  logger.debug('Validating environment variables');
   const missingVars: string[] = requiredVars.filter(
     (varName: string) => !process.env[varName]
   );
   if (missingVars.length > 0) {
-    throw new Error(
-      `Missing required environment variables: ${missingVars.join(', ')}`
-    );
+    const errorMsg = `Missing required environment variables: ${missingVars.join(', ')}`;
+    logger.error(errorMsg);
+    throw new Error(errorMsg);
   }
   const redirectPort: number = parseInt(
     process.env.REDIRECT_PORT || '3000',
     10
   );
   if (isNaN(redirectPort) || redirectPort < 1024 || redirectPort > 65535) {
-    throw new Error(
-      `Invalid REDIRECT_PORT: must be a number between 1024 and 65535`
-    );
+    const errorMsg = `Invalid REDIRECT_PORT: must be a number between 1024 and 65535`;
+    logger.error(errorMsg);
+    throw new Error(errorMsg);
   }
+  logger.debug('Environment variables validated');
 }
 
 export function initiate(): void {
   const environment: string = process.env.NODE_ENV || 'test';
+  logger.info(`Initiating settings for environment: ${environment}`);
   SETTINGS.environment = environment as 'test' | 'production';
   const envFile: string =
     environment === 'production' ? '.env.production' : '.env.test';
+  logger.debug(`Loading environment file: ${envFile}`);
   config({ path: envFile });
   validateEnvironment();
   SETTINGS.auth.clientId = process.env.CLIENT_ID || '';
@@ -48,4 +55,5 @@ export function initiate(): void {
     process.env.REDIRECT_PORT || '3000',
     10
   );
+  logger.debug('Settings initiated successfully');
 }

@@ -34,15 +34,16 @@ Create a custom `SearchableMultiSelect` class that extends `enquirer`'s `MultiSe
 
 **Why custom extension over alternatives:**
 
-| Option | Pros | Cons | Verdict |
-|--------|------|------|---------|
-| Custom SearchableMultiSelect | No new dependencies, full control, ~100 lines, maintainable | Requires custom code | ✅ **Recommended** |
-| @inquirer/checkbox | Official package | **NO built-in search** (verified), requires reverting migration from enquirer, previous screen overlap issues | ❌ Not viable |
-| inquirer-checkbox-plus-prompt | Has search feature | Additional dependency, low adoption (16 GitHub stars), overkill | ❌ Not recommended |
+| Option                        | Pros                                                        | Cons                                                                                                          | Verdict            |
+| ----------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------ |
+| Custom SearchableMultiSelect  | No new dependencies, full control, ~100 lines, maintainable | Requires custom code                                                                                          | ✅ **Recommended** |
+| @inquirer/checkbox            | Official package                                            | **NO built-in search** (verified), requires reverting migration from enquirer, previous screen overlap issues | ❌ Not viable      |
+| inquirer-checkbox-plus-prompt | Has search feature                                          | Additional dependency, low adoption (16 GitHub stars), overkill                                               | ❌ Not recommended |
 
 **Technical Approach:**
 
 Enquirer is designed to be extended via class inheritance. The `SearchableMultiSelect` class:
+
 - Overrides `dispatch()` to intercept keystrokes
 - Maintains a master `_allChoices` list to preserve selections
 - Filters `this.choices` in real-time based on search term
@@ -59,12 +60,14 @@ Modify `fetchContactGroups()` to fetch `memberCount` from Google People API and 
 4. Handle API errors gracefully (fall back to alphabetical sorting)
 
 **API Impact:**
+
 - **Before:** 1 API call to `contactGroups.list()` per fetch × 7+ fetches per session = 7+ API calls
 - **After:** 2 API calls total per session (with caching)
-  - 1 call to `contactGroups.list()` 
+  - 1 call to `contactGroups.list()`
   - 1 call to `contactGroups.batchGet()` (supports up to 200 groups per request)
 
 **Caching Strategy:**
+
 - Cache fetched contact groups in-memory during a session
 - Session = one script execution (process lifetime)
 - Cache is valid until process exits or label is created
@@ -73,6 +76,7 @@ Modify `fetchContactGroups()` to fetch `memberCount` from Google People API and 
 - Google People API quota: 600 requests/minute for read operations
 
 **Google People API Documentation:**
+
 - The API provides `memberCount` field representing the total number of contacts in a group
 - Field is only available via `contactGroups.get()` or `contactGroups.batchGet()`, not via `list()`
 - Reference: https://developers.google.com/people/api/rest/v1/contactGroups
@@ -88,11 +92,13 @@ Before starting the step-by-step implementation, these critical issues MUST be a
 **File:** `src/di/container.ts` (line 56)
 
 **Current:**
+
 ```typescript
 container.bind(ContactEditor).toSelf();
 ```
 
 **Required:**
+
 ```typescript
 container.bind(ContactEditor).toSelf().inSingletonScope();
 ```
@@ -106,16 +112,19 @@ container.bind(ContactEditor).toSelf().inSingletonScope();
 **File:** `src/services/contacts/contactEditor.ts` (line 1346)
 
 **Current Signature:**
+
 ```typescript
 async fetchContactGroups(): Promise<ContactGroup[]>
 ```
 
 **Required Signature:**
+
 ```typescript
 async fetchContactGroups(forceRefresh: boolean = false): Promise<ContactGroup[]>
 ```
 
 **Update These Call Sites (7 total):**
+
 - Line 270: `this.fetchContactGroups()` → Keep as is (use cache)
 - Line 529: `this.fetchContactGroups()` → Keep as is (use cache)
 - Line 571: `this.fetchContactGroups()` → Keep as is (use cache)
@@ -136,7 +145,9 @@ export class ContactEditor {
   private fetchInProgress: Promise<ContactGroup[]> | null = null;
   // ... existing fields
 
-  async fetchContactGroups(forceRefresh: boolean = false): Promise<ContactGroup[]> {
+  async fetchContactGroups(
+    forceRefresh: boolean = false
+  ): Promise<ContactGroup[]> {
     if (!forceRefresh && this.cachedContactGroups) {
       this.uiLogger.debug('Contact groups cache hit', { noPHI: true });
       return this.cachedContactGroups;
@@ -144,11 +155,12 @@ export class ContactEditor {
     if (this.fetchInProgress) {
       return this.fetchInProgress;
     }
-    this.uiLogger.debug('Contact groups cache miss, fetching from API', { noPHI: true });
-    this.fetchInProgress = this._fetchContactGroupsImpl()
-      .finally(() => {
-        this.fetchInProgress = null;
-      });
+    this.uiLogger.debug('Contact groups cache miss, fetching from API', {
+      noPHI: true,
+    });
+    this.fetchInProgress = this._fetchContactGroupsImpl().finally(() => {
+      this.fetchInProgress = null;
+    });
     const result = await this.fetchInProgress;
     return result;
   }
@@ -164,11 +176,13 @@ export class ContactEditor {
 **File:** `package.json`
 
 **Current:**
+
 ```json
 "enquirer": "^2.4.1"
 ```
 
 **Required:**
+
 ```json
 "enquirer": "2.4.1"
 ```
@@ -180,6 +194,7 @@ export class ContactEditor {
 **Note:** `EventsContactEditor` extends `ContactEditor` and will also become effectively singleton when ContactEditor's scope is changed.
 
 **Impact:**
+
 - EventsContactEditor inherits the caching behavior from ContactEditor
 - Both classes will share the same cache instance
 - This is acceptable since the application runs only one session at a time
@@ -198,8 +213,16 @@ Create a custom class that extends `enquirer`'s `MultiSelect` with real-time fil
 import { MultiSelect, Choice, KeypressEvent } from 'enquirer';
 
 const PASSTHROUGH_KEYS = new Set([
-  'up', 'down', 'return', 'enter', 'escape',
-  'tab', 'pageup', 'pagedown', 'home', 'end',
+  'up',
+  'down',
+  'return',
+  'enter',
+  'escape',
+  'tab',
+  'pageup',
+  'pagedown',
+  'home',
+  'end',
   'space', // Note: 'a', 'i', 'g' removed - let them type freely
 ]);
 
@@ -241,7 +264,7 @@ export class SearchableMultiSelect extends MultiSelect {
   private _syncSelections(): void {
     if (!this._allChoices) return;
     for (const choice of this.choices) {
-      const master = this._allChoices.find(c => c.name === choice.name);
+      const master = this._allChoices.find((c) => c.name === choice.name);
       if (master) {
         master.enabled = choice.enabled;
       }
@@ -251,8 +274,9 @@ export class SearchableMultiSelect extends MultiSelect {
   private _applyFilter(): void {
     if (!this._allChoices) return;
     const term = this.searchTerm.toLowerCase();
-    const filtered = this._allChoices
-      .filter(c => c.name.toLowerCase().includes(term));
+    const filtered = this._allChoices.filter((c) =>
+      c.name.toLowerCase().includes(term)
+    );
     this.choices = filtered;
     this.index = Math.min(this.index, filtered.length - 1);
     // Ensure index is never negative (handles empty filter results)
@@ -262,9 +286,7 @@ export class SearchableMultiSelect extends MultiSelect {
   result(): string[] {
     this._syncSelections();
     const source = this._allChoices ?? this.choices;
-    return source
-      .filter(c => c.enabled === true)
-      .map(c => c.name);
+    return source.filter((c) => c.enabled === true).map((c) => c.name);
   }
 
   async header(): Promise<string> {
@@ -279,6 +301,7 @@ export class SearchableMultiSelect extends MultiSelect {
 ```
 
 **Key Features:**
+
 - **Intercepts keystrokes** via `dispatch()` override
 - **Maintains master list** (`_allChoices`) to preserve selections during filtering
 - **Real-time filtering** updates visible choices as user types
@@ -295,14 +318,14 @@ declare module 'enquirer' {
     name: string;
     enabled?: boolean;
   }
-  
+
   interface KeypressEvent {
     name?: string;
     ctrl?: boolean;
     meta?: boolean;
     shift?: boolean;
   }
-  
+
   class MultiSelect {
     choices: Choice[];
     index: number;
@@ -345,7 +368,7 @@ export class ContactEditor {
   private cachedContactGroups: ContactGroup[] | null = null;
   private fetchInProgress: Promise<ContactGroup[]> | null = null;
   // ... existing fields
-  
+
   clearCache(): void {
     this.cachedContactGroups = null;
     this.fetchInProgress = null;
@@ -363,6 +386,7 @@ export class ContactEditor {
 Update the `fetchContactGroups()` method to:
 
 1. **Check cache first:**
+
    ```typescript
    async fetchContactGroups(forceRefresh: boolean = false): Promise<ContactGroup[]> {
      if (!forceRefresh && this.cachedContactGroups) {
@@ -420,7 +444,7 @@ async fetchContactGroups(): Promise<ContactGroup[]> {
   const apiTracker = ApiTracker.getInstance();
   const contactGroups: ContactGroup[] = [];
   let pageToken: string | undefined;
-  
+
   // Step 1: Fetch all groups (existing logic)
   do {
     const response = await retryWithBackoff(async () => {
@@ -449,12 +473,12 @@ async fetchContactGroups(): Promise<ContactGroup[]> {
     );
     pageToken = response.data.nextPageToken || undefined;
   } while (pageToken);
-  
+
   // Step 2: Fetch memberCount for all groups
   try {
     if (contactGroups.length > 0) {
       const resourceNames = contactGroups.map(g => g.resourceName);
-      
+
       if (SETTINGS.dryMode) {
         DryModeChecker.logApiCall(
           'service.contactGroups.batchGet()',
@@ -469,7 +493,7 @@ async fetchContactGroups(): Promise<ContactGroup[]> {
         // Handle batchGet pagination for large label counts (200+ labels)
         const BATCH_SIZE = 200;
         const memberCountMap = new Map<string, number>();
-        
+
         for (let i = 0; i < resourceNames.length; i += BATCH_SIZE) {
           const batch = resourceNames.slice(i, i + BATCH_SIZE);
           const batchResponse = await retryWithBackoff(async () => {
@@ -483,7 +507,7 @@ async fetchContactGroups(): Promise<ContactGroup[]> {
           if (this.logApiStats) {
             await apiTracker.logStats(this.uiLogger);
           }
-          
+
           // Merge memberCount into map
           const responses = batchResponse.data.responses || [];
           for (const resp of responses) {
@@ -492,7 +516,7 @@ async fetchContactGroups(): Promise<ContactGroup[]> {
             }
           }
         }
-        
+
         // Apply memberCount to contactGroups (groups without memberCount default to 0)
         for (const group of contactGroups) {
           group.memberCount = memberCountMap.get(group.resourceName) || 0;
@@ -500,9 +524,9 @@ async fetchContactGroups(): Promise<ContactGroup[]> {
       }
     }
   } catch (error: unknown) {
-    const isQuota = error instanceof Error && 
+    const isQuota = error instanceof Error &&
       (error.message.includes('quota') || error.message.includes('429'));
-    
+
     if (isQuota) {
       this.uiLogger.displayWarning(
         'API quota exceeded - using alphabetical order. Try again in a few minutes.'
@@ -513,7 +537,7 @@ async fetchContactGroups(): Promise<ContactGroup[]> {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     this.uiLogger.displayError(`Error: ${errorMessage}`);
   }
-  
+
   // Step 3: Sort by memberCount (descending), then alphabetically
   return contactGroups.sort((a, b) => {
     const countA = a.memberCount ?? 0;
@@ -538,20 +562,21 @@ Invalidate cache when labels are created to ensure UI stays in sync with backend
 async createContactGroup(name: string): Promise<string> {
   // ... existing implementation
   const resourceName = await this.createContactGroupImpl(name);
-  
+
   // Invalidate both cache and lock to ensure fresh data on next fetch
   this.cachedContactGroups = null;
   this.fetchInProgress = null;
-  
+
   return resourceName;
 }
 ```
 
 #### Label Deletion Note
 
-**Important:** This codebase does NOT implement label deletion functionality. Labels can only be deleted manually via the Google Contacts UI. 
+**Important:** This codebase does NOT implement label deletion functionality. Labels can only be deleted manually via the Google Contacts UI.
 
 **Cache Behavior:** When labels are deleted externally:
+
 - The cache will naturally refresh on the next session (process restart)
 - Within the same session, the cache may contain stale data about deleted labels
 - This is acceptable since label deletion is rare and external to the application
@@ -563,6 +588,7 @@ async createContactGroup(name: string): Promise<string> {
 **Decision:** Do NOT add caching or `batchGet()` changes to `ContactSyncer`.
 
 **Rationale:**
+
 - ContactSyncer is used only during sync operations, not interactive UI flows
 - It doesn't have the 7+ sequential calls issue that ContactEditor has
 - ContactSyncer is bound as transient in DI container (no singleton scope)
@@ -588,16 +614,16 @@ export async function checkboxWithEscape<T = string>(
       value: c.name || String(c.value),
       enabled: c.checked || false,
     }));
-    
+
     const prompt = new SearchableMultiSelect({
       name: 'value',
       message: config.message,
       choices: choiceConfigs,
       validate: config.validate as any,
     });
-    
+
     const selectedNames = await prompt.run();
-    
+
     // Map selected names back to values
     const selectedValues = selectedNames.map((name) => {
       const choice = config.choices.find(
@@ -605,7 +631,7 @@ export async function checkboxWithEscape<T = string>(
       );
       return choice ? choice.value : (name as unknown as T);
     });
-    
+
     return { escaped: false, value: selectedValues };
   } catch (error) {
     // enquirer throws on cancel/escape
@@ -615,6 +641,7 @@ export async function checkboxWithEscape<T = string>(
 ```
 
 **Key changes:**
+
 - Import and use `SearchableMultiSelect` instead of enquirer's `MultiSelect`
 - Call `prompt.run()` directly (enquirer pattern)
 - Keep the same wrapper API for backward compatibility
@@ -622,6 +649,7 @@ export async function checkboxWithEscape<T = string>(
 - No changes needed in any calling code
 
 **Features gained:**
+
 - Type to filter choices in real-time
 - Search term displayed above choice list
 - Selections preserved when filtering
@@ -717,6 +745,7 @@ export async function checkboxWithEscape<T = string>(
 #### Automated Testing
 
 Add unit tests for:
+
 - Sorting logic (memberCount descending + alphabetical tiebreaker)
 - Error handling in `fetchContactGroups()` (follows existing pattern with `error: unknown`)
 - Caching behavior (hit/miss/invalidation)
@@ -736,23 +765,24 @@ Location: `src/services/contacts/__tests__/` or `src/utils/__tests__/`
 
 ## Files to Modify
 
-| File | Changes | Lines |
-|------|---------|-------|
-| `src/utils/searchableMultiselect.ts` | **NEW** - Custom SearchableMultiSelect class extending enquirer | ~100 |
-| `src/types/enquirer.d.ts` | **NEW** - Type definitions for enquirer | ~30 |
-| `src/types/api.ts` | Add `memberCount?: number` to `ContactGroup` interface | ~52 |
-| `src/services/contacts/contactEditor.ts` | Add caching field, update `fetchContactGroups()` with caching/batchGet/sorting, add cache invalidation | 1346-1395 |
-| `src/utils/promptWithEnquirer.ts` | Replace MultiSelect with SearchableMultiSelect in `checkboxWithEscape()` | 103-136 |
-| `src/di/container.ts` | Add `.inSingletonScope()` to ContactEditor binding | 56 |
-| `package.json` | Lock enquirer version to exact `"enquirer": "2.4.1"` (remove ^) | dependencies |
+| File                                     | Changes                                                                                                | Lines        |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------ |
+| `src/utils/searchableMultiselect.ts`     | **NEW** - Custom SearchableMultiSelect class extending enquirer                                        | ~100         |
+| `src/types/enquirer.d.ts`                | **NEW** - Type definitions for enquirer                                                                | ~30          |
+| `src/types/api.ts`                       | Add `memberCount?: number` to `ContactGroup` interface                                                 | ~52          |
+| `src/services/contacts/contactEditor.ts` | Add caching field, update `fetchContactGroups()` with caching/batchGet/sorting, add cache invalidation | 1346-1395    |
+| `src/utils/promptWithEnquirer.ts`        | Replace MultiSelect with SearchableMultiSelect in `checkboxWithEscape()`                               | 103-136      |
+| `src/di/container.ts`                    | Add `.inSingletonScope()` to ContactEditor binding                                                     | 56           |
+| `package.json`                           | Lock enquirer version to exact `"enquirer": "2.4.1"` (remove ^)                                        | dependencies |
 
 ## Dependencies
 
 **No new dependencies required.**
 
-The solution extends the existing `enquirer` package with a custom class. 
+The solution extends the existing `enquirer` package with a custom class.
 
 **Important:** Lock the enquirer version to prevent breaking changes:
+
 - Current: `"enquirer": "^2.4.1"` (allows minor/patch updates)
 - Required: `"enquirer": "2.4.1"` (exact version lock)
 
@@ -812,6 +842,7 @@ This ensures the custom SearchableMultiSelect extension remains compatible with 
 **Impact:** Additional `batchGet()` call increases API usage
 
 **Mitigation:**
+
 - Caching strategy: 2 API calls per session (not 14+)
 - `batchGet()` supports up to 200 groups per request (efficient)
 - Falls back gracefully if API call fails
@@ -823,6 +854,7 @@ This ensures the custom SearchableMultiSelect extension remains compatible with 
 **Impact:** Future enquirer updates might change internal API
 
 **Mitigation:**
+
 - Lock enquirer version in package.json to exact version (no caret): `"enquirer": "2.4.1"`
 - Extension only uses public/documented APIs
 - Comprehensive testing before any upgrades
@@ -837,6 +869,7 @@ This ensures the custom SearchableMultiSelect extension remains compatible with 
 **Status:** ✅ IDENTIFIED - ContactEditor currently uses transient scope
 
 **Mitigation:**
+
 - Change DI registration to `.inSingletonScope()` (see Pre-Implementation Fixes)
 - Add logging for cache hits/misses during testing
 - Validate cache behavior in manual testing scenarios
@@ -848,6 +881,7 @@ This ensures the custom SearchableMultiSelect extension remains compatible with 
 **Status:** ✅ IDENTIFIED - No concurrency protection in current plan
 
 **Mitigation:**
+
 - Implement promise-based lock (see Pre-Implementation Fixes)
 - Track fetchInProgress promise to reuse in-flight requests
 - Test with rapid sequential label selections
@@ -857,6 +891,7 @@ This ensures the custom SearchableMultiSelect extension remains compatible with 
 **Impact:** Testing could fail or produce incorrect results in dry mode
 
 **Mitigation:**
+
 - Explicit dry mode checks with `SETTINGS.dryMode`
 - Mock member counts generated for testing
 - API calls properly logged with `DryModeChecker`
@@ -869,6 +904,7 @@ This ensures the custom SearchableMultiSelect extension remains compatible with 
 **Status:** ✅ FIXED - Removed single letters from PASSTHROUGH_KEYS
 
 **Mitigation:**
+
 - Only passthrough navigation keys and modifiers
 - Let users type freely without shortcuts interfering
 - **POC Validated:** Users can type any letters for search
@@ -880,6 +916,7 @@ This ensures the custom SearchableMultiSelect extension remains compatible with 
 **Status:** ⚠️ REQUIRED - No @types/enquirer package exists
 
 **Mitigation:**
+
 - Create custom type definitions in `src/types/enquirer.d.ts`
 - Define only the interfaces we use (Choice, KeypressEvent, MultiSelect)
 - Validate types against enquirer source code
@@ -892,6 +929,7 @@ This ensures the custom SearchableMultiSelect extension remains compatible with 
 **Status:** ✅ ADDRESSED - Pagination implemented in v4.0
 
 **Mitigation:**
+
 - Implemented batchGet pagination with BATCH_SIZE = 200
 - Handles unlimited number of labels by batching requests
 - Each batch makes separate API call and merges results
@@ -934,19 +972,19 @@ This ensures the custom SearchableMultiSelect extension remains compatible with 
 
 ## Implementation Timeline
 
-| Step | Description | Estimated Time |
-|------|-------------|----------------|
-| Pre-0 | Fix DI container scope + race condition protection + lock enquirer version | 25 minutes |
-| 0 | Create SearchableMultiSelect class (using POC as reference) | 20 minutes |
-| 1 | Update ContactGroup type and enquirer types | 10 minutes |
-| 2 | Add caching to ContactEditor + forceRefresh parameter | 15 minutes |
-| 3 | Enhance fetchContactGroups() with batchGet/sorting/pagination | 40 minutes |
-| 4 | Add cache invalidation for create/delete + update call sites | 15 minutes |
-| 5 | Update checkboxWithEscape() wrapper | 15 minutes |
-| 6 | Manual testing (all scenarios) | 45 minutes |
-| 7 | Edge case testing and fixes | 30 minutes |
-| 8 | Add unit tests for caching and race conditions | 30 minutes |
-| **Total** | | **~4 hours 5 minutes** |
+| Step      | Description                                                                | Estimated Time         |
+| --------- | -------------------------------------------------------------------------- | ---------------------- |
+| Pre-0     | Fix DI container scope + race condition protection + lock enquirer version | 25 minutes             |
+| 0         | Create SearchableMultiSelect class (using POC as reference)                | 20 minutes             |
+| 1         | Update ContactGroup type and enquirer types                                | 10 minutes             |
+| 2         | Add caching to ContactEditor + forceRefresh parameter                      | 15 minutes             |
+| 3         | Enhance fetchContactGroups() with batchGet/sorting/pagination              | 40 minutes             |
+| 4         | Add cache invalidation for create/delete + update call sites               | 15 minutes             |
+| 5         | Update checkboxWithEscape() wrapper                                        | 15 minutes             |
+| 6         | Manual testing (all scenarios)                                             | 45 minutes             |
+| 7         | Edge case testing and fixes                                                | 30 minutes             |
+| 8         | Add unit tests for caching and race conditions                             | 30 minutes             |
+| **Total** |                                                                            | **~4 hours 5 minutes** |
 
 **Note:** Revised from original 3.5 hours estimate based on additional requirements (pagination, tests, label deletion cache invalidation).
 
@@ -954,13 +992,15 @@ This ensures the custom SearchableMultiSelect extension remains compatible with 
 
 **POC Location:** `poc/src/poc-searchable-multiselect.ts`
 
-**Run POC:** 
+**Run POC:**
+
 ```bash
 cd /Users/orassayag/Repos/events-and-people-syncer/code
 pnpm run poc:searchable
 ```
 
 **Note:** The package.json script should reference the correct path. Current script is `tsx poc-searchable-multiselect.ts`, but the file is at `poc/src/poc-searchable-multiselect.ts`. Update the script to:
+
 ```json
 "poc:searchable": "tsx poc/src/poc-searchable-multiselect.ts"
 ```
@@ -968,6 +1008,7 @@ pnpm run poc:searchable
 **POC Status:** ✅ Successfully validated
 
 The POC demonstrates:
+
 - ✅ Popularity-based sorting (103 members → 6 members)
 - ✅ Real-time search/filter functionality
 - ✅ Selection preservation during filtering
@@ -976,12 +1017,14 @@ The POC demonstrates:
 - ✅ Visual display with member counts
 
 **POC Findings:**
+
 1. SearchableMultiSelect extends enquirer successfully
 2. Sorting algorithm works correctly (descending memberCount + alphabetical tiebreaker)
 3. Search filtering is responsive and intuitive
 4. No performance issues with 20+ labels
 
 **Critical Fixes Required (from POC analysis):**
+
 1. ✅ DI Container scope: ContactEditor must be singleton (currently transient)
 2. ✅ Add `forceRefresh` parameter to fetchContactGroups() signature
 3. ✅ Update all 7 call sites to use forceRefresh after label creation
@@ -1001,15 +1044,16 @@ The POC demonstrates:
 
 ---
 
-**Document Version:** 5.0  
-**Created:** March 23, 2026  
-**Last Updated:** March 23, 2026  
-**Author:** AI Assistant (via user request)  
+**Document Version:** 5.0
+**Created:** March 23, 2026
+**Last Updated:** March 23, 2026
+**Author:** AI Assistant (via user request)
 **POC:** `poc/src/poc-searchable-multiselect.ts` (validated ✅)
 
 ## Revision History
 
 **v5.0 (March 23, 2026):**
+
 - ✅ **Label Deletion Clarified:** Removed label deletion cache invalidation - labels can only be deleted via Google Contacts UI externally
 - ✅ **Test Impact Documented:** Added note about singleton scope requiring manual cache clearing in tests via `clearCache()` method
 - ✅ **EventsContactEditor Impact:** Documented that EventsContactEditor will also become effectively singleton
@@ -1024,6 +1068,7 @@ The POC demonstrates:
 - ✅ **Boundary Condition Tests:** Added explicit test cases for 199, 200, 201 labels pagination
 
 **v4.0 (March 23, 2026):**
+
 - ✅ **POC Location Updated:** Moved to `poc/src/poc-searchable-multiselect.ts`
 - ✅ **Error Handling Improved:** Changed from `displayDebug()` to `displayError()` following existing patterns
 - ✅ **ContactSyncer Simplified:** Removed unnecessary changes - no caching or batchGet added
@@ -1040,8 +1085,9 @@ The POC demonstrates:
 - ✅ **Timeline Updated:** 4 hours (up from 3.5 hours) to account for additional requirements
 
 **v3.0 (March 23, 2026):**
+
 - ✅ **POC Created and Validated:** `poc-searchable-multiselect.ts` successfully demonstrates all features
-- ✅ **Critical Fixes Identified:** 
+- ✅ **Critical Fixes Identified:**
   - DI container scope issue (ContactEditor must be singleton)
   - Race condition protection needed for concurrent cache access
   - forceRefresh parameter required for fetchContactGroups()
@@ -1057,8 +1103,9 @@ The POC demonstrates:
   - Revised time estimate to 3.5 hours (from 3 hours)
 
 **v2.0 (March 23, 2026):**
+
 - **Critical correction:** `@inquirer/checkbox` does NOT have built-in search functionality (verified via official npm docs)
-- **New approach:** Custom `SearchableMultiSelect` class extending `enquirer`'s `MultiSelect` 
+- **New approach:** Custom `SearchableMultiSelect` class extending `enquirer`'s `MultiSelect`
 - **Added:** Caching strategy to reduce API calls from 14+ to 2 per session
 - **Added:** Dry mode support for `batchGet` with mock member counts
 - **Added:** Better error logging with error messages
@@ -1066,4 +1113,5 @@ The POC demonstrates:
 - **Improved:** More comprehensive testing plan including caching and enquirer shortcuts
 
 **v1.0 (March 23, 2026):**
+
 - Initial plan (contained incorrect assumption about `@inquirer/checkbox` search feature)

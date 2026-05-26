@@ -1,12 +1,12 @@
-import { RegexPatterns } from "../utils/regexPatterns.js";
-import type { EditableContactData, ContactGroup } from "../types.js";
-import { ValidationSchemas } from "./validationSchemas.js";
+import { RegexPatterns } from '../utils/regexPatterns.js';
+import type { EditableContactData, ContactGroup } from '../types.js';
+import { ValidationSchemas } from './validationSchemas.js';
 
 export class InputValidator {
   static validateNoHebrew(text: string): string | true {
     if (!text || !text.trim()) return true;
     if (RegexPatterns.HEBREW.test(text)) {
-      return "Hebrew characters are not supported. Please use English only.";
+      return 'Hebrew characters are not supported. Please use English only.';
     }
     return true;
   }
@@ -45,8 +45,8 @@ export class InputValidator {
     const trimmed = url.trim();
     if (!trimmed) return true;
     let urlToCheck = trimmed;
-    if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
-      urlToCheck = "https://" + trimmed;
+    if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+      urlToCheck = 'https://' + trimmed;
     }
     const result = ValidationSchemas.linkedinUrl.safeParse(urlToCheck);
     if (!result.success) {
@@ -58,12 +58,12 @@ export class InputValidator {
   static normalizeLinkedInUrl(url: string): string {
     let normalized = url.trim();
     if (
-      !normalized.startsWith("http://") &&
-      !normalized.startsWith("https://")
+      !normalized.startsWith('http://') &&
+      !normalized.startsWith('https://')
     ) {
-      normalized = "https://" + normalized;
+      normalized = 'https://' + normalized;
     }
-    while (normalized.endsWith("/")) {
+    while (normalized.endsWith('/')) {
       normalized = normalized.slice(0, -1);
     }
     return normalized;
@@ -72,7 +72,7 @@ export class InputValidator {
   static validateUniqueEmail(
     email: string,
     existingEmails: string[],
-    currentIndex?: number,
+    currentIndex?: number
   ): string | true {
     const trimmed = email.trim();
     if (!trimmed) return true;
@@ -81,10 +81,10 @@ export class InputValidator {
       return emailValidation;
     }
     const duplicateIndex = existingEmails.findIndex(
-      (e) => e.toLowerCase() === trimmed.toLowerCase(),
+      (e) => e.toLowerCase() === trimmed.toLowerCase()
     );
     if (duplicateIndex !== -1 && duplicateIndex !== currentIndex) {
-      return "This email address is already added to this contact.";
+      return 'This email address is already added to this contact.';
     }
     return true;
   }
@@ -92,7 +92,7 @@ export class InputValidator {
   static validateUniquePhone(
     phone: string,
     existingPhones: string[],
-    currentIndex?: number,
+    currentIndex?: number
   ): string | true {
     const trimmed = phone.trim();
     if (!trimmed) return true;
@@ -100,30 +100,30 @@ export class InputValidator {
     if (phoneValidation !== true) {
       return phoneValidation;
     }
-    const normalizedPhone = trimmed.replace(/[\s\-()]/g, "");
+    const normalizedPhone = trimmed.replace(/[\s\-()]/g, '');
     const duplicateIndex = existingPhones.findIndex((p) => {
-      const normalizedExisting = p.replace(/[\s\-()]/g, "");
+      const normalizedExisting = p.replace(/[\s\-()]/g, '');
       return normalizedExisting === normalizedPhone;
     });
     if (duplicateIndex !== -1 && duplicateIndex !== currentIndex) {
-      return "This phone number is already added to this contact.";
+      return 'This phone number is already added to this contact.';
     }
     return true;
   }
 
   static validateLabelName(
     name: string,
-    existingGroups: ContactGroup[],
+    existingGroups: ContactGroup[]
   ): string | true {
     const trimmed = name.trim().toLowerCase();
-    if (trimmed === "cancel") {
+    if (trimmed === 'cancel') {
       return true;
     }
     if (!trimmed) {
       return "Error: Label name cannot be empty. Type 'cancel' to go back.";
     }
     if (!RegexPatterns.LABEL_NAME.test(name.trim())) {
-      return "Label name can only contain letters, numbers, spaces, hyphens, and underscores.";
+      return 'Label name can only contain letters, numbers, spaces, hyphens, and underscores.';
     }
     const exists = existingGroups.find((g) => g.name.toLowerCase() === trimmed);
     if (exists) {
@@ -134,13 +134,13 @@ export class InputValidator {
 
   static validateMinimumRequirements(data: EditableContactData): string | true {
     if (!data.firstName || !data.firstName.trim()) {
-      return "First name is required.";
+      return 'First name is required.';
     }
     if (!data.lastName || !data.lastName.trim()) {
-      return "Last name is required.";
+      return 'Last name is required.';
     }
     if (!data.labelResourceNames || data.labelResourceNames.length === 0) {
-      return "At least one label is required.";
+      return 'At least one label is required.';
     }
     return true;
   }
@@ -153,7 +153,7 @@ export class InputValidator {
       data.jobTitle,
       ...data.emails,
       ...data.phones,
-      data.linkedInUrl || "",
+      data.linkedInUrl || '',
     ];
     for (const field of fields) {
       const result = ValidationSchemas.fieldLength.safeParse(field);

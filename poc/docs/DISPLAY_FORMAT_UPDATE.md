@@ -9,17 +9,20 @@ Updated the contact display format in the "Read and display all contacts" featur
 When a contact has only ONE email, phone, or LinkedIn URL, it now displays on the same line as the label:
 
 **Before**:
+
 ```
 -Emails:
 -john@google.com | Label: work
 ```
 
 **After**:
+
 ```
 -Email: john@google.com | Label: work
 ```
 
 This applies to:
+
 - **Email** (singular when 1, plural "Emails:" when multiple)
 - **Phone** (singular when 1, plural "Phones:" when multiple)
 - **LinkedIn URL** (singular when 1, stays same when multiple)
@@ -34,6 +37,7 @@ The label has been updated to be more specific since we primarily store LinkedIn
 ## Display Examples
 
 ### Contact with Single Values
+
 ```
 ===Person 00,001/00,002===
 -Labels: Work
@@ -48,6 +52,7 @@ The label has been updated to be more specific since we primarily store LinkedIn
 ```
 
 ### Contact with Multiple Values
+
 ```
 ===Person 00,002/00,002===
 -Labels: Personal
@@ -68,7 +73,9 @@ The label has been updated to be more specific since we primarily store LinkedIn
 ```
 
 ### Contact with No Values
+
 When a contact has no email/phone/LinkedIn URL, the display shows:
+
 ```
 -Email:
 -Phone:
@@ -80,6 +87,7 @@ When a contact has no email/phone/LinkedIn URL, the display shows:
 **File**: `src/services/contactReader.ts`
 
 **Logic**:
+
 - Check array length: `0`, `1`, or `> 1`
 - Length `0`: Show label with colon (e.g., `-Email:`)
 - Length `1`: Show label with value on same line (e.g., `-Email: john@example.com | Label: work`)
@@ -95,6 +103,7 @@ When a contact has no email/phone/LinkedIn URL, the display shows:
 ## Testing
 
 Run the POC and read contacts:
+
 ```bash
 cd poc
 pnpm start

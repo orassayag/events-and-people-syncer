@@ -5,6 +5,7 @@
 Refactor all display messages (console.log/console.error statements) across scripts to use a unified display logging system with consistent formatting: `===Message===` format, no trailing periods, and intelligent break line handling that prevents duplicates.
 
 **Version 4.0 Updates** (comprehensive deep review with fixes - 2026-03-18):
+
 - ✅ All Version 3.0 features retained
 - ✅ **NEW**: Added detailed line-by-line conversion tables for linkedinSync.ts
 - ✅ **NEW**: Added detailed line-by-line conversion tables for contactEditor.ts
@@ -62,12 +63,12 @@ Refactor all display messages (console.log/console.error statements) across scri
 
 Different patterns across files:
 
-| File | Pattern | Example |
-|------|---------|---------|
-| `eventsJobsSync.ts` | Manual with newlines | `console.log('\n===Message===\n')` |
-| `linkedinSync.ts` | Mix of Logger + manual | `uiLogger.info('===Message===', {}, false)` |
-| `contactsSync.ts` | Manual with newlines | `console.log('\n===Message===\n')` |
-| `logger.ts` | Auto-decoration | `useDecorators ? '===${message}===' : message` |
+| File                | Pattern                | Example                                        |
+| ------------------- | ---------------------- | ---------------------------------------------- |
+| `eventsJobsSync.ts` | Manual with newlines   | `console.log('\n===Message===\n')`             |
+| `linkedinSync.ts`   | Mix of Logger + manual | `uiLogger.info('===Message===', {}, false)`    |
+| `contactsSync.ts`   | Manual with newlines   | `console.log('\n===Message===\n')`             |
+| `logger.ts`         | Auto-decoration        | `useDecorators ? '===${message}===' : message` |
 
 ### 2. Inconsistent Break Lines
 
@@ -96,6 +97,7 @@ const result = await selectWithEscape<string>({
 ### 4. Messages Ending with Periods
 
 Examples that need fixing:
+
 - `'You can still create notes, but contact features will be unavailable.\n'`
 - `console.log('\n⚠️  Warning message.\n');`
 - Various other messages end with `.` which should be removed
@@ -105,6 +107,7 @@ All trailing periods will be automatically removed by `cleanMessage()`.
 ### 5. Console.error Usage
 
 `console.error()` is used inconsistently for user-facing error messages:
+
 - Line 98 in `eventsJobsSync.ts`: `console.error('\n❌ Script failed:', error.message);`
 
 Should be converted to `displayError()` which uses `console.log()` (all display output goes to stdout for consistency).
@@ -112,6 +115,7 @@ Should be converted to `displayError()` which uses `console.log()` (all display 
 ### 5. Manual === in Constants
 
 `src/constants/uiConstants.ts`:
+
 ```typescript
 WELCOME: '=== Google People API POC ===',
 CONTACT_CREATED: '===✅ Contact created successfully===',
@@ -125,6 +129,7 @@ These have manual `===`, `\n`, and emojis which should ALL be removed (logger wi
 ### 6. Console Capture Interference
 
 Multiple scripts have `setupConsoleCapture()` that intercepts ALL `console.log()` calls for file logging:
+
 - `eventsJobsSync.ts` (lines 108-124)
 - `contactsSync.ts` (lines 68-84)
 - `linkedinSync.ts` (lines 318-353, with additional spinner character filtering)
@@ -136,6 +141,7 @@ This would cause display messages to be logged to file, which we don't want. Nee
 **IMPORTANT DISTINCTION**: Summary boxes created by `FormatUtils.padLineWithEquals()` are DIFFERENT from status messages and intentionally excluded from this refactoring.
 
 `FormatUtils.padLineWithEquals()` creates boxed summaries like:
+
 ```
 ========================================
 ===       Contacts Sync Summary      ===
@@ -144,6 +150,7 @@ This would cause display messages to be logged to file, which we don't want. Nee
 ```
 
 **Why it's excluded:**
+
 - This is **data presentation** (structured output of statistics)
 - Status messages are **UI feedback** (single-line notifications)
 - Summary boxes are multi-line by design
@@ -151,6 +158,7 @@ This would cause display messages to be logged to file, which we don't want. Nee
 - Will be handled in a separate logger/formatter in a future task
 
 **Locations using `padLineWithEquals()` (DO NOT TOUCH):**
+
 - `contactDisplay.ts` lines 90-93
 - `eventsJobsSync.ts` lines 1785-1787
 - `linkedinSync.ts` lines 386-431
@@ -175,23 +183,24 @@ import { LOG_CONFIG } from './logConfig';
 export class Logger {
   // EXISTING: Constructor and context
   constructor(private context: string) {}
-  
+
   // NEW: Private state properties for display methods
-  private lastOutputType: 'message' | 'blank' | 'spinner' | 'menu' | 'init' = 'init';
+  private lastOutputType: 'message' | 'blank' | 'spinner' | 'menu' | 'init' =
+    'init';
   private isDisplayMethod: boolean = false;
 
   /**
    * Displays a user-facing message with consistent formatting.
    * Automatically wraps message in === markers and manages blank lines.
    * Does NOT log to file - console output only.
-   * 
+   *
    * @param message - The message to display (without === markers or trailing period)
    * @example
    * logger.display('Operation completed');
    * // Output:
-   * // 
+   * //
    * // ===Operation completed===
-   * // 
+   * //
    */
   display(message: string): void {
     const cleaned = this.cleanMessage(message);
@@ -201,7 +210,7 @@ export class Logger {
   /**
    * Displays a multi-line message where each line gets its own === markers.
    * Use this for situations requiring separate messages displayed together.
-   * 
+   *
    * @param lines - Array of message lines to display
    * @example
    * logger.displayMultiLine([
@@ -209,10 +218,10 @@ export class Logger {
    *   'You can still create notes, but contact features will be unavailable'
    * ]);
    * // Output:
-   * // 
+   * //
    * // ===⚠️ Google authentication failed===
    * // ===You can still create notes, but contact features will be unavailable===
-   * // 
+   * //
    */
   displayMultiLine(lines: string[]): void {
     if (!LOG_CONFIG.enableConsole) return;
@@ -220,8 +229,8 @@ export class Logger {
       throw new Error('displayMultiLine requires at least one line');
     }
     this.isDisplayMethod = true;
-    const needsBlankBefore = 
-      this.lastOutputType !== 'blank' && 
+    const needsBlankBefore =
+      this.lastOutputType !== 'blank' &&
       this.lastOutputType !== 'init' &&
       this.lastOutputType !== 'spinner' &&
       this.lastOutputType !== 'menu';
@@ -240,7 +249,7 @@ export class Logger {
   /**
    * Displays an error message with ❌ emoji.
    * Auto-adds ❌ if not present.
-   * 
+   *
    * @param message - The error message
    * @example
    * logger.displayError('Operation failed');
@@ -255,7 +264,7 @@ export class Logger {
   /**
    * Displays a warning message with ⚠️ emoji.
    * Auto-adds ⚠️ if not present.
-   * 
+   *
    * @param message - The warning message
    * @example
    * logger.displayWarning('Cache is empty');
@@ -270,7 +279,7 @@ export class Logger {
   /**
    * Displays a success message with ✅ emoji.
    * Auto-adds ✅ if not present.
-   * 
+   *
    * @param message - The success message
    * @example
    * logger.displaySuccess('Contact created');
@@ -285,7 +294,7 @@ export class Logger {
   /**
    * Displays a clipboard-related message with 📋 emoji.
    * Auto-adds 📋 if not present.
-   * 
+   *
    * @param message - The clipboard message
    * @example
    * logger.displayClipboard('Copy your message now');
@@ -300,7 +309,7 @@ export class Logger {
   /**
    * Displays a cleanup/recycling message with ♻️ emoji.
    * Auto-adds ♻️ if not present.
-   * 
+   *
    * @param message - The cleanup message
    * @example
    * logger.displayCleanup('Found 5 empty folders');
@@ -317,7 +326,7 @@ export class Logger {
    * Auto-adds ← if not present.
    * NOTE: The ellipsis from "Going back..." has been intentionally removed
    * for consistency. Use present tense for ongoing actions.
-   * 
+   *
    * @param message - The navigation message (defaults to "Going back")
    * @example
    * logger.displayGoBack();
@@ -332,7 +341,7 @@ export class Logger {
   /**
    * Displays a neutral info message.
    * No emoji added automatically.
-   * 
+   *
    * @param message - The info message
    * @example
    * logger.displayInfo('Processing continues');
@@ -346,10 +355,10 @@ export class Logger {
   /**
    * Resets the output state after external output (spinners, progress bars, etc.).
    * Call this IMMEDIATELY after a spinner completes to ensure proper spacing for next message.
-   * 
+   *
    * IMPORTANT: Must be called AFTER spinner completion but BEFORE any display method calls.
    * This is synchronous so no timing issues.
-   * 
+   *
    * @param type - The type of external output that just completed
    * @example
    * spinner.succeed('Operation completed');
@@ -363,12 +372,12 @@ export class Logger {
   /**
    * Cleans a message by removing formatting that the logger will add.
    * Removes: leading/trailing whitespace (including \n), === markers, trailing periods/ellipsis, internal newlines.
-   * 
+   *
    * NOTE: ALL trailing periods are removed, including ellipsis (...).
    * If you want to indicate ongoing action, use present tense or spinner instead.
-   * 
+   *
    * IMPORTANT: trim() automatically removes leading/trailing \n, so explicit \n removal is not needed.
-   * 
+   *
    * @param message - The raw message to clean
    * @returns The cleaned message
    * @throws Error with message 'Display message cannot be empty' if message is empty after cleaning
@@ -390,18 +399,18 @@ export class Logger {
    * Outputs a message with intelligent blank line management.
    * Prevents duplicate blank lines and ensures consistent spacing.
    * IMPORTANT: Does NOT log to file - console output only.
-   * 
+   *
    * SYNCHRONOUS EXECUTION: This method relies on console.log being synchronous.
    * The isDisplayMethod flag is set true BEFORE console.log and false AFTER,
    * ensuring setupConsoleCapture() in scripts sees the correct flag state.
-   * 
+   *
    * @param message - The formatted message to output
    */
   private outputWithBreakLines(message: string): void {
     if (!LOG_CONFIG.enableConsole) return;
     this.isDisplayMethod = true;
-    const needsBlankBefore = 
-      this.lastOutputType !== 'blank' && 
+    const needsBlankBefore =
+      this.lastOutputType !== 'blank' &&
       this.lastOutputType !== 'init' &&
       this.lastOutputType !== 'spinner' &&
       this.lastOutputType !== 'menu';
@@ -428,7 +437,11 @@ export class Logger {
     this.log(LogLevel.DEBUG, message, data);
   }
 
-  info(message: string, data?: Record<string, unknown>, useDecorators: boolean = true): void {
+  info(
+    message: string,
+    data?: Record<string, unknown>,
+    useDecorators: boolean = true
+  ): void {
     this.log(LogLevel.INFO, message, data, useDecorators);
   }
 
@@ -481,10 +494,12 @@ All display messages will:
 ### 3. Smart Break Line Logic
 
 **State Tracking**:
+
 - `lastOutputType`: tracks the last output type - `'message' | 'blank' | 'spinner' | 'menu' | 'init'`
 - `isDisplayMethod`: flag to identify when output is from display methods (prevents console capture interference)
 
 **Logic**:
+
 - **Before message**: Add blank line ONLY if last output was NOT: blank, init, spinner, or menu
 - **After message**: Always add one blank line
 - **After spinner**: Call `resetState('spinner')` to prevent adding extra blank before next message
@@ -496,6 +511,7 @@ All display messages will:
 ### 4. Console Capture Integration
 
 **Issue**: Three scripts have `setupConsoleCapture()` that intercepts all `console.log()` calls for file logging:
+
 1. `eventsJobsSync.ts` (lines 108-124)
 2. `contactsSync.ts` (lines 68-84)
 3. `linkedinSync.ts` (lines 318-353, with additional spinner character filtering)
@@ -592,6 +608,7 @@ This ensures display messages go to console only, never to file logging.
 **Complete Class Structure Changes**:
 
 1. **Add imports** (if not present):
+
 ```typescript
 import { promises as fs } from 'fs';
 import { join } from 'path';
@@ -600,14 +617,16 @@ import { LOG_CONFIG } from './logConfig';
 ```
 
 2. **Add private properties** AFTER constructor, BEFORE methods:
+
 ```typescript
 export class Logger {
   constructor(private context: string) {}
-  
+
   // NEW: Add these two private properties
-  private lastOutputType: 'message' | 'blank' | 'spinner' | 'menu' | 'init' = 'init';
+  private lastOutputType: 'message' | 'blank' | 'spinner' | 'menu' | 'init' =
+    'init';
   private isDisplayMethod: boolean = false;
-  
+
   // ... methods follow
 }
 ```
@@ -636,6 +655,7 @@ export class Logger {
 **Lines affected**: Add ~200 lines to class
 
 **Critical Implementation Notes**:
+
 - Properties must be declared AFTER constructor, BEFORE methods
 - `cleanMessage()` must throw error if message is empty after cleaning
 - `cleanMessage()` optimization: remove redundant `replace(/^\n+|\n+$/g, '')` since `trim()` already handles it
@@ -667,7 +687,7 @@ private setupConsoleCapture(): void {
   const self = this;
   const originalLog = this.originalConsoleLog;
   const originalError = this.originalConsoleError;
-  
+
   console.log = function (...args: any[]): void {
     // Check display method FIRST - if true, output and return immediately
     if (self.uiLogger && (self.uiLogger as any).isDisplayMethod) {
@@ -680,7 +700,7 @@ private setupConsoleCapture(): void {
     originalLog.apply(console, args);
     void self.logger.logMain(message);
   };
-  
+
   console.error = function (...args: any[]): void {
     // Check display method FIRST
     if (self.uiLogger && (self.uiLogger as any).isDisplayMethod) {
@@ -708,7 +728,7 @@ private setupConsoleCapture(): void {
   const self = this;
   const originalLog = this.originalConsoleLog;
   const originalError = this.originalConsoleError;
-  
+
   console.log = function (...args: any[]): void {
     if (self.uiLogger && (self.uiLogger as any).isDisplayMethod) {
       originalLog.apply(console, args);
@@ -720,7 +740,7 @@ private setupConsoleCapture(): void {
     originalLog.apply(console, args);
     void self.logger.logMain(message);
   };
-  
+
   console.error = function (...args: any[]): void {
     if (self.uiLogger && (self.uiLogger as any).isDisplayMethod) {
       originalError.apply(console, args);
@@ -747,7 +767,7 @@ private setupConsoleCapture(logger: SyncLogger): void {
   const self = this;
   const originalLog = this.originalConsoleLog;
   const originalError = this.originalConsoleError;
-  
+
   console.log = function (...args: any[]): void {
     // Check display method FIRST
     if (self.uiLogger && (self.uiLogger as any).isDisplayMethod) {
@@ -776,7 +796,7 @@ private setupConsoleCapture(logger: SyncLogger): void {
       void logger.logMain(message);
     }
   };
-  
+
   console.error = function (...args: any[]): void {
     if (self.uiLogger && (self.uiLogger as any).isDisplayMethod) {
       originalError.apply(console, args);
@@ -832,12 +852,12 @@ EXIT_SCRIPT: 'Exit script',  // Remove emoji, display methods will add if needed
 
 **Changes**:
 
-| Line | Before | After |
-|------|--------|-------|
-| 25 | `uiLogger.info(header);` | `uiLogger.display(header);` |
-| 26 | `console.log();` | *Remove* (display handles break) |
-| 48 | `console.log(\`\n${UI_CONSTANTS.MESSAGES.EXIT_SCRIPT}\n\`);` | `uiLogger.display(UI_CONSTANTS.MESSAGES.EXIT_SCRIPT);` |
-| 54 | `console.log(\`\n${UI_CONSTANTS.MESSAGES.EXIT_SCRIPT}\n\`);` | `uiLogger.display(UI_CONSTANTS.MESSAGES.EXIT_SCRIPT);` |
+| Line | Before                                                       | After                                                  |
+| ---- | ------------------------------------------------------------ | ------------------------------------------------------ |
+| 25   | `uiLogger.info(header);`                                     | `uiLogger.display(header);`                            |
+| 26   | `console.log();`                                             | _Remove_ (display handles break)                       |
+| 48   | `console.log(\`\n${UI_CONSTANTS.MESSAGES.EXIT_SCRIPT}\n\`);` | `uiLogger.display(UI_CONSTANTS.MESSAGES.EXIT_SCRIPT);` |
+| 54   | `console.log(\`\n${UI_CONSTANTS.MESSAGES.EXIT_SCRIPT}\n\`);` | `uiLogger.display(UI_CONSTANTS.MESSAGES.EXIT_SCRIPT);` |
 
 **Lines affected**: 4 changes
 
@@ -851,80 +871,80 @@ EXIT_SCRIPT: 'Exit script',  // Remove emoji, display methods will add if needed
 
 #### Script Header
 
-| Line | Before | After |
-|------|--------|-------|
-| 72 | `console.log('\n===Events & Jobs Sync===\n');` | `this.uiLogger.display('Events & Jobs Sync');` |
+| Line | Before                                         | After                                          |
+| ---- | ---------------------------------------------- | ---------------------------------------------- |
+| 72   | `console.log('\n===Events & Jobs Sync===\n');` | `this.uiLogger.display('Events & Jobs Sync');` |
 
 #### Authentication Messages
 
-| Line | Before | After |
-|------|--------|-------|
+| Line  | Before                     | After                                                                                                                                          |
+| ----- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | 85-88 | Two console.log statements | `this.uiLogger.displayMultiLine(['⚠️ Google authentication failed', 'You can still create notes, but contact features will be unavailable']);` |
 
 **Note**: Using `displayMultiLine()` to show related messages together with separate `===` markers per line.
 
 #### Script Interruption
 
-| Line | Before | After |
-|------|--------|-------|
-| 93 | `console.log('\n===⚠️  Script interrupted by user===');` | `this.uiLogger.displayWarning('Script interrupted by user');` |
-| 98 | `console.error('\n❌ Script failed:', error.message);` | `this.uiLogger.displayError(\`Script failed: ${error.message}\`);` |
-| 131 | `console.log('\n===⚠️  Script interrupted by user===');` | `this.uiLogger.displayWarning('Script interrupted by user');` |
+| Line | Before                                                   | After                                                              |
+| ---- | -------------------------------------------------------- | ------------------------------------------------------------------ |
+| 93   | `console.log('\n===⚠️  Script interrupted by user===');` | `this.uiLogger.displayWarning('Script interrupted by user');`      |
+| 98   | `console.error('\n❌ Script failed:', error.message);`   | `this.uiLogger.displayError(\`Script failed: ${error.message}\`);` |
+| 131  | `console.log('\n===⚠️  Script interrupted by user===');` | `this.uiLogger.displayWarning('Script interrupted by user');`      |
 
 #### Cache Messages
 
-| Line | Before | After |
-|------|--------|-------|
-| 364 | `console.log('\n⚠️  Cache is empty. Please restart the script.\n');` | `this.uiLogger.displayWarning('Cache is empty. Please restart the script');` |
+| Line | Before                                                               | After                                                                        |
+| ---- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| 364  | `console.log('\n⚠️  Cache is empty. Please restart the script.\n');` | `this.uiLogger.displayWarning('Cache is empty. Please restart the script');` |
 | 1057 | `console.log('\n⚠️  Cache is empty. Please restart the script.\n');` | `this.uiLogger.displayWarning('Cache is empty. Please restart the script');` |
 | 1233 | `console.log('\n⚠️  Cache is empty. Please restart the script.\n');` | `this.uiLogger.displayWarning('Cache is empty. Please restart the script');` |
 
 #### Folder Operations
 
-| Line | Before | After |
-|------|--------|-------|
-| 397 | `console.log('\n===⚠️  Folder was deleted externally===');` | `this.uiLogger.displayWarning('Folder was deleted externally');` |
-| 430 | `console.log('\n===❌ Folder creation cancelled===\n');` | `this.uiLogger.displayError('Folder creation cancelled');` |
-| 441 | `console.log('\n===❌ Folder creation cancelled===\n');` | `this.uiLogger.displayError('Folder creation cancelled');` |
-| 474 | `console.log('\n===⚠️  Folder was deleted externally===');` | `this.uiLogger.displayWarning('Folder was deleted externally');` |
-| 673 | `console.log('\n===❌ Folder creation cancelled===\n');` | `this.uiLogger.displayError('Folder creation cancelled');` |
-| 888 | `console.log('\n===❌ Folder creation cancelled===\n');` | `this.uiLogger.displayError('Folder creation cancelled');` |
+| Line | Before                                                      | After                                                            |
+| ---- | ----------------------------------------------------------- | ---------------------------------------------------------------- |
+| 397  | `console.log('\n===⚠️  Folder was deleted externally===');` | `this.uiLogger.displayWarning('Folder was deleted externally');` |
+| 430  | `console.log('\n===❌ Folder creation cancelled===\n');`    | `this.uiLogger.displayError('Folder creation cancelled');`       |
+| 441  | `console.log('\n===❌ Folder creation cancelled===\n');`    | `this.uiLogger.displayError('Folder creation cancelled');`       |
+| 474  | `console.log('\n===⚠️  Folder was deleted externally===');` | `this.uiLogger.displayWarning('Folder was deleted externally');` |
+| 673  | `console.log('\n===❌ Folder creation cancelled===\n');`    | `this.uiLogger.displayError('Folder creation cancelled');`       |
+| 888  | `console.log('\n===❌ Folder creation cancelled===\n');`    | `this.uiLogger.displayError('Folder creation cancelled');`       |
 
 #### Clipboard & Note Messages
 
-| Line | Before | After |
-|------|--------|-------|
-| 992 | `console.log('\n===⚠️  Clipboard is empty===\n');` | `this.uiLogger.displayWarning('Clipboard is empty');` |
+| Line | Before                                                                       | After                                                                                |
+| ---- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| 992  | `console.log('\n===⚠️  Clipboard is empty===\n');`                           | `this.uiLogger.displayWarning('Clipboard is empty');`                                |
 | 1011 | `console.log('\n⚠️  Message cannot exceed 1MB (~1,048,576 characters).\n');` | `this.uiLogger.displayWarning('Message cannot exceed 1MB (~1,048,576 characters)');` |
-| 1015 | `console.log('\n⚠️  Message cannot contain binary data (null bytes).\n');` | `this.uiLogger.displayWarning('Message cannot contain binary data (null bytes)');` |
-| 1078 | `console.log('\n⚠️  No notes found in this folder.\n');` | `this.uiLogger.displayWarning('No notes found in this folder');` |
-| 1098 | `console.log('\n===📋 Copy your new message now and press Enter===\n');` | `this.uiLogger.displayClipboard('Copy your new message now and press Enter');` |
+| 1015 | `console.log('\n⚠️  Message cannot contain binary data (null bytes).\n');`   | `this.uiLogger.displayWarning('Message cannot contain binary data (null bytes)');`   |
+| 1078 | `console.log('\n⚠️  No notes found in this folder.\n');`                     | `this.uiLogger.displayWarning('No notes found in this folder');`                     |
+| 1098 | `console.log('\n===📋 Copy your new message now and press Enter===\n');`     | `this.uiLogger.displayClipboard('Copy your new message now and press Enter');`       |
 | 1157 | `console.log('\n⚠️  Message cannot exceed 1MB (~1,048,576 characters).\n');` | `this.uiLogger.displayWarning('Message cannot exceed 1MB (~1,048,576 characters)');` |
-| 1161 | `console.log('\n⚠️  Message cannot contain binary data (null bytes).\n');` | `this.uiLogger.displayWarning('Message cannot contain binary data (null bytes)');` |
-| 1170 | `console.log('\nNote rewrite cancelled.\n');` | `this.uiLogger.displayInfo('Note rewrite cancelled');` |
-| 1181 | `console.log('\n⚠️  No note has been created in this session.\n');` | `this.uiLogger.displayWarning('No note has been created in this session');` |
-| 1195 | `console.log('\n===❌ Note deletion cancelled===\n');` | `this.uiLogger.displayError('Note deletion cancelled');` |
-| 1220 | `console.log('\n⚠️  Note file was already deleted externally\n');` | `this.uiLogger.displayWarning('Note file was already deleted externally');` |
+| 1161 | `console.log('\n⚠️  Message cannot contain binary data (null bytes).\n');`   | `this.uiLogger.displayWarning('Message cannot contain binary data (null bytes)');`   |
+| 1170 | `console.log('\nNote rewrite cancelled.\n');`                                | `this.uiLogger.displayInfo('Note rewrite cancelled');`                               |
+| 1181 | `console.log('\n⚠️  No note has been created in this session.\n');`          | `this.uiLogger.displayWarning('No note has been created in this session');`          |
+| 1195 | `console.log('\n===❌ Note deletion cancelled===\n');`                       | `this.uiLogger.displayError('Note deletion cancelled');`                             |
+| 1220 | `console.log('\n⚠️  Note file was already deleted externally\n');`           | `this.uiLogger.displayWarning('Note file was already deleted externally');`          |
 
 #### Empty Folders Cleanup
 
-| Line | Before | After |
-|------|--------|-------|
-| 1260 | `console.log('===✅ No empty folders found===');` | `this.uiLogger.displaySuccess('No empty folders found');` |
-| 1268 | `console.log(\`===♻️  Found ${formattedCount} empty folders:===\`);` | `this.uiLogger.displayCleanup(\`Found ${formattedCount} empty folders:\`);` |
-| 1283 | `console.log('\n===⚠️  Folder deletion cancelled===\n');` | `this.uiLogger.displayWarning('Folder deletion cancelled');` |
-| 1320 | `console.log('===⚠️  Skipped (no longer empty):===');` | `this.uiLogger.displayWarning('Skipped (no longer empty):');` |
+| Line | Before                                                              | After                                                                       |
+| ---- | ------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| 1260 | `console.log('===✅ No empty folders found===');`                   | `this.uiLogger.displaySuccess('No empty folders found');`                   |
+| 1268 | `console.log(\`===♻️ Found ${formattedCount} empty folders:===\`);` | `this.uiLogger.displayCleanup(\`Found ${formattedCount} empty folders:\`);` |
+| 1283 | `console.log('\n===⚠️  Folder deletion cancelled===\n');`           | `this.uiLogger.displayWarning('Folder deletion cancelled');`                |
+| 1320 | `console.log('===⚠️  Skipped (no longer empty):===');`              | `this.uiLogger.displayWarning('Skipped (no longer empty):');`               |
 
 #### Contact & Label Messages
 
-| Line | Before | After |
-|------|--------|-------|
+| Line | Before                                                                | After                                                                              |
+| ---- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | 1564 | `console.log('The folder name changed since the note was created.');` | `this.uiLogger.displayInfo('The folder name changed since the note was created');` |
-| 1673 | `console.log('===❌ Contact creation cancelled===');` | `this.uiLogger.displayError('Contact creation cancelled');` |
-| 1683 | `console.log('===✅ Label created successfully===');` | `this.uiLogger.displaySuccess('Label created successfully');` |
-| 1715 | `console.log('✅ Contact created');` | `this.uiLogger.displaySuccess('Contact created');` |
-| 1731 | `console.log('===Note: The note was still created successfully===');` | `this.uiLogger.displayInfo('Note: The note was still created successfully');` |
-| 1743 | `console.log('===Note: The note was still created successfully===');` | `this.uiLogger.displayInfo('Note: The note was still created successfully');` |
+| 1673 | `console.log('===❌ Contact creation cancelled===');`                 | `this.uiLogger.displayError('Contact creation cancelled');`                        |
+| 1683 | `console.log('===✅ Label created successfully===');`                 | `this.uiLogger.displaySuccess('Label created successfully');`                      |
+| 1715 | `console.log('✅ Contact created');`                                  | `this.uiLogger.displaySuccess('Contact created');`                                 |
+| 1731 | `console.log('===Note: The note was still created successfully===');` | `this.uiLogger.displayInfo('Note: The note was still created successfully');`      |
+| 1743 | `console.log('===Note: The note was still created successfully===');` | `this.uiLogger.displayInfo('Note: The note was still created successfully');`      |
 
 #### Spinner Integration
 
@@ -937,8 +957,9 @@ this.uiLogger.resetState('spinner'); // Must be called before next display messa
 ```
 
 **Actual spinner.stop() locations in eventsJobsSync.ts**:
+
 - Line 408: After `scanFolders()` in folder selection
-- Line 485: After second `scanFolders()` 
+- Line 485: After second `scanFolders()`
 - Line 823: After `createContactGroup()`
 - Line 988: After note retrieval from clipboard
 - Line 1146: After note rewrite from clipboard
@@ -949,6 +970,7 @@ this.uiLogger.resetState('spinner'); // Must be called before next display messa
 #### Remove Standalone Break Lines
 
 Remove these `console.log('')` calls (display methods handle break lines):
+
 - Line 229
 - Line 410
 - Line 487
@@ -971,17 +993,17 @@ Remove these `console.log('')` calls (display methods handle break lines):
 
 **Estimated changes**: ~10 instances
 
-| Line | Before | After |
-|------|--------|-------|
-| 42 | `console.log('\n===Contacts Sync===\n');` | `this.uiLogger.display('Contacts Sync');` |
-| 93 | `console.log('\n===⚠️  Script interrupted by user===');` | `this.uiLogger.displayWarning('Script interrupted by user');` |
-| 117 | `console.log(\`\n${UI_CONSTANTS.MESSAGES.EXIT_SCRIPT}\n\`);` | `this.uiLogger.display(UI_CONSTANTS.MESSAGES.EXIT_SCRIPT);` |
-| 127 | `console.log(\`\n${UI_CONSTANTS.MESSAGES.EXIT_SCRIPT}\n\`);` | `this.uiLogger.display(UI_CONSTANTS.MESSAGES.EXIT_SCRIPT);` |
-| 148 | `console.log('\n===No contacts need syncing!===\n');` | `this.uiLogger.display('No contacts need syncing!');` |
-| 198 | `console.log('\nContact edit cancelled.\n');` | `this.uiLogger.displayInfo('Contact edit cancelled');` |
-| 212 | `console.log('\n===All contacts have been processed!===\n');` | `this.uiLogger.display('All contacts have been processed!');` |
-| 225 | `console.log('\n===❌ Contact creation cancelled===\n');` | `this.uiLogger.displayError('Contact creation cancelled');` |
-| 238 | `console.log('\n===❌ Contact creation cancelled===\n');` | `this.uiLogger.displayError('Contact creation cancelled');` |
+| Line | Before                                                        | After                                                         |
+| ---- | ------------------------------------------------------------- | ------------------------------------------------------------- |
+| 42   | `console.log('\n===Contacts Sync===\n');`                     | `this.uiLogger.display('Contacts Sync');`                     |
+| 93   | `console.log('\n===⚠️  Script interrupted by user===');`      | `this.uiLogger.displayWarning('Script interrupted by user');` |
+| 117  | `console.log(\`\n${UI_CONSTANTS.MESSAGES.EXIT_SCRIPT}\n\`);`  | `this.uiLogger.display(UI_CONSTANTS.MESSAGES.EXIT_SCRIPT);`   |
+| 127  | `console.log(\`\n${UI_CONSTANTS.MESSAGES.EXIT_SCRIPT}\n\`);`  | `this.uiLogger.display(UI_CONSTANTS.MESSAGES.EXIT_SCRIPT);`   |
+| 148  | `console.log('\n===No contacts need syncing!===\n');`         | `this.uiLogger.display('No contacts need syncing!');`         |
+| 198  | `console.log('\nContact edit cancelled.\n');`                 | `this.uiLogger.displayInfo('Contact edit cancelled');`        |
+| 212  | `console.log('\n===All contacts have been processed!===\n');` | `this.uiLogger.display('All contacts have been processed!');` |
+| 225  | `console.log('\n===❌ Contact creation cancelled===\n');`     | `this.uiLogger.displayError('Contact creation cancelled');`   |
+| 238  | `console.log('\n===❌ Contact creation cancelled===\n');`     | `this.uiLogger.displayError('Contact creation cancelled');`   |
 
 #### Keep Unchanged
 
@@ -997,14 +1019,15 @@ Remove these `console.log('')` calls (display methods handle break lines):
 
 #### Convert uiLogger.info() to display()
 
-| Line Range | Before | After |
-|------------|--------|-------|
-| 508-515 | `this.uiLogger.info(\`===Displaying ${title}===\`, {}, false);` | `this.uiLogger.display(\`Displaying ${title}\`);` |
-| Similar pattern throughout | `this.uiLogger.info(\`===...===\`, {}, false);` | `this.uiLogger.display('...');` |
+| Line Range                 | Before                                                          | After                                             |
+| -------------------------- | --------------------------------------------------------------- | ------------------------------------------------- |
+| 508-515                    | `this.uiLogger.info(\`===Displaying ${title}===\`, {}, false);` | `this.uiLogger.display(\`Displaying ${title}\`);` |
+| Similar pattern throughout | `this.uiLogger.info(\`===...===\`, {}, false);`                 | `this.uiLogger.display('...');`                   |
 
 #### Fix Duplicate Menu Bug
 
 **Lines 465-468**: DELETE these lines completely:
+
 ```typescript
 console.log('? What would you like to do now: (Use arrow keys)');
 for (const choice of choices) {
@@ -1019,6 +1042,7 @@ Let enquirer handle all menu rendering.
 #### Replace breakline() Before Display Messages
 
 Remove unnecessary `breakline()` calls that appear before display messages:
+
 - Line 131: Remove (display handles it)
 - Line 134: Remove (display handles it)
 - Line 286: Remove (display handles it)
@@ -1030,12 +1054,12 @@ Remove unnecessary `breakline()` calls that appear before display messages:
 
 #### Convert Info Messages
 
-| Pattern | Action |
-|---------|--------|
-| `this.uiLogger.info('===...===', {}, false)` | → `this.uiLogger.display('...')` |
-| `this.uiLogger.info('message', {}, true)` | → `this.uiLogger.display('message')` |
-| `this.uiLogger.error(...)` | → `this.uiLogger.displayError(...)` |
-| `this.uiLogger.warn(...)` | → `this.uiLogger.displayWarning(...)` (if user-facing) |
+| Pattern                                      | Action                                                 |
+| -------------------------------------------- | ------------------------------------------------------ |
+| `this.uiLogger.info('===...===', {}, false)` | → `this.uiLogger.display('...')`                       |
+| `this.uiLogger.info('message', {}, true)`    | → `this.uiLogger.display('message')`                   |
+| `this.uiLogger.error(...)`                   | → `this.uiLogger.displayError(...)`                    |
+| `this.uiLogger.warn(...)`                    | → `this.uiLogger.displayWarning(...)` (if user-facing) |
 
 #### Spinner Integration
 
@@ -1058,10 +1082,10 @@ this.uiLogger.resetState('spinner');
 
 #### Header & Messages
 
-| Line | Before | After |
-|------|--------|-------|
-| Header line | `console.log('\n===Statistics===')` (if exists) | `logger.display('Statistics');` |
-| Warnings | `logger.warn(...)` | `logger.displayWarning(...)` if user-facing |
+| Line        | Before                                          | After                                       |
+| ----------- | ----------------------------------------------- | ------------------------------------------- |
+| Header line | `console.log('\n===Statistics===')` (if exists) | `logger.display('Statistics');`             |
+| Warnings    | `logger.warn(...)`                              | `logger.displayWarning(...)` if user-facing |
 
 #### Keep Unchanged
 
@@ -1091,6 +1115,7 @@ this.uiLogger.resetState('spinner');
 || 776 | `console.log('\n===✅ Contact created successfully===\n');` | `this.uiLogger.displaySuccess('Contact created successfully');` |
 
 **Spinner Integration**:
+
 - Line 753: After `spinner.stop()` → Add `this.uiLogger.resetState('spinner');`
 - Line 876: After `spinner.stop()` and `spinner.clear()` → Add `this.uiLogger.resetState('spinner');`
 
@@ -1101,6 +1126,7 @@ this.uiLogger.resetState('spinner');
 **Estimated changes**: ~2 instances
 
 **Remove blank lines**:
+
 - Line 246: `console.log('');` → Remove (display methods handle spacing)
 
 Convert display messages to use display methods (if any user-facing messages exist).
@@ -1118,11 +1144,13 @@ Convert display messages to use display methods (if any user-facing messages exi
 **Rationale**: Spinner messages should NOT contain `===` markers. The `===` format is exclusively for display methods. After spinner completes, call `resetState('spinner')` to ensure proper spacing for subsequent display messages.
 
 **Spinner Integration**:
+
 - Line 140: After `spinner.fail()` → Add `uiLogger.resetState('spinner');`
 - Line 148: After `spinner.succeed()` (with cleaned message) → Add `uiLogger.resetState('spinner');`
 - Line 492: After `spinner.stop()` → Add `uiLogger.resetState('spinner');`
 
 **Remove blank lines**:
+
 - Line 147: `console.log('');` → Remove
 - Line 151: `console.log('');` → Remove (replaced by resetState)
 
@@ -1136,9 +1164,11 @@ Convert display messages to use display methods (if any user-facing messages exi
 || 31 | `console.log('\n⚠️  Google authentication failed. Contact statistics will be unavailable.\n');` | `logger.displayWarning('Google authentication failed. Contact statistics will be unavailable');` |
 
 **Spinner Integration**:
+
 - Line 46: After `spinner.stop()` and `spinner.clear()` → Add `logger.resetState('spinner');`
 
 **Keep Unchanged**:
+
 - All table formatting using `padLineWithEquals` (lines 154-172)
 - Line 173: `console.log('='.repeat(width));` - table borders
 
@@ -1147,6 +1177,7 @@ Convert display messages to use display methods (if any user-facing messages exi
 **Estimated changes**: ~5-10 instances
 
 Convert all user-facing console.log messages to display methods. Search for patterns:
+
 - `console.log` with `===` markers → appropriate display method
 - Success messages → `displaySuccess()`
 - Error messages → `displayError()`
@@ -1191,13 +1222,14 @@ Convert any user-facing console.log/console.error messages to display methods.
 || 430 | `this.uiLogger.info(...)` | `this.uiLogger.display(...)` (if not summary box) |
 || 438 | `this.uiLogger.info('='.repeat(lineWidth), {}, false);` | **Keep unchanged** (table border) |
 || 493 | `this.uiLogger.info(UI_CONSTANTS.MESSAGES.EXIT_SCRIPT, {}, false);` | `this.uiLogger.display(UI_CONSTANTS.MESSAGES.EXIT_SCRIPT);` |
-|| 508 | `this.uiLogger.info(\`===Displaying ${title}===\`, {}, false);` | `this.uiLogger.display(\`Displaying ${title}\`);` |
-|| 517 | `this.uiLogger.info(...)` | `this.uiLogger.display(...)` |
-|| 523 | `this.uiLogger.info(\`-Reason: ${reason}\`, {}, false);` | **Keep unchanged** (structured data display) |
+|| 508 | `this.uiLogger.info(\`===Displaying ${title}===\`, {}, false);`|`this.uiLogger.display(\`Displaying ${title}\`);`|
+|| 517 |`this.uiLogger.info(...)`|`this.uiLogger.display(...)`|
+|| 523 |`this.uiLogger.info(\`-Reason: ${reason}\`, {}, false);` | **Keep unchanged** (structured data display) |
 
 #### Fix Duplicate Menu Bug
 
 **Lines 465-468**: DELETE these lines completely:
+
 ```typescript
 console.log('? What would you like to do now: (Use arrow keys)');
 for (const choice of choices) {
@@ -1212,6 +1244,7 @@ Let enquirer handle all menu rendering.
 #### Remove Unnecessary breakline() Calls
 
 Remove `breakline()` calls that appear immediately before display messages:
+
 - Line 131: `this.uiLogger.breakline();` → Remove (display handles it)
 - Line 134: `this.uiLogger.breakline();` → Remove (display handles it)
 - Line 286: `this.uiLogger.breakline();` → Remove (display handles it)
@@ -1233,6 +1266,7 @@ this.uiLogger.resetState('spinner');
 Search for `.succeed()`, `.fail()`, `.stop()` and add `resetState('spinner')` immediately after.
 
 **Special case - Line 306**:
+
 ```typescript
 statusBar.fail('LinkedIn Sync Failed');
 this.uiLogger.resetState('spinner');
@@ -1254,6 +1288,7 @@ this.uiLogger.resetState('spinner');
 || 31 | `console.log('\n⚠️  Google authentication failed. Contact statistics will be unavailable.\n');` | `logger.displayWarning('Google authentication failed. Contact statistics will be unavailable');` |
 
 **Spinner Integration**:
+
 - Line 46: After `spinner.stop()` and `spinner.clear()` → Add `logger.resetState('spinner');`
 
 #### Keep Unchanged
@@ -1273,11 +1308,13 @@ this.uiLogger.resetState('spinner');
 #### File: `src/services/contacts/duplicateDetector.ts`
 
 **Remove blank lines**:
+
 - Line 246: `console.log('');` → Remove (display methods handle spacing)
 
 #### File: `src/services/contacts/contactSyncer.ts`
 
 **Remove blank lines**:
+
 - Line 147: `console.log('');` → Remove (before spinner.succeed)
 - Line 151: `console.log('');` → Remove (after spinner.succeed, use resetState instead)
 
@@ -1285,6 +1322,7 @@ this.uiLogger.resetState('spinner');
 
 **Scan for console.log('') patterns**:
 Search entire file for standalone `console.log('');` calls and evaluate:
+
 - If immediately before display method → Remove
 - If part of structured output (ContactDisplay) → Keep
 
@@ -1296,6 +1334,7 @@ Search entire file for standalone `console.log('');` calls and remove those imme
 #### Verification Command
 
 Run this to find all remaining standalone blank lines:
+
 ```bash
 grep -n "console\.log('');" src/services/**/*.ts
 ```
@@ -1311,6 +1350,7 @@ grep -n "console\.log('');" src/services/**/*.ts
 1. **File**: `src/scripts/__tests__/eventsJobsSync.test.ts`
 
 Review and update:
+
 - Mock `console.log` expectations to account for new display methods
 - Update any assertions on console output format
 - Add tests for new display methods
@@ -1323,6 +1363,7 @@ find src -name "*.test.ts" -o -name "*.spec.ts"
 ```
 
 For each test file:
+
 - Check if it mocks `console.log` or `console.error`
 - Update to account for `isDisplayMethod` flag
 - Update expectations for `===` format
@@ -1339,16 +1380,16 @@ import { Logger } from '../logger';
 describe('Logger Display Methods', () => {
   let logger: Logger;
   let consoleLogSpy: any;
-  
+
   beforeEach(() => {
     logger = new Logger('test');
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
   });
-  
+
   afterEach(() => {
     vi.restoreAllMocks();
   });
-  
+
   describe('display()', () => {
     it('should format display messages with === markers', () => {
       logger.display('Test message');
@@ -1356,13 +1397,19 @@ describe('Logger Display Methods', () => {
       expect(consoleLogSpy).toHaveBeenCalledWith('===Test message===');
       expect(consoleLogSpy).toHaveBeenCalledWith('');
     });
-    
+
     it('should throw error for empty messages', () => {
-      expect(() => logger.display('')).toThrow('Display message cannot be empty');
-      expect(() => logger.display('   ')).toThrow('Display message cannot be empty');
-      expect(() => logger.display('===')).toThrow('Display message cannot be empty');
+      expect(() => logger.display('')).toThrow(
+        'Display message cannot be empty'
+      );
+      expect(() => logger.display('   ')).toThrow(
+        'Display message cannot be empty'
+      );
+      expect(() => logger.display('===')).toThrow(
+        'Display message cannot be empty'
+      );
     });
-    
+
     it('should not add extra blank before message at init', () => {
       consoleLogSpy.mockClear();
       logger.display('First message');
@@ -1371,19 +1418,19 @@ describe('Logger Display Methods', () => {
       expect(calls).not.toContain('');
     });
   });
-  
+
   describe('displayError()', () => {
     it('should auto-add ❌ emoji for errors', () => {
       logger.displayError('Error message');
       expect(consoleLogSpy).toHaveBeenCalledWith('===❌ Error message===');
     });
-    
+
     it('should not duplicate ❌ if already present', () => {
       logger.displayError('❌ Error message');
       expect(consoleLogSpy).toHaveBeenCalledWith('===❌ Error message===');
     });
   });
-  
+
   describe('displayMultiLine()', () => {
     it('should display multiple lines with separate === markers', () => {
       logger.displayMultiLine(['Line 1', 'Line 2', 'Line 3']);
@@ -1392,39 +1439,41 @@ describe('Logger Display Methods', () => {
       expect(consoleLogSpy).toHaveBeenCalledWith('===Line 3===');
       expect(consoleLogSpy).toHaveBeenCalledWith('');
     });
-    
+
     it('should throw error for empty array', () => {
-      expect(() => logger.displayMultiLine([])).toThrow('displayMultiLine requires at least one line');
+      expect(() => logger.displayMultiLine([])).toThrow(
+        'displayMultiLine requires at least one line'
+      );
     });
   });
-  
+
   describe('cleanMessage()', () => {
     it('should remove trailing periods', () => {
       logger.display('Message with period.');
       expect(consoleLogSpy).toHaveBeenCalledWith('===Message with period===');
     });
-    
+
     it('should remove multiple trailing periods (ellipsis)', () => {
       logger.display('Message with ellipsis...');
       expect(consoleLogSpy).toHaveBeenCalledWith('===Message with ellipsis===');
     });
-    
+
     it('should convert internal newlines to spaces', () => {
       logger.display('Line 1\nLine 2\nLine 3');
       expect(consoleLogSpy).toHaveBeenCalledWith('===Line 1 Line 2 Line 3===');
     });
-    
+
     it('should remove === markers from input', () => {
       logger.display('===Already formatted===');
       expect(consoleLogSpy).toHaveBeenCalledWith('===Already formatted===');
     });
-    
+
     it('should remove leading and trailing \\n', () => {
       logger.display('\n← Going back...\n');
       expect(consoleLogSpy).toHaveBeenCalledWith('===← Going back===');
     });
   });
-  
+
   describe('resetState()', () => {
     it('should prevent blank line before message after spinner', () => {
       consoleLogSpy.mockClear();
@@ -1434,7 +1483,7 @@ describe('Logger Display Methods', () => {
       expect(calls[0]).toBe('===After spinner===');
       expect(calls[1]).toBe('');
     });
-    
+
     it('should allow normal spacing after non-spinner state', () => {
       consoleLogSpy.mockClear();
       logger.display('Message 1');
@@ -1445,7 +1494,7 @@ describe('Logger Display Methods', () => {
       expect(calls[1]).toBe('===Message 2===');
       expect(calls[2]).toBe('');
     });
-    
+
     it('should prevent blank line after menu state', () => {
       consoleLogSpy.mockClear();
       logger.resetState('menu');
@@ -1455,7 +1504,7 @@ describe('Logger Display Methods', () => {
       expect(calls[1]).toBe('');
     });
   });
-  
+
   describe('breakline()', () => {
     it('should prevent duplicate breaklines', () => {
       consoleLogSpy.mockClear();
@@ -1465,7 +1514,7 @@ describe('Logger Display Methods', () => {
       expect(consoleLogSpy).toHaveBeenCalledTimes(1);
       expect(consoleLogSpy).toHaveBeenCalledWith('');
     });
-    
+
     it('should allow display after breakline without extra blank', () => {
       consoleLogSpy.mockClear();
       logger.breakline();
@@ -1475,34 +1524,34 @@ describe('Logger Display Methods', () => {
       expect(calls[0]).toBe('===After breakline===');
     });
   });
-  
+
   describe('specialized emoji methods', () => {
     it('displayWarning should add ⚠️', () => {
       logger.displayWarning('Warning');
       expect(consoleLogSpy).toHaveBeenCalledWith('===⚠️ Warning===');
     });
-    
+
     it('displaySuccess should add ✅', () => {
       logger.displaySuccess('Success');
       expect(consoleLogSpy).toHaveBeenCalledWith('===✅ Success===');
     });
-    
+
     it('displayClipboard should add 📋', () => {
       logger.displayClipboard('Clipboard');
       expect(consoleLogSpy).toHaveBeenCalledWith('===📋 Clipboard===');
     });
-    
+
     it('displayCleanup should add ♻️', () => {
       logger.displayCleanup('Cleanup');
       expect(consoleLogSpy).toHaveBeenCalledWith('===♻️ Cleanup===');
     });
-    
+
     it('displayGoBack should add ←', () => {
       logger.displayGoBack();
       expect(consoleLogSpy).toHaveBeenCalledWith('===← Going back===');
     });
   });
-  
+
   describe('concurrent display calls', () => {
     it('should handle rapid sequential messages correctly', () => {
       consoleLogSpy.mockClear();
@@ -1510,16 +1559,16 @@ describe('Logger Display Methods', () => {
       logger.display('Message 2');
       logger.display('Message 3');
       const calls = consoleLogSpy.mock.calls.map((c: any[]) => c[0]);
-      
+
       // First message: no blank before (init state), message, blank after
       expect(calls[0]).toBe('===Message 1===');
       expect(calls[1]).toBe('');
-      
+
       // Second message: blank before, message, blank after
       expect(calls[2]).toBe('');
       expect(calls[3]).toBe('===Message 2===');
       expect(calls[4]).toBe('');
-      
+
       // Third message: blank before, message, blank after
       expect(calls[5]).toBe('');
       expect(calls[6]).toBe('===Message 3===');
@@ -1541,43 +1590,45 @@ describe('Console Capture Integration', () => {
   let logger: Logger;
   let consoleLogSpy: any;
   let fileLogSpy: any;
-  
+
   beforeEach(() => {
     logger = new Logger('test');
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     // Mock file logging
-    fileLogSpy = vi.spyOn(logger as any, 'writeToFile').mockResolvedValue(undefined);
+    fileLogSpy = vi
+      .spyOn(logger as any, 'writeToFile')
+      .mockResolvedValue(undefined);
   });
-  
+
   afterEach(() => {
     vi.restoreAllMocks();
   });
-  
+
   it('should not log display messages to file', () => {
     logger.display('Test message');
     expect(consoleLogSpy).toHaveBeenCalled();
     expect(fileLogSpy).not.toHaveBeenCalled();
   });
-  
+
   it('should still log regular messages to file', () => {
     logger.info('Regular log message');
     expect(fileLogSpy).toHaveBeenCalled();
   });
-  
+
   it('should expose isDisplayMethod flag during display', () => {
     const duringDisplay = vi.fn();
     const originalLog = console.log;
-    console.log = function(...args: any[]) {
+    console.log = function (...args: any[]) {
       duringDisplay((logger as any).isDisplayMethod);
       originalLog.apply(console, args);
     };
-    
+
     logger.display('Test');
-    
+
     expect(duringDisplay).toHaveBeenCalledWith(true);
     console.log = originalLog;
   });
-  
+
   it('should reset isDisplayMethod flag after display', () => {
     logger.display('Test');
     expect((logger as any).isDisplayMethod).toBe(false);
@@ -1594,6 +1645,7 @@ describe('Console Capture Integration', () => {
 Run each script and verify:
 
 **Format Checks**:
+
 - [ ] All messages have `===` markers at start and end
 - [ ] **No messages end with a period `.` - all periods removed**
 - [ ] All emojis are auto-added correctly by specialized methods
@@ -1601,6 +1653,7 @@ Run each script and verify:
 - [ ] Multi-line messages converted to single line (spaces replace `\n`)
 
 **Break Line Checks**:
+
 - [ ] One blank line before each message (except after spinner/menu)
 - [ ] One blank line after each message
 - [ ] NO duplicate blank lines between messages
@@ -1609,6 +1662,7 @@ Run each script and verify:
 - [ ] Proper spacing after spinners complete (use `resetState()`)
 
 **Console Capture Checks**:
+
 - [ ] Display messages NOT logged to file in eventsJobsSync
 - [ ] Console capture still works for non-display output
 - [ ] `isDisplayMethod` flag properly prevents file logging
@@ -1649,6 +1703,7 @@ Run each script and verify:
    - [ ] Warning messages formatted correctly
 
 **Additional Edge Case Tests**:
+
 - [ ] Test rapid sequential messages (3+ in a row) - proper spacing
 - [ ] Test message → menu → message flow - no duplicate blanks
 - [ ] Test spinner → message flow with `resetState()` - no duplicate blanks
@@ -1661,6 +1716,7 @@ Run each script and verify:
 #### ESC Navigation Tests
 
 Test ESC flows for proper formatting:
+
 - [ ] ESC from main menu → exit message displays correctly
 - [ ] ESC from sub-menu → "Going back" message displays correctly
 - [ ] ESC during input → "Cancelled" message displays correctly
@@ -1669,6 +1725,7 @@ Test ESC flows for proper formatting:
 #### Sequence Tests
 
 Test consecutive operations:
+
 - [ ] Message → Menu: One blank line between
 - [ ] Message → Message: One blank line between
 - [ ] Menu → Message: One blank line between
@@ -1679,10 +1736,12 @@ Test consecutive operations:
 ## Files to Modify
 
 ### Core Files
+
 - `src/logging/logger.ts` - Add display methods, state tracking, and smart break line logic (~200 lines added)
 - `src/constants/uiConstants.ts` - Clean up constants (remove `===`, `\n`, `.`, emojis)
 
 ### Script Files
+
 - `src/index.ts` - Main entry point (4 changes)
 - `src/scripts/eventsJobsSync.ts` - Events & Jobs script (~70+ changes + console capture fix + spinner resets + blank line removal)
 - `src/scripts/contactsSync.ts` - Contacts script (~10 changes + console capture fix)
@@ -1690,6 +1749,7 @@ Test consecutive operations:
 - `src/scripts/statistics.ts` - Statistics script (~5 changes + spinner reset)
 
 ### Service Files
+
 - `src/services/contacts/contactEditor.ts` - Contact editor (~30 changes + spinner resets)
 - `src/services/contacts/duplicateDetector.ts` - Duplicate detector (~2 changes + blank line removal)
 - `src/services/contacts/contactSyncer.ts` - Contact syncer (~7 changes + spinner message fix + spinner resets + blank line removal)
@@ -1697,6 +1757,7 @@ Test consecutive operations:
 - `src/services/auth/authService.ts` - Auth service (~2-5 changes if any)
 
 ### Test Files
+
 - `src/scripts/__tests__/eventsJobsSync.test.ts` - Update mocks and expectations
 - `src/logging/__tests__/logger.test.ts` - Create new comprehensive tests for display methods
 - `src/scripts/__tests__/consoleCapture.test.ts` - Create new tests for console capture integration
@@ -1706,6 +1767,7 @@ Test consecutive operations:
 **Total estimated changes**: ~300+ individual changes
 
 **Change Breakdown by File**:
+
 - logger.ts: ~200 lines added
 - eventsJobsSync.ts: ~70 changes
 - linkedinSync.ts: ~40 changes
@@ -1719,18 +1781,22 @@ Test consecutive operations:
 ## Key Design Decisions
 
 ### 1. Extend Logger vs Create New Class
+
 **Decision**: Extend existing Logger class
 
 **Rationale**:
+
 - Keeps logging centralized
 - Reuses existing infrastructure (LOG_CONFIG, etc.)
 - Avoids duplication
 - Easier for developers to find logging methods
 
 ### 2. Break Line Strategy
+
 **Decision**: Automatic but intelligent with state tracking
 
 **Rationale**:
+
 - Prevents duplicate blank lines through state awareness
 - Consistent spacing across all scripts
 - Developers don't have to think about break lines
@@ -1738,18 +1804,22 @@ Test consecutive operations:
 - State reset mechanism integrates with external output (ora spinners)
 
 ### 3. Display Methods Never Log to File
+
 **Decision**: Display methods bypass file logging entirely
 
 **Rationale**:
+
 - Display messages are UI feedback, not application logs
 - File logs should contain structured data only
 - Console capture in eventsJobsSync checks `isDisplayMethod` flag
 - Keeps log files clean and focused
 
 ### 4. Message Sanitization
+
 **Decision**: Strip ALL formatting from input, logger adds it
 
 **Rationale**:
+
 - Messages in constants are clean and readable
 - Logger handles all formatting consistently
 - Less room for human error
@@ -1758,9 +1828,11 @@ Test consecutive operations:
 - ALL trailing periods removed (while loop ensures multiple periods removed)
 
 ### 5. Specialized Emoji Methods
+
 **Decision**: Create dedicated methods for each emoji type
 
 **Rationale**:
+
 - Auto-adds appropriate emoji (✅, ❌, ⚠️, 📋, ♻️, ←)
 - Consistent emoji usage across codebase
 - Clear method names indicate intent (`displaySuccess()`, `displayWarning()`, etc.)
@@ -1772,6 +1844,7 @@ Test consecutive operations:
 ## Risk Mitigation
 
 ### Testing Strategy
+
 1. **Phase-by-phase testing**: Test after each file is refactored
 2. **Interactive mode testing**: Run scripts interactively to verify spacing
 3. **ESC flow testing**: Test all escape scenarios
@@ -1779,26 +1852,28 @@ Test consecutive operations:
 
 ### Potential Issues
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Duplicate blank lines slip through | Medium | State tracking with 'spinner'/'menu' types + comprehensive testing |
-| Break file logging | High | Display methods bypass file logging entirely via `isDisplayMethod` flag |
-| Console capture intercepts display output | High | Modified `setupConsoleCapture()` to check `isDisplayMethod` flag |
-| Summary boxes get reformatted | Low | Explicitly exclude from refactoring |
-| Spinner messages get reformatted | Low | Explicitly exclude from refactoring + call `resetState()` after |
-| Miss some console.log instances | Medium | Use grep to find all instances before starting |
-| Test failures due to format changes | Medium | Update test mocks and add new display method tests |
-| Multi-line messages break format | Low | `cleanMessage()` converts `\n` to spaces |
-| Interleaved breakline() creates duplicates | Medium | Modified `breakline()` checks if last was already blank |
+| Risk                                       | Impact | Mitigation                                                              |
+| ------------------------------------------ | ------ | ----------------------------------------------------------------------- |
+| Duplicate blank lines slip through         | Medium | State tracking with 'spinner'/'menu' types + comprehensive testing      |
+| Break file logging                         | High   | Display methods bypass file logging entirely via `isDisplayMethod` flag |
+| Console capture intercepts display output  | High   | Modified `setupConsoleCapture()` to check `isDisplayMethod` flag        |
+| Summary boxes get reformatted              | Low    | Explicitly exclude from refactoring                                     |
+| Spinner messages get reformatted           | Low    | Explicitly exclude from refactoring + call `resetState()` after         |
+| Miss some console.log instances            | Medium | Use grep to find all instances before starting                          |
+| Test failures due to format changes        | Medium | Update test mocks and add new display method tests                      |
+| Multi-line messages break format           | Low    | `cleanMessage()` converts `\n` to spaces                                |
+| Interleaved breakline() creates duplicates | Medium | Modified `breakline()` checks if last was already blank                 |
 
 ### Rollback Plan
 
 If issues arise:
+
 1. Revert Logger class changes
 2. Revert constants changes
 3. Revert script changes file-by-file
 
 Git commit strategy:
+
 1. Commit Logger class changes first
 2. Commit console capture fix in eventsJobsSync
 3. Commit constants changes
@@ -1811,6 +1886,7 @@ Git commit strategy:
 ## Success Criteria
 
 ### Functional Requirements
+
 - ✅ All display messages use `===Message===` format
 - ✅ No messages end with `.`
 - ✅ No duplicate blank lines anywhere
@@ -1819,6 +1895,7 @@ Git commit strategy:
 - ✅ LinkedIn menu bug fixed (no duplicate display)
 
 ### Non-Functional Requirements
+
 - ✅ File logging unchanged and working
 - ✅ Summary boxes unchanged
 - ✅ Spinner messages unchanged
@@ -1826,6 +1903,7 @@ Git commit strategy:
 - ✅ Easy for developers to use new methods
 
 ### Testing Requirements
+
 - ✅ All scripts tested interactively
 - ✅ All ESC flows tested
 - ✅ No regressions in existing functionality
@@ -1836,6 +1914,7 @@ Git commit strategy:
 ## Post-Implementation
 
 ### Documentation Updates
+
 - **README.md**: Add warning that setting `LOG_CONFIG.enableConsole = false` breaks the entire UI
 - Add JSDoc comments to all new Logger methods (completed in Phase 1)
 - Document the display methods and their usage patterns
@@ -1851,6 +1930,7 @@ Add to README.md:
 ### Console Output
 
 **IMPORTANT**: The `LOG_CONFIG.enableConsole` flag controls ALL console output, including:
+
 - Display messages (user-facing status messages with `===` formatting)
 - Menu rendering
 - Progress indicators
@@ -1858,6 +1938,7 @@ Add to README.md:
 **Setting `enableConsole: false` will break the entire UI** - users will see nothing, including menus and prompts.
 
 If you need to suppress console output, consider:
+
 - Redirecting output in your shell (`> /dev/null`)
 - Using a test mode flag instead
 - Only disabling file logging (`enableFile: false`)
@@ -1867,17 +1948,18 @@ If you need to suppress console output, consider:
 The Logger class provides specialized display methods for user-facing messages:
 
 \`\`\`typescript
-logger.display('Message');           // Generic message
-logger.displaySuccess('Done');       // ✅ Success
-logger.displayError('Failed');       // ❌ Error
-logger.displayWarning('Careful');    // ⚠️ Warning
-logger.displayClipboard('Copy');     // 📋 Clipboard
-logger.displayCleanup('Cleaned');    // ♻️ Cleanup
-logger.displayGoBack();              // ← Going back
-logger.displayInfo('Note');          // Neutral info
+logger.display('Message'); // Generic message
+logger.displaySuccess('Done'); // ✅ Success
+logger.displayError('Failed'); // ❌ Error
+logger.displayWarning('Careful'); // ⚠️ Warning
+logger.displayClipboard('Copy'); // 📋 Clipboard
+logger.displayCleanup('Cleaned'); // ♻️ Cleanup
+logger.displayGoBack(); // ← Going back
+logger.displayInfo('Note'); // Neutral info
 \`\`\`
 
 **Important constraints**:
+
 - Messages are automatically wrapped in `===` markers
 - All trailing periods are removed
 - Multi-line messages (`\n`) are not supported - use multiple display calls or backticks for templates
@@ -1885,12 +1967,14 @@ logger.displayInfo('Note');          // Neutral info
 ```
 
 ### Future Improvements
+
 1. Consider adding color/styling support
 2. Consider adding support for multi-line messages
 3. Consider adding support for message templates
 4. Consider adding support for localization
 
 ### Maintenance Notes
+
 - **Always use specialized display methods** for user-facing messages:
   - `displaySuccess()` for ✅ success messages
   - `displayError()` for ❌ error messages
@@ -1924,6 +2008,7 @@ logger.display('Message 3');
 ```
 
 **Behavior**:
+
 - First display: No blank before (init state), message, blank after → `lastOutputType = 'message'`
 - Second display: Blank before (last was message), message, blank after → `lastOutputType = 'message'`
 - Third display: Blank before (last was message), message, blank after
@@ -1948,6 +2033,7 @@ logger.display('Next message');
 **Solution**: **UNSUPPORTED** - Document that all console output must go through display methods.
 
 **Documentation Addition**:
+
 > **IMPORTANT**: Manual use of `console.log()` or `console.error()` for user-facing messages is UNSUPPORTED and will cause incorrect spacing. Always use display methods. If you absolutely must use console.log for debugging, call `logger.resetState('message')` immediately after to restore proper state tracking.
 
 ---
@@ -1960,7 +2046,7 @@ logger.display('Next message');
 try {
   throw new Error('Boom');
 } catch (error) {
-  console.error(error);  // Not caught by display methods
+  console.error(error); // Not caught by display methods
   logger.display('Continuing...');
 }
 ```
@@ -1970,6 +2056,7 @@ try {
 **Solution**: Convert ALL console.error to displayError().
 
 **Documentation Addition**:
+
 > All error output must use `displayError()`. Never use raw `console.error()` for user-facing errors. For internal errors that should never happen, consider logging to file only.
 
 ---
@@ -1991,14 +2078,16 @@ logger.display('Next step');
 **Solution**: Call resetState() IMMEDIATELY on the next line after spinner operation.
 
 **Correct Pattern**:
+
 ```typescript
 spinner.succeed('Done');
-logger.resetState('spinner');  // ← NEXT LINE
+logger.resetState('spinner'); // ← NEXT LINE
 // ... other code ...
 logger.display('Next step');
 ```
 
 **Documentation Addition**:
+
 > `resetState('spinner')` must be called on the **immediate next line** after spinner operations (succeed, fail, stop). Do not add any code between them.
 
 ---
@@ -2013,6 +2102,7 @@ logger.display('Message');
 ```
 
 **Behavior**:
+
 - `breakline()` sets `lastOutputType = 'blank'`
 - `display()` checks if `lastOutputType !== 'blank'` → FALSE
 - No blank line added before message
@@ -2028,10 +2118,10 @@ logger.display('Message');
 **Scenario**: Various empty message inputs.
 
 ```typescript
-logger.display('');         // Empty string
-logger.display('   ');      // Whitespace only
-logger.display('===');      // Only markers
-logger.display('\n\n');     // Only newlines
+logger.display(''); // Empty string
+logger.display('   '); // Whitespace only
+logger.display('==='); // Only markers
+logger.display('\n\n'); // Only newlines
 ```
 
 **Behavior**: All throw `Error('Display message cannot be empty')`
@@ -2056,12 +2146,15 @@ logger.display('Test');
 **Solution**: **DO NOT DISABLE** `enableConsole` in production.
 
 **Documentation Addition**:
+
 > **CRITICAL WARNING**: Setting `LOG_CONFIG.enableConsole = false` breaks the entire UI. If you need to suppress output:
+>
 > - Redirect in shell: `npm start > /dev/null`
 > - Only disable file logging: `LOG_CONFIG.enableFile = false`
 > - Use a test mode flag instead
 
 Consider adding runtime check:
+
 ```typescript
 if (!LOG_CONFIG.enableConsole && process.env.NODE_ENV !== 'test') {
   console.warn('WARNING: enableConsole is false - UI will be broken!');
@@ -2081,6 +2174,7 @@ logger.breakline();
 ```
 
 **Behavior**:
+
 - First call: `lastOutputType !== 'blank'` → TRUE → outputs blank, sets `lastOutputType = 'blank'`
 - Second call: `lastOutputType !== 'blank'` → FALSE → no output
 - Third call: `lastOutputType !== 'blank'` → FALSE → no output
@@ -2115,6 +2209,7 @@ logger.display('You selected: ' + result.value);
 ```
 
 **Documentation Addition**:
+
 > If you notice extra blank lines after enquirer menus, call `logger.resetState('menu')` immediately after the menu completes and before any display methods.
 
 ---
@@ -2125,11 +2220,12 @@ logger.display('You selected: ' + result.value);
 
 ```typescript
 logger.display('Processing contact');
-ContactDisplay.displayContact(contact);  // Uses raw console.log
+ContactDisplay.displayContact(contact); // Uses raw console.log
 logger.display('Contact processed');
 ```
 
 **Behavior**:
+
 - First display: Sets `lastOutputType = 'message'`
 - ContactDisplay: Uses raw console.log → doesn't update lastOutputType
 - Second display: Checks `lastOutputType !== 'blank'` → TRUE → adds blank before
@@ -2139,9 +2235,10 @@ logger.display('Contact processed');
 **Solution**: **ACCEPTABLE** - ContactDisplay is structured data, not a status message. The blank line provides visual separation.
 
 **Alternative**: If spacing is wrong, add:
+
 ```typescript
 ContactDisplay.displayContact(contact);
-logger.resetState('message');  // Pretend a message just happened
+logger.resetState('message'); // Pretend a message just happened
 ```
 
 ---
@@ -2156,11 +2253,12 @@ logger.resetState('message');  // Pretend a message just happened
 export class Logger {
   // Constructor parameter property
   constructor(private context: string) {}
-  
+
   // Instance properties - MUST be after constructor
-  private lastOutputType: 'message' | 'blank' | 'spinner' | 'menu' | 'init' = 'init';
+  private lastOutputType: 'message' | 'blank' | 'spinner' | 'menu' | 'init' =
+    'init';
   private isDisplayMethod: boolean = false;
-  
+
   // Methods follow...
   display(message: string): void {
     // ...
@@ -2169,6 +2267,7 @@ export class Logger {
 ```
 
 **TypeScript Strict Mode Notes**:
+
 - Properties are initialized inline, so `strictPropertyInitialization` is satisfied
 - No need for `!` assertion operator
 - Union type for `lastOutputType` provides type safety
@@ -2184,11 +2283,11 @@ For consistency and readability:
 export class Logger {
   // 1. Constructor
   constructor(private context: string) {}
-  
+
   // 2. Private properties
   private lastOutputType: 'message' | 'blank' | 'spinner' | 'menu' | 'init' = 'init';
   private isDisplayMethod: boolean = false;
-  
+
   // 3. Public display methods (alphabetical)
   display(message: string): void { }
   displayCleanup(message: string): void { }
@@ -2199,23 +2298,23 @@ export class Logger {
   displayMultiLine(lines: string[]): void { }
   displaySuccess(message: string): void { }
   displayWarning(message: string): void { }
-  
+
   // 4. Public state management
   resetState(type: 'spinner' | 'menu' = 'spinner'): void { }
-  
+
   // 5. Modified existing method
   breakline(): void { }
-  
+
   // 6. Existing public logging methods
   debug(message: string, data?: Record<string, unknown>): void { }
   info(message: string, data?: Record<string, unknown>, useDecorators: boolean = true): void { }
   warn(message: string, data?: Record<string, unknown>): void { }
   error(message: string, error?: Error, data?: Record<string, unknown>): void { }
-  
+
   // 7. Private helper methods
   private cleanMessage(message: string): string { }
   private outputWithBreakLines(message: string): void { }
-  
+
   // 8. Existing private methods
   private log(...): void { }
   private shouldLog(...): boolean { }
@@ -2232,10 +2331,10 @@ Add these notes to method JSDoc comments:
 ```typescript
 /**
  * Displays a user-facing message with consistent formatting.
- * 
+ *
  * THREAD SAFETY: Not thread-safe. State tracking assumes single-threaded execution.
  * Node.js is single-threaded, so this is not a concern in normal usage.
- * 
+ *
  * @param message - The message to display
  */
 display(message: string): void { }
@@ -2250,23 +2349,26 @@ display(message: string): void { }
 The `isDisplayMethod` flag pattern relies on **synchronous execution**:
 
 ```typescript
-this.isDisplayMethod = true;       // Step 1: Set flag
-console.log(message);               // Step 2: Console capture sees flag as TRUE
-this.isDisplayMethod = false;      // Step 3: Reset flag
+this.isDisplayMethod = true; // Step 1: Set flag
+console.log(message); // Step 2: Console capture sees flag as TRUE
+this.isDisplayMethod = false; // Step 3: Reset flag
 ```
 
 **Why this works**:
+
 1. Node.js `console.log` is synchronous
 2. The overridden console.log in setupConsoleCapture() executes DURING step 2
 3. No async operations interrupt the flag state
 4. Flag is correctly FALSE after method completes
 
 **If console.log were async** (it's not):
+
 - Flag would reset before console.log executes
 - Console capture would see `isDisplayMethod = false`
 - Display messages would be logged to file (wrong!)
 
 **Documentation**:
+
 > The `isDisplayMethod` flag pattern assumes `console.log()` is synchronous. This is guaranteed by Node.js. If you override console.log with async behavior, this pattern will break.
 
 ---
@@ -2276,23 +2378,25 @@ this.isDisplayMethod = false;      // Step 3: Reset flag
 Test both the Logger side and the script side:
 
 **Logger Side (Phase 12)**:
+
 ```typescript
 it('should expose isDisplayMethod during output', () => {
   const capturedFlags: boolean[] = [];
   const original = console.log;
-  console.log = function() {
+  console.log = function () {
     capturedFlags.push((logger as any).isDisplayMethod);
     original.apply(console, arguments);
   };
-  
+
   logger.display('Test');
-  
+
   expect(capturedFlags).toContain(true);
   console.log = original;
 });
 ```
 
 **Script Side** (manual testing):
+
 - Run eventsJobsSync and check log files
 - Verify display messages are NOT in log files
 - Verify other messages ARE in log files
@@ -2304,12 +2408,14 @@ it('should expose isDisplayMethod during output', () => {
 Use this checklist when implementing the refactoring:
 
 ### Pre-Implementation
+
 - [ ] Read entire plan document
 - [ ] Understand state tracking logic
 - [ ] Review all edge cases in Appendix A
 - [ ] Set up test environment
 
 ### Phase 1: Logger Class
+
 - [ ] Add private properties (correct location)
 - [ ] Add all 9 display methods
 - [ ] Add resetState() method
@@ -2320,12 +2426,14 @@ Use this checklist when implementing the refactoring:
 - [ ] Verify TypeScript compiles
 
 ### Phase 1.5: Console Capture
+
 - [ ] Modify eventsJobsSync.ts setupConsoleCapture()
 - [ ] Modify contactsSync.ts setupConsoleCapture()
 - [ ] Modify linkedinSync.ts setupConsoleCapture()
 - [ ] Test manually that display messages don't appear in log files
 
 ### Phase 2: Constants
+
 - [ ] Remove === from all constants
 - [ ] Remove \n from all constants
 - [ ] Remove trailing periods
@@ -2333,12 +2441,14 @@ Use this checklist when implementing the refactoring:
 - [ ] Remove ellipsis from ESC_GOING_BACK
 
 ### Phase 3: Main Entry
+
 - [ ] Convert header display
 - [ ] Remove manual blank lines
 - [ ] Convert exit messages
 - [ ] Test main menu spacing
 
 ### Phase 4: Events & Jobs Sync
+
 - [ ] Convert script header
 - [ ] Convert authentication messages
 - [ ] Convert cache messages
@@ -2351,11 +2461,13 @@ Use this checklist when implementing the refactoring:
 - [ ] Test all flows
 
 ### Phase 5: Contacts Sync
+
 - [ ] Convert script header
 - [ ] Convert all messages (9 instances)
 - [ ] Test contact processing flow
 
 ### Phase 6-10: Remaining Files
+
 - [ ] LinkedIn sync (detailed table in Phase 9)
 - [ ] Statistics script (detailed table in Phase 10)
 - [ ] Contact services (detailed tables in Phase 8)
@@ -2363,6 +2475,7 @@ Use this checklist when implementing the refactoring:
 - [ ] Test updates (Phase 12)
 
 ### Phase 13: Testing
+
 - [ ] Run all scripts interactively
 - [ ] Test ESC flows
 - [ ] Test spinner spacing
@@ -2372,6 +2485,7 @@ Use this checklist when implementing the refactoring:
 - [ ] Fix any spacing issues
 
 ### Post-Implementation
+
 - [ ] Update README.md with documentation
 - [ ] Add maintenance notes to CONTRIBUTING.md (if exists)
 - [ ] Create git commits (one per phase)
@@ -2386,6 +2500,7 @@ Use this checklist when implementing the refactoring:
 **Cause**: State tracking not working correctly
 
 **Debug**:
+
 ```typescript
 console.log('Current lastOutputType:', (logger as any).lastOutputType);
 logger.display('Test message');
@@ -2393,6 +2508,7 @@ console.log('After lastOutputType:', (logger as any).lastOutputType);
 ```
 
 **Fix**:
+
 - Ensure resetState() is called after spinners
 - Check if manual console.log is interfering
 - Verify breakline() is using state tracking
@@ -2404,11 +2520,13 @@ console.log('After lastOutputType:', (logger as any).lastOutputType);
 **Cause**: Console capture not checking isDisplayMethod
 
 **Debug**:
+
 - Check setupConsoleCapture() has isDisplayMethod check
 - Verify check is FIRST in function (before logging)
 - Check uiLogger is defined in script
 
 **Fix**:
+
 - Add isDisplayMethod check to setupConsoleCapture()
 - Ensure check returns early if flag is true
 
@@ -2419,11 +2537,13 @@ console.log('After lastOutputType:', (logger as any).lastOutputType);
 **Cause**: LOG_CONFIG.enableConsole might be false
 
 **Debug**:
+
 ```typescript
 console.log('enableConsole:', LOG_CONFIG.enableConsole);
 ```
 
 **Fix**:
+
 - Set `LOG_CONFIG.enableConsole = true`
 - Check logConfig.ts initialization
 
@@ -2434,6 +2554,7 @@ console.log('enableConsole:', LOG_CONFIG.enableConsole);
 **Cause**: Using wrong method (info instead of display)
 
 **Fix**:
+
 - Change `logger.info()` to `logger.display()`
 - Remove `useDecorators` parameter
 
@@ -2444,6 +2565,7 @@ console.log('enableConsole:', LOG_CONFIG.enableConsole);
 **Cause**: Emoji in message AND using specialized method
 
 **Fix**:
+
 - Remove emoji from message string
 - Let method add it automatically
 
@@ -2454,12 +2576,14 @@ console.log('enableConsole:', LOG_CONFIG.enableConsole);
 **Cause**: Message not being cleaned
 
 **Debug**:
+
 ```typescript
 const cleaned = (logger as any).cleanMessage('Test message.');
 console.log('Cleaned:', cleaned);
 ```
 
 **Fix**:
+
 - Verify cleanMessage() is being called
 - Check while loop is removing periods
 
@@ -2478,6 +2602,7 @@ console.log('Cleaned:', cleaned);
 ### String Manipulation in cleanMessage()
 
 **Operations**:
+
 1. `trim()` - O(n)
 2. `replace(/^===|===$/g, '')` - O(n)
 3. `replace(/\n/g, ' ')` - O(n)
@@ -2492,12 +2617,14 @@ console.log('Cleaned:', cleaned);
 
 ### Console.log Call Frequency
 
-**Worst case**: 
+**Worst case**:
+
 - 100 messages/second
 - Each message: 3 console.log calls (blank, message, blank)
 - Total: 300 console.log/second
 
 **Realistic case**:
+
 - 1-5 messages/second during interactive use
 - 3-15 console.log/second
 
@@ -2592,17 +2719,17 @@ logger.displayCustom('Custom message');
 // Basic display (neutral)
 logger.display('Operation completed');
 // Output:
-// 
+//
 // ===Operation completed===
-// 
+//
 
 // Multi-line display (separate === per line)
 logger.displayMultiLine(['Line 1', 'Line 2']);
 // Output:
-// 
+//
 // ===Line 1===
 // ===Line 2===
-// 
+//
 
 // Success (auto-adds ✅)
 logger.displaySuccess('Contact created');
@@ -2640,13 +2767,13 @@ logger.display('Next step'); // Will have proper spacing
 
 ### Message Formatting Rules
 
-| Rule | ✅ Good | ❌ Bad |
-|------|---------|--------|
-| No manual `===` | `'Message'` | `'===Message==='` |
-| No trailing `.` | `'Operation completed'` | `'Operation completed.'` |
-| No manual `\n` | `'Going back'` | `'\n← Going back...\n'` |
-| No manual emojis (use methods) | `displaySuccess('Done')` | `display('✅ Done')` |
-| No multi-line | `display('Line 1'); display('Line 2');` | `display('Line 1\nLine 2')` |
+| Rule                           | ✅ Good                                 | ❌ Bad                      |
+| ------------------------------ | --------------------------------------- | --------------------------- |
+| No manual `===`                | `'Message'`                             | `'===Message==='`           |
+| No trailing `.`                | `'Operation completed'`                 | `'Operation completed.'`    |
+| No manual `\n`                 | `'Going back'`                          | `'\n← Going back...\n'`     |
+| No manual emojis (use methods) | `displaySuccess('Done')`                | `display('✅ Done')`        |
+| No multi-line                  | `display('Line 1'); display('Line 2');` | `display('Line 1\nLine 2')` |
 
 ### Common Patterns
 
@@ -2718,16 +2845,16 @@ this.uiLogger.display(`Found ${count} items`);
 async function processFolder(): Promise<void> {
   // Header
   console.log('\n===Folder Operations===\n');
-  
+
   // Get folder
   const folderName = await getFolderName();
-  
+
   // Validation warning
   if (!folderName) {
     console.log('\n⚠️  Folder name is required.\n');
     return;
   }
-  
+
   // Processing with spinner
   const spinner = ora('Creating folder...').start();
   try {
@@ -2738,21 +2865,23 @@ async function processFolder(): Promise<void> {
     console.error('\n❌ Failed to create folder.\n');
     return;
   }
-  
+
   // Manual blank line before menu
   console.log('');
-  
+
   // Menu appears
   const result = await selectWithEscape({
     message: 'What next?',
-    choices: [/*...*/]
+    choices: [
+      /*...*/
+    ],
   });
-  
+
   if (result.escaped) {
     console.log('\n← Going back...\n');
     return;
   }
-  
+
   // Success message
   console.log('\n===✅ Operation completed successfully===\n');
 }
@@ -2764,16 +2893,16 @@ async function processFolder(): Promise<void> {
 async function processFolder(): Promise<void> {
   // Header - display method handles spacing
   this.uiLogger.display('Folder Operations');
-  
+
   // Get folder (menu handles its own spacing)
   const folderName = await getFolderName();
-  
+
   // Validation warning - specialized method
   if (!folderName) {
     this.uiLogger.displayWarning('Folder name is required');
     return;
   }
-  
+
   // Processing with spinner
   const spinner = ora('Creating folder...').start();
   try {
@@ -2786,24 +2915,27 @@ async function processFolder(): Promise<void> {
     this.uiLogger.displayError('Failed to create folder');
     return;
   }
-  
+
   // Menu appears - no manual blank line needed
   const result = await selectWithEscape({
     message: 'What next?',
-    choices: [/*...*/]
+    choices: [
+      /*...*/
+    ],
   });
-  
+
   if (result.escaped) {
     this.uiLogger.displayGoBack(); // Auto-adds ← emoji
     return;
   }
-  
+
   // Success message - specialized method
   this.uiLogger.displaySuccess('Operation completed successfully');
 }
 ```
 
 **Key Improvements**:
+
 1. ✅ No manual `\n` or `===` formatting
 2. ✅ Specialized methods automatically add correct emoji
 3. ✅ No manual `console.log('')` blank lines
@@ -2817,28 +2949,30 @@ async function processFolder(): Promise<void> {
 
 Estimated effort: ~8-12 hours (increased from 6-9 to account for detailed conversions and enhanced testing)
 
-| Phase | Estimated Time | Priority | Details |
-|-------|----------------|----------|---------|
-| Phase 1: Logger class | 2 hours | High | ~200 lines, 9 new methods, JSDoc, TypeScript checks |
-| Phase 1.5: Console capture fix | 45 minutes | High | All 3 scripts, manual testing required |
-| Phase 2: Constants | 15 minutes | High | Simple find/replace operations |
-| Phase 3: Main entry | 15 minutes | High | 4 simple changes |
-| Phase 4: Events & Jobs | 2.5 hours | High | ~70 changes, spinner integration, testing |
-| Phase 5: Contacts | 30 minutes | High | ~10 straightforward conversions |
-| Phase 6-10: Remaining scripts | 2 hours | High | LinkedIn, Statistics detailed conversions |
-| Phase 11: Service cleanup | 45 minutes | Medium | Detailed line-by-line changes, spinner fixes |
-| Phase 12: Test updates | 1.5 hours | High | New test files, enhanced coverage |
-| Phase 13: Testing & validation | 2-3 hours | High | Interactive + automated testing |
+| Phase                          | Estimated Time | Priority | Details                                             |
+| ------------------------------ | -------------- | -------- | --------------------------------------------------- |
+| Phase 1: Logger class          | 2 hours        | High     | ~200 lines, 9 new methods, JSDoc, TypeScript checks |
+| Phase 1.5: Console capture fix | 45 minutes     | High     | All 3 scripts, manual testing required              |
+| Phase 2: Constants             | 15 minutes     | High     | Simple find/replace operations                      |
+| Phase 3: Main entry            | 15 minutes     | High     | 4 simple changes                                    |
+| Phase 4: Events & Jobs         | 2.5 hours      | High     | ~70 changes, spinner integration, testing           |
+| Phase 5: Contacts              | 30 minutes     | High     | ~10 straightforward conversions                     |
+| Phase 6-10: Remaining scripts  | 2 hours        | High     | LinkedIn, Statistics detailed conversions           |
+| Phase 11: Service cleanup      | 45 minutes     | Medium   | Detailed line-by-line changes, spinner fixes        |
+| Phase 12: Test updates         | 1.5 hours      | High     | New test files, enhanced coverage                   |
+| Phase 13: Testing & validation | 2-3 hours      | High     | Interactive + automated testing                     |
 
 **Total Estimated Time**: 10-13 hours
 
 **Timeline Assumptions**:
+
 - Developer familiar with codebase
 - No major blockers or unexpected issues
 - Includes time for testing after each phase
 - Buffer time for documentation updates
 
 **Recommended Approach**:
+
 1. Complete Phases 1-3 in one session (foundation)
 2. Complete Phase 4 in dedicated session (largest file)
 3. Complete Phases 5-11 in one session (remaining files)
@@ -2854,17 +2988,17 @@ Estimated effort: ~8-12 hours (increased from 6-9 to account for detailed conver
 // Basic display (neutral)
 logger.display('Operation completed');
 // Output:
-// 
+//
 // ===Operation completed===
-// 
+//
 
 // Multi-line display (separate === per line)
 logger.displayMultiLine(['Line 1', 'Line 2']);
 // Output:
-// 
+//
 // ===Line 1===
 // ===Line 2===
-// 
+//
 
 // Success (auto-adds ✅)
 logger.displaySuccess('Contact created');
@@ -2902,13 +3036,13 @@ logger.display('Next step'); // Will have proper spacing
 
 ### Message Formatting Rules
 
-| Rule | ✅ Good | ❌ Bad |
-|------|---------|--------|
-| No manual `===` | `'Message'` | `'===Message==='` |
-| No trailing `.` | `'Operation completed'` | `'Operation completed.'` |
-| No manual `\n` | `'Going back'` | `'\n← Going back...\n'` |
-| No manual emojis (use methods) | `displaySuccess('Done')` | `display('✅ Done')` |
-| No multi-line | `display('Line 1'); display('Line 2');` | `display('Line 1\nLine 2')` |
+| Rule                           | ✅ Good                                 | ❌ Bad                      |
+| ------------------------------ | --------------------------------------- | --------------------------- |
+| No manual `===`                | `'Message'`                             | `'===Message==='`           |
+| No trailing `.`                | `'Operation completed'`                 | `'Operation completed.'`    |
+| No manual `\n`                 | `'Going back'`                          | `'\n← Going back...\n'`     |
+| No manual emojis (use methods) | `displaySuccess('Done')`                | `display('✅ Done')`        |
+| No multi-line                  | `display('Line 1'); display('Line 2');` | `display('Line 1\nLine 2')` |
 
 ### Common Patterns
 
@@ -2980,16 +3114,16 @@ this.uiLogger.display(`Found ${count} items`);
 async function processFolder(): Promise<void> {
   // Header
   console.log('\n===Folder Operations===\n');
-  
+
   // Get folder
   const folderName = await getFolderName();
-  
+
   // Validation warning
   if (!folderName) {
     console.log('\n⚠️  Folder name is required.\n');
     return;
   }
-  
+
   // Processing with spinner
   const spinner = ora('Creating folder...').start();
   try {
@@ -3000,21 +3134,23 @@ async function processFolder(): Promise<void> {
     console.error('\n❌ Failed to create folder.\n');
     return;
   }
-  
+
   // Manual blank line before menu
   console.log('');
-  
+
   // Menu appears
   const result = await selectWithEscape({
     message: 'What next?',
-    choices: [/*...*/]
+    choices: [
+      /*...*/
+    ],
   });
-  
+
   if (result.escaped) {
     console.log('\n← Going back...\n');
     return;
   }
-  
+
   // Success message
   console.log('\n===✅ Operation completed successfully===\n');
 }
@@ -3026,16 +3162,16 @@ async function processFolder(): Promise<void> {
 async function processFolder(): Promise<void> {
   // Header - display method handles spacing
   this.uiLogger.display('Folder Operations');
-  
+
   // Get folder (menu handles its own spacing)
   const folderName = await getFolderName();
-  
+
   // Validation warning - specialized method
   if (!folderName) {
     this.uiLogger.displayWarning('Folder name is required');
     return;
   }
-  
+
   // Processing with spinner
   const spinner = ora('Creating folder...').start();
   try {
@@ -3048,24 +3184,27 @@ async function processFolder(): Promise<void> {
     this.uiLogger.displayError('Failed to create folder');
     return;
   }
-  
+
   // Menu appears - no manual blank line needed
   const result = await selectWithEscape({
     message: 'What next?',
-    choices: [/*...*/]
+    choices: [
+      /*...*/
+    ],
   });
-  
+
   if (result.escaped) {
     this.uiLogger.displayGoBack(); // Auto-adds ← emoji
     return;
   }
-  
+
   // Success message - specialized method
   this.uiLogger.displaySuccess('Operation completed successfully');
 }
 ```
 
 **Key Improvements**:
+
 1. ✅ No manual `\n` or `===` formatting
 2. ✅ Specialized methods automatically add correct emoji
 3. ✅ No manual `console.log('')` blank lines
@@ -3075,9 +3214,9 @@ async function processFolder(): Promise<void> {
 
 ---
 
-**END OF DOCUMENT**  
-**Created**: 2026-03-18  
-**Updated**: 2026-03-18 (Comprehensive Deep Review with All Fixes)  
+**END OF DOCUMENT**
+**Created**: 2026-03-18
+**Updated**: 2026-03-18 (Comprehensive Deep Review with All Fixes)
 **Status**: Ready for Implementation - All Issues Addressed
 
 ---
@@ -3183,6 +3322,7 @@ This version addresses ALL critical issues, gaps, and edge cases identified in t
     - Recommended approach for session planning
 
 ### All Version 3.0 Features Retained:
+
 - ✅ Specialized emoji methods
 - ✅ Console capture fixes for all 3 scripts
 - ✅ Spinner integration with resetState()
@@ -3200,6 +3340,7 @@ This version addresses ALL critical issues, gaps, and edge cases identified in t
 - ✅ FormatUtils distinction
 
 ### Documentation Quality Improvements:
+
 - Added 7 comprehensive appendices (A-G)
 - Added explicit unsupported patterns documentation
 - Added complete edge case coverage
@@ -3210,6 +3351,7 @@ This version addresses ALL critical issues, gaps, and edge cases identified in t
 - Added troubleshooting guide
 
 ### New Total Counts:
+
 - **Phases**: 13 (was 10)
 - **Files to modify**: 16 (was 14)
 - **Total changes**: ~300 (was ~250)
@@ -3226,6 +3368,7 @@ This version addresses ALL critical issues, gaps, and edge cases identified in t
 **Version 4.0 Status**: ✅ FULLY READY FOR IMPLEMENTATION
 
 This version has:
+
 - ✅ All critical issues fixed
 - ✅ All gaps filled
 - ✅ All edge cases documented
@@ -3239,6 +3382,7 @@ This version has:
 **Confidence Level**: 95%
 
 The remaining 5% accounts for:
+
 - Potential undiscovered edge cases in production
 - User-specific workflow variations
 - Unforeseen TypeScript strict mode issues

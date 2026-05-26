@@ -1,4 +1,4 @@
-import { ApiTracker } from "../services/apiTracker.js";
+import { ApiTracker } from '../services/apiTracker.js';
 
 export class RetryHandler {
   private static readonly MAX_RETRIES = 5;
@@ -7,13 +7,13 @@ export class RetryHandler {
   static async executeWithRetry<T>(
     operation: () => Promise<T>,
     operationName: string,
-    apiType: "read" | "write",
+    apiType: 'read' | 'write'
   ): Promise<T> {
     let lastError: Error | undefined;
     for (let attempt = 1; attempt <= this.MAX_RETRIES; attempt++) {
       try {
         const result = await operation();
-        if (apiType === "read") {
+        if (apiType === 'read') {
           await ApiTracker.getInstance().trackRead();
         } else {
           await ApiTracker.getInstance().trackWrite();
@@ -27,14 +27,14 @@ export class RetryHandler {
         if (attempt < this.MAX_RETRIES) {
           const delay = this.calculateBackoff(attempt);
           console.log(
-            `Retry ${attempt}/${this.MAX_RETRIES} for ${operationName} after ${delay}ms...`,
+            `Retry ${attempt}/${this.MAX_RETRIES} for ${operationName} after ${delay}ms...`
           );
           await this.sleep(delay);
         }
       }
     }
     throw new Error(
-      `Failed after ${this.MAX_RETRIES} attempts: ${lastError?.message || "Unknown error"}`,
+      `Failed after ${this.MAX_RETRIES} attempts: ${lastError?.message || 'Unknown error'}`
     );
   }
 

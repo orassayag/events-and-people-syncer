@@ -360,7 +360,7 @@ export class ContactsSyncScript {
 
       const timestamp = formatDateTimeDDMMYYYY_HHMMSS(new Date());
       const updateNote = `Updated by the contacts sync script - Last update: ${timestamp}`;
-      
+
       let finalNote = '';
       if (selectedContact.biography) {
         const trimmedBio = selectedContact.biography.replace(/\n+$/, '');

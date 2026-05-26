@@ -7,33 +7,39 @@ This document outlines the consistent logging strategy used throughout the appli
 ## Logger Types
 
 ### 1. Standard Logger (`Logger`)
+
 Used for general application logging with automatic formatting.
 
 **Usage:**
+
 ```typescript
 import { Logger } from './logging';
 
 const logger = new Logger('ComponentName');
-logger.info('Operation completed');  // Console: ===Operation completed===
-logger.warn('Operation needs attention');  // Console: ===⚠️  Operation needs attention===
-logger.debug('Debug information');  // Console: ===Debug information===
-logger.error('Operation failed', error);  // Console: ===✗ Operation failed===
+logger.info('Operation completed'); // Console: ===Operation completed===
+logger.warn('Operation needs attention'); // Console: ===⚠️  Operation needs attention===
+logger.debug('Debug information'); // Console: ===Debug information===
+logger.error('Operation failed', error); // Console: ===✗ Operation failed===
 ```
 
 **Console Output:**
+
 - `info()`: Messages wrapped with `===` prefix/suffix
 - `warn()`: Messages prefixed with `⚠️  ` and wrapped with `===`
 - `debug()`: Messages wrapped with `===` (only in debug mode)
 - `error()`: Messages prefixed with `❌` and wrapped with `===`
 
 **File Output:**
+
 - All messages are logged to file with full structured JSON format
 - Includes timestamp, level, context, message, and any additional data
 
 ### 2. Sync Logger (`SyncLogger`)
+
 Used for detailed sync operation tracking with two separate log files.
 
 **Usage:**
+
 ```typescript
 import { SyncLogger } from './logging';
 
@@ -47,16 +53,19 @@ await logger.logClarification('Connection needs manual review', data);
 **Only use `console.log()` for pure UI elements:**
 
 1. **Interactive Menu (inquirer)**
+
    ```typescript
    console.log('\n=== Events & People Syncer ===\n');
    ```
 
 2. **Raw Data Display**
+
    ```typescript
-   console.log(authUrl);  // Display URL for user to copy
+   console.log(authUrl); // Display URL for user to copy
    ```
 
 3. **Exit Messages**
+
    ```typescript
    console.log('\n🚪 Exit script\n');
    ```
@@ -67,6 +76,7 @@ await logger.logClarification('Connection needs manual review', data);
    ```
 
 **Do NOT use `console.log()` for:**
+
 - Informational messages → Use `logger.info()`
 - Warning messages → Use `logger.warn()`
 - Debug messages → Use `logger.debug()`
@@ -75,6 +85,7 @@ await logger.logClarification('Connection needs manual review', data);
 ## Examples
 
 ### ❌ Before (Inconsistent)
+
 ```typescript
 console.log('Starting sync...');
 console.log('⚠️  Warning: Cache bypassed\n');
@@ -82,6 +93,7 @@ console.log(`Skipped: Invalid URL - ${url}`);
 ```
 
 ### ✅ After (Consistent)
+
 ```typescript
 this.logger.info('Starting sync');
 this.logger.warn('Cache bypassed');

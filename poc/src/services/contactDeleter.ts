@@ -15,7 +15,9 @@ export class ContactDeleter {
         console.log('\nNo contacts found to delete.\n');
         return;
       }
-      console.log(`\nFound ${totalContacts} contact(s) in your Google account.\n`);
+      console.log(
+        `\nFound ${totalContacts} contact(s) in your Google account.\n`
+      );
       const confirmed = await this.confirmDeletion(totalContacts);
       if (!confirmed) {
         console.log('\nDeletion cancelled.\n');
@@ -84,7 +86,10 @@ export class ContactDeleter {
               spinner.text = `Deleting contacts... ${deletedCount}/${totalContacts}`;
               await this.delay(100);
             } catch (error: unknown) {
-              console.error(`\nFailed to delete contact ${person.resourceName}:`, error instanceof Error ? error.message : 'Unknown error');
+              console.error(
+                `\nFailed to delete contact ${person.resourceName}:`,
+                error instanceof Error ? error.message : 'Unknown error'
+              );
             }
           }
         }
@@ -92,7 +97,9 @@ export class ContactDeleter {
       } while (pageToken);
       spinner.succeed(`Deleted ${deletedCount}/${totalContacts} contacts`);
       if (deletedCount < totalContacts) {
-        console.log(`\n⚠️  Some deletions failed. Successfully deleted ${deletedCount} out of ${totalContacts} contacts.\n`);
+        console.log(
+          `\n⚠️  Some deletions failed. Successfully deleted ${deletedCount} out of ${totalContacts} contacts.\n`
+        );
       }
     } catch (error) {
       spinner.fail('Deletion failed');

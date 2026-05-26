@@ -4,28 +4,29 @@
 
 ### Basic Usage
 
-| Aspect | Error Pattern (Old) | Result Pattern (New) |
-|--------|---------------------|----------------------|
-| **Return Type** | `Promise<T>` | `Promise<PromptResult<T>>` |
-| **ESC Handling** | Throws `EscapeSignal` | Returns `{ escaped: true }` |
-| **Normal Flow** | Returns value directly | Returns `{ escaped: false, value: T }` |
-| **Error Handling** | Try-catch required | No try-catch needed |
+| Aspect             | Error Pattern (Old)    | Result Pattern (New)                   |
+| ------------------ | ---------------------- | -------------------------------------- |
+| **Return Type**    | `Promise<T>`           | `Promise<PromptResult<T>>`             |
+| **ESC Handling**   | Throws `EscapeSignal`  | Returns `{ escaped: true }`            |
+| **Normal Flow**    | Returns value directly | Returns `{ escaped: false, value: T }` |
+| **Error Handling** | Try-catch required     | No try-catch needed                    |
 
 ### Code Examples
 
 #### Simple Select
 
 **Error Pattern:**
+
 ```typescript
 try {
   const action = await selectWithEscape<string>({
     message: 'What would you like to do?',
     choices: [...],
   });
-  
+
   // Use action
   await handleAction(action);
-  
+
 } catch (error) {
   if (error instanceof EscapeSignal) {
     return; // ESC pressed
@@ -33,9 +34,11 @@ try {
   throw error; // Real error
 }
 ```
+
 **Lines of code: 14**
 
 **Result Pattern:**
+
 ```typescript
 const result = await selectWithEscape<string>({
   message: 'What would you like to do?',
@@ -48,6 +51,7 @@ if (result.escaped) {
 
 await handleAction(result.value);
 ```
+
 **Lines of code: 9 (36% reduction)**
 
 ---
@@ -55,14 +59,14 @@ await handleAction(result.value);
 #### Sequential Prompts
 
 **Error Pattern:**
+
 ```typescript
 try {
   const folder = await selectFolder();
   const name = await inputName();
-  
+
   // Both completed - save
   await cache.set(folder, name);
-  
 } catch (error) {
   if (error instanceof EscapeSignal) {
     return; // ESC at any step
@@ -70,10 +74,12 @@ try {
   throw error;
 }
 ```
+
 **Lines of code: 10**
 **Problem:** Can't distinguish which prompt was cancelled
 
 **Result Pattern:**
+
 ```typescript
 const folderResult = await selectFolder();
 if (folderResult.escaped) {
@@ -88,6 +94,7 @@ if (nameResult.escaped) {
 // Both completed - save
 await cache.set(folderResult.value, nameResult.value);
 ```
+
 **Lines of code: 11 (similar length but more explicit)**
 **Benefit:** Clear which step was cancelled
 
@@ -96,10 +103,11 @@ await cache.set(folderResult.value, nameResult.value);
 #### Nested Flows
 
 **Error Pattern:**
+
 ```typescript
 try {
   const folder = await selectFolder();
-  
+
   try {
     const data = await fetchData(folder);
     await processData(data);
@@ -110,7 +118,6 @@ try {
     }
     console.error('Processing error:', error);
   }
-  
 } catch (error) {
   if (error instanceof EscapeSignal) {
     return;
@@ -118,10 +125,12 @@ try {
   throw error;
 }
 ```
+
 **Lines of code: 19**
 **Pitfall:** Easy to forget re-throw
 
 **Result Pattern:**
+
 ```typescript
 const folderResult = await selectFolder();
 if (folderResult.escaped) {
@@ -136,6 +145,7 @@ try {
   console.error('Processing error:', error);
 }
 ```
+
 **Lines of code: 11 (42% reduction)**
 **Benefit:** No re-throw needed
 
@@ -144,14 +154,15 @@ try {
 #### While Loop
 
 **Error Pattern:**
+
 ```typescript
 while (true) {
   try {
     const choice = await selectWithEscape({...});
-    
+
     if (choice === 'exit') break;
     await handleChoice(choice);
-    
+
   } catch (error) {
     if (error instanceof EscapeSignal) {
       break; // ESC exits loop
@@ -160,21 +171,24 @@ while (true) {
   }
 }
 ```
+
 **Lines of code: 12**
 
 **Result Pattern:**
+
 ```typescript
 while (true) {
   const result = await selectWithEscape({...});
-  
+
   if (result.escaped) {
     break; // ESC exits loop
   }
-  
+
   if (result.value === 'exit') break;
   await handleChoice(result.value);
 }
 ```
+
 **Lines of code: 9 (25% reduction)**
 
 ---
@@ -184,6 +198,7 @@ while (true) {
 ### Mock Setup
 
 **Error Pattern:**
+
 ```typescript
 vi.mock('../../utils/promptWithEscape', () => ({
   selectWithEscape: vi.fn(),
@@ -205,6 +220,7 @@ mockSelect.mockRejectedValue(new EscapeSignal());
 ```
 
 **Result Pattern:**
+
 ```typescript
 vi.mock('../../utils/promptWithEscape', () => ({
   selectWithEscape: vi.fn(),
@@ -213,14 +229,14 @@ vi.mock('../../utils/promptWithEscape', () => ({
 const mockSelect = vi.mocked(selectWithEscape);
 
 // Normal case
-mockSelect.mockResolvedValue({ 
-  escaped: false, 
-  value: 'option1' 
+mockSelect.mockResolvedValue({
+  escaped: false,
+  value: 'option1',
 });
 
 // ESC case
-mockSelect.mockResolvedValue({ 
-  escaped: true 
+mockSelect.mockResolvedValue({
+  escaped: true,
 });
 ```
 
@@ -231,10 +247,11 @@ mockSelect.mockResolvedValue({
 ### Test Cases
 
 **Error Pattern:**
+
 ```typescript
 it('should handle ESC', async () => {
   mockSelect.mockRejectedValue(new EscapeSignal());
-  
+
   let escaped = false;
   try {
     await myFunction();
@@ -243,18 +260,19 @@ it('should handle ESC', async () => {
       escaped = true;
     }
   }
-  
+
   expect(escaped).toBe(true);
 });
 ```
 
 **Result Pattern:**
+
 ```typescript
 it('should handle ESC', async () => {
   mockSelect.mockResolvedValue({ escaped: true });
-  
+
   const result = await myFunction();
-  
+
   expect(result.completed).toBe(false);
   // Or check that cache wasn't modified, etc.
 });
@@ -269,6 +287,7 @@ it('should handle ESC', async () => {
 ### Type Narrowing
 
 **Error Pattern:**
+
 ```typescript
 let value: string;
 
@@ -287,6 +306,7 @@ console.log(value.toUpperCase()); // Possible error
 ```
 
 **Result Pattern:**
+
 ```typescript
 const result = await selectWithEscape<string>({...});
 
@@ -306,38 +326,38 @@ console.log(result.value.toUpperCase()); // Safe!
 
 ## Common Mistakes Prevention
 
-| Mistake | Error Pattern | Result Pattern |
-|---------|---------------|----------------|
-| **Forget ESC handling** | Code compiles, ESC crashes | Code compiles, ESC works (undefined behavior) |
-| **Swallow ESC in catch** | Easy to do accidentally | Impossible - no catch block |
-| **Forget re-throw** | Nested catches break ESC | No nested catches needed |
-| **Mix ESC with real errors** | Both use catch block | Separate: check escaped vs try-catch |
-| **TypeScript confusion** | value might be undefined | Type narrowing ensures safety |
+| Mistake                      | Error Pattern              | Result Pattern                                |
+| ---------------------------- | -------------------------- | --------------------------------------------- |
+| **Forget ESC handling**      | Code compiles, ESC crashes | Code compiles, ESC works (undefined behavior) |
+| **Swallow ESC in catch**     | Easy to do accidentally    | Impossible - no catch block                   |
+| **Forget re-throw**          | Nested catches break ESC   | No nested catches needed                      |
+| **Mix ESC with real errors** | Both use catch block       | Separate: check escaped vs try-catch          |
+| **TypeScript confusion**     | value might be undefined   | Type narrowing ensures safety                 |
 
 ---
 
 ## Metrics
 
-| Metric | Error Pattern | Result Pattern | Improvement |
-|--------|---------------|----------------|-------------|
-| **Avg lines per prompt** | 14 | 9 | **36% reduction** |
-| **Nested flows complexity** | High (re-throw) | Low (check flag) | **Much simpler** |
-| **Test mock complexity** | High (error class) | Low (objects) | **Simpler** |
-| **Accidental bugs** | Medium (catch issues) | Low (explicit) | **Safer** |
-| **TypeScript safety** | Medium (narrowing issues) | High (perfect narrowing) | **Better** |
-| **Learning curve** | Steep (exceptions) | Gentle (flags) | **Easier** |
+| Metric                      | Error Pattern             | Result Pattern           | Improvement       |
+| --------------------------- | ------------------------- | ------------------------ | ----------------- |
+| **Avg lines per prompt**    | 14                        | 9                        | **36% reduction** |
+| **Nested flows complexity** | High (re-throw)           | Low (check flag)         | **Much simpler**  |
+| **Test mock complexity**    | High (error class)        | Low (objects)            | **Simpler**       |
+| **Accidental bugs**         | Medium (catch issues)     | Low (explicit)           | **Safer**         |
+| **TypeScript safety**       | Medium (narrowing issues) | High (perfect narrowing) | **Better**        |
+| **Learning curve**          | Steep (exceptions)        | Gentle (flags)           | **Easier**        |
 
 ---
 
 ## Migration Effort
 
-| Aspect | Error Pattern | Result Pattern |
-|--------|---------------|----------------|
-| **Implementation complexity** | Medium | Low |
-| **Migration time** | 12-16 hours | 10-14 hours |
-| **Risk of bugs** | Medium | Low |
-| **Documentation needed** | More (exception handling) | Less (simple checks) |
-| **Developer onboarding** | Harder (try-catch rules) | Easier (if checks) |
+| Aspect                        | Error Pattern             | Result Pattern       |
+| ----------------------------- | ------------------------- | -------------------- |
+| **Implementation complexity** | Medium                    | Low                  |
+| **Migration time**            | 12-16 hours               | 10-14 hours          |
+| **Risk of bugs**              | Medium                    | Low                  |
+| **Documentation needed**      | More (exception handling) | Less (simple checks) |
+| **Developer onboarding**      | Harder (try-catch rules)  | Easier (if checks)   |
 
 ---
 
@@ -354,6 +374,7 @@ console.log(result.value.toUpperCase()); // Safe!
 7. ✅ **Faster Development** - Less boilerplate per prompt
 
 **When to Use Error Pattern:**
+
 - Never for new code
 - Keep `EscapeSignal` only for backward compatibility with legacy code
 

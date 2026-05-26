@@ -16,6 +16,7 @@ Refactor the Other Contacts Sync script to use a dedicated cache for both Other 
 ## Current State
 
 The current `otherContactsSync.ts` implementation:
+
 - Fetches Other Contacts from API every run (no caching)
 - Fetches Google Contacts fresh every run (invalidates cache then re-fetches)
 - Auto-skips entries where all emails exist in contacts (in-memory only)
@@ -94,6 +95,7 @@ flowchart TD
 ### 2. Modify `otherContactsSync.ts`
 
 **Cache Strategy**:
+
 - At script start: Show menu with "Process Contacts" and "Clear Cache" options
 - If cache valid: Use cached data (no API call)
 - If cache expired/missing/corrupted: Delete cache file and fetch fresh from API
@@ -101,16 +103,19 @@ flowchart TD
 - After any Google Contacts modification: Re-read Google Contacts cache from file
 
 **Partial Email Match Handling**:
+
 - For each entry, check each email individually against Google Contacts
 - Auto-skip emails that already exist in contacts
 - Only display unmatched emails to the user
 - If all emails are matched: proceed to phone check (auto-add missing phones or auto-skip)
 
 **Auto-Skip Enhancement**:
+
 - If all emails exist in Google Contacts BUT phones are missing → Auto-add phones to matched contact, refresh cache from file, then remove from cache
 - If all emails AND all phones exist → Auto-skip silently, remove from cache
 
 **Clear Cache Feature**:
+
 - New menu option to clear cache files specific to this script
 - Deletes `other-contacts-cache.json` only (not Google Contacts cache)
 - Shows confirmation message after clearing
@@ -219,19 +224,19 @@ private async clearCache(): Promise<void> {
 
 ## Files to Create
 
-| File | Purpose |
-|------|---------|
+| File                              | Purpose                            |
+| --------------------------------- | ---------------------------------- |
 | `src/cache/otherContactsCache.ts` | New cache class for Other Contacts |
 
 ---
 
 ## Files to Modify
 
-| File | Changes |
-|------|---------|
-| `src/scripts/otherContactsSync.ts` | Integrate caching, add phone auto-add logic, modify process flow, add Clear Cache menu, partial email handling |
-| `src/cache/index.ts` | Export new `OtherContactsCache` |
-| `src/services/contacts/duplicateDetector.ts` | Add `ensureCachePopulated()` method |
+| File                                         | Changes                                                                                                        |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `src/scripts/otherContactsSync.ts`           | Integrate caching, add phone auto-add logic, modify process flow, add Clear Cache menu, partial email handling |
+| `src/cache/index.ts`                         | Export new `OtherContactsCache`                                                                                |
+| `src/services/contacts/duplicateDetector.ts` | Add `ensureCachePopulated()` method                                                                            |
 
 ---
 
@@ -287,9 +292,11 @@ export class OtherContactsCache {
       }
       const now = Date.now();
       const ageMs = now - data.timestamp;
-      const ageHours = Math.round(ageMs / (1000 * 60 * 60) * 10) / 10;
+      const ageHours = Math.round((ageMs / (1000 * 60 * 60)) * 10) / 10;
       if (ageMs <= this.TTL) {
-        console.info(`Cache hit: ${data.entries.length} entries, ${ageHours}h old`);
+        console.info(
+          `Cache hit: ${data.entries.length} entries, ${ageHours}h old`
+        );
         return data.entries;
       }
       console.info(`Cache expired: ${ageHours}h old (TTL: 24h)`);
@@ -304,7 +311,10 @@ export class OtherContactsCache {
     }
   }
 
-  async getWithTimestamp(): Promise<{ entries: OtherContactEntry[]; timestamp: number } | null> {
+  async getWithTimestamp(): Promise<{
+    entries: OtherContactEntry[];
+    timestamp: number;
+  } | null> {
     try {
       const fileContent = await fs.readFile(this.cacheFilePath, 'utf-8');
       const data: OtherContactsCacheData = JSON.parse(fileContent);
@@ -314,7 +324,10 @@ export class OtherContactsCache {
     }
   }
 
-  async set(entries: OtherContactEntry[], preserveTimestamp?: number): Promise<void> {
+  async set(
+    entries: OtherContactEntry[],
+    preserveTimestamp?: number
+  ): Promise<void> {
     try {
       await fs.mkdir(SETTINGS.linkedin.cachePath, { recursive: true });
       const data: OtherContactsCacheData = {
@@ -353,9 +366,9 @@ export class OtherContactsCache {
       return;
     }
     const normalizedEmailsToRemove = new Set(
-      emails.map(e => EmailNormalizer.normalize(e))
+      emails.map((e) => EmailNormalizer.normalize(e))
     );
-    const filtered = cacheData.entries.filter(entry => {
+    const filtered = cacheData.entries.filter((entry) => {
       for (const email of entry.emails) {
         if (normalizedEmailsToRemove.has(EmailNormalizer.normalize(email))) {
           return false;
@@ -372,7 +385,7 @@ export class OtherContactsCache {
       await this.invalidate();
       return;
     }
-    const filtered = cacheData.entries.filter(entry => {
+    const filtered = cacheData.entries.filter((entry) => {
       for (const phone of entry.phones) {
         for (const phoneToRemove of phones) {
           if (PhoneNormalizer.phonesMatch(phone, phoneToRemove)) {
@@ -391,7 +404,9 @@ export class OtherContactsCache {
       await this.invalidate();
       return;
     }
-    const filtered = cacheData.entries.filter(entry => entry.resourceName !== resourceName);
+    const filtered = cacheData.entries.filter(
+      (entry) => entry.resourceName !== resourceName
+    );
     await this.set(filtered, cacheData.timestamp);
   }
 
@@ -405,7 +420,9 @@ export class OtherContactsCache {
         await this.removeByResourceName(entry.resourceName);
       }
     } catch (error) {
-      console.warn(`Failed to remove entry from cache: ${(error as Error).message}`);
+      console.warn(
+        `Failed to remove entry from cache: ${(error as Error).message}`
+      );
     }
   }
 }
@@ -448,7 +465,7 @@ async run(): Promise<void> {
     if (menuAction === 'escape') {
       return;
     }
-    
+
     const entries = await this.ensureOtherContactsCached();
     if (entries.length === 0) {
       this.uiLogger.displayInfo('No Other Contacts found to process');
@@ -456,7 +473,7 @@ async run(): Promise<void> {
       this.restoreConsole();
       return;
     }
-    
+
     await this.ensureGoogleContactsCached();
     await this.processEntries(entries);
   } catch (error) {
@@ -535,26 +552,26 @@ private async processEntries(entries: OtherContactEntry[]): Promise<void> {
   let allContacts = await this.ensureGoogleContactsCached();
   const contactCount = allContacts.length;
   fetchSpinner.succeed(`Google Contacts loaded (${FormatUtils.formatNumberWithLeadingZeros(contactCount)} contacts)`);
-  
+
   const filterSpinner = ora('Filtering entries already in contacts...').start();
-  
+
   let emailToContact = this.buildEmailToContactMap(allContacts);
-  
+
   const autoSkipped: Array<{ entry: OtherContactEntry; contactName: string }> = [];
   const phonesAdded: Array<{ entry: OtherContactEntry; contactName: string; phonesAdded: string[] }> = [];
   const toProcess: Array<{ entry: OtherContactEntry; unmatchedEmails: string[]; matchedEmails: string[] }> = [];
   const cache = OtherContactsCache.getInstance();
-  
+
   for (const entry of entries) {
     const { matchedEmails, unmatchedEmails, matchedContact } = this.categorizeEmails(entry, emailToContact);
-    
+
     if (unmatchedEmails.length === 0 && entry.emails.length > 0 && matchedContact) {
       const missingPhones = entry.phones.filter(phone => {
-        return !matchedContact.phones.some(existingPhone => 
+        return !matchedContact.phones.some(existingPhone =>
           PhoneNormalizer.phonesMatch(phone, existingPhone)
         );
       });
-      
+
       if (missingPhones.length > 0 && matchedContact.resourceName) {
         for (const phone of missingPhones) {
           await this.contactEditor.addPhoneToExistingContact(matchedContact.resourceName, phone);
@@ -581,21 +598,21 @@ private async processEntries(entries: OtherContactEntry[]): Promise<void> {
       toProcess.push({ entry, unmatchedEmails: entry.emails, matchedEmails: [] });
     }
   }
-  
+
   const totalPhonesAdded = phonesAdded.reduce((sum, p) => sum + p.phonesAdded.length, 0);
   filterSpinner.succeed(
     `Filtered: ${FormatUtils.formatNumberWithLeadingZeros(autoSkipped.length)} skipped, ` +
     `${FormatUtils.formatNumberWithLeadingZeros(totalPhonesAdded)} phones added to ${FormatUtils.formatNumberWithLeadingZeros(phonesAdded.length)} contacts, ` +
     `${FormatUtils.formatNumberWithLeadingZeros(toProcess.length)} to process`
   );
-  
+
   if (toProcess.length === 0) {
     this.uiLogger.displaySuccess(
       `All ${entries.length} entries processed! No new entries to review.`
     );
     return;
   }
-  
+
   const total = toProcess.length;
   for (let i = 0; i < toProcess.length; i++) {
     if (this.isCancelled) {
@@ -640,7 +657,7 @@ private categorizeEmails(
   const matchedEmails: string[] = [];
   const unmatchedEmails: string[] = [];
   let matchedContact: { resourceName: string; firstName: string; lastName: string; phones: string[] } | null = null;
-  
+
   for (const email of entry.emails) {
     const normalizedEmail = EmailNormalizer.normalize(email);
     const contact = emailToContact.get(normalizedEmail);
@@ -651,7 +668,7 @@ private categorizeEmails(
       unmatchedEmails.push(email);
     }
   }
-  
+
   return { matchedEmails, unmatchedEmails, matchedContact };
 }
 
@@ -703,24 +720,24 @@ private displayEntry(
 
 ## Edge Cases
 
-| Edge Case | Handling |
-|-----------|----------|
-| Empty Other Contacts | Show "No Other Contacts found" message |
-| All emails already in contacts (no missing phones) | Auto-skip silently, remove from cache, show summary |
-| All emails match but phones missing | Auto-add phones to matched contact, refresh cache from file, remove from cache |
-| Some emails match, some don't | Auto-skip matched emails, display only unmatched emails to user |
-| Script interrupted mid-process | Cache contains remaining unprocessed entries, resume on next run |
-| Cache file corrupted/unreadable | Log warning, delete corrupted cache file, fetch fresh from API |
-| Cache expired (>24h old) | Log expiration info, delete expired cache, fetch fresh from API |
-| Cache version mismatch | Log version mismatch, invalidate cache, fetch fresh |
-| Entry with no emails but has phones | Can be removed via `removeByPhones()` or `removeByResourceName()` |
-| Entry with no emails and no phones | Can be removed via `removeByResourceName()` |
-| User action: Add new contact | Refresh Google Contacts from file, remove entry from cache |
-| User action: Update existing contact | Refresh Google Contacts from file, remove entry from cache |
-| User action: Skip | Remove entry from cache |
-| Cache removal fails | Log warning, continue processing (worst case: duplicate work on next run) |
-| Concurrent script runs | Not supported - document as single instance only |
-| User selects Clear Cache | Delete other-contacts-cache.json, show confirmation |
+| Edge Case                                          | Handling                                                                       |
+| -------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Empty Other Contacts                               | Show "No Other Contacts found" message                                         |
+| All emails already in contacts (no missing phones) | Auto-skip silently, remove from cache, show summary                            |
+| All emails match but phones missing                | Auto-add phones to matched contact, refresh cache from file, remove from cache |
+| Some emails match, some don't                      | Auto-skip matched emails, display only unmatched emails to user                |
+| Script interrupted mid-process                     | Cache contains remaining unprocessed entries, resume on next run               |
+| Cache file corrupted/unreadable                    | Log warning, delete corrupted cache file, fetch fresh from API                 |
+| Cache expired (>24h old)                           | Log expiration info, delete expired cache, fetch fresh from API                |
+| Cache version mismatch                             | Log version mismatch, invalidate cache, fetch fresh                            |
+| Entry with no emails but has phones                | Can be removed via `removeByPhones()` or `removeByResourceName()`              |
+| Entry with no emails and no phones                 | Can be removed via `removeByResourceName()`                                    |
+| User action: Add new contact                       | Refresh Google Contacts from file, remove entry from cache                     |
+| User action: Update existing contact               | Refresh Google Contacts from file, remove entry from cache                     |
+| User action: Skip                                  | Remove entry from cache                                                        |
+| Cache removal fails                                | Log warning, continue processing (worst case: duplicate work on next run)      |
+| Concurrent script runs                             | Not supported - document as single instance only                               |
+| User selects Clear Cache                           | Delete other-contacts-cache.json, show confirmation                            |
 
 ---
 
@@ -728,17 +745,18 @@ private displayEntry(
 
 **Every processed entry MUST be removed from cache**, regardless of the action taken:
 
-| Action | Cache Removal Method |
-|--------|---------------------|
-| Auto-skip (all data exists) | `removeEntry()` |
-| Auto-add phones | Refresh Google Contacts from file, then `removeEntry()` |
-| User adds new contact | Refresh Google Contacts from file, then `removeEntry()` |
+| Action                        | Cache Removal Method                                    |
+| ----------------------------- | ------------------------------------------------------- |
+| Auto-skip (all data exists)   | `removeEntry()`                                         |
+| Auto-add phones               | Refresh Google Contacts from file, then `removeEntry()` |
+| User adds new contact         | Refresh Google Contacts from file, then `removeEntry()` |
 | User updates existing contact | Refresh Google Contacts from file, then `removeEntry()` |
-| User skips | `removeEntry()` |
+| User skips                    | `removeEntry()`                                         |
 
 The `removeEntry()` method handles all cases with error handling:
+
 1. If entry has emails → remove by emails
-2. Else if entry has phones → remove by phones  
+2. Else if entry has phones → remove by phones
 3. Else → remove by resourceName
 4. On error → log warning, continue processing
 

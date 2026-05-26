@@ -6,6 +6,7 @@
 ## ✅ All Tasks Completed
 
 ### Phase 1: Foundation
+
 - ✅ Created `src/utils/promptWithEscape.ts` with full implementation
 - ✅ PromptResult<T> type with `{ escaped: boolean, value?: T }`
 - ✅ EscapeKeyManager singleton with isActive flag
@@ -17,15 +18,18 @@
 - ✅ Added ESC-specific test cases (validation, default values, nested flows, TypeScript narrowing)
 
 ### Phase 2: Package Management
+
 - ✅ @inquirer/prompts ^8.3.2 installed
 - ✅ Old inquirer v9 removed
 - ✅ Old @types/inquirer removed
 
 ### Phase 3: UserCancelledError Replacement
+
 - ✅ All UserCancelledError references removed
 - ✅ Using EscapeSignal and result.escaped checks
 
 ### Phase 4-6: Source File Migration
+
 - ✅ All production source files migrated (68 prompts):
   - `src/index.ts` (1 prompt)
   - `src/scripts/contactsSync.ts` (1 prompt)
@@ -36,6 +40,7 @@
   - `src/scripts/eventsJobsSync.ts` (29 prompts)
 
 ### Phase 7: Test File Migration
+
 - ✅ **COMPLETE:** Updated `src/scripts/__tests__/eventsJobsSync.test.ts`
   - ✅ Added imports for ESC wrapper functions
   - ✅ Added mock setup for `promptWithEscape` module
@@ -44,6 +49,7 @@
   - ✅ All 45 tests passing
 
 ### Phase 8: ESC-Specific Tests
+
 - ✅ **COMPLETE:** Added comprehensive ESC tests to `promptWithEscape.test.ts`
   - ESC during validation
   - ESC with default values
@@ -53,11 +59,13 @@
 - ✅ Total: 26 tests in promptWithEscape.test.ts, all passing
 
 ### Phase 9: User-Facing Improvements
+
 - ✅ ESC hints added to prompts: "(ESC to exit)", "(ESC to go back)"
 - ✅ ESC feedback messages: `UI_CONSTANTS.MESSAGES.ESC_GOING_BACK`
 - ⚠️ First-run tutorial message NOT implemented (nice-to-have, not required)
 
 ### Phase 10: Documentation
+
 - ✅ **COMPLETE:** CHANGELOG.md updated with ESC navigation feature
 - ✅ **COMPLETE:** This status document created and maintained
 - ✅ **COMPLETE:** All changes documented
@@ -92,11 +100,13 @@
 ## Test Results
 
 ### ESC Navigation Tests
+
 - ✅ `promptWithEscape.test.ts` - **26/26 tests passing** ✨
 - ✅ `eventsJobsSync.test.ts` - **45/45 tests passing** ✨
 - ✅ **Total: 69/69 ESC-related tests passing**
 
 ### Overall Test Suite
+
 - 792 tests passing in full suite
 - ESC navigation implementation: **100% test coverage**
 - No regressions introduced
@@ -104,6 +114,7 @@
 ## What Was Accomplished
 
 ### Code Changes
+
 1. **New Files Created:**
    - `src/utils/promptWithEscape.ts` (164 lines)
    - `src/utils/__tests__/promptWithEscape.test.ts` (229 lines with new tests)
@@ -124,6 +135,7 @@
 3. **Total Lines Changed:** ~500+ lines across all files
 
 ### Key Improvements
+
 - ✅ Reduced code complexity by ~50% (no try-catch for ESC)
 - ✅ Better user experience with consistent ESC behavior
 - ✅ Improved type safety with PromptResult pattern
@@ -149,6 +161,7 @@ All code has been migrated, all tests pass, documentation is updated, and the fe
 ## ✅ Completed
 
 ### Phase 1: Foundation
+
 - ✅ Created `src/utils/promptWithEscape.ts` with full implementation
 - ✅ PromptResult<T> type with `{ escaped: boolean, value?: T }`
 - ✅ EscapeKeyManager singleton with isActive flag
@@ -160,15 +173,18 @@ All code has been migrated, all tests pass, documentation is updated, and the fe
 - ✅ **NEW:** Added ESC-specific test cases (validation, default values, nested flows, TypeScript narrowing)
 
 ### Phase 2: Package Management
+
 - ✅ @inquirer/prompts ^8.3.2 installed
 - ✅ Old inquirer v9 removed
 - ✅ Old @types/inquirer removed
 
 ### Phase 3: UserCancelledError Replacement
+
 - ✅ All UserCancelledError references removed
 - ✅ Using EscapeSignal and result.escaped checks
 
 ### Phase 4-6: Source File Migration
+
 - ✅ All production source files migrated (68 prompts):
   - `src/index.ts` (1 prompt)
   - `src/scripts/contactsSync.ts` (1 prompt)
@@ -179,11 +195,13 @@ All code has been migrated, all tests pass, documentation is updated, and the fe
   - `src/scripts/eventsJobsSync.ts` (29 prompts)
 
 ### Phase 9: User-Facing Improvements
+
 - ✅ ESC hints added to prompts: "(ESC to exit)", "(ESC to go back)"
 - ✅ ESC feedback messages: `UI_CONSTANTS.MESSAGES.ESC_GOING_BACK`
 - ⚠️ First-run tutorial message NOT implemented (nice-to-have)
 
 ### Phase 10: Documentation
+
 - ✅ **NEW:** CHANGELOG.md updated with ESC navigation feature
 - ✅ **NEW:** This status document created
 
@@ -196,15 +214,18 @@ All code has been migrated, all tests pass, documentation is updated, and the fe
 **Issue:** The test file still uses old `mockPrompt` patterns that don't match the new implementation.
 
 **What was done:**
+
 - ✅ Added imports for ESC wrapper functions
 - ✅ Added mock setup for `promptWithEscape` module
 - ✅ Changed mock variable from `mockPrompt` to `mockSelectWithEscape`, `mockInputWithEscape`, `mockConfirmWithEscape`
 - ✅ Updated first 3 test cases in `selectOrCreateFolder` describe block
 
 **What still needs to be done:**
+
 - ⚠️ **34 remaining `mockPrompt` references need to be replaced**
 
 **Location of remaining issues:**
+
 - Lines 251-254: `createFolderFlow` tests
 - Lines 279-281: More `createFolderFlow` tests
 - Lines 290-293: Confirmation tests
@@ -231,29 +252,34 @@ mockConfirmWithEscape.mockResolvedValueOnce({ escaped: false, value: false });
 **How to complete:**
 
 1. **Search and replace** all `mockPrompt.mockResolvedValue({ ready: '' })` with:
+
    ```typescript
-   mockInputWithEscape.mockResolvedValue({ escaped: false, value: '' })
+   mockInputWithEscape.mockResolvedValue({ escaped: false, value: '' });
    ```
 
 2. **Update folder input mocks**:
+
    ```typescript
    // OLD: mockPrompt.mockResolvedValueOnce({ folderInput: 'value' })
    // NEW: mockInputWithEscape.mockResolvedValueOnce({ escaped: false, value: 'value' })
    ```
 
 3. **Update confirmation mocks**:
+
    ```typescript
    // OLD: mockPrompt.mockResolvedValueOnce({ shouldCreate: false })
    // NEW: mockConfirmWithEscape.mockResolvedValueOnce({ escaped: false, value: false })
    ```
 
 4. **Update selection mocks**:
+
    ```typescript
    // OLD: mockPrompt.mockResolvedValueOnce({ folderType: 'job' })
    // NEW: mockSelectWithEscape.mockResolvedValueOnce({ escaped: false, value: 'job' })
    ```
 
 5. **Update expectation patterns**:
+
    ```typescript
    // OLD: expect(mockPrompt).toHaveBeenCalledWith(expect.arrayContaining([...]))
    // NEW: expect(mockConfirmWithEscape).toHaveBeenCalledWith(expect.objectContaining({ message: ... }))
@@ -262,39 +288,46 @@ mockConfirmWithEscape.mockResolvedValueOnce({ escaped: false, value: false });
 6. **Remove `.mock.calls.find()` patterns** - these are checking internal implementation details of old inquirer. Replace with direct assertion of the mock being called.
 
 ### Phase 8: Additional ESC Tests
+
 - ✅ **DONE:** Added ESC-specific tests to `promptWithEscape.test.ts`
 - ⚠️ Could add ESC tests to `eventsJobsSync.test.ts` once mock patterns are fixed
 
 ## Testing Status
 
 **Unit Tests:**
+
 - ✅ `promptWithEscape.test.ts` - All tests passing (26 tests)
 - ⚠️ `eventsJobsSync.test.ts` - Tests may fail due to mock mismatch
 - ✅ Other test files - Passing
 
 **Manual Testing:**
+
 - ⚠️ Not performed yet - requires test fixes first
 
 ## Risk Assessment
 
 **Low Risk:**
+
 - Production code is fully migrated and follows correct patterns
 - Utility implementation is solid
 - Package dependencies are correct
 
 **Medium Risk:**
+
 - Test file has outdated mocks - tests may not be validating actual behavior
 - Need to verify tests pass after updates
 
 ## Next Steps
 
 ### Immediate (Required)
+
 1. Update all 34 `mockPrompt` references in `eventsJobsSync.test.ts`
 2. Run tests: `NODE_OPTIONS='--no-warnings' pnpm test`
 3. Fix any remaining test failures
 4. Perform manual testing of ESC navigation
 
 ### Future (Nice-to-have)
+
 1. Add first-run tutorial message about ESC key
 2. Add more integration tests for ESC behavior
 3. Document ESC navigation in user-facing docs/README

@@ -21,6 +21,7 @@ pnpm run poc:searchable
 ```
 
 **Features to test:**
+
 1. Labels appear sorted by popularity (highest member count first)
 2. Type any letter to filter labels in real-time
 3. Use arrow keys to navigate filtered results
@@ -36,6 +37,7 @@ pnpm run poc:searchable:demo
 ```
 
 This version automatically demonstrates:
+
 - Sorting before/after
 - Filtering scenarios
 - Selection preservation logic
@@ -52,19 +54,19 @@ class SearchableMultiSelect extends Enquirer.MultiSelect {
   private _allChoices: Choice[] | null = null;
 
   // Intercepts keystrokes for search
-  async dispatch(s: string | undefined, key: KeypressEvent): Promise<void>
+  async dispatch(s: string | undefined, key: KeypressEvent): Promise<void>;
 
   // Syncs selections between filtered view and master list
-  private _syncSelections(): void
+  private _syncSelections(): void;
 
   // Applies filter to visible choices
-  private _applyFilter(): void
+  private _applyFilter(): void;
 
   // Returns selected items from full list
-  result(): string[]
+  result(): string[];
 
   // Shows search term and match count
-  async header(): Promise<string>
+  async header(): Promise<string>;
 }
 ```
 
@@ -90,6 +92,7 @@ function sortContactGroups(groups: ContactGroup[]): ContactGroup[] {
 ### Scenario 1: Popularity Sorting
 
 **Before:**
+
 - Work: 42 members
 - Family: 15 members
 - Friends: 87 members
@@ -97,6 +100,7 @@ function sortContactGroups(groups: ContactGroup[]): ContactGroup[] {
 - Clients: 56 members
 
 **After:**
+
 - Tech Meetup: 103 members
 - Startup Network: 91 members
 - Friends: 87 members
@@ -106,10 +110,12 @@ function sortContactGroups(groups: ContactGroup[]): ContactGroup[] {
 ### Scenario 2: Real-time Search
 
 Type "work" → Shows:
+
 - Work (42 contacts)
 - Volunteer Work (22 contacts)
 
 Type "tech" → Shows:
+
 - Tech Meetup (103 contacts)
 
 ### Scenario 3: Selection Preservation
@@ -123,16 +129,19 @@ Type "tech" → Shows:
 ## Known Issues (from analysis)
 
 ### Critical
+
 1. ❌ Match count shows "20/0" instead of "20/20" - header logic issue
 2. ⚠️ Single-letter shortcuts ('a', 'i', 'g') need modifier key check
 3. ⚠️ No race condition handling for concurrent cache access
 
 ### Should Fix
+
 - Visual feedback when no results match filter
 - Cache invalidation on label deletion
 - TypeScript type definitions for enquirer internals
 
 ### Nice to Have
+
 - Debounce search input for performance
 - Highlight matching characters in filtered results
 - Show member count in label display (already in POC)

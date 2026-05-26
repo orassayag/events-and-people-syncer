@@ -11,6 +11,7 @@ The Events & Jobs Sync script allows you to create timestamped note files for jo
 Before running this script for the first time, you **must** create the following labels in your Google Contacts:
 
 #### Mandatory Labels (for Job/HR folders):
+
 - **"Job"** (case-sensitive, exactly as shown)
   - Used for job interview contacts
   - Script will throw an error if this label doesn't exist
@@ -22,6 +23,7 @@ Before running this script for the first time, you **must** create the following
   - Create at: https://contacts.google.com
 
 #### Optional Labels (for Life Event folders):
+
 - Life event labels (e.g., "OSR", "Airbnb", "Conference", etc.)
   - Created on-demand when needed
   - Script will prompt you to create these if missing
@@ -50,20 +52,24 @@ project-root/
 ### 3. Folder Naming Conventions
 
 #### Job/HR Folders (in `dummy/job-interviews/`):
+
 - **Format**: `{Label}_{CompanyName}`
 - **Label** must be exactly "Job" or "HR" (case-sensitive)
 - **CompanyName** formatted in PascalCase (e.g., "Microsoft", "EladSoftwareSystems")
 
 **Examples**:
+
 - ✅ Valid: `Job_Microsoft`, `HR_EladSoftwareSystems`, `Job_Google`
 - ❌ Invalid: `job_Microsoft`, `JOB_Microsoft`, `Microsoft` (missing label)
 
 #### Life Event Folders (in `dummy/life-events/`):
+
 - **Format**: Any name, minimum 2 characters
 - Capitalize first letter of each word
 - Last word is typically the label, but you can choose during folder creation
 
 **Examples**:
+
 - ✅ Valid: `Alex Z OSR`, `Airbnb`, `John Doe Meeting`, `Conference 2026`
 - ❌ Invalid: `A`, `X` (too short)
 
@@ -116,11 +122,13 @@ pnpm start
 Notes are saved as: `notes_DDMMYYYY-N.txt`
 
 Examples:
+
 - `notes_15032026-1.txt` (first note on March 15, 2026)
 - `notes_15032026-2.txt` (second note same day)
 - `notes_16032026-1.txt` (first note on March 16, 2026)
 
 **Counter Logic**:
+
 - Counter starts at 1 by default
 - **Can start at 0**: If `notes_15032026-0.txt` exists, next file is `-1.txt`
 - Always uses max+1 (ignores gaps in sequence)
@@ -142,6 +150,7 @@ Examples:
 ### Logging Policy
 
 The script logs all actions **except** note content:
+
 - ✅ Logged: folder names, file paths, user selections, stats, errors
 - ❌ Never logged: note content (may contain sensitive information)
 
@@ -212,6 +221,7 @@ NO_CACHE=true pnpm start
 **Cause**: The "Job" label is missing from Google Contacts.
 
 **Solution**:
+
 1. Go to https://contacts.google.com
 2. Create a label named exactly **"Job"** (case-sensitive)
 3. Re-run the script
@@ -221,6 +231,7 @@ NO_CACHE=true pnpm start
 **Cause**: The "HR" label is missing from Google Contacts.
 
 **Solution**:
+
 1. Go to https://contacts.google.com
 2. Create a label named exactly **"HR"** (case-sensitive)
 3. Re-run the script
@@ -230,6 +241,7 @@ NO_CACHE=true pnpm start
 **Cause**: Neither required folder exists.
 
 **Solution**:
+
 ```bash
 mkdir -p dummy/job-interviews
 mkdir -p dummy/life-events
@@ -242,6 +254,7 @@ At least one of these folders must exist.
 **Cause**: The path points to a file instead of a directory.
 
 **Solution**:
+
 ```bash
 # Remove the file and create a directory
 rm dummy/job-interviews  # or dummy/life-events
@@ -253,6 +266,7 @@ mkdir -p dummy/job-interviews  # or dummy/life-events
 **Cause**: The script doesn't have read/write permissions for the folder.
 
 **Solution**:
+
 ```bash
 # Fix permissions (macOS/Linux)
 chmod -R u+rw dummy/job-interviews
@@ -264,14 +278,16 @@ chmod -R u+rw dummy/life-events
 **Cause**: Folder doesn't match required format `Job_CompanyName` or `HR_CompanyName`.
 
 **Solution**:
+
 - Rename folder to proper format: `Job_Microsoft` or `HR_Microsoft`
 - Label must be exactly "Job" or "HR" (case-sensitive)
 
-### Error: "Folder name cannot contain: / \ : * ? \" < > |"
+### Error: "Folder name cannot contain: / \ : \* ? \" < > |"
 
 **Cause**: Company or folder name contains illegal filesystem characters.
 
 **Solution**:
+
 - Remove illegal characters from the name
 - Use only alphanumeric characters, spaces, hyphens, and underscores
 
@@ -280,6 +296,7 @@ chmod -R u+rw dummy/life-events
 **Cause**: A folder with the same name already exists (case-insensitive check).
 
 **Solution**:
+
 - Choose a different name
 - Or use the existing folder
 
@@ -298,6 +315,7 @@ This script supports **English only**. All error messages, prompts, and logs are
 ## Security & Privacy
 
 ### What Gets Logged:
+
 - Folder names and paths
 - File names (but NOT content)
 - User menu selections
@@ -305,11 +323,13 @@ This script supports **English only**. All error messages, prompts, and logs are
 - Error messages
 
 ### What Does NOT Get Logged:
+
 - **Note content** (never logged to protect sensitive information)
 - Google Contacts credentials
 - API tokens
 
 ### Note Content Limits:
+
 - Maximum size: 1MB (~1,048,576 characters)
 - Binary data (null bytes) rejected automatically
 
@@ -336,6 +356,7 @@ This script supports **English only**. All error messages, prompts, and logs are
 ## Support
 
 For issues or questions:
+
 1. Check this troubleshooting guide first
 2. Review the implementation plan for technical details
 3. Check logs in `logs/events-jobs-sync-{DD_MM_YYYY}.log`
@@ -343,6 +364,6 @@ For issues or questions:
 
 ---
 
-**Version**: 1.0.0  
-**Last Updated**: March 2026  
+**Version**: 1.0.0
+**Last Updated**: March 2026
 **Supported Platforms**: macOS, Linux, Windows (with proper path handling)

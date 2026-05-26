@@ -39,10 +39,7 @@ class SearchableMultiSelect extends (Enquirer as any).MultiSelect {
 
   async dispatch(s: string | undefined, key: KeypressEvent): Promise<void> {
     const isPassthrough =
-      !s ||
-      key?.ctrl ||
-      key?.meta ||
-      PASSTHROUGH_KEYS.has(key?.name ?? '');
+      !s || key?.ctrl || key?.meta || PASSTHROUGH_KEYS.has(key?.name ?? '');
     if (isPassthrough) {
       this._syncSelections();
       return super.dispatch(s, key);
@@ -59,7 +56,9 @@ class SearchableMultiSelect extends (Enquirer as any).MultiSelect {
   private _syncSelections(): void {
     if (!this._allChoices) return;
     for (const choice of this.choices) {
-      const master = this._allChoices.find((c: Choice) => c.name === choice.name);
+      const master = this._allChoices.find(
+        (c: Choice) => c.name === choice.name
+      );
       if (master) {
         master.enabled = choice.enabled;
       }
@@ -80,7 +79,9 @@ class SearchableMultiSelect extends (Enquirer as any).MultiSelect {
   result(): string[] {
     this._syncSelections();
     const source = this._allChoices ?? this.choices;
-    return source.filter((c: Choice) => c.enabled === true).map((c: Choice) => c.name);
+    return source
+      .filter((c: Choice) => c.enabled === true)
+      .map((c: Choice) => c.name);
   }
 
   async header(): Promise<string> {
@@ -104,7 +105,11 @@ function generateMockContactGroups(): ContactGroup[] {
     { resourceName: 'contactGroups/1', name: 'Work', memberCount: 42 },
     { resourceName: 'contactGroups/2', name: 'Family', memberCount: 15 },
     { resourceName: 'contactGroups/3', name: 'Friends', memberCount: 87 },
-    { resourceName: 'contactGroups/4', name: 'Job Interviews', memberCount: 23 },
+    {
+      resourceName: 'contactGroups/4',
+      name: 'Job Interviews',
+      memberCount: 23,
+    },
     { resourceName: 'contactGroups/5', name: 'Clients', memberCount: 56 },
     { resourceName: 'contactGroups/6', name: 'Suppliers', memberCount: 12 },
     { resourceName: 'contactGroups/7', name: 'Colleagues', memberCount: 34 },
@@ -112,15 +117,31 @@ function generateMockContactGroups(): ContactGroup[] {
     { resourceName: 'contactGroups/9', name: 'Sports Team', memberCount: 18 },
     { resourceName: 'contactGroups/10', name: 'Book Club', memberCount: 8 },
     { resourceName: 'contactGroups/11', name: 'Gym Buddies', memberCount: 7 },
-    { resourceName: 'contactGroups/12', name: 'Photography Club', memberCount: 14 },
+    {
+      resourceName: 'contactGroups/12',
+      name: 'Photography Club',
+      memberCount: 14,
+    },
     { resourceName: 'contactGroups/13', name: 'Church', memberCount: 65 },
     { resourceName: 'contactGroups/14', name: 'Neighbors', memberCount: 11 },
     { resourceName: 'contactGroups/15', name: 'High School', memberCount: 28 },
-    { resourceName: 'contactGroups/16', name: 'Startup Network', memberCount: 91 },
+    {
+      resourceName: 'contactGroups/16',
+      name: 'Startup Network',
+      memberCount: 91,
+    },
     { resourceName: 'contactGroups/17', name: 'Tech Meetup', memberCount: 103 },
     { resourceName: 'contactGroups/18', name: 'Vendors', memberCount: 19 },
-    { resourceName: 'contactGroups/19', name: 'Investment Group', memberCount: 6 },
-    { resourceName: 'contactGroups/20', name: 'Volunteer Work', memberCount: 22 },
+    {
+      resourceName: 'contactGroups/19',
+      name: 'Investment Group',
+      memberCount: 6,
+    },
+    {
+      resourceName: 'contactGroups/20',
+      name: 'Volunteer Work',
+      memberCount: 22,
+    },
   ];
   return groups;
 }
@@ -195,11 +216,11 @@ async function testSearchableMultiselect(): Promise<void> {
     console.log('');
     console.log(`You selected ${selectedNames.length} label(s):`);
     selectedNames.forEach((name: string, index: number) => {
-      const group = sortedGroups.find((g) =>
-        name.startsWith(g.name)
-      );
+      const group = sortedGroups.find((g) => name.startsWith(g.name));
       if (group) {
-        console.log(`  ${index + 1}. ${group.name} (${group.memberCount} contacts)`);
+        console.log(
+          `  ${index + 1}. ${group.name} (${group.memberCount} contacts)`
+        );
       } else {
         console.log(`  ${index + 1}. ${name}`);
       }
@@ -207,9 +228,7 @@ async function testSearchableMultiselect(): Promise<void> {
     console.log('');
     console.log('Resource names:');
     const selectedResourceNames = selectedNames.map((name: string) => {
-      const group = sortedGroups.find((g) =>
-        name.startsWith(g.name)
-      );
+      const group = sortedGroups.find((g) => name.startsWith(g.name));
       return group?.resourceName ?? 'unknown';
     });
     console.log(`  ${selectedResourceNames.join(', ')}`);

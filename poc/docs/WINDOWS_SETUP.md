@@ -17,6 +17,7 @@ This guide covers Windows-specific setup and known differences for the Google Pe
 ## Port Management
 
 The application automatically detects and kills processes on port 3000 using:
+
 - **macOS/Linux**: `lsof` command
 - **Windows**: `netstat` and `taskkill` commands
 
@@ -29,6 +30,7 @@ No manual configuration is needed. The port manager will automatically use the c
 If you encounter execution policy errors when running scripts, you can:
 
 1. **Temporarily bypass** (for one command):
+
    ```powershell
    powershell -ExecutionPolicy Bypass -File script.ps1
    ```
@@ -43,6 +45,7 @@ If you encounter execution policy errors when running scripts, you can:
 Some Windows terminals may not fully support ANSI escape sequences used for colors and formatting.
 
 **Recommended Solutions:**
+
 - Use **Windows Terminal** (recommended) - Download from Microsoft Store
 - Use **Git Bash** or **WSL2** for better compatibility
 - For Command Prompt, enable ANSI support via registry or use Windows 10+
@@ -54,6 +57,7 @@ The application uses Node.js `path.join()` which automatically handles path sepa
 ## Testing
 
 Run tests normally:
+
 ```bash
 pnpm test           # Run all tests
 pnpm test:watch     # Watch mode
@@ -78,6 +82,7 @@ pnpm dev
 ### Port Already in Use
 
 If you see "Port 3000 is already in use":
+
 1. The application will automatically try to kill the process
 2. If automatic cleanup fails, manually find and kill the process:
    ```cmd
@@ -88,6 +93,7 @@ If you see "Port 3000 is already in use":
 ### OAuth Timeout
 
 The OAuth flow has a 10-minute timeout. If authentication doesn't complete within this time:
+
 1. Restart the application
 2. Complete the authentication promptly
 3. Ensure your browser opens automatically (or manually visit the URL shown)
@@ -95,6 +101,7 @@ The OAuth flow has a 10-minute timeout. If authentication doesn't complete withi
 ### API Rate Limits
 
 Google People API has rate limits:
+
 - **Read quota**: 300 requests per minute
 - **Write quota**: 60 requests per minute
 

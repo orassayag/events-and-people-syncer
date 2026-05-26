@@ -13,8 +13,16 @@ type KeypressEvent = {
 };
 
 const PASSTHROUGH_KEYS = new Set([
-  'up', 'down', 'return', 'enter', 'escape',
-  'tab', 'pageup', 'pagedown', 'home', 'end',
+  'up',
+  'down',
+  'return',
+  'enter',
+  'escape',
+  'tab',
+  'pageup',
+  'pagedown',
+  'home',
+  'end',
 ]);
 
 export class SearchableSelect extends (Enquirer as any).Select {
@@ -28,10 +36,7 @@ export class SearchableSelect extends (Enquirer as any).Select {
 
   async dispatch(s: string | undefined, key: KeypressEvent): Promise<void> {
     const isPassthrough =
-      !s ||
-      key?.ctrl ||
-      key?.meta ||
-      PASSTHROUGH_KEYS.has(key?.name ?? '');
+      !s || key?.ctrl || key?.meta || PASSTHROUGH_KEYS.has(key?.name ?? '');
 
     if (isPassthrough) {
       return super.dispatch(s, key);
@@ -52,9 +57,10 @@ export class SearchableSelect extends (Enquirer as any).Select {
   private _applyFilter(): void {
     if (!this._allChoices) return;
     const term = this.searchTerm.toLowerCase();
-    const filtered = this._allChoices
-      .filter((c: Choice) => c.name.toLowerCase().includes(term));
-    
+    const filtered = this._allChoices.filter((c: Choice) =>
+      c.name.toLowerCase().includes(term)
+    );
+
     this.choices = filtered;
     this.index = Math.min(this.index, filtered.length - 1);
     if (this.index < 0) this.index = 0;

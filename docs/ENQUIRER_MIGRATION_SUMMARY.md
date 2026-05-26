@@ -7,6 +7,7 @@ This document summarizes the successful migration from `@inquirer/prompts` to `e
 ## What Changed
 
 ### Dependencies
+
 - **Removed:** `@inquirer/prompts` (^8.3.2)
 - **Kept:** `enquirer` (^2.4.1) - already installed
 
@@ -46,12 +47,14 @@ This document summarizes the successful migration from `@inquirer/prompts` to `e
 ## Why This Migration Was Necessary
 
 ### Problems with Old Implementation
+
 1. **Screen Overlap:** Race conditions between manual `process.stdout.write` clearing and prompt rendering
 2. **Timing Issues:** AbortController abort + cleanup + manual clear created flickering
 3. **Complexity:** 171 lines of intricate raw mode, keypress detection, and singleton management
 4. **Maintenance Burden:** Difficult to debug and understand edge cases
 
 ### Benefits of New Implementation
+
 1. **Native ESC Support:** Enquirer handles ESC by throwing an error - we just catch it
 2. **No Manual Clearing:** Enquirer manages its own screen state
 3. **Simpler Code:** ~145 lines vs 171 lines, with much simpler logic
@@ -61,12 +64,13 @@ This document summarizes the successful migration from `@inquirer/prompts` to `e
 ## Technical Differences
 
 ### Old Pattern (promptWithEscape.ts)
+
 ```typescript
 // Complex setup with singleton manager
 class EscapeKeyManager {
   private static instance: EscapeKeyManager | null = null;
   private isActive: boolean = false;
-  
+
   withEscapeHandler<T>(promptFn, config) {
     // Set up raw mode
     // Add keypress listener
@@ -79,6 +83,7 @@ class EscapeKeyManager {
 ```
 
 ### New Pattern (promptWithEnquirer.ts)
+
 ```typescript
 // Simple try/catch pattern
 async function enquirerPrompt<T>(promptConfig, choices?) {
@@ -117,11 +122,13 @@ const selectedValue = result.value; // Type-safe access
 ## Code Quality Improvements
 
 ### Lines of Code
+
 - **Before:** 171 (promptWithEscape.ts) + 7 manual clears + 343 (test file) = **521 lines**
 - **After:** 145 (promptWithEnquirer.ts) + 0 manual clears + 261 (test file) = **406 lines**
 - **Net Reduction:** 115 lines (~22% reduction)
 
 ### Complexity Reduction
+
 - **Removed:** Singleton pattern
 - **Removed:** Raw mode management
 - **Removed:** Keypress event handling
@@ -133,12 +140,15 @@ const selectedValue = result.value; // Type-safe access
 ## Testing
 
 ### Unit Tests
+
 - All 20 promptWithEnquirer tests passing
 - All integration tests updated and passing
 - Build succeeds with no TypeScript errors
 
 ### Manual Testing (Recommended)
+
 The following scenarios should be tested manually to verify no screen overlap:
+
 - [ ] Main menu → ESC exits cleanly
 - [ ] Add contact → ESC at labels → clean return
 - [ ] Add contact → ESC at name input → clean return
@@ -150,18 +160,18 @@ The following scenarios should be tested manually to verify no screen overlap:
 
 ## Migration Statistics
 
-| Metric | Count |
-|--------|-------|
-| Files modified | 10 |
-| Files created | 2 |
-| Files deleted | 2 |
-| Import statements updated | 9 |
-| Manual clears removed | 7 |
+| Metric                        | Count              |
+| ----------------------------- | ------------------ |
+| Files modified                | 10                 |
+| Files created                 | 2                  |
+| Files deleted                 | 2                  |
+| Import statements updated     | 9                  |
+| Manual clears removed         | 7                  |
 | Prompt function calls updated | 0 (API compatible) |
-| Tests updated/created | 21 |
-| Lines added | 406 |
-| Lines removed | 521 |
-| Net change | -115 lines |
+| Tests updated/created         | 21                 |
+| Lines added                   | 406                |
+| Lines removed                 | 521                |
+| Net change                    | -115 lines         |
 
 ## Performance Impact
 

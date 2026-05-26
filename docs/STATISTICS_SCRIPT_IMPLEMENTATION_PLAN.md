@@ -17,7 +17,7 @@ Create a new standalone "Statistics" script that provides comprehensive statisti
 ### Primary Statistics
 
 1. **Jobs** - Count of folders starting with `Job_` in job-interviews directory
-2. **HR** - Count of folders starting with `HR_` in job-interviews directory  
+2. **HR** - Count of folders starting with `HR_` in job-interviews directory
 3. **Events** - Count of all folders in life-events directory
 4. **Notes** - Total count of all `.txt` files in both job-interviews and life-events folders (recursive)
 5. **Contacts** - Total count of Google contacts from the People API
@@ -134,9 +134,10 @@ export interface StatisticsProgress {
 Service class for collecting statistics from filesystem and API:
 
 **Responsibilities:**
+
 - Scan job-interviews folder for `Job_` and `HR_` folders
 - Scan life-events folder for all folders
-- Count ALL `.txt` files in each folder (not just notes_*.txt pattern)
+- Count ALL `.txt` files in each folder (not just notes\_\*.txt pattern)
 - Count notes created today and this week based on file birthtime (fallback to mtime) using local timezone
 - Calculate average notes per folder type
 - Find the most active folder (folder with most notes)
@@ -147,6 +148,7 @@ Service class for collecting statistics from filesystem and API:
 - Fetch contact count using existing DuplicateDetector service with cache support
 
 **Key Methods:**
+
 ```typescript
 async collectFolderStatistics(): Promise<FolderStatistics>
 async collectNoteStatistics(): Promise<NoteStatistics>
@@ -157,12 +159,13 @@ async collectAll(spinner: Ora): Promise<Statistics>
 ```
 
 **Implementation Notes:**
+
 - Use `SETTINGS.eventsJobsSync.companyFoldersPath` for job-interviews path
 - Use `SETTINGS.eventsJobsSync.lifeEventsPath` for life-events path
 - Use `SETTINGS.statistics.displayWidth` for formatting width
 - Use `promises as fs` from Node.js for filesystem operations
 - Use regex patterns to match `Job_*` and `HR_*` folder names
-- Count ALL `.txt` files (not just notes_*.txt pattern)
+- Count ALL `.txt` files (not just notes\_\*.txt pattern)
 - **Error Handling:**
   - If both folder paths don't exist: **Throw an error** (at least one must exist)
   - If a folder is deleted mid-scan: **Ignore and continue** with other folders
@@ -190,12 +193,13 @@ async collectAll(spinner: Ora): Promise<Statistics>
 Main statistics script implementation:
 
 **Structure:**
+
 ```typescript
 @injectable()
 export class StatisticsScript {
   private readonly logger: Logger;
   private readonly uiLogger: Logger;
-  
+
   constructor(
     @inject('OAuth2Client') private auth: OAuth2Client,
     @inject(DuplicateDetector) private duplicateDetector: DuplicateDetector
@@ -203,28 +207,28 @@ export class StatisticsScript {
     this.logger = new Logger('Statistics');
     this.uiLogger = new Logger('StatisticsScript');
   }
-  
+
   async run(): Promise<void> {
     // Main execution logic
     // Track API stats at start and end
     // Handle authentication like eventsJobsSync (optional, graceful failure)
   }
-  
+
   private async collectStatistics(): Promise<Statistics> {
     // Collect all statistics with progress spinner
     // Handle --no-cache flag
   }
-  
+
   private displayStatistics(stats: Statistics): void {
     // Format and display statistics
     // Handle -1 for contacts (display "N/A")
     // Validate consistency of statistics
   }
-  
+
   private formatStorage(bytes: number): string {
     // Convert bytes to KB/MB/GB with proper TB support
   }
-  
+
   private validateStatistics(stats: Statistics): void {
     // Check that totalNotes === jobNotes + hrNotes + eventNotes
     // Check that notesThisWeek >= notesToday
@@ -235,10 +239,11 @@ export class StatisticsScript {
 
 **Authentication Pattern:**
 Follow the eventsJobsSync.ts pattern:
+
 ```typescript
 async run(): Promise<void> {
   console.log('\n===Statistics===\n');
-  
+
   // Try to authenticate, but don't fail if it doesn't work
   try {
     const authService = new AuthService();
@@ -248,13 +253,14 @@ async run(): Promise<void> {
     // Auth failed - contacts will show "N/A"
     console.log('⚠️  Google authentication failed. Contact statistics will be unavailable.\n');
   }
-  
+
   // Continue with statistics collection regardless of auth status
 }
 ```
 
 **Progress Bar Implementation:**
 Use `ora` spinner with direct text updates (no callback):
+
 ```typescript
 const ora = (await import('ora')).default;
 const spinner = ora({
@@ -270,6 +276,7 @@ spinner.clear();
 ```
 
 **Display Logic:**
+
 - Update `FormatUtils.formatNumberWithLeadingZeros()` to pad to 6 digits (000,000)
 - Use `SETTINGS.statistics.displayWidth` for consistent width
 - Display all statistics in a single formatted block
@@ -283,11 +290,13 @@ spinner.clear();
 - Validate statistics consistency before display
 
 **Export:**
+
 ```typescript
 export const statisticsScript: Script = {
   metadata: {
     name: 'Statistics',
-    description: 'Display comprehensive statistics about jobs, HR, events, notes, and contacts',
+    description:
+      'Display comprehensive statistics about jobs, HR, events, notes, and contacts',
     version: '1.0.0',
     category: 'maintenance',
     requiresAuth: false,
@@ -328,7 +337,7 @@ export const AVAILABLE_SCRIPTS: Record<string, Script> = {
   'linkedin-sync': linkedInSyncScript,
   'contacts-sync': contactsSyncScript,
   'events-jobs-sync': eventsJobsSyncScript,
-  'statistics': statisticsScript,
+  statistics: statisticsScript,
 };
 
 export function listScripts(): void {
@@ -354,7 +363,7 @@ const scriptOrder = [
   'contacts-sync',
   'events-jobs-sync',
   'linkedin-sync',
-  'statistics'
+  'statistics',
 ];
 ```
 
@@ -365,12 +374,24 @@ Add statistics configuration:
 ```typescript
 export interface Settings {
   environment: 'test' | 'production';
-  auth: { /* existing */ };
-  api: { /* existing */ };
-  paths: { /* existing */ };
-  linkedin: { /* existing */ };
-  contactsSync: { /* existing */ };
-  eventsJobsSync: { /* existing */ };
+  auth: {
+    /* existing */
+  };
+  api: {
+    /* existing */
+  };
+  paths: {
+    /* existing */
+  };
+  linkedin: {
+    /* existing */
+  };
+  contactsSync: {
+    /* existing */
+  };
+  eventsJobsSync: {
+    /* existing */
+  };
   statistics: {
     displayWidth: number;
   };
@@ -388,7 +409,7 @@ export const SETTINGS: Settings = {
 
 Update to support 6-digit padding:
 
-```typescript
+````typescript
 import { RegexPatterns } from '../regex/patterns';
 
 export class FormatUtils {
@@ -421,9 +442,10 @@ export class FormatUtils {
    - Check and handle --no-cache flag
    - Validate that at least one directory exists (throw error if both missing)
    - Initialize progress spinner
-   ```
+````
 
 2. **Data Collection Sequence:**
+
    ```typescript
    - Phase 1: Scan job-interviews folder (collect folder list + note metadata)
    - Phase 2: Scan life-events folder (collect folder list + note metadata)
@@ -443,6 +465,7 @@ export class FormatUtils {
 ### Dependency Injection
 
 The script follows the existing DI pattern:
+
 - Use `@injectable()` decorator for the main script class
 - Inject `OAuth2Client` for authentication (optional, graceful failure)
 - Inject `DuplicateDetector` to leverage existing contact fetching with cache
@@ -452,6 +475,7 @@ The script follows the existing DI pattern:
 ### Error Handling
 
 Handle errors gracefully without blocking the script:
+
 - **Both folders missing:** Throw error "At least one directory must exist (job-interviews or life-events)"
 - **Folder deleted mid-scan:** Ignore the folder, log warning, continue with remaining folders
 - **Permission errors:** Log warning and skip the inaccessible folder/file
@@ -464,6 +488,7 @@ Handle errors gracefully without blocking the script:
 ### No-Cache Mode Support
 
 Respect the `--no-cache` flag for Google contacts:
+
 ```typescript
 async run(): Promise<void> {
   const noCacheFlag = process.env.NO_CACHE === 'true';
@@ -477,6 +502,7 @@ async run(): Promise<void> {
 ### API Tracking
 
 Track API usage during the script execution:
+
 ```typescript
 const apiTracker = ApiTracker.getInstance();
 const startStats = await apiTracker.getStats();
@@ -485,16 +511,13 @@ const startStats = await apiTracker.getStats();
 
 const endStats = await apiTracker.getStats();
 const readCalls = endStats.read - startStats.read;
-this.uiLogger.info(
-  `[People API Stats] 📖 Read: ${readCalls}`,
-  {},
-  false
-);
+this.uiLogger.info(`[People API Stats] 📖 Read: ${readCalls}`, {}, false);
 ```
 
 ### Path Resolution
 
 Use settings for all paths:
+
 ```typescript
 const jobInterviewsPath = SETTINGS.eventsJobsSync.companyFoldersPath;
 const lifeEventsPath = SETTINGS.eventsJobsSync.lifeEventsPath;
@@ -503,6 +526,7 @@ const lifeEventsPath = SETTINGS.eventsJobsSync.lifeEventsPath;
 ### Folder Matching Logic
 
 Use regex to match folder patterns:
+
 - `Job_` folders: `/^Job_/`
 - `HR_` folders: `/^HR_/`
 - All folders in life-events (no prefix filter)
@@ -510,6 +534,7 @@ Use regex to match folder patterns:
 ### Note Counting Logic
 
 Count ALL `.txt` files in each folder:
+
 ```typescript
 async function countNotesInFolder(folderPath: string): Promise<{
   count: number;
@@ -518,7 +543,7 @@ async function countNotesInFolder(folderPath: string): Promise<{
   try {
     const files = await fs.readdir(folderPath);
     const txtFiles: Array<{ name: string; mtime: Date; size: number }> = [];
-    
+
     for (const file of files) {
       try {
         if (file.endsWith('.txt')) {
@@ -537,7 +562,7 @@ async function countNotesInFolder(folderPath: string): Promise<{
         continue;
       }
     }
-    
+
     return { count: txtFiles.length, files: txtFiles };
   } catch (error) {
     if ((error as any).code === 'ENOENT') {
@@ -552,23 +577,28 @@ async function countNotesInFolder(folderPath: string): Promise<{
 ### Date Calculations
 
 Calculate notes created today and this week using local timezone:
+
 ```typescript
 // Use birthtime when available, fallback to mtime
 function getFileCreationDate(stats: fs.Stats): Date {
   // birthtime can be invalid on some filesystems (shows epoch time)
   const birthtime = stats.birthtime;
   const mtime = stats.mtime;
-  
+
   // If birthtime is epoch (Jan 1, 1970), use mtime instead
-  if (birthtime.getFullYear() === 1970 && birthtime.getMonth() === 0 && birthtime.getDate() === 1) {
+  if (
+    birthtime.getFullYear() === 1970 &&
+    birthtime.getMonth() === 0 &&
+    birthtime.getDate() === 1
+  ) {
     return mtime;
   }
-  
+
   // If birthtime is in the future, use mtime
   if (birthtime > new Date()) {
     return mtime;
   }
-  
+
   // Otherwise use birthtime
   return birthtime;
 }
@@ -576,8 +606,16 @@ function getFileCreationDate(stats: fs.Stats): Date {
 function isToday(date: Date): boolean {
   const today = new Date();
   // Compare dates at start of day (00:00:00) in local timezone
-  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const dateStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const todayStart = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  );
+  const dateStart = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate()
+  );
   return todayStart.getTime() === dateStart.getTime();
 }
 
@@ -591,6 +629,7 @@ function isThisWeek(date: Date): boolean {
 ### Contact Fetching Logic
 
 Use DuplicateDetector service which already handles cache and API logic:
+
 ```typescript
 @injectable()
 export class StatisticsCollector {
@@ -620,6 +659,7 @@ export class StatisticsCollector {
 ```
 
 **Key Points:**
+
 - Access private method `fetchAllContacts()` from DuplicateDetector
 - This method already respects ContactCache with TTL
 - Already implements retry with backoff for rate limits
@@ -629,23 +669,32 @@ export class StatisticsCollector {
 ### Display Formatting
 
 Use existing utility functions with updates:
+
 ```typescript
 // Format number: 1234 -> "000,234" (with leading zeros to 6 digits)
 const formatted = FormatUtils.formatNumberWithLeadingZeros(count, 6);
 
 // Pad line with equals: "Jobs: 000,234" -> "=====Jobs: 000,234====="
-const padded = FormatUtils.padLineWithEquals(`Jobs: ${formatted}`, SETTINGS.statistics.displayWidth);
+const padded = FormatUtils.padLineWithEquals(
+  `Jobs: ${formatted}`,
+  SETTINGS.statistics.displayWidth
+);
 
 // Handle special displays:
 // - Contacts: Display "N/A" if -1
-const contactDisplay = stats.contacts.googleContacts === -1 
-  ? 'N/A' 
-  : FormatUtils.formatNumberWithLeadingZeros(stats.contacts.googleContacts, 6);
+const contactDisplay =
+  stats.contacts.googleContacts === -1
+    ? 'N/A'
+    : FormatUtils.formatNumberWithLeadingZeros(
+        stats.contacts.googleContacts,
+        6
+      );
 
 // - Averages: Display "N/A" or "X.X notes"
-const avgJobDisplay = stats.averages.avgNotesPerJob === null
-  ? 'N/A'
-  : `${stats.averages.avgNotesPerJob.toFixed(1)} notes`;
+const avgJobDisplay =
+  stats.averages.avgNotesPerJob === null
+    ? 'N/A'
+    : `${stats.averages.avgNotesPerJob.toFixed(1)} notes`;
 
 // - Dates: Format as DD/MM/YYYY
 const dateDisplay = stats.activity.oldestNoteDate
@@ -665,10 +714,11 @@ function formatStorage(bytes: number): string {
 
 **Statistics Validation:**
 Add validation before display to ensure data consistency:
+
 ```typescript
 private validateStatistics(stats: Statistics): void {
   const { folders, notes } = stats;
-  
+
   // Validate total notes calculation
   const calculatedTotal = notes.jobNotes + notes.hrNotes + notes.eventNotes;
   if (notes.totalNotes !== calculatedTotal) {
@@ -677,7 +727,7 @@ private validateStatistics(stats: Statistics): void {
       { noPHI: true }
     );
   }
-  
+
   // Validate notes this week >= notes today
   if (notes.notesThisWeek < notes.notesToday) {
     this.logger.warn(
@@ -685,7 +735,7 @@ private validateStatistics(stats: Statistics): void {
       { noPHI: true }
     );
   }
-  
+
   // Validate folder calculations
   const calculatedTotalFolders = folders.jobFolders + folders.hrFolders + folders.eventFolders;
   if (folders.totalFolders !== calculatedTotalFolders) {
@@ -694,7 +744,7 @@ private validateStatistics(stats: Statistics): void {
       { noPHI: true }
     );
   }
-  
+
   // Validate empty folders <= total folders
   if (folders.emptyFolders > folders.totalFolders) {
     this.logger.warn(
@@ -710,12 +760,14 @@ private validateStatistics(stats: Statistics): void {
 ### Manual Testing
 
 1. **Via Menu:**
+
    ```bash
    pnpm start
    # Select "📊 Statistics" from menu
    ```
 
 2. **Direct Invocation:**
+
    ```bash
    pnpm script statistics
    ```
@@ -909,6 +961,7 @@ Potential additions for future versions:
 ## References
 
 Existing code patterns to follow:
+
 - [`src/scripts/contactsSync.ts`](../src/scripts/contactsSync.ts) - Script structure and DI
 - [`src/scripts/eventsJobsSync.ts`](../src/scripts/eventsJobsSync.ts) - Folder scanning logic and error handling
 - [`src/scripts/linkedinSync.ts`](../src/scripts/linkedinSync.ts) - Progress bar with ora and API tracking
@@ -1013,7 +1066,11 @@ export class StatisticsCollector {
   private getFileCreationDate(stats: any): Date {
     const birthtime = stats.birthtime;
     const mtime = stats.mtime;
-    if (birthtime.getFullYear() === 1970 && birthtime.getMonth() === 0 && birthtime.getDate() === 1) {
+    if (
+      birthtime.getFullYear() === 1970 &&
+      birthtime.getMonth() === 0 &&
+      birthtime.getDate() === 1
+    ) {
       return mtime;
     }
     if (birthtime > new Date()) {
@@ -1024,8 +1081,16 @@ export class StatisticsCollector {
 
   private isToday(date: Date): boolean {
     const today = new Date();
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const dateStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const todayStart = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+    const dateStart = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    );
     return todayStart.getTime() === dateStart.getTime();
   }
 
@@ -1086,10 +1151,10 @@ export class StatisticsCollector {
 ```typescript
 private displayStatistics(stats: Statistics): void {
   const width = SETTINGS.statistics.displayWidth;
-  
+
   const formatNumber = (num: number): string =>
     FormatUtils.formatNumberWithLeadingZeros(num, 6);
-  
+
   const padLine = (content: string): string =>
     FormatUtils.padLineWithEquals(content, width);
 
@@ -1159,7 +1224,7 @@ private formatStorage(bytes: number): string {
 
 private validateStatistics(stats: Statistics): void {
   const { folders, notes } = stats;
-  
+
   const calculatedTotal = notes.jobNotes + notes.hrNotes + notes.eventNotes;
   if (notes.totalNotes !== calculatedTotal) {
     this.logger.warn(
@@ -1167,14 +1232,14 @@ private validateStatistics(stats: Statistics): void {
       { noPHI: true }
     );
   }
-  
+
   if (notes.notesThisWeek < notes.notesToday) {
     this.logger.warn(
       `Statistics inconsistency: notesThisWeek (${notes.notesThisWeek}) < notesToday (${notes.notesToday})`,
       { noPHI: true }
     );
   }
-  
+
   const calculatedTotalFolders = folders.jobFolders + folders.hrFolders + folders.eventFolders;
   if (folders.totalFolders !== calculatedTotalFolders) {
     this.logger.warn(
@@ -1182,7 +1247,7 @@ private validateStatistics(stats: Statistics): void {
       { noPHI: true }
     );
   }
-  
+
   if (folders.emptyFolders > folders.totalFolders) {
     this.logger.warn(
       `Statistics inconsistency: emptyFolders (${folders.emptyFolders}) > totalFolders (${folders.totalFolders})`,

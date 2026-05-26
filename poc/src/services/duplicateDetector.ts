@@ -20,11 +20,14 @@ export class DuplicateDetector {
 
   constructor(private auth: OAuth2Client) {}
 
-  async checkDuplicateName(firstName: string, lastName: string): Promise<DuplicateMatch[]> {
+  async checkDuplicateName(
+    firstName: string,
+    lastName: string
+  ): Promise<DuplicateMatch[]> {
     const contacts = await this.fetchAllContacts();
-    const contactsWithFullName = contacts.map(contact => ({
+    const contactsWithFullName = contacts.map((contact) => ({
       ...contact,
-      fullName: `${contact.firstName} ${contact.lastName}`.trim()
+      fullName: `${contact.firstName} ${contact.lastName}`.trim(),
     }));
     const searchName = `${firstName} ${lastName}`.trim();
     const fuse = new Fuse(contactsWithFullName, {
@@ -33,7 +36,7 @@ export class DuplicateDetector {
       ignoreLocation: true,
     });
     const results = fuse.search(searchName);
-    return results.map(result => ({
+    return results.map((result) => ({
       contact: result.item,
       similarityType: 'Full Name' as SimilarityType,
     }));
@@ -62,7 +65,10 @@ export class DuplicateDetector {
     const normalizedPhone = phone.replace(/[\s\-()#*]/g, '');
     for (const contact of contacts) {
       for (const contactPhone of contact.phones) {
-        const normalizedContactPhone = contactPhone.number.replace(/[\s\-()#*]/g, '');
+        const normalizedContactPhone = contactPhone.number.replace(
+          /[\s\-()#*]/g,
+          ''
+        );
         if (normalizedContactPhone === normalizedPhone) {
           matches.push({
             contact,
@@ -94,7 +100,9 @@ export class DuplicateDetector {
     return matches;
   }
 
-  async promptForDuplicateContinue(duplicates: DuplicateMatch[]): Promise<boolean> {
+  async promptForDuplicateContinue(
+    duplicates: DuplicateMatch[]
+  ): Promise<boolean> {
     if (duplicates.length === 0) {
       return true;
     }
@@ -115,16 +123,18 @@ export class DuplicateDetector {
       if (contact.emails.length === 1) {
         console.log(`-Email: ${contact.emails[0].value}`);
       } else if (contact.emails.length > 1) {
-        const emailList = contact.emails.map(e => e.value).join(', ');
+        const emailList = contact.emails.map((e) => e.value).join(', ');
         console.log(`-Emails: ${emailList}`);
       }
       if (contact.phones.length === 1) {
         console.log(`-Phone: ${contact.phones[0].number}`);
       } else if (contact.phones.length > 1) {
-        const phoneList = contact.phones.map(p => p.number).join(', ');
+        const phoneList = contact.phones.map((p) => p.number).join(', ');
         console.log(`-Phones: ${phoneList}`);
       }
-      const linkedInWebsite = contact.websites.find(w => w.label.toLowerCase().includes('linkedin'));
+      const linkedInWebsite = contact.websites.find((w) =>
+        w.label.toLowerCase().includes('linkedin')
+      );
       if (linkedInWebsite) {
         console.log(`-LinkedIn URL: ${linkedInWebsite.url} LinkedIn`);
       }
@@ -168,11 +178,16 @@ export class DuplicateDetector {
       await apiTracker.trackRead();
       const contactGroups = contactGroupsResponse.data.contactGroups || [];
       contactGroups.forEach((group) => {
-        if (group.resourceName && group.name && group.groupType === 'USER_CONTACT_GROUP') {
+        if (
+          group.resourceName &&
+          group.name &&
+          group.groupType === 'USER_CONTACT_GROUP'
+        ) {
           groupIdToName[group.resourceName] = group.name;
         }
       });
-      contactGroupsPageToken = contactGroupsResponse.data.nextPageToken || undefined;
+      contactGroupsPageToken =
+        contactGroupsResponse.data.nextPageToken || undefined;
     } while (contactGroupsPageToken);
     const contacts: ContactData[] = [];
     let pageToken: string | undefined;
@@ -180,7 +195,8 @@ export class DuplicateDetector {
       const response = await service.people.connections.list({
         resourceName: 'people/me',
         pageSize: SETTINGS.API_PAGE_SIZE,
-        personFields: 'names,emailAddresses,phoneNumbers,organizations,urls,memberships',
+        personFields:
+          'names,emailAddresses,phoneNumbers,organizations,urls,memberships',
         pageToken,
       });
       await apiTracker.trackRead();
@@ -201,13 +217,17 @@ export class DuplicateDetector {
           url: url.value || '',
           label: url.type || url.formattedType || '',
         }));
-        const contactGroupMemberships = (person.memberships || []).filter(m => m.contactGroupMembership?.contactGroupResourceName).map(m => {
-          const groupResourceName = m.contactGroupMembership?.contactGroupResourceName;
-          if (!groupResourceName) {
-            return '';
-          }
-          return groupIdToName[groupResourceName] || '';
-        }).filter(name => name);
+        const contactGroupMemberships = (person.memberships || [])
+          .filter((m) => m.contactGroupMembership?.contactGroupResourceName)
+          .map((m) => {
+            const groupResourceName =
+              m.contactGroupMembership?.contactGroupResourceName;
+            if (!groupResourceName) {
+              return '';
+            }
+            return groupIdToName[groupResourceName] || '';
+          })
+          .filter((name) => name);
         const label = contactGroupMemberships.join(' | ');
         contacts.push({
           label,

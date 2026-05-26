@@ -38,30 +38,26 @@ vi.mock('../../utils', async () => {
 vi.mock('../../cache', () => {
   const mockContactCache = {
     invalidate: vi.fn().mockResolvedValue(undefined),
-    getByResourceName: vi
-      .fn()
-      .mockImplementation((resourceName: string) => {
-        if (resourceName.startsWith('people/dryMode_')) {
-          return {
-            firstName: 'John',
-            lastName: 'Doe',
-            company: 'TechCorp',
-            jobTitle: 'Software Engineer',
-            emails: [
-              { value: 'john@example.com', label: 'TestLabel TechCorp' },
-            ],
-            phones: [],
-            websites: [
-              { url: 'https://linkedin.com/in/johndoe', label: 'LinkedIn' },
-            ],
-            resourceName,
-            biography: 'Added by the people syncer script (LinkedIn)',
-            etag: 'dryMode_etag_12345',
-            label: 'TestLabel',
-          };
-        }
-        return null;
-      }),
+    getByResourceName: vi.fn().mockImplementation((resourceName: string) => {
+      if (resourceName.startsWith('people/dryMode_')) {
+        return {
+          firstName: 'John',
+          lastName: 'Doe',
+          company: 'TechCorp',
+          jobTitle: 'Software Engineer',
+          emails: [{ value: 'john@example.com', label: 'TestLabel TechCorp' }],
+          phones: [],
+          websites: [
+            { url: 'https://linkedin.com/in/johndoe', label: 'LinkedIn' },
+          ],
+          resourceName,
+          biography: 'Added by the people syncer script (LinkedIn)',
+          etag: 'dryMode_etag_12345',
+          label: 'TestLabel',
+        };
+      }
+      return null;
+    }),
     getByEmail: vi.fn().mockResolvedValue([]),
     getByNormalizedPhone: vi.fn().mockResolvedValue([]),
     getByLinkedInSlug: vi.fn().mockResolvedValue(null),

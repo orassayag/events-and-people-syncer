@@ -36,10 +36,12 @@ Added `WRITE_NOTES = 'write_notes'` to the `MenuOption` enum as the first option
 Updated three methods to return `Promise<FolderMapping | null>` and accept `createNoteAfter` parameter:
 
 #### `createFolderFlow()`
+
 - **New signature**: `private async createFolderFlow(initialInput: string, createNoteAfter: boolean = true): Promise<FolderMapping | null>`
 - **Change**: Now returns the created folder or null, passes `createNoteAfter` to specific folder creation methods
 
 #### `createJobFolderFlow()`
+
 - **New signature**: `private async createJobFolderFlow(initialInput: string, createNoteAfter: boolean = true): Promise<FolderMapping | null>`
 - **Changes**:
   - Returns `null` on cancellation or error
@@ -47,6 +49,7 @@ Updated three methods to return `Promise<FolderMapping | null>` and accept `crea
   - If `createNoteAfter === false`: Returns the created folder without creating a note
 
 #### `createLifeEventFolderFlow()`
+
 - **New signature**: `private async createLifeEventFolderFlow(initialInput: string, createNoteAfter: boolean = true): Promise<FolderMapping | null>`
 - **Changes**: Same as `createJobFolderFlow()`
 
@@ -57,6 +60,7 @@ Extracted folder selection logic into a reusable helper method.
 **Signature**: `private async selectOrCreateFolder(): Promise<FolderMapping | null>`
 
 **Functionality**:
+
 - Prompts for folder name with validation
 - Searches for exact match
 - Handles fuzzy matches
@@ -81,7 +85,8 @@ private async createNoteFlow(): Promise<void> {
 
 ### 6. Refactored `createNoteInFolder()`
 
-**New signature**: 
+**New signature**:
+
 ```typescript
 private async createNoteInFolder(
   folder: FolderMapping,
@@ -90,6 +95,7 @@ private async createNoteInFolder(
 ```
 
 **Changes**:
+
 1. **Progress indicator**: Shows "Note N of batch" when `noteCount` is provided
 2. **Empty clipboard handling**:
    - If `allowCancel === true`: Asks "Try again?", throws `UserCancelledError` on "no"
@@ -105,6 +111,7 @@ Implements the continuous note creation loop.
 **Signature**: `private async writeNotesFlow(): Promise<void>`
 
 **Flow**:
+
 1. **Initialization**: Set `noteCount = 0`
 2. **Folder Selection**: Call `selectOrCreateFolder()` once (exit if cancelled)
 3. **Endless Loop**:
@@ -117,6 +124,7 @@ Implements the continuous note creation loop.
      - Other errors: Ask "Continue creating notes?"
 
 **Exit mechanisms**:
+
 - User leaves clipboard empty + responds "no" to retry
 - Folder deleted externally
 - Error occurs and user chooses not to continue
@@ -127,10 +135,12 @@ Implements the continuous note creation loop.
 ### 8. Updated Main Menu
 
 **Changes**:
+
 1. Added "📓 Write notes" as the **first menu option**
 2. Added handler for `MenuOptionEnum.WRITE_NOTES` that calls `writeNotesFlow()`
 
 **Menu order**:
+
 1. 📓 Write notes (NEW)
 2. 📝 Write a note
 3. 📋 Rewrite a note
@@ -170,6 +180,7 @@ Implements the continuous note creation loop.
 ## Testing Checklist
 
 ### Happy Path
+
 - [x] Menu shows "📓 Write notes" as first option
 - [ ] Folder selection works (exact match)
 - [ ] Folder selection works (fuzzy matches)
@@ -182,6 +193,7 @@ Implements the continuous note creation loop.
 - [ ] Returns to main menu after exit
 
 ### Error Cases
+
 - [ ] Delete folder between notes (before prompt) - should exit with message
 - [ ] Delete folder during file write (race condition) - should exit with message
 - [ ] Empty clipboard + "yes" to retry - should continue with same note number
@@ -192,6 +204,7 @@ Implements the continuous note creation loop.
 - [ ] Stop after error - should exit with count
 
 ### Integration
+
 - [ ] "Delete last note" deletes the final note from batch
 - [ ] Stats separate correctly (job vs life-event folders)
 - [ ] Create folder via batch flow (no initial note)
@@ -199,6 +212,7 @@ Implements the continuous note creation loop.
 - [ ] Cross-flow consistency (batch + single notes in same session)
 
 ### Edge Cases
+
 - [ ] 20+ notes in single batch (performance test)
 - [ ] Large content (near 1MB) in batch
 - [ ] Unicode/emoji content in batch
@@ -221,6 +235,7 @@ Implements the continuous note creation loop.
 ## Compilation Status
 
 ✅ **TypeScript compilation successful**
+
 - Only warning: Pre-existing `addContactFlow` unused (not related to this feature)
 - No new errors introduced
 
@@ -235,6 +250,7 @@ Implements the continuous note creation loop.
 ### Why refactor instead of duplicate?
 
 **Benefits**:
+
 - Single source of truth for folder selection logic
 - Single source of truth for note creation logic
 - Easier to maintain (bug fixes apply everywhere)
@@ -244,6 +260,7 @@ Implements the continuous note creation loop.
 ### Why optional parameters instead of separate method?
 
 **Benefits**:
+
 - No duplicate code (~80 lines saved)
 - Single place to maintain clipboard logic
 - Backward compatible (existing calls unchanged)
@@ -252,10 +269,12 @@ Implements the continuous note creation loop.
 ### Empty clipboard behavior difference
 
 **Single note mode** (`allowCancel: false`):
+
 - Auto-retries indefinitely
 - User must provide content to proceed
 
 **Batch note mode** (`allowCancel: true`):
+
 - Offers exit option ("Try again?")
 - Empty clipboard becomes the exit mechanism
 

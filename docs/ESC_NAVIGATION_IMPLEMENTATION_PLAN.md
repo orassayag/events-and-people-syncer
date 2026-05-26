@@ -1,9 +1,9 @@
 # Enable ESC Key Navigation in CLI
 
-> **⚠️ SUPERSEDED:** This implementation plan describes the original approach using `@inquirer/prompts` with manual ESC handling. 
-> 
+> **⚠️ SUPERSEDED:** This implementation plan describes the original approach using `@inquirer/prompts` with manual ESC handling.
+>
 > **Current Implementation:** The project has migrated to `enquirer` with native ESC support. See [ENQUIRER_MIGRATION_SUMMARY.md](./ENQUIRER_MIGRATION_SUMMARY.md) for details.
-> 
+>
 > **Date Superseded:** March 18, 2026
 
 ---
@@ -40,6 +40,7 @@ return { escaped: false, value: result };
 ```
 
 **Why This Works:**
+
 - `@inquirer/prompts` v8+ has native AbortSignal support
 - Raw mode allows us to intercept ESC before inquirer processes it
 - Result object pattern eliminates try-catch pollution
@@ -94,16 +95,18 @@ The migration uses a **wrapper utility pattern with raw mode keypress detection*
 
 ### Test Files (2 files)
 
-1. **src/scripts/__tests__/eventsJobsSync.test.ts** - Mock inquirer usage
-2. **src/services/contacts/__tests__/eventsContactEditor.test.ts** - Mock inquirer usage
+1. **src/scripts/**tests**/eventsJobsSync.test.ts** - Mock inquirer usage
+2. **src/services/contacts/**tests**/eventsContactEditor.test.ts** - Mock inquirer usage
 
 ## Package Dependencies
 
 Currently installed:
+
 - `inquirer` ^9.3.8 (to be removed)
 - `@types/inquirer` ^9.0.9 (to be removed)
 
 To be installed:
+
 - `@inquirer/prompts` latest version (8.3.2 or newer)
 
 ## Implementation Steps
@@ -121,7 +124,7 @@ This is the core utility that enables ESC functionality. See detailed specificat
 ```json
 {
   "dependencies": {
-    "@inquirer/prompts": "^8.3.2",
+    "@inquirer/prompts": "^8.3.2"
     // Remove: "inquirer": "^9.3.8",
     // Remove: "@types/inquirer": "^9.0.9",
   }
@@ -153,14 +156,21 @@ Migration will be done incrementally by identifying all `inquirer.prompt` calls 
 
 ### Phase 4: Test File Migration
 
-**src/scripts/__tests__/eventsJobsSync.test.ts**
+**src/scripts/**tests**/eventsJobsSync.test.ts**
+
 - Remove `import inquirer from 'inquirer'`
 - Remove `vi.mock('inquirer')`
 - Add `vi.mock('../../utils/promptWithEscape')` (adjust path)
 - Mock each wrapper function individually:
+
   ```typescript
-  import { selectWithEscape, inputWithEscape, confirmWithEscape, EscapeSignal } from '../../utils/promptWithEscape';
-  
+  import {
+    selectWithEscape,
+    inputWithEscape,
+    confirmWithEscape,
+    EscapeSignal,
+  } from '../../utils/promptWithEscape';
+
   vi.mock('../../utils/promptWithEscape', () => ({
     selectWithEscape: vi.fn(),
     inputWithEscape: vi.fn(),
@@ -174,10 +184,12 @@ Migration will be done incrementally by identifying all `inquirer.prompt` calls 
     },
   }));
   ```
+
 - Update all test cases to mock direct return values (not `{ name: value }`)
 - Add tests for ESC behavior (throwing EscapeSignal)
 
-**src/services/contacts/__tests__/eventsContactEditor.test.ts**
+**src/services/contacts/**tests**/eventsContactEditor.test.ts**
+
 - Apply same changes as above
 - Ensure parent class method mocking still works
 
@@ -186,6 +198,7 @@ Migration will be done incrementally by identifying all `inquirer.prompt` calls 
 **Create: `src/utils/__tests__/promptWithEscape.test.ts`**
 
 Test coverage:
+
 - EscapeSignal is properly thrown when ESC is pressed
 - AbortController is cleaned up after each prompt
 - TTY and non-TTY environments handled correctly
@@ -195,6 +208,7 @@ Test coverage:
 - Singleton pattern works correctly
 
 **Add ESC test cases to existing test files:**
+
 - Test ESC during input validation
 - Test ESC in nested flows
 - Test ESC cancels before cache modification
@@ -203,16 +217,19 @@ Test coverage:
 ### Phase 6: Verification & Testing
 
 #### Build Verification
+
 ```bash
 pnpm build
 ```
 
 #### Lint Check
+
 ```bash
 pnpm lint
 ```
 
 #### Unit Tests
+
 ```bash
 NODE_OPTIONS='--no-warnings' vitest run
 ```
@@ -220,12 +237,14 @@ NODE_OPTIONS='--no-warnings' vitest run
 #### Manual Testing Checklist
 
 **Main Entry Points:**
+
 - [ ] Main menu (index.ts) - ESC should exit
 - [ ] Contacts sync menu - ESC should exit
 - [ ] LinkedIn sync menu - ESC should return to main
 - [ ] Events & Jobs sync main menu - ESC should exit
 
 **Events & Jobs Sync Flows:**
+
 - [ ] Create job folder flow - ESC at each step returns to previous
 - [ ] Create life event folder flow - ESC at each step returns to previous
 - [ ] Write note flow - ESC cancels and returns
@@ -238,12 +257,14 @@ NODE_OPTIONS='--no-warnings' vitest run
 - [ ] ESC during spinner - ignored
 
 **Contact Editor Flows:**
+
 - [ ] Create contact - ESC at any field cancels
 - [ ] Edit contact - ESC returns to edit menu
 - [ ] Edit labels - ESC cancels
 - [ ] Edit email/phone - ESC cancels
 
 **Cross-Platform Testing:**
+
 - [ ] macOS terminal
 - [ ] Windows terminal
 - [ ] Linux terminal
@@ -263,15 +284,13 @@ import readline from 'readline';
 import { input, select, confirm, checkbox } from '@inquirer/prompts';
 
 // Result type - returns object instead of throwing errors
-export type PromptResult<T> = 
-  | { escaped: true }
-  | { escaped: false; value: T };
+export type PromptResult<T> = { escaped: true } | { escaped: false; value: T };
 
 // Singleton keypress manager
 class EscapeKeyManager {
   private static instance: EscapeKeyManager | null = null;
   private isActive: boolean = false;
-  
+
   static getInstance(): EscapeKeyManager;
   isListenerActive(): boolean;
   async withEscapeHandler<T>(
@@ -289,10 +308,18 @@ export class EscapeSignal extends Error {
 }
 
 // Wrapper functions return PromptResult<T> instead of T
-export async function selectWithEscape<T>(config: SelectConfig): Promise<PromptResult<T>>;
-export async function inputWithEscape(config: InputConfig): Promise<PromptResult<string>>;
-export async function confirmWithEscape(config: ConfirmConfig): Promise<PromptResult<boolean>>;
-export async function checkboxWithEscape<T>(config: CheckboxConfig<T>): Promise<PromptResult<T[]>>;
+export async function selectWithEscape<T>(
+  config: SelectConfig
+): Promise<PromptResult<T>>;
+export async function inputWithEscape(
+  config: InputConfig
+): Promise<PromptResult<string>>;
+export async function confirmWithEscape(
+  config: ConfirmConfig
+): Promise<PromptResult<boolean>>;
+export async function checkboxWithEscape<T>(
+  config: CheckboxConfig<T>
+): Promise<PromptResult<T[]>>;
 ```
 
 ### Key Features
@@ -309,6 +336,7 @@ export async function checkboxWithEscape<T>(config: CheckboxConfig<T>): Promise<
 ### Implementation Details
 
 **ESC Detection Mechanism:**
+
 ```typescript
 // Set up raw mode keypress listener
 readline.emitKeypressEvents(process.stdin);
@@ -325,17 +353,20 @@ process.stdin.on('keypress', onKeypress);
 ```
 
 **AbortSignal Integration:**
+
 - Pass `signal: ac.signal` to `@inquirer/prompts` functions
 - When `ac.abort()` is called, inquirer throws `AbortPromptError`
 - Wrapper catches this and returns `{ escaped: true }`
 - All other errors propagate normally
 
 **TTY Handling:**
+
 - Check `process.stdin.isTTY` before enabling raw mode
 - Store original TTY state and restore in cleanup
 - In non-TTY environments, ESC detection is skipped but prompts still work
 
 **Cleanup Strategy:**
+
 ```typescript
 const cleanup = () => {
   process.stdin.removeListener('keypress', onKeypress);
@@ -343,10 +374,12 @@ const cleanup = () => {
   this.isActive = false; // Release singleton lock
 };
 ```
+
 - Always called in all code paths (success, abort, error)
 - Prevents resource leaks and terminal corruption
 
 **Error Handling:**
+
 - Catch `AbortPromptError` (thrown when signal aborted) → return `{ escaped: true }`
 - Let all other errors propagate normally
 - Cleanup guaranteed via try-finally pattern
@@ -354,6 +387,7 @@ const cleanup = () => {
 ### Configuration Support
 
 All wrapper functions support the same configuration as their @inquirer/prompts counterparts:
+
 - `message`: Prompt message
 - `default`: Default value
 - `validate`: Validation function (ESC works during validation)
@@ -376,18 +410,19 @@ async function myMenu() {
     ],
     loop: false,
   });
-  
+
   if (result.escaped) {
     // User pressed ESC - navigate back
     return; // or process.exit(0) for top-level
   }
-  
+
   const choice = result.value;
   // Handle choice...
 }
 ```
 
 **Key Benefits:**
+
 - No try-catch needed for normal ESC navigation
 - Clear, explicit check with `result.escaped`
 - Real errors still throw naturally
@@ -398,6 +433,7 @@ async function myMenu() {
 ### Pattern 1: Simple Select (List)
 
 **Before:**
+
 ```typescript
 const { action } = await inquirer.prompt([
   {
@@ -411,6 +447,7 @@ const { action } = await inquirer.prompt([
 ```
 
 **After:**
+
 ```typescript
 const result = await selectWithEscape<string>({
   message: 'What would you like to do?',
@@ -430,6 +467,7 @@ const action = result.value;
 ```
 
 **Key Changes:**
+
 - No try-catch needed
 - Direct destructuring not needed
 - Check `result.escaped` flag
@@ -438,6 +476,7 @@ const action = result.value;
 ### Pattern 2: Input with Validation
 
 **Before:**
+
 ```typescript
 const { companyInput } = await inquirer.prompt([
   {
@@ -451,6 +490,7 @@ const { companyInput } = await inquirer.prompt([
 ```
 
 **After:**
+
 ```typescript
 const result = await inputWithEscape({
   message: 'Company:',
@@ -472,6 +512,7 @@ const companyInput = result.value;
 ### Pattern 3: Confirm
 
 **Before:**
+
 ```typescript
 const { shouldCreate } = await inquirer.prompt([
   {
@@ -484,6 +525,7 @@ const { shouldCreate } = await inquirer.prompt([
 ```
 
 **After:**
+
 ```typescript
 const result = await confirmWithEscape({
   message: 'Create?',
@@ -506,6 +548,7 @@ if (shouldCreate) {
 ### Pattern 4: Checkbox (Multi-select)
 
 **Before:**
+
 ```typescript
 const { selectedLabels } = await inquirer.prompt([
   {
@@ -519,6 +562,7 @@ const { selectedLabels } = await inquirer.prompt([
 ```
 
 **After:**
+
 ```typescript
 const result = await checkboxWithEscape<string>({
   message: 'Select labels:',
@@ -540,6 +584,7 @@ const selectedLabels = result.value;
 ### Pattern 5: Nested Flows (Simplified!)
 
 **Before:**
+
 ```typescript
 try {
   const folder = await selectFolder();
@@ -555,6 +600,7 @@ try {
 ```
 
 **After:**
+
 ```typescript
 const folderResult = await selectFolder();
 if (folderResult.escaped) {
@@ -575,6 +621,7 @@ try {
 ### Pattern 6: While Loop Menu
 
 **Before:**
+
 ```typescript
 while (true) {
   const { choice } = await inquirer.prompt([...]);
@@ -584,15 +631,16 @@ while (true) {
 ```
 
 **After:**
+
 ```typescript
 while (true) {
   const result = await selectWithEscape<string>({...});
-  
+
   if (result.escaped) {
     // ESC pressed - exit loop and return to parent
     break;
   }
-  
+
   const choice = result.value;
   if (choice === 'exit') break;
   await handleChoice(choice);
@@ -604,6 +652,7 @@ while (true) {
 ### Pattern 7: Do-While Loop
 
 **Before:**
+
 ```typescript
 let pageToken: string | undefined;
 do {
@@ -613,6 +662,7 @@ do {
 ```
 
 **After:**
+
 ```typescript
 // No change needed - ESC is ignored during API calls
 // ESC only works during user prompts, not during processing
@@ -626,6 +676,7 @@ do {
 ### Pattern 8: UserCancelledError Replacement
 
 **Before:**
+
 ```typescript
 class UserCancelledError extends Error {
   constructor() {
@@ -638,6 +689,7 @@ throw new UserCancelledError();
 ```
 
 **After (Option 1 - Use result pattern):**
+
 ```typescript
 // Most code can just check result.escaped
 const result = await selectWithEscape({...});
@@ -647,6 +699,7 @@ if (result.escaped) {
 ```
 
 **After (Option 2 - Keep EscapeSignal for special cases):**
+
 ```typescript
 import { EscapeSignal } from '../utils/promptWithEscape';
 
@@ -654,72 +707,74 @@ import { EscapeSignal } from '../utils/promptWithEscape';
 throw new EscapeSignal();
 ```
 
-**Migration Strategy**: 
+**Migration Strategy**:
+
 - Most `UserCancelledError` usage can be replaced with `result.escaped` checks
 - Keep `EscapeSignal` for exceptional cases where throwing is needed
 - Search for all `UserCancelledError` references and update catch blocks
 
 ## ESC Behavior Matrix
 
-| Context | User Action | Behavior | Notes |
-|---------|-------------|----------|-------|
-| **Menu Selection** | Press ESC | Return `{ escaped: true }` | Navigate back |
-| **Text Input** | Press ESC | Return `{ escaped: true }` | Cancel input |
-| **Confirm Prompt** | Press ESC | Return `{ escaped: true }` | Don't use default |
-| **Checkbox Selection** | Press ESC | Return `{ escaped: true }` | Ignore partial selection |
-| **During Validation** | Press ESC | Return `{ escaped: true }` | Works even with error |
-| **With Default Value** | Press ESC | Return `{ escaped: true }` | Default not returned |
-| **During API Call** | Press ESC | Ignored | ESC listener inactive |
-| **During Clipboard Op** | Press ESC | Ignored | ESC listener inactive |
-| **During Spinner** | Press ESC | Ignored | ESC listener inactive |
-| **During File Op** | Press ESC | Ignored | ESC listener inactive |
-| **Non-TTY Environment** | Press ESC | Not available | Prompt works normally |
-| **Top-Level Menu** | `escaped: true` | Call `process.exit(0)` | Clean exit |
-| **Sub-Menu** | `escaped: true` | `return` to parent | Unwind stack |
-| **Nested Prompts** | Attempt | Throws Error | Only one ESC handler at a time |
+| Context                 | User Action     | Behavior                   | Notes                          |
+| ----------------------- | --------------- | -------------------------- | ------------------------------ |
+| **Menu Selection**      | Press ESC       | Return `{ escaped: true }` | Navigate back                  |
+| **Text Input**          | Press ESC       | Return `{ escaped: true }` | Cancel input                   |
+| **Confirm Prompt**      | Press ESC       | Return `{ escaped: true }` | Don't use default              |
+| **Checkbox Selection**  | Press ESC       | Return `{ escaped: true }` | Ignore partial selection       |
+| **During Validation**   | Press ESC       | Return `{ escaped: true }` | Works even with error          |
+| **With Default Value**  | Press ESC       | Return `{ escaped: true }` | Default not returned           |
+| **During API Call**     | Press ESC       | Ignored                    | ESC listener inactive          |
+| **During Clipboard Op** | Press ESC       | Ignored                    | ESC listener inactive          |
+| **During Spinner**      | Press ESC       | Ignored                    | ESC listener inactive          |
+| **During File Op**      | Press ESC       | Ignored                    | ESC listener inactive          |
+| **Non-TTY Environment** | Press ESC       | Not available              | Prompt works normally          |
+| **Top-Level Menu**      | `escaped: true` | Call `process.exit(0)`     | Clean exit                     |
+| **Sub-Menu**            | `escaped: true` | `return` to parent         | Unwind stack                   |
+| **Nested Prompts**      | Attempt         | Throws Error               | Only one ESC handler at a time |
 
 ## Key Changes Summary
 
 ### API Differences
 
-| Old (inquirer v9) | New (@inquirer/prompts v8 + wrappers) |
-|-------------------|----------------------------|
+| Old (inquirer v9)                 | New (@inquirer/prompts v8 + wrappers)                                                |
+| --------------------------------- | ------------------------------------------------------------------------------------ |
 | `import inquirer from 'inquirer'` | `import { selectWithEscape, inputWithEscape, ... } from '../utils/promptWithEscape'` |
-| `type: 'list'` | `selectWithEscape()` |
-| `type: 'input'` | `inputWithEscape()` |
-| `type: 'confirm'` | `confirmWithEscape()` |
-| `type: 'checkbox'` | `checkboxWithEscape()` |
-| `name: 'varName'` | ❌ Removed - direct return via result object |
-| `await inquirer.prompt([{...}])` | `await selectWithEscape({...})` |
-| `const { var } = await` | `const result = await` then check `result.escaped` |
-| Array wrapper `[{...}]` | Direct object `{...}` |
-| `loop` parameter | ✅ Supported in v8+ |
-| Try-catch for cancellation | ❌ Not needed - check `result.escaped` flag |
-| Returns value directly | Returns `PromptResult<T>` object |
+| `type: 'list'`                    | `selectWithEscape()`                                                                 |
+| `type: 'input'`                   | `inputWithEscape()`                                                                  |
+| `type: 'confirm'`                 | `confirmWithEscape()`                                                                |
+| `type: 'checkbox'`                | `checkboxWithEscape()`                                                               |
+| `name: 'varName'`                 | ❌ Removed - direct return via result object                                         |
+| `await inquirer.prompt([{...}])`  | `await selectWithEscape({...})`                                                      |
+| `const { var } = await`           | `const result = await` then check `result.escaped`                                   |
+| Array wrapper `[{...}]`           | Direct object `{...}`                                                                |
+| `loop` parameter                  | ✅ Supported in v8+                                                                  |
+| Try-catch for cancellation        | ❌ Not needed - check `result.escaped` flag                                          |
+| Returns value directly            | Returns `PromptResult<T>` object                                                     |
 
 ### ESC Handling Strategy
 
-| Location | ESC Handler | Action |
-|----------|-------------|--------|
-| **Top-level menus** | Check `result.escaped` | `process.exit(0)` |
-| **Sub-menus** | Check `result.escaped` | `return` |
-| **Input flows** | Check `result.escaped` | `return` |
-| **While loops** | Check `result.escaped` | `break` or `return` |
-| **Before cache writes** | Check `result.escaped` before write | Cache never modified |
-| **During API calls** | N/A | ESC listener inactive during calls |
+| Location                | ESC Handler                         | Action                             |
+| ----------------------- | ----------------------------------- | ---------------------------------- |
+| **Top-level menus**     | Check `result.escaped`              | `process.exit(0)`                  |
+| **Sub-menus**           | Check `result.escaped`              | `return`                           |
+| **Input flows**         | Check `result.escaped`              | `return`                           |
+| **While loops**         | Check `result.escaped`              | `break` or `return`                |
+| **Before cache writes** | Check `result.escaped` before write | Cache never modified               |
+| **During API calls**    | N/A                                 | ESC listener inactive during calls |
 
 ### SIGINT (Ctrl+C) vs ESC
 
-| Signal | Trigger | Behavior | Use Case |
-|--------|---------|----------|----------|
-| **ESC** | User presses ESC key | Navigate back one level | Normal navigation |
-| **SIGINT** | User presses Ctrl+C | Force exit entire app | Kill switch / emergency exit |
+| Signal     | Trigger              | Behavior                | Use Case                     |
+| ---------- | -------------------- | ----------------------- | ---------------------------- |
+| **ESC**    | User presses ESC key | Navigate back one level | Normal navigation            |
+| **SIGINT** | User presses Ctrl+C  | Force exit entire app   | Kill switch / emergency exit |
 
 **Ctrl+C remains unchanged** - it calls the SIGINT handler which displays summary and exits immediately. This is the "last resort" exit option.
 
 ## Resource Cleanup Strategy
 
 ### On ESC During Prompt
+
 1. Raw mode keypress listener detects ESC key
 2. AbortController signals abort to inquirer
 3. Keypress listener removed
@@ -729,25 +784,28 @@ throw new EscapeSignal();
 7. Caller checks flag and takes appropriate action (return/exit/break)
 
 ### On ESC Before Cache Write
+
 - **Goal**: ESC should cancel operation before cache is modified
 - **Implementation**: Check `result.escaped` before any cache operations
 - **Example**:
+
   ```typescript
   const folderResult = await selectFolder();
   if (folderResult.escaped) {
     return; // Exit before any cache modification
   }
-  
+
   const nameResult = await inputName();
   if (nameResult.escaped) {
     return; // Exit before any cache modification
   }
-  
+
   // If we reach here, user completed all prompts
   await cache.set(folderResult.value, nameResult.value); // Atomic operation
   ```
 
 ### On ESC During In-Flight API Calls
+
 - **Goal**: Prevent confusion when ESC is pressed during API operations
 - **Solution**: ESC listener is only active during prompts, not during processing
 - **Implementation**: Singleton's `isActive` flag ensures no listener during API calls
@@ -755,13 +813,16 @@ throw new EscapeSignal();
 - **Future Enhancement**: Could add timeout or cancellation for very long API calls
 
 ### Console Capture Interference
+
 The code captures console.log/error for logging. This implementation is safe because:
+
 1. ESC detection uses `process.stdin` (raw mode), not stdout/stderr
 2. Raw mode doesn't interfere with console output capture
 3. Cleanup happens before any console output from ESC handling
 4. Terminal mode is restored deterministically in all paths
 
 **Implementation considerations**:
+
 ```typescript
 const result = await selectWithEscape({...});
 // At this point: terminal mode already restored, listeners removed
@@ -792,6 +853,7 @@ if (result.escaped) {
 ### Unit Test Coverage
 
 **promptWithEscape.test.ts:**
+
 - ✅ Result object structure (`{ escaped: boolean, value?: T }`)
 - ✅ selectWithEscape returns correct result type
 - ✅ inputWithEscape returns correct result type
@@ -808,6 +870,7 @@ if (result.escaped) {
 - ✅ Rapid ESC presses handled correctly (debounced by cleanup)
 
 **Integration Tests in Existing Files:**
+
 - ✅ Mock returns PromptResult objects
 - ✅ Mock can return `{ escaped: true }` for ESC tests
 - ✅ Mock returns `{ escaped: false, value: ... }` for normal completion
@@ -818,12 +881,12 @@ if (result.escaped) {
 
 ```typescript
 // Mock setup in test files
-import { 
-  selectWithEscape, 
-  inputWithEscape, 
-  confirmWithEscape, 
+import {
+  selectWithEscape,
+  inputWithEscape,
+  confirmWithEscape,
   checkboxWithEscape,
-  PromptResult 
+  PromptResult,
 } from '../../utils/promptWithEscape';
 
 vi.mock('../../utils/promptWithEscape', () => ({
@@ -896,6 +959,7 @@ await doSomething(value);
 ```
 
 **Key Points:**
+
 - No try-catch needed for ESC
 - Always check `result.escaped` first
 - TypeScript provides type narrowing (value exists when not escaped)
@@ -904,11 +968,13 @@ await doSomething(value);
 ### User-Facing Improvements
 
 1. **Add ESC hints to prompts**: Update messages to include "(ESC to go back)"
+
    ```typescript
    message: 'What would you like to do? (ESC to go back)',
    ```
 
 2. **Show ESC behavior on first run**: Display brief tutorial
+
    ```
    ═══════════════════════════════════════
    💡 Tip: Press ESC at any prompt to go back
@@ -924,7 +990,9 @@ await doSomething(value);
 ## Key Improvements Over Original Approach
 
 ### 1. No Try-Catch Pollution
+
 **Old Pattern (error-based):**
+
 ```typescript
 try {
   const value = await selectWithEscape({...});
@@ -938,6 +1006,7 @@ try {
 ```
 
 **New Pattern (result-based):**
+
 ```typescript
 const result = await selectWithEscape({...});
 if (result.escaped) {
@@ -947,25 +1016,31 @@ const value = result.value;
 ```
 
 **Benefits:**
+
 - 50% less code for each prompt
 - No accidental error swallowing
 - Clearer intent (navigation vs error)
 - Better TypeScript type narrowing
 
 ### 2. Simplified Nested Flows
+
 **Old**: Had to re-throw EscapeSignal in every nested catch block
 **New**: Just check `escaped` flag at each level - no propagation needed
 
 ### 3. Singleton Protection
+
 The `isActive` flag prevents nested ESC handlers which could cause:
+
 - Multiple raw mode activations
-- Conflicting keypress listeners  
+- Conflicting keypress listeners
 - Terminal corruption
 
 ### 4. Native AbortSignal Integration
+
 Uses `@inquirer/prompts` official AbortSignal support instead of trying to intercept errors after the fact.
 
 ### 5. Easier Testing
+
 Mocks return simple objects instead of throwing errors, making test code cleaner.
 
 ---
@@ -998,6 +1073,7 @@ Mocks return simple objects instead of throwing errors, making test code cleaner
 ## Implementation Checklist
 
 ### Phase 1: Foundation
+
 - [ ] Install @inquirer/prompts ^8.3.2
 - [ ] Create src/utils/promptWithEscape.ts with full implementation
   - [ ] PromptResult<T> type definition
@@ -1010,11 +1086,12 @@ Mocks return simple objects instead of throwing errors, making test code cleaner
   - [ ] checkboxWithEscape function
   - [ ] TTY detection and fallback
   - [ ] Cleanup logic (listeners, raw mode, singleton state)
-- [ ] Create src/utils/__tests__/promptWithEscape.test.ts
+- [ ] Create src/utils/**tests**/promptWithEscape.test.ts
 - [ ] Run tests for promptWithEscape.ts
 - [ ] Fix any issues in utility
 
 ### Phase 2: Package Management
+
 - [ ] Update package.json: remove inquirer v9
 - [ ] Update package.json: remove @types/inquirer
 - [ ] Run `pnpm install`
@@ -1022,12 +1099,14 @@ Mocks return simple objects instead of throwing errors, making test code cleaner
 - [ ] Run `pnpm build` to verify no breakage
 
 ### Phase 3: Replace UserCancelledError
+
 - [ ] Search for all UserCancelledError references
 - [ ] Replace with EscapeSignal
 - [ ] Update imports
 - [ ] Update catch blocks
 
 ### Phase 4: Source File Migration (Group A)
+
 - [ ] Migrate src/index.ts (1 prompt)
   - [ ] Update imports
   - [ ] Replace prompt call with wrapper
@@ -1041,6 +1120,7 @@ Mocks return simple objects instead of throwing errors, making test code cleaner
   - [ ] Same as above
 
 ### Phase 5: Source File Migration (Group B)
+
 - [ ] Migrate src/services/contacts/eventsContactEditor.ts (8 prompts)
   - [ ] Update imports
   - [ ] Replace all prompt calls with wrappers
@@ -1048,6 +1128,7 @@ Mocks return simple objects instead of throwing errors, making test code cleaner
   - [ ] Test manually
 
 ### Phase 6: Source File Migration (Group C)
+
 - [ ] Migrate src/services/contacts/contactEditor.ts (28 prompts)
   - [ ] Update imports
   - [ ] Replace all list prompts with selectWithEscape
@@ -1065,19 +1146,21 @@ Mocks return simple objects instead of throwing errors, making test code cleaner
   - [ ] Test manually
 
 ### Phase 7: Test File Migration
-- [ ] Update src/scripts/__tests__/eventsJobsSync.test.ts
+
+- [ ] Update src/scripts/**tests**/eventsJobsSync.test.ts
   - [ ] Remove inquirer imports and mocks
   - [ ] Add promptWithEscape mocks
   - [ ] Update test cases to return PromptResult objects
   - [ ] Normal completion: `{ escaped: false, value: ... }`
   - [ ] ESC behavior: `{ escaped: true }`
   - [ ] Run tests and fix failures
-- [ ] Update src/services/contacts/__tests__/eventsContactEditor.test.ts
+- [ ] Update src/services/contacts/**tests**/eventsContactEditor.test.ts
   - [ ] Same changes as above
   - [ ] Ensure parent class method mocking still works
   - [ ] Run tests and fix failures
 
 ### Phase 8: Add ESC-Specific Tests
+
 - [ ] Add ESC test cases to existing test files
   - [ ] Test ESC during validation
   - [ ] Test ESC in nested flows
@@ -1086,18 +1169,21 @@ Mocks return simple objects instead of throwing errors, making test code cleaner
 - [ ] Fix any failures
 
 ### Phase 9: User-Facing Improvements
+
 - [ ] Add ESC hints to prompt messages
 - [ ] Add first-run tutorial message
 - [ ] Add ESC feedback messages
 - [ ] Test UX improvements
 
 ### Phase 10: Documentation & Cleanup
+
 - [ ] Update developer documentation
 - [ ] Clean up any TODO comments
 - [ ] Remove any dead code
 - [ ] Update CHANGELOG.md
 
 ### Phase 11: Final Verification
+
 - [ ] Run `pnpm build` - no errors
 - [ ] Run `pnpm lint` - no errors
 - [ ] Run `NODE_OPTIONS='--no-warnings' vitest run` - all pass
@@ -1106,6 +1192,7 @@ Mocks return simple objects instead of throwing errors, making test code cleaner
 - [ ] Performance check (no noticeable slowdown)
 
 ### Phase 12: Review Success Criteria
+
 - [ ] Go through all 21 success criteria
 - [ ] Mark complete
 - [ ] Document any deviations
@@ -1117,6 +1204,7 @@ Mocks return simple objects instead of throwing errors, making test code cleaner
 **Estimated Effort:** 10-14 hours (including testing and documentation)
 
 **Key Changes from Original:**
+
 - Switched from error-throwing to result object pattern
 - Eliminates try-catch pollution
 - Simpler migration path

@@ -11,6 +11,7 @@ The ESC Navigation Implementation Plan has been significantly updated to use a *
 ### 1. Return Value Pattern Instead of Error Throwing
 
 **Old Approach:**
+
 ```typescript
 try {
   const value = await selectWithEscape<string>({...});
@@ -24,6 +25,7 @@ try {
 ```
 
 **New Approach:**
+
 ```typescript
 const result = await selectWithEscape<string>({...});
 if (result.escaped) {
@@ -36,9 +38,7 @@ const value = result.value;
 ### 2. New Type Definition
 
 ```typescript
-export type PromptResult<T> = 
-  | { escaped: true }
-  | { escaped: false; value: T };
+export type PromptResult<T> = { escaped: true } | { escaped: false; value: T };
 ```
 
 ### 3. Raw Mode Keypress Detection
@@ -71,24 +71,29 @@ When aborted, inquirer throws `AbortPromptError` which is caught and converted t
 ## Benefits of New Approach
 
 ### 1. No Try-Catch Pollution
+
 - **50% less code** per prompt
 - No risk of accidentally swallowing errors
 - Clearer separation between navigation and errors
 
 ### 2. Simplified Nested Flows
+
 - **Old**: Had to re-throw EscapeSignal in every nested catch block
 - **New**: Just check `escaped` flag at each level
 
 ### 3. Better TypeScript Support
+
 - Type narrowing works correctly: when `escaped` is false, TypeScript knows `value` exists
 - No need for type assertions
 
 ### 4. Easier Testing
+
 - Mocks return simple objects: `{ escaped: false, value: 'test' }`
 - No need to mock error classes
 - Clearer test intent
 
 ### 5. Singleton Protection
+
 - `isActive` flag prevents nested ESC handlers
 - Prevents multiple raw mode activations
 - Prevents terminal corruption
@@ -96,18 +101,22 @@ When aborted, inquirer throws `AbortPromptError` which is caught and converted t
 ## Updated Sections
 
 ### Core Implementation
+
 - Added "Core Technical Approach" section explaining the raw mode + AbortSignal pattern
 - Updated Implementation Strategy to mention result object pattern
 - Clarified singleton pattern with active state tracking
 
 ### Architecture
+
 - Changed wrapper function signatures to return `PromptResult<T>`
 - Added `PromptResult<T>` type definition
 - Added `isListenerActive()` method to singleton
 - Kept `EscapeSignal` class for backward compatibility where needed
 
 ### Migration Patterns
+
 All 8 patterns updated to show result object approach:
+
 - Pattern 1: Simple Select - no try-catch needed
 - Pattern 2: Input with Validation - check escaped flag
 - Pattern 3: Confirm - check escaped flag
@@ -118,26 +127,32 @@ All 8 patterns updated to show result object approach:
 - Pattern 8: UserCancelledError - most can use result pattern
 
 ### ESC Behavior Matrix
+
 - Updated to show "Return `{ escaped: true }`" instead of "Throw EscapeSignal"
 - Added row for nested prompt attempts (throws error)
 
 ### API Differences Table
+
 - Added rows for new patterns:
   - Try-catch requirement: ❌ Not needed
   - Returns: `PromptResult<T>` object
 
 ### Common Pitfalls
+
 Updated all 10 pitfalls to reflect result pattern:
+
 - Checking `result.escaped` instead of catching errors
 - TypeScript type narrowing considerations
 - No more re-throwing concerns
 
 ### Testing Strategy
+
 - Updated mock examples to return `PromptResult` objects
 - Changed test assertions from "throws EscapeSignal" to "returns { escaped: true }"
 - Added test for singleton preventing nested handlers
 
 ### Implementation Checklist
+
 - Phase 1: Added `PromptResult<T>` type and `isActive` flag
 - Phases 4-6: Changed from "add try-catch" to "check result.escaped"
 - Phase 7: Updated test mocks to return result objects
@@ -145,7 +160,9 @@ Updated all 10 pitfalls to reflect result pattern:
 ## New Sections Added
 
 ### 1. Key Improvements Over Original Approach
+
 Side-by-side comparison showing:
+
 - Less code (50% reduction)
 - Simplified nested flows
 - Singleton protection details
@@ -153,7 +170,9 @@ Side-by-side comparison showing:
 - Easier testing
 
 ### 2. Success Criteria Updates
+
 Added new criteria:
+
 - Singleton prevents nested ESC handlers
 - No try-catch pollution for ESC handling
 - TypeScript type narrowing works correctly
@@ -161,6 +180,7 @@ Added new criteria:
 ## Resource Cleanup
 
 Updated cleanup strategy to show:
+
 1. Raw mode keypress listener detects ESC
 2. AbortController signals abort
 3. Listeners removed
@@ -179,6 +199,7 @@ Updated cleanup strategy to show:
 ## Backward Compatibility
 
 The plan keeps `EscapeSignal` class for:
+
 - Legacy code that might need gradual migration
 - Special cases where throwing is preferred
 - Interfacing with existing error handling
@@ -196,15 +217,19 @@ Most code should use the result pattern, but `EscapeSignal` remains available.
 ## Questions Addressed
 
 ### Q: Does this work with @inquirer/prompts?
+
 **A:** Yes! `@inquirer/prompts` v8+ has native AbortSignal support. When we call `abort()`, inquirer throws `AbortPromptError` which we catch and convert to `{ escaped: true }`.
 
 ### Q: What about nested prompts?
+
 **A:** The singleton `isActive` flag prevents this. If you try to start a prompt while another is active, it throws an error immediately.
 
 ### Q: What about try-catch in nested code?
+
 **A:** No longer needed! The result object pattern means ESC handling is explicit at each prompt level, not via exception bubbling.
 
 ### Q: How do we test this?
+
 **A:** Mocks return `{ escaped: false, value: 'test' }` for normal completion or `{ escaped: true }` for ESC. Much simpler than mocking errors.
 
 ---

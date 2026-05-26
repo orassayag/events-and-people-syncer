@@ -7,6 +7,7 @@ Added validation to prevent Hebrew characters in text fields, ensuring all input
 ## Affected Fields
 
 Hebrew validation is applied to the following fields:
+
 - ✅ **Full Name** (First Name + Last Name)
 - ✅ **Company**
 - ✅ **Job Title**
@@ -15,11 +16,13 @@ Hebrew validation is applied to the following fields:
 ## How It Works
 
 When a user tries to enter Hebrew characters in any text field, they will see:
+
 ```
 >> Hebrew characters are not supported. Please use English only.
 ```
 
 The validation:
+
 - Detects Hebrew characters (Unicode range U+0590 to U+05FF)
 - Shows clear error message
 - Re-prompts user to enter English text
@@ -55,6 +58,7 @@ static validateText(text: string): string | true {
 ### Updated ContactWriter
 
 Added `validate: InputValidator.validateText` to:
+
 - Company input (initial and edit)
 - Full name input (initial)
 - First name edit
@@ -66,6 +70,7 @@ Added Hebrew check to email validation (already in `validateEmail`)
 ## Testing Results
 
 ### Text Field Tests
+
 - ✅ English name: `John Doe` → Valid
 - ✅ Hebrew name: `ג׳ון דו` → Error: "Hebrew characters are not supported"
 - ✅ Mixed: `John דו` → Error: "Hebrew characters are not supported"
@@ -76,6 +81,7 @@ Added Hebrew check to email validation (already in `validateEmail`)
 - ✅ Empty string → Valid (optional fields)
 
 ### Email Tests
+
 - ✅ English email: `john@example.com` → Valid
 - ✅ Hebrew in email: `ג׳ון@example.com` → Error
 
@@ -84,6 +90,7 @@ Added Hebrew check to email validation (already in `validateEmail`)
 ### When Entering Hebrew Text
 
 **Initial Input**:
+
 ```
 ? Full name: ג׳ון דו
 >> Hebrew characters are not supported. Please use English only.
@@ -92,6 +99,7 @@ Added Hebrew check to email validation (already in `validateEmail`)
 ```
 
 **Editing Field**:
+
 ```
 ? Edit first name
 ? First name: ישראל
@@ -101,7 +109,9 @@ Added Hebrew check to email validation (already in `validateEmail`)
 ```
 
 ### Error Recovery
+
 Like all other validations, inquirer automatically:
+
 1. Shows the error message
 2. Re-prompts the user
 3. Allows them to enter correct input
@@ -110,19 +120,24 @@ Like all other validations, inquirer automatically:
 ## Technical Details
 
 ### Hebrew Character Detection
+
 Uses Unicode range U+0590 to U+05FF which covers:
+
 - Hebrew letters
 - Hebrew vowel marks (nikud)
 - Hebrew punctuation
 - Special Hebrew characters (like ״, ׳)
 
 ### Validation Order
+
 For email validation:
+
 1. Check for Hebrew characters (first)
 2. Check email format
 3. Check for duplicates (if adding to list)
 
 For text fields:
+
 1. Check for Hebrew characters
 2. Allow if valid or empty
 
@@ -137,12 +152,14 @@ For text fields:
 ## How to Test
 
 Run the POC and try entering Hebrew:
+
 ```bash
 cd poc
 pnpm start
 ```
 
 **Test Scenarios**:
+
 1. Enter Hebrew name: `ישראל כהן` → Should show error and re-prompt
 2. Enter mixed text: `John דו` → Should show error
 3. Enter Hebrew company: `גוגל` → Should show error

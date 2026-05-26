@@ -1,8 +1,8 @@
 # Dry-Mode Implementation Plan
 
-**Date:** March 23, 2026  
-**Status:** Planning Phase (Updated)  
-**Author:** System  
+**Date:** March 23, 2026
+**Status:** Planning Phase (Updated)
+**Author:** System
 
 ## Table of Contents
 
@@ -63,12 +63,12 @@ Add a global **dry-mode** setting to the Events & People Syncer that defaults to
 ```typescript
 export interface Settings {
   // ... existing fields ...
-  readonly dryMode: boolean;  // NEW: Global dry-mode setting (READ-ONLY)
+  readonly dryMode: boolean; // NEW: Global dry-mode setting (READ-ONLY)
 }
 
 export const SETTINGS: Settings = {
   // ... existing settings ...
-  dryMode: process.env.DRY_MODE?.toLowerCase() === 'false' ? false : true,  // DEFAULT: Read-only mode for safety
+  dryMode: process.env.DRY_MODE?.toLowerCase() === 'false' ? false : true, // DEFAULT: Read-only mode for safety
 };
 ```
 
@@ -85,6 +85,7 @@ DRY_MODE=false pnpm run start
 ```
 
 **Note**: The environment variable accepts these values for disabling dry-mode (case-insensitive):
+
 - `false`, `0`, `no`, `n`
 
 Any other value (including unset) will enable dry-mode for safety.
@@ -99,31 +100,31 @@ Any other value (including unset) will enable dry-mode for safety.
 
 Dry-mode **BLOCKS** the following Google People API operations:
 
-| Operation | Method | Location |
-|-----------|--------|----------|
-| Create Contact | `service.people.createContact()` | ContactEditor |
-| Update Contact | `service.people.updateContact()` | ContactEditor, ContactSyncer |
-| Add Phone to Contact | `service.people.updateContact()` | ContactEditor.addPhoneToExistingContact() |
-| Add Email to Contact | `service.people.updateContact()` | ContactEditor.addEmailToExistingContact() |
-| Create Contact Group | `service.contactGroups.create()` | ContactEditor, ContactSyncer, LabelResolver |
-| Add Contact (LinkedIn) | `service.people.createContact()` | LinkedIn ContactSyncer.addContact() |
-| Update Contact (LinkedIn) | `service.people.updateContact()` | LinkedIn ContactSyncer.updateContact() |
-| Ensure Group Exists (LinkedIn) | `service.contactGroups.create()` | LinkedIn ContactSyncer.ensureGroupExists() |
-| Add Contact (HiBob) | `service.people.createContact()` | HiBob ContactSyncer.addContact() |
-| Update Contact (HiBob) | `service.people.updateContact()` | HiBob ContactSyncer.updateContact() |
+| Operation                      | Method                           | Location                                    |
+| ------------------------------ | -------------------------------- | ------------------------------------------- |
+| Create Contact                 | `service.people.createContact()` | ContactEditor                               |
+| Update Contact                 | `service.people.updateContact()` | ContactEditor, ContactSyncer                |
+| Add Phone to Contact           | `service.people.updateContact()` | ContactEditor.addPhoneToExistingContact()   |
+| Add Email to Contact           | `service.people.updateContact()` | ContactEditor.addEmailToExistingContact()   |
+| Create Contact Group           | `service.contactGroups.create()` | ContactEditor, ContactSyncer, LabelResolver |
+| Add Contact (LinkedIn)         | `service.people.createContact()` | LinkedIn ContactSyncer.addContact()         |
+| Update Contact (LinkedIn)      | `service.people.updateContact()` | LinkedIn ContactSyncer.updateContact()      |
+| Ensure Group Exists (LinkedIn) | `service.contactGroups.create()` | LinkedIn ContactSyncer.ensureGroupExists()  |
+| Add Contact (HiBob)            | `service.people.createContact()` | HiBob ContactSyncer.addContact()            |
+| Update Contact (HiBob)         | `service.people.updateContact()` | HiBob ContactSyncer.updateContact()         |
 
 ### Operations NOT Affected
 
 Dry-mode **ALLOWS** the following operations:
 
-| Operation | Reason |
-|-----------|--------|
-| Read Google Contacts | Needed for duplicate detection and validation |
-| Read Contact Groups | Needed for label resolution |
-| Write Cache Files | Local optimization, doesn't affect Google data |
-| Write Log Files | Essential for debugging and audit trail |
-| Write Notes Files | Local notes feature, doesn't sync to Google |
-| Delete Local Files | Maintenance operations (clear-cache, clear-logs) |
+| Operation            | Reason                                           |
+| -------------------- | ------------------------------------------------ |
+| Read Google Contacts | Needed for duplicate detection and validation    |
+| Read Contact Groups  | Needed for label resolution                      |
+| Write Cache Files    | Local optimization, doesn't affect Google data   |
+| Write Log Files      | Essential for debugging and audit trail          |
+| Write Notes Files    | Local notes feature, doesn't sync to Google      |
+| Delete Local Files   | Maintenance operations (clear-cache, clear-logs) |
 
 **Note**: Maintenance scripts (clear-cache, clear-logs) naturally bypass dry-mode because they don't use any of the affected write methods listed above. Each maintenance script file contains an explicit comment at the top documenting this behavior for future maintainers.
 
@@ -141,6 +142,7 @@ When dry-mode is active and a write operation is attempted:
 8. **Prefix Mock Groups**: Mock contact group names use prefix `[DRY-MODE]` to distinguish them from real groups
 
 **Example Log Output:**
+
 ```
 [DRY-MODE] Calling API service.people.createContact() - Contact: John Smith (john@example.com) - Label: TechCorp
 [DRY-MODE] Calling API service.people.updateContact() - people/123: Added LinkedIn URL
@@ -148,6 +150,7 @@ When dry-mode is active and a write operation is attempted:
 ```
 
 **Example Statistics Output:**
+
 ```
 [API Counter] [DRY MODE] Read: 150, Write: 25
 ```
@@ -163,7 +166,7 @@ When dry-mode is active and a write operation is attempted:
 ```typescript
 export interface Settings {
   environment: 'test' | 'production';
-  readonly dryMode: boolean;  // READ-ONLY: Global dry-mode setting (bypasses environment setting)
+  readonly dryMode: boolean; // READ-ONLY: Global dry-mode setting (bypasses environment setting)
   // ... rest of settings
 }
 
@@ -175,7 +178,7 @@ const parseDryMode = (): boolean => {
 
 export const SETTINGS: Settings = {
   environment: 'test',
-  dryMode: parseDryMode(),  // Safe default: enabled unless explicitly disabled
+  dryMode: parseDryMode(), // Safe default: enabled unless explicitly disabled
   // ... rest of settings
 };
 ```
@@ -192,7 +195,7 @@ export class DryModeChecker {
   static isEnabled(): boolean {
     return SETTINGS.dryMode;
   }
-  
+
   static logApiCall(
     apiMethod: string,
     details: string,
@@ -219,22 +222,25 @@ import type { ContactData } from '../types/contact';
 
 export class DryModeMocks {
   private static counter = 0;
-  
+
   private static generateUniqueId(): string {
     this.counter++;
     return `${Date.now()}_${this.counter}_${Math.random().toString(36).slice(2, 11)}`;
   }
-  
+
   // For methods that return void, no mock response needed
   // For methods that return string (resourceName), generate mock with unique ID
   static createGroupResponse(groupName: string): string {
     return `contactGroups/dryMode_${this.generateUniqueId()}`;
   }
-  
+
   // For ContactEditor.createContact() - complete response with all fields
-  static createContactResponse(firstName: string, lastName: string): { 
-    resourceName: string; 
-    etag: string; 
+  static createContactResponse(
+    firstName: string,
+    lastName: string
+  ): {
+    resourceName: string;
+    etag: string;
     names: Array<{ givenName?: string; familyName?: string }>;
     emailAddresses?: any[];
     phoneNumbers?: any[];
@@ -284,40 +290,63 @@ export class ContactEditor {
       this.uiLogger.displayError(validationError);
       throw new Error(validationError);
     }
-    
+
     // ... existing request building logic ...
-    
+
     if (SETTINGS.dryMode) {
-      const contactDetails = `Contact: ${data.firstName} ${data.lastName}` +
+      const contactDetails =
+        `Contact: ${data.firstName} ${data.lastName}` +
         (data.emails[0] ? ` (${data.emails[0]})` : '') +
         (data.company ? ` - Label: ${data.company}` : '');
-      DryModeChecker.logApiCall('service.people.createContact()', contactDetails, this.logger);
-      
-      const mockResponse = DryModeMocks.createContactResponse(data.firstName, data.lastName);
-      
+      DryModeChecker.logApiCall(
+        'service.people.createContact()',
+        contactDetails,
+        this.logger
+      );
+
+      const mockResponse = DryModeMocks.createContactResponse(
+        data.firstName,
+        data.lastName
+      );
+
       // Build mock contact for duplicate detector
       const finalAllGroups = await this.fetchContactGroups();
-      const finalSelectedLabelNames = data.labelResourceNames.map((resourceName) => {
-        const group = finalAllGroups.find((g) => g.resourceName === resourceName);
-        return group ? group.name : resourceName;
-      });
-      const firstLabelName = finalSelectedLabelNames.length > 0 ? finalSelectedLabelNames[0] : '';
-      const compositeSuffix = [firstLabelName, data.company].filter((s) => s).join(' ');
-      
+      const finalSelectedLabelNames = data.labelResourceNames.map(
+        (resourceName) => {
+          const group = finalAllGroups.find(
+            (g) => g.resourceName === resourceName
+          );
+          return group ? group.name : resourceName;
+        }
+      );
+      const firstLabelName =
+        finalSelectedLabelNames.length > 0 ? finalSelectedLabelNames[0] : '';
+      const compositeSuffix = [firstLabelName, data.company]
+        .filter((s) => s)
+        .join(' ');
+
       const newContact: ContactData = {
         label: finalSelectedLabelNames.join(' | '),
         firstName: data.firstName,
         lastName: data.lastName,
         company: data.company ?? '',
         jobTitle: data.jobTitle ?? '',
-        emails: data.emails.map((email) => ({ value: email, label: compositeSuffix || 'other' })),
-        phones: data.phones.map((phone) => ({ number: phone, label: compositeSuffix || 'other' })),
-        websites: data.linkedInUrl ? [{ url: data.linkedInUrl, label: 'LinkedIn' }] : [],
+        emails: data.emails.map((email) => ({
+          value: email,
+          label: compositeSuffix || 'other',
+        })),
+        phones: data.phones.map((phone) => ({
+          number: phone,
+          label: compositeSuffix || 'other',
+        })),
+        websites: data.linkedInUrl
+          ? [{ url: data.linkedInUrl, label: 'LinkedIn' }]
+          : [],
         resourceName: mockResponse.resourceName,
         biography: note,
         etag: mockResponse.etag,
       };
-      
+
       // Add to duplicate detector - wrap in try-catch to not fail operation on tracking failure
       try {
         this.duplicateDetector.addRecentlyModifiedContact(newContact);
@@ -326,16 +355,16 @@ export class ContactEditor {
           error: error instanceof Error ? error.message : 'Unknown error',
         });
       }
-      
+
       await ApiTracker.getInstance().trackWrite();
       await this.delay(SETTINGS.contactsSync.writeDelayMs);
-      
+
       this.uiLogger.displaySuccess('[DRY MODE] Contact created successfully');
       console.log(`-Resource Name: ${mockResponse.resourceName} (mock)`);
       // ... rest of display logic ...
       return;
     }
-    
+
     // Actual API call (existing code)
     const service = google.people({ version: 'v1', auth: this.auth });
     const apiTracker = ApiTracker.getInstance();
@@ -355,23 +384,29 @@ export class ContactEditor {
     uiLogger: Logger
   ): Promise<void> {
     // ... existing logic to fetch current state and build update request ...
-    
+
     if (updateMask.length === 0) {
       this.logger.info('No fields changed, skipping update');
       return;
     }
-    
+
     if (SETTINGS.dryMode) {
-      const changes = updateMask.map(field => field.charAt(0).toUpperCase() + field.slice(1)).join(', ');
-      DryModeChecker.logApiCall('service.people.updateContact()', `${resourceName}: Updated fields [${changes}]`, this.logger);
-      
+      const changes = updateMask
+        .map((field) => field.charAt(0).toUpperCase() + field.slice(1))
+        .join(', ');
+      DryModeChecker.logApiCall(
+        'service.people.updateContact()',
+        `${resourceName}: Updated fields [${changes}]`,
+        this.logger
+      );
+
       await ApiTracker.getInstance().trackWrite();
       await this.delay(SETTINGS.contactsSync.writeDelayMs);
       await ContactCache.getInstance().invalidate();
       uiLogger.displaySuccess('[DRY MODE] Contact updated successfully');
       return;
     }
-    
+
     // Actual API call (existing code)
     const service = google.people({ version: 'v1', auth: this.auth });
     const apiTracker = ApiTracker.getInstance();
@@ -382,43 +417,61 @@ export class ContactEditor {
   async createContactGroup(groupName: string): Promise<string> {
     if (SETTINGS.dryMode) {
       const prefixedName = `[DRY-MODE] ${groupName}`;
-      DryModeChecker.logApiCall('service.contactGroups.create()', `Group: ${prefixedName}`, this.logger);
+      DryModeChecker.logApiCall(
+        'service.contactGroups.create()',
+        `Group: ${prefixedName}`,
+        this.logger
+      );
       const mockResourceName = DryModeMocks.createGroupResponse(prefixedName);
       await ApiTracker.getInstance().trackWrite();
       return mockResourceName;
     }
-    
+
     // Actual API call (existing code)
     const service = google.people({ version: 'v1', auth: this.auth });
     // ... rest of existing logic ...
   }
 
-  async addPhoneToExistingContact(resourceName: string, phone: string): Promise<void> {
+  async addPhoneToExistingContact(
+    resourceName: string,
+    phone: string
+  ): Promise<void> {
     // ... existing logic to fetch current contact and check for duplicate ...
-    
+
     if (SETTINGS.dryMode) {
-      DryModeChecker.logApiCall('service.people.updateContact()', `${resourceName}: Add phone ${phone}`, this.logger);
+      DryModeChecker.logApiCall(
+        'service.people.updateContact()',
+        `${resourceName}: Add phone ${phone}`,
+        this.logger
+      );
       await ApiTracker.getInstance().trackWrite();
       await this.delay(SETTINGS.contactsSync.writeDelayMs);
       await ContactCache.getInstance().invalidate();
       return;
     }
-    
+
     // Actual API call with retry logic (existing code)
     // ... rest of existing logic ...
   }
 
-  async addEmailToExistingContact(resourceName: string, email: string): Promise<void> {
+  async addEmailToExistingContact(
+    resourceName: string,
+    email: string
+  ): Promise<void> {
     // ... existing logic to fetch current contact and check for duplicate ...
-    
+
     if (SETTINGS.dryMode) {
-      DryModeChecker.logApiCall('service.people.updateContact()', `${resourceName}: Add email ${email}`, this.logger);
+      DryModeChecker.logApiCall(
+        'service.people.updateContact()',
+        `${resourceName}: Add email ${email}`,
+        this.logger
+      );
       await ApiTracker.getInstance().trackWrite();
       await this.delay(SETTINGS.contactsSync.writeDelayMs);
       await ContactCache.getInstance().invalidate();
       return;
     }
-    
+
     // Actual API call with retry logic (existing code)
     // ... rest of existing logic ...
   }
@@ -456,52 +509,69 @@ export class ContactSyncer {
   ): Promise<SyncResult> {
     try {
       const groupResourceName: string = await this.ensureGroupExists(label);
-      
+
       // ... existing request building logic ...
-      
+
       if (Object.keys(requestBody).length === 0) {
         return { status: SyncStatusType.SKIPPED };
       }
-      
+
       if (SETTINGS.dryMode) {
-        const contactDetails = `Contact: ${connection.firstName} ${connection.lastName}` +
+        const contactDetails =
+          `Contact: ${connection.firstName} ${connection.lastName}` +
           (connection.email ? ` (${connection.email})` : '') +
           ` - Label: ${label}`;
-        DryModeChecker.logApiCall('service.people.createContact()', contactDetails, this.logger);
-        
+        DryModeChecker.logApiCall(
+          'service.people.createContact()',
+          contactDetails,
+          this.logger
+        );
+
         // Build mock contact for duplicate detector
-        const mockResponse = DryModeMocks.createContactResponse(connection.firstName, connection.lastName);
+        const mockResponse = DryModeMocks.createContactResponse(
+          connection.firstName,
+          connection.lastName
+        );
         const formattedCompany = calculateFormattedCompany(connection.company);
-        const compositeSuffix = [label, formattedCompany].filter((s) => s).join(' ');
-        
+        const compositeSuffix = [label, formattedCompany]
+          .filter((s) => s)
+          .join(' ');
+
         const newContact: ContactData = {
           label: label,
           firstName: connection.firstName,
           lastName: connection.lastName,
           company: formattedCompany,
           jobTitle: connection.position,
-          emails: connection.email ? [{ value: connection.email, label: compositeSuffix }] : [],
+          emails: connection.email
+            ? [{ value: connection.email, label: compositeSuffix }]
+            : [],
           phones: [],
-          websites: connection.url ? [{ url: connection.url, label: 'LinkedIn' }] : [],
+          websites: connection.url
+            ? [{ url: connection.url, label: 'LinkedIn' }]
+            : [],
           resourceName: mockResponse.resourceName,
           biography: buildNewContactNote(new Date(), scriptName),
           etag: mockResponse.etag,
         };
-        
+
         // Add to duplicate detector - wrap in try-catch to not fail operation on tracking failure
         try {
           this.duplicateDetector.addRecentlyModifiedContact(newContact);
         } catch (error: unknown) {
-          this.logger.debug('Failed to add mock contact to duplicate detector', {
-            error: error instanceof Error ? error.message : 'Unknown error',
-          });
+          this.logger.debug(
+            'Failed to add mock contact to duplicate detector',
+            {
+              error: error instanceof Error ? error.message : 'Unknown error',
+            }
+          );
         }
-        
+
         await ApiTracker.getInstance().trackWrite();
         await this.delay(this.writeDelayMs);
         return { status: SyncStatusType.NEW };
       }
-      
+
       // Actual API call (existing code)
       const service = google.people({ version: 'v1', auth: this.auth });
       await retryWithBackoff(async () => {
@@ -523,20 +593,26 @@ export class ContactSyncer {
   ): Promise<SyncResult> {
     try {
       // ... existing logic to build update request and determine changes ...
-      
+
       if (!hasChanges) {
         return { status: SyncStatusType.UP_TO_DATE };
       }
-      
+
       if (SETTINGS.dryMode) {
-        const changes = updateMask.map(field => field.charAt(0).toUpperCase() + field.slice(1)).join(', ');
-        DryModeChecker.logApiCall('service.people.updateContact()', `${resourceName}: Updated fields [${changes}]`, this.logger);
+        const changes = updateMask
+          .map((field) => field.charAt(0).toUpperCase() + field.slice(1))
+          .join(', ');
+        DryModeChecker.logApiCall(
+          'service.people.updateContact()',
+          `${resourceName}: Updated fields [${changes}]`,
+          this.logger
+        );
         await ApiTracker.getInstance().trackWrite();
         await this.delay(this.writeDelayMs);
         await ContactCache.getInstance().invalidate();
         return { status: SyncStatusType.UPDATED, updateDetails };
       }
-      
+
       // Actual API call (existing code)
       const service = google.people({ version: 'v1', auth: this.auth });
       await retryWithBackoff(async () => {
@@ -559,16 +635,20 @@ export class ContactSyncer {
     if (this.groupMap[groupName]) {
       return this.groupMap[groupName];
     }
-    
+
     if (SETTINGS.dryMode) {
       const prefixedName = `[DRY-MODE] ${groupName}`;
-      DryModeChecker.logApiCall('service.contactGroups.create()', `Group: ${prefixedName}`, this.logger);
+      DryModeChecker.logApiCall(
+        'service.contactGroups.create()',
+        `Group: ${prefixedName}`,
+        this.logger
+      );
       const mockResourceName = DryModeMocks.createGroupResponse(prefixedName);
       await ApiTracker.getInstance().trackWrite();
       this.groupMap[groupName] = mockResourceName;
       return mockResourceName;
     }
-    
+
     // Actual API call (existing code)
     const service = google.people({ version: 'v1', auth: this.auth });
     const response = await retryWithBackoff(async () => {
@@ -615,48 +695,61 @@ export class HibobContactSyncer {
   ): Promise<SyncResult> {
     try {
       // ... existing request building logic ...
-      
+
       if (Object.keys(requestBody).length === 0) {
         return { status: SyncStatusType.SKIPPED };
       }
-      
+
       if (SETTINGS.dryMode) {
-        const contactDetails = `Contact: ${contact.firstName} ${contact.lastName}` +
+        const contactDetails =
+          `Contact: ${contact.firstName} ${contact.lastName}` +
           (contact.email ? ` (${contact.email})` : '') +
           ` - Label: ${labelValue}`;
-        DryModeChecker.logApiCall('service.people.createContact()', contactDetails, this.logger);
-        
+        DryModeChecker.logApiCall(
+          'service.people.createContact()',
+          contactDetails,
+          this.logger
+        );
+
         // Build mock contact for duplicate detector
-        const mockResponse = DryModeMocks.createContactResponse(contact.firstName, contact.lastName);
-        
+        const mockResponse = DryModeMocks.createContactResponse(
+          contact.firstName,
+          contact.lastName
+        );
+
         const newContact: ContactData = {
           label: labelValue,
           firstName: contact.firstName,
           lastName: contact.lastName,
           company: contact.company || '',
           jobTitle: contact.jobTitle || '',
-          emails: contact.email ? [{ value: contact.email, label: labelValue }] : [],
+          emails: contact.email
+            ? [{ value: contact.email, label: labelValue }]
+            : [],
           phones: [],
           websites: [],
           resourceName: mockResponse.resourceName,
           biography: '',
           etag: mockResponse.etag,
         };
-        
+
         // Add to duplicate detector - wrap in try-catch to not fail operation on tracking failure
         try {
           this.duplicateDetector.addRecentlyModifiedContact(newContact);
         } catch (error: unknown) {
-          this.logger.debug('Failed to add mock contact to duplicate detector', {
-            error: error instanceof Error ? error.message : 'Unknown error',
-          });
+          this.logger.debug(
+            'Failed to add mock contact to duplicate detector',
+            {
+              error: error instanceof Error ? error.message : 'Unknown error',
+            }
+          );
         }
-        
+
         await ApiTracker.getInstance().trackWrite();
         await this.delay(this.writeDelayMs);
         return { status: SyncStatusType.NEW };
       }
-      
+
       // Actual API call (existing code)
       const service = google.people({ version: 'v1', auth: this.auth });
       await retryWithBackoff(async () => {
@@ -676,19 +769,23 @@ export class HibobContactSyncer {
   ): Promise<SyncResult> {
     try {
       // ... existing logic to check memberships and build update request ...
-      
+
       if (existingGroupResourceNames.includes(labelResourceName)) {
         return { status: SyncStatusType.UP_TO_DATE };
       }
-      
+
       if (SETTINGS.dryMode) {
-        DryModeChecker.logApiCall('service.people.updateContact()', `${resourceName}: Add membership ${labelResourceName}`, this.logger);
+        DryModeChecker.logApiCall(
+          'service.people.updateContact()',
+          `${resourceName}: Add membership ${labelResourceName}`,
+          this.logger
+        );
         await ApiTracker.getInstance().trackWrite();
         await this.delay(this.writeDelayMs);
         await ContactCache.getInstance().invalidate();
         return { status: SyncStatusType.UPDATED };
       }
-      
+
       // Actual API call (existing code)
       const service = google.people({ version: 'v1', auth: this.auth });
       await retryWithBackoff(async () => {
@@ -730,38 +827,45 @@ export class ContactSyncer {
     uiLogger: Logger
   ): Promise<void> {
     const apiTracker: ApiTracker = ApiTracker.getInstance();
-    
+
     // Fetch existing contact from Google
     const service = google.people({ version: 'v1', auth: this.auth });
     const existingContact = await retryWithBackoff(async () => {
       return await service.people.get({
         resourceName,
-        personFields: 'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies',
+        personFields:
+          'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies',
       });
     });
     await apiTracker.trackRead();
-    
+
     // Build update request based on changes
     const requestBody: any = {};
     const updateMask: string[] = [];
-    
+
     // ... existing logic to detect changes in names, emails, phones, organizations, URLs, memberships, and notes ...
-    
+
     if (updateMask.length === 0) {
       this.logger.info('No fields changed, skipping update');
       return;
     }
-    
+
     if (SETTINGS.dryMode) {
-      const changes = updateMask.map(field => field.charAt(0).toUpperCase() + field.slice(1)).join(', ');
-      DryModeChecker.logApiCall('service.people.updateContact()', `${resourceName}: Updated fields [${changes}]`, this.logger);
+      const changes = updateMask
+        .map((field) => field.charAt(0).toUpperCase() + field.slice(1))
+        .join(', ');
+      DryModeChecker.logApiCall(
+        'service.people.updateContact()',
+        `${resourceName}: Updated fields [${changes}]`,
+        this.logger
+      );
       await apiTracker.trackWrite();
       await this.delay(SETTINGS.contactsSync.writeDelayMs);
       await ContactCache.getInstance().invalidate();
       uiLogger.displaySuccess('[DRY MODE] Contact updated successfully');
       return;
     }
-    
+
     // Actual API call (existing code)
     const spinner = ora('Updating contact...').start();
     await retryWithBackoff(async () => {
@@ -782,12 +886,16 @@ export class ContactSyncer {
   async createContactGroup(name: string): Promise<string> {
     if (SETTINGS.dryMode) {
       const prefixedName = `[DRY-MODE] ${name}`;
-      DryModeChecker.logApiCall('service.contactGroups.create()', `Group: ${prefixedName}`, this.logger);
+      DryModeChecker.logApiCall(
+        'service.contactGroups.create()',
+        `Group: ${prefixedName}`,
+        this.logger
+      );
       const mockResourceName = DryModeMocks.createGroupResponse(prefixedName);
       await ApiTracker.getInstance().trackWrite();
       return mockResourceName;
     }
-    
+
     // Actual API call (existing code)
     const service = google.people({ version: 'v1', auth: this.auth });
     const response = await retryWithBackoff(async () => {
@@ -818,7 +926,11 @@ export class LabelResolver {
   async createLabel(name: string): Promise<string> {
     if (SETTINGS.dryMode) {
       const prefixedName = `[DRY-MODE] ${name}`;
-      DryModeChecker.logApiCall('service.contactGroups.create()', `Group: ${prefixedName}`, this.logger);
+      DryModeChecker.logApiCall(
+        'service.contactGroups.create()',
+        `Group: ${prefixedName}`,
+        this.logger
+      );
       const mockResourceName = DryModeMocks.createGroupResponse(prefixedName);
       await ApiTracker.getInstance().trackWrite();
       if (this.logApiStats && this.uiLogger) {
@@ -826,7 +938,7 @@ export class LabelResolver {
       }
       return mockResourceName;
     }
-    
+
     // Actual API call (existing code)
     const service = google.people({ version: 'v1', auth: this.auth });
     const response = await retryWithBackoff(async () => {
@@ -868,7 +980,7 @@ async logStats(uiLogger?: Logger): Promise<void> {
 
 Add a confirmation prompt before any script runs when dry-mode is enabled (can be bypassed with `--yes` flag):
 
-```typescript
+````typescript
 import { SETTINGS } from './settings';
 import { confirmWithEscape } from './utils/promptWithEnquirer';
 import { EMOJIS } from './constants';
@@ -877,7 +989,7 @@ async function main(): Promise<void> {
   // Check for --yes flag to skip prompts
   const flags = process.argv.slice(2);
   const skipPrompt = flags.includes('--yes') || flags.includes('-y');
-  
+
   // Dry-mode confirmation check
   if (SETTINGS.dryMode && !skipPrompt) {
     console.log('');
@@ -896,12 +1008,12 @@ async function main(): Promise<void> {
     console.log('  Note: Dry-mode applies regardless of environment setting.');
     console.log('  By confirming, you acknowledge you understand the system will NOT make real API writes.');
     console.log('');
-    
+
     const proceedResult = await confirmWithEscape({
       message: 'Proceed in dry mode?',
       default: true,
     });
-    
+
     if (proceedResult.escaped || !proceedResult.value) {
       console.log('Operation cancelled.');
       process.exit(0);
@@ -911,7 +1023,7 @@ async function main(): Promise<void> {
     console.log(`${EMOJIS.STATUS.WARNING} Running in DRY MODE (prompt skipped with --yes flag)`);
     console.log('');
   }
-  
+
   // ... rest of main() logic ...
 }
 
@@ -933,7 +1045,7 @@ import { SETTINGS } from '../../settings';
 
 describe('DryModeChecker', () => {
   const originalDryMode = SETTINGS.dryMode;
-  
+
   afterEach(() => {
     // Restore original setting
     (SETTINGS as any).dryMode = originalDryMode;
@@ -972,20 +1084,20 @@ describe('DryModeChecker', () => {
       const mockLogger = {
         info: vi.fn(),
       };
-      
+
       DryModeChecker.logApiCall(
         'service.people.createContact()',
         'Contact: John Smith',
         mockLogger
       );
-      
+
       expect(mockLogger.info).toHaveBeenCalledWith(
         '[DRY-MODE] Calling API service.people.createContact() - Contact: John Smith'
       );
     });
   });
 });
-```
+````
 
 #### Test: Mock Response Utilities
 
@@ -999,18 +1111,18 @@ describe('DryModeMocks', () => {
   describe('createContactResponse', () => {
     it('should create mock contact response with correct structure', () => {
       const response = DryModeMocks.createContactResponse('John', 'Smith');
-      
+
       expect(response.resourceName).toMatch(/^people\/dryMode_/);
       expect(response.etag).toMatch(/^dryMode_etag_/);
       expect(response.names).toEqual([
-        { givenName: 'John', familyName: 'Smith' }
+        { givenName: 'John', familyName: 'Smith' },
       ]);
     });
 
     it('should create unique resource names', () => {
       const response1 = DryModeMocks.createContactResponse('John', 'Smith');
       const response2 = DryModeMocks.createContactResponse('Jane', 'Doe');
-      
+
       expect(response1.resourceName).not.toBe(response2.resourceName);
     });
   });
@@ -1019,7 +1131,7 @@ describe('DryModeMocks', () => {
     it('should create mock update response preserving resourceName', () => {
       const resourceName = 'people/123';
       const response = DryModeMocks.createUpdateResponse(resourceName);
-      
+
       expect(response.resourceName).toBe(resourceName);
       expect(response.etag).toMatch(/^dryMode_etag_/);
     });
@@ -1028,14 +1140,14 @@ describe('DryModeMocks', () => {
   describe('createGroupResponse', () => {
     it('should create mock group resourceName', () => {
       const resourceName = DryModeMocks.createGroupResponse('TestGroup');
-      
+
       expect(resourceName).toMatch(/^contactGroups\/dryMode_/);
     });
 
     it('should create unique group resource names', () => {
       const resourceName1 = DryModeMocks.createGroupResponse('Group1');
       const resourceName2 = DryModeMocks.createGroupResponse('Group2');
-      
+
       expect(resourceName1).not.toBe(resourceName2);
     });
   });
@@ -1064,7 +1176,7 @@ vi.mock('../../../cache', () => ({
 describe('ContactEditor - Dry Mode', () => {
   let contactEditor: ContactEditor;
   const originalDryMode = SETTINGS.dryMode;
-  
+
   beforeEach(() => {
     contactEditor = new ContactEditor(mockAuth, mockDuplicateDetector);
   });
@@ -1085,9 +1197,9 @@ describe('ContactEditor - Dry Mode', () => {
     it('should skip API call in dry-mode and log operation', async () => {
       (SETTINGS as any).dryMode = true;
       const logSpy = vi.spyOn(console, 'log');
-      
+
       await contactEditor.createContact(testData, 'Test note');
-      
+
       expect(logSpy).toHaveBeenCalledWith(
         expect.stringContaining('[DRY-MODE]')
       );
@@ -1099,9 +1211,9 @@ describe('ContactEditor - Dry Mode', () => {
     it('should execute normally when dry-mode is disabled', async () => {
       (SETTINGS as any).dryMode = false;
       const mockCreateContact = vi.fn().mockResolvedValue({
-        data: { resourceName: 'people/real123' }
+        data: { resourceName: 'people/real123' },
       });
-      
+
       // Mock the service
       // ... test actual API call ...
     });
@@ -1111,15 +1223,16 @@ describe('ContactEditor - Dry Mode', () => {
     it('should skip API call in dry-mode', async () => {
       (SETTINGS as any).dryMode = true;
       const logSpy = vi.spyOn(console, 'log');
-      
-      await contactEditor.addPhoneToExistingContact('people/123', '+1234567890');
-      
+
+      await contactEditor.addPhoneToExistingContact(
+        'people/123',
+        '+1234567890'
+      );
+
       expect(logSpy).toHaveBeenCalledWith(
         expect.stringContaining('[DRY-MODE]')
       );
-      expect(logSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Add phone')
-      );
+      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Add phone'));
     });
   });
 
@@ -1127,24 +1240,26 @@ describe('ContactEditor - Dry Mode', () => {
     it('should skip API call in dry-mode', async () => {
       (SETTINGS as any).dryMode = true;
       const logSpy = vi.spyOn(console, 'log');
-      
-      await contactEditor.addEmailToExistingContact('people/123', 'test@example.com');
-      
+
+      await contactEditor.addEmailToExistingContact(
+        'people/123',
+        'test@example.com'
+      );
+
       expect(logSpy).toHaveBeenCalledWith(
         expect.stringContaining('[DRY-MODE]')
       );
-      expect(logSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Add email')
-      );
+      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Add email'));
     });
   });
 
   describe('createContactGroup', () => {
     it('should return mock resourceName in dry-mode', async () => {
       (SETTINGS as any).dryMode = true;
-      
-      const resourceName = await contactEditor.createContactGroup('TestCompany');
-      
+
+      const resourceName =
+        await contactEditor.createContactGroup('TestCompany');
+
       expect(resourceName).toMatch(/^contactGroups\/dryMode_/);
     });
   });
@@ -1164,7 +1279,7 @@ import { SyncStatusType } from '../../../types/linkedin';
 describe('LinkedIn ContactSyncer - Dry Mode', () => {
   let contactSyncer: ContactSyncer;
   const originalDryMode = SETTINGS.dryMode;
-  
+
   beforeEach(() => {
     contactSyncer = new ContactSyncer(mockAuth);
     await contactSyncer.initialize();
@@ -1178,9 +1293,12 @@ describe('LinkedIn ContactSyncer - Dry Mode', () => {
     it('should return NEW status in dry-mode without API call', async () => {
       (SETTINGS as any).dryMode = true;
       const logSpy = vi.spyOn(console, 'log');
-      
-      const result = await contactSyncer.addContact(mockConnection, 'TestLabel');
-      
+
+      const result = await contactSyncer.addContact(
+        mockConnection,
+        'TestLabel'
+      );
+
       expect(result.status).toBe(SyncStatusType.NEW);
       expect(logSpy).toHaveBeenCalledWith(
         expect.stringContaining('[DRY-MODE]')
@@ -1192,13 +1310,13 @@ describe('LinkedIn ContactSyncer - Dry Mode', () => {
     it('should return UPDATED status in dry-mode without API call', async () => {
       (SETTINGS as any).dryMode = true;
       const logSpy = vi.spyOn(console, 'log');
-      
+
       const result = await contactSyncer.updateContact(
         'people/123',
         mockConnection,
         'TestLabel'
       );
-      
+
       expect(result.status).toBe(SyncStatusType.UPDATED);
       expect(logSpy).toHaveBeenCalledWith(
         expect.stringContaining('[DRY-MODE]')
@@ -1209,9 +1327,9 @@ describe('LinkedIn ContactSyncer - Dry Mode', () => {
   describe('ensureGroupExists', () => {
     it('should return mock resourceName in dry-mode for new groups', async () => {
       (SETTINGS as any).dryMode = true;
-      
+
       const resourceName = await contactSyncer['ensureGroupExists']('NewGroup');
-      
+
       expect(resourceName).toMatch(/^contactGroups\/dryMode_/);
     });
   });
@@ -1243,12 +1361,14 @@ Tests for `createLabel()` in dry-mode.
 Update existing script tests to verify dry-mode behavior:
 
 **Files to Update:**
+
 - [`src/scripts/__tests__/eventsJobsSync.test.ts`](../src/scripts/__tests__/eventsJobsSync.test.ts)
 - [`src/scripts/__tests__/smsWhatsappSync.test.ts`](../src/scripts/__tests__/smsWhatsappSync.test.ts)
 - [`src/scripts/__tests__/otherContactsSync.test.ts`](../src/scripts/__tests__/otherContactsSync.test.ts)
 - [`src/scripts/__tests__/linkedinSync.test.ts`](../src/scripts/__tests__/linkedinSync.test.ts) (NEW - full integration test)
 
 **Test Cases to Add:**
+
 1. Verify script runs successfully with `dryMode: true`
 2. Verify logs contain `[DRY-MODE]` prefix at info level
 3. Verify mock contacts added to duplicate detector's recentlyModifiedContacts (NOT cache)
@@ -1271,7 +1391,7 @@ import { container } from '../../di/container';
 
 describe('LinkedIn Sync - Full Dry Mode Integration', () => {
   const originalDryMode = SETTINGS.dryMode;
-  
+
   beforeEach(async () => {
     // Clear duplicate detector state
     const duplicateDetector = container.get(DuplicateDetector);
@@ -1284,23 +1404,23 @@ describe('LinkedIn Sync - Full Dry Mode Integration', () => {
 
   it('should complete full sync in dry-mode with mocks tracked', async () => {
     (SETTINGS as any).dryMode = true;
-    
+
     // Record initial Google contact count
     const initialCount = await getGoogleContactCount();
-    
+
     // Run full LinkedIn sync
     await runLinkedInSync();
-    
+
     // Verify Google contact count unchanged
     const finalCount = await getGoogleContactCount();
     expect(finalCount).toBe(initialCount);
-    
+
     // Verify mocks tracked in duplicate detector
     const duplicateDetector = container.get(DuplicateDetector);
     const recentlyModified = duplicateDetector['recentlyModifiedContacts'];
     expect(recentlyModified.length).toBeGreaterThan(0);
     expect(recentlyModified[0].resourceName).toMatch(/^people\/dryMode_/);
-    
+
     // Verify duplicate detection works with mocks
     const mockContact = recentlyModified[0];
     const duplicates = await duplicateDetector.checkDuplicateName(
@@ -1309,40 +1429,46 @@ describe('LinkedIn Sync - Full Dry Mode Integration', () => {
     );
     expect(duplicates.length).toBeGreaterThan(0);
   });
-  
+
   it('should handle create-then-update scenario with mocks', async () => {
     (SETTINGS as any).dryMode = true;
-    
+
     // Create mock contact
     const contactSyncer = container.get(ContactSyncer);
     const result1 = await contactSyncer.addContact(mockConnection, 'TestLabel');
     expect(result1.status).toBe(SyncStatusType.NEW);
-    
+
     // Try to create same contact again - should detect duplicate
     const duplicateDetector = container.get(DuplicateDetector);
-    const duplicates = await duplicateDetector.checkDuplicateEmail(mockConnection.email);
+    const duplicates = await duplicateDetector.checkDuplicateEmail(
+      mockConnection.email
+    );
     expect(duplicates.length).toBe(1);
   });
-  
+
   it('should prefix mock groups with [DRY-MODE]', async () => {
     (SETTINGS as any).dryMode = true;
-    
+
     const contactEditor = container.get(ContactEditor);
-    const groupResourceName = await contactEditor.createContactGroup('TestGroup');
-    
+    const groupResourceName =
+      await contactEditor.createContactGroup('TestGroup');
+
     expect(groupResourceName).toMatch(/^contactGroups\/dryMode_/);
     // Note: Group name would be '[DRY-MODE] TestGroup' in the actual implementation
   });
-  
+
   it('should continue on duplicate detector tracking failure', async () => {
     (SETTINGS as any).dryMode = true;
-    
+
     // Mock duplicate detector to throw error
     const duplicateDetector = container.get(DuplicateDetector);
-    vi.spyOn(duplicateDetector, 'addRecentlyModifiedContact').mockImplementation(() => {
+    vi.spyOn(
+      duplicateDetector,
+      'addRecentlyModifiedContact'
+    ).mockImplementation(() => {
       throw new Error('Tracking failed');
     });
-    
+
     // Operation should still succeed
     const contactSyncer = container.get(ContactSyncer);
     const result = await contactSyncer.addContact(mockConnection, 'TestLabel');
@@ -1409,7 +1535,7 @@ Fetching Google Contacts: ✓ 1,234 contacts fetched
 Processing: Person 001/100 🏢 TechCorp
 [DRY-MODE] Calling API service.people.createContact() - Contact: John Smith (john@example.com) - Label: TechCorp
 
-Processing: Person 002/100 🏢 StartupInc  
+Processing: Person 002/100 🏢 StartupInc
 [DRY-MODE] Calling API service.people.updateContact() - people/c123: Updated fields [Urls]
 
 ...
@@ -1448,7 +1574,6 @@ Operations in dry-mode include "[DRY MODE]" prefix:
   - Create helper function `parseDryMode()` that accepts: `false`, `0`, `no`, `n` (case-insensitive) to disable
   - Remove `as const` from settings object
   - Add comment: "bypasses environment setting"
-  
 - [ ] **Task 1.2**: Create DryModeChecker utility
   - File: `src/utils/dryModeChecker.ts` (NEW)
   - Implement `isEnabled()` method
@@ -1463,7 +1588,6 @@ Operations in dry-mode include "[DRY MODE]" prefix:
   - Use `.slice()` instead of `.substr()`
   - Add unique counter to prevent ID collisions
   - Make mock responses as complete as possible to prevent downstream issues
-  
 - [ ] **Task 1.4**: Update ApiTracker
   - File: [`src/services/api/apiTracker.ts`](../src/services/api/apiTracker.ts)
   - Update `logStats()` to prefix with "[DRY MODE] " when `SETTINGS.dryMode` is true
@@ -1532,7 +1656,6 @@ Operations in dry-mode include "[DRY MODE]" prefix:
   - Add confirmation statement about user understanding
   - Add confirmation prompt "Proceed in dry mode?" (skip if --yes flag present)
   - Exit gracefully if user declines
-  
 - [ ] **Task 3.2**: Add dry-mode documentation comments to maintenance scripts
   - File: [`src/scripts/clearCache.ts`](../src/scripts/clearCache.ts)
   - Add comment at top: "// NOTE: This script naturally bypasses dry-mode as it only performs local file operations"
@@ -1573,11 +1696,9 @@ Operations in dry-mode include "[DRY MODE]" prefix:
 - [ ] **Task 5.1**: Run full unit test suite
   - Command: `pnpm run test`
   - Verify all tests pass
-  
 - [ ] **Task 5.2**: Run test coverage report
   - Command: `pnpm run test:coverage`
   - Verify coverage for new code meets standards
-  
 - [ ] **Task 5.3**: Manual testing with dry-mode enabled
   - Test confirmation prompt appears and can be cancelled
   - Test `--yes` flag skips confirmation prompt
@@ -1590,7 +1711,6 @@ Operations in dry-mode include "[DRY MODE]" prefix:
   - Verify duplicate detection works with mocks
   - Verify mock groups have `[DRY-MODE]` prefix
   - Test with `linkedin.bypassContactCache: true` - verify dry-mode still works via recentlyModifiedContacts
-  
 - [ ] **Task 5.4**: Manual testing with dry-mode disabled
   - Test all sync scripts with `DRY_MODE=false`
   - Test with `DRY_MODE=0`
@@ -1598,7 +1718,6 @@ Operations in dry-mode include "[DRY MODE]" prefix:
   - Verify normal operation
   - Verify API writes occur as expected
   - Verify no dry-mode logs appear
-  
 - [ ] **Task 5.5**: Verify maintenance scripts
   - Test clear-cache without dry-mode checks
   - Test clear-logs without dry-mode checks
@@ -1614,14 +1733,12 @@ Operations in dry-mode include "[DRY MODE]" prefix:
   - Add example log output with `[DRY-MODE]` prefix
   - Note that dry-mode bypasses environment setting
   - Document interaction with `linkedin.bypassContactCache` setting
-  
 - [ ] **Task 6.2**: Update INSTRUCTIONS.md
   - Add dry-mode usage instructions
   - Explain when to use dry-mode vs live mode
   - Document verification that no API writes occur
   - Document mock contact behavior and duplicate detection (via recentlyModifiedContacts)
   - Document `[DRY-MODE]` prefix in group names
-  
 - [ ] **Task 6.3**: Update CHANGELOG.md
   - Document new feature: Dry-mode
   - List all affected methods
@@ -1629,15 +1746,13 @@ Operations in dry-mode include "[DRY MODE]" prefix:
   - Document environment variable parsing (accepts multiple disable values)
   - Document `--yes` flag for automation
   - Note that DuplicateDetector is now injected into LinkedIn and HiBob syncers
-  
 - [ ] **Task 6.4**: Add JSDoc comments
   - Add comments to all affected methods mentioning dry-mode behavior
   - Document mock response formats (complete with all fields)
-  - Document resourceName patterns (dryMode_ prefix)
+  - Document resourceName patterns (dryMode\_ prefix)
   - Document group name patterns ([DRY-MODE] prefix)
   - Document EventsContactEditor inheritance behavior
   - Document logging level (info)
-  
 - [ ] **Task 6.5**: Review all code changes
   - Ensure no lint errors
   - Ensure consistent patterns across all services
@@ -1687,63 +1802,83 @@ The implementation is complete when:
 ## Questions & Decisions
 
 ### Q1: Should dry-mode affect cache writes?
+
 **Decision:** No for both invalidation and adding. Cache invalidation happens identically in both modes. Mock contacts are added ONLY to DuplicateDetector's `recentlyModifiedContacts` array, NOT to cache. This simplifies the implementation and avoids cache invalidation conflicts.
 
 ### Q2: Should dry-mode affect log writes?
+
 **Decision:** No. Logs are essential for debugging and audit trails. Dry-mode logging is critical for understanding what would have been executed. All dry-mode operations log at **info level** with `[DRY-MODE]` prefix.
 
 ### Q3: Should dry-mode affect note file writes?
+
 **Decision:** No. Notes are local files, not synced to Google, so they're outside dry-mode scope.
 
 ### Q4: Should maintenance scripts respect dry-mode?
+
 **Decision:** No. Clear-cache and clear-logs don't call any of the affected write methods, so they naturally bypass dry-mode without needing explicit checks. Each maintenance script file contains an explicit comment documenting this behavior for future maintainers.
 
 ### Q5: What should the default value be?
+
 **Decision:** `true` (read-only). Safety first - require explicit opt-in for writes via environment variable. This is an **opt-out** flag.
 
 ### Q6: Should the setting be mutable at runtime?
+
 **Decision:** No. Mark as `readonly` to prevent accidental mutation. This is a READ-ONLY parameter that must be set at initialization.
 
 ### Q7: Should we have different logging for dry-mode operations?
+
 **Decision:** Yes. Use `[DRY-MODE]` prefix to clearly distinguish simulated API calls from actual operations. This makes logs searchable and unambiguous. Log at **info level**, not debug.
 
 ### Q8: Should mock responses be identical to API responses?
+
 **Decision:** Yes, make them as complete as possible. Include all fields even if empty to prevent downstream code from breaking on missing fields. Use a counter to prevent ID collisions.
 
 ### Q9: Should dry-mode change timing or delays?
+
 **Decision:** No. All delays execute identically to preserve realistic testing conditions and script timing behavior.
 
 ### Q10: Should ApiTracker behavior change in dry-mode?
+
 **Decision:** Yes. Prefix statistics with "[DRY MODE]" to distinguish from live operations. Track write operations identically but make it clear these are simulated.
 
 ### Q11: Should success messages change in dry-mode?
+
 **Decision:** Yes. Add "[DRY MODE]" prefix to make it clear operations were simulated, not executed.
 
 ### Q12: What environment variable values disable dry-mode?
+
 **Decision:** Accept `false`, `0`, `no`, `n` (case-insensitive). Any other value enables dry-mode for safety. Document clearly that this is an opt-out flag.
 
 ### Q13: Should dry-mode respect the environment setting?
+
 **Decision:** No. Dry-mode bypasses the `environment: 'test' | 'production'` setting - it applies regardless of environment for maximum safety.
 
 ### Q14: Should LinkedIn/HiBob syncers track mock contacts?
+
 **Decision:** Yes. Add DuplicateDetector integration to these syncers so mock contacts are tracked in `recentlyModifiedContacts` for duplicate detection across all sync types. Wrap in try-catch to not fail operations on tracking failures.
 
 ### Q15: How should EventsContactEditor handle dry-mode?
+
 **Decision:** Automatic inheritance. Since it extends ContactEditor, it automatically gets dry-mode behavior from parent methods. No explicit changes needed.
 
 ### Q16: Should we use ApiCallGuard Proxy pattern?
+
 **Decision:** No. Use direct checks at the start of each write method instead. This is simpler, more maintainable, and doesn't interfere with retry logic.
 
 ### Q17: How to prevent automation breakage?
+
 **Decision:** Add `--yes` or `-y` flag support to skip the confirmation prompt. Check for these flags in command line arguments before showing the prompt.
 
 ### Q18: How to distinguish mock groups from real groups?
+
 **Decision:** Prefix mock contact group names with `[DRY-MODE]` to make them easily identifiable and prevent confusion with real groups.
 
 ### Q19: How to handle duplicate detector tracking failures?
+
 **Decision:** Wrap all `addRecentlyModifiedContact()` calls in try-catch blocks. Log failures at debug level but don't fail the operation. The operation succeeding is more important than tracking succeeding.
 
 ### Q20: How does dry-mode interact with bypassContactCache?
+
 **Decision:** Dry-mode works independently of cache settings. Even if `linkedin.bypassContactCache` is true, mock contacts are still tracked in `recentlyModifiedContacts` which is always available. Document this interaction in README.
 
 ---
@@ -1751,12 +1886,14 @@ The implementation is complete when:
 ## References
 
 ### Implementation Files
+
 - [Settings Configuration](../src/settings/settings.ts) - Readonly dryMode setting with flexible environment variable parsing
 - [DryModeChecker Utility](../src/utils/dryModeChecker.ts) - Status checks and logging
 - [DryModeMocks Utility](../src/utils/dryModeMocks.ts) - Minimal mock response generation
 - [ApiTracker](../src/services/api/apiTracker.ts) - Statistics tracking with dry-mode prefix
 
 ### Service Files
+
 - [Contact Editor Service](../src/services/contacts/contactEditor.ts) - createContact, updateContact, createContactGroup, addPhone, addEmail
 - [Events Contact Editor Service](../src/services/contacts/eventsContactEditor.ts) - Inherits dry-mode behavior from ContactEditor
 - [LinkedIn Contact Syncer](../src/services/linkedin/contactSyncer.ts) - addContact, updateContact, ensureGroupExists (with duplicate detector integration)
@@ -1767,6 +1904,7 @@ The implementation is complete when:
 - [DI Container](../src/di/container.ts) - Registers DuplicateDetector as singleton for injection
 
 ### External Resources
+
 - [Google People API Documentation](https://developers.google.com/people) - API reference for contact and contact group operations
 
 ---

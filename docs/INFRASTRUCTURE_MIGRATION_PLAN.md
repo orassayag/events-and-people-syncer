@@ -7,6 +7,7 @@ This plan migrates the infrastructure from the reference project ([event-dates-c
 ## Key Decisions
 
 Based on clarifications:
+
 - **File Naming Convention**: All files use camelCase format matching POC convention (e.g., `authService.ts`, `apiTracker.ts`, not `AuthService.ts`)
 - **Runner pattern**: Adopt `runner.ts` for extensible script execution
 - **Settings**: Adopt reference `settings/initiate.ts` pattern, merge POC `config.ts` + `settings.ts` into unified `settings/` folder
@@ -27,6 +28,7 @@ Based on clarifications:
 ### Rationale for Key Changes
 
 **Why use camelCase for file names?**
+
 - **Consistency**: Matches POC naming convention
 - **TypeScript best practice**: File names match exported class/function names in case
 - **Import clarity**: `import { Logger } from './logger'` is cleaner than `import { Logger } from './Logger'`
@@ -34,12 +36,14 @@ Based on clarifications:
 - **Cross-platform**: Avoids case-sensitivity issues on different operating systems
 
 **Why merge config.ts and settings.ts?**
+
 - **Single source of truth**: All configuration in one place reduces confusion
 - **Consistent pattern**: Matches reference project's approach
 - **Better maintainability**: Environment variables are just another type of setting
 - **Cleaner imports**: `import { SETTINGS } from './settings'` instead of multiple imports
 
 **Why split types.ts into separate files?**
+
 - **Separation of concerns**: Contact types separate from auth types separate from API types
 - **Better maintainability**: Easier to find and modify specific type definitions
 - **Reduced cognitive load**: Each file focuses on one domain concept
@@ -47,6 +51,7 @@ Based on clarifications:
 - **Scalability**: As types grow, files remain manageable
 
 **Why create entities/ folder for Zod schemas?**
+
 - **Domain-driven design**: Entities represent domain objects with their validation rules
 - **Reusability**: Schemas can be imported and composed across validators
 - **Single responsibility**: Each schema file validates one specific entity
@@ -55,6 +60,7 @@ Based on clarifications:
 - **Clear naming**: `.schema.ts` suffix makes schema files immediately identifiable
 
 **Why centralize regex patterns in utils/regexPatterns.ts?**
+
 - **Single source of truth**: All regex patterns defined once, reused everywhere
 - **Consistency**: Same pattern used across Zod schemas, validators, and utilities
 - **Maintainability**: Update pattern once, applies everywhere
@@ -63,6 +69,7 @@ Based on clarifications:
 - **No duplication**: Eliminates hardcoded regex scattered across files
 
 **Why adopt dual-mode service architecture (interactive + programmatic)?**
+
 - **Flexibility**: Support both batch operations (CSV imports) and interactive wizards
 - **Code reuse**: Both modes share validation, duplicate detection, and API logic
 - **Script variety**: Different scripts have different data flows and user interaction needs
@@ -71,6 +78,7 @@ Based on clarifications:
 - **Testability**: Business logic can be tested without UI dependencies
 
 **Why eliminate utils/ folder in favor of domain-specific folders?**
+
 - **Clear purpose**: Each folder has a specific, well-defined responsibility
 - **Discoverability**: Developers know exactly where to find code (validators/, cache/, parsers/, etc.)
 - **Avoid dumping ground**: "Utils" becomes a catch-all for unorganized code
@@ -79,6 +87,7 @@ Based on clarifications:
 - **Better naming**: `parsers/nameParser.ts` more descriptive than `utils/nameParser.ts`
 
 **Why adopt error code system?**
+
 - **Troubleshooting**: Unique error codes make debugging easier
 - **Documentation**: Each error can be documented with its code
 - **Consistency**: Standardized error handling across the application
@@ -86,6 +95,7 @@ Based on clarifications:
 - **Tracking**: Easy to track which errors occur most frequently
 
 **Why use structured logging instead of console.log?**
+
 - **Log levels**: Control verbosity (debug, info, warn, error)
 - **Structured data**: JSON format for machine parsing
 - **Filtering**: Easy to filter logs by level, module, or context
@@ -93,6 +103,7 @@ Based on clarifications:
 - **PHI safety**: Can filter sensitive healthcare information (per user rules)
 
 **Why use InversifyJS for dependency injection?**
+
 - **Testability**: Easy to mock dependencies in tests
 - **Flexibility**: Swap implementations without changing consumers
 - **Loose coupling**: Services don't create their own dependencies
@@ -106,6 +117,7 @@ Based on clarifications:
 Merge and migrate root-level configuration files from both projects:
 
 **From reference project (event-dates-calendar-ts):**
+
 - `eslint.config.mjs` - ESLint configuration with TypeScript rules
 - `.prettierrc` - Prettier formatting rules
 - `pnpm-workspace.yaml` - PNPM workspace configuration
@@ -115,12 +127,14 @@ Merge and migrate root-level configuration files from both projects:
 - `.vscode/extensions.json` - Recommended extensions
 
 **From POC (merge/preserve):**
+
 - `.env.example` - Keep POC OAuth configuration structure
 - `vitest.config.ts` - Keep test configuration (not in reference)
 - `api-stats.json` - Keep (POC-specific runtime data)
 - `token.json` - Keep (OAuth token, in .gitignore)
 
 **Merged files:**
+
 - `.gitignore` - Combine both (POC has OAuth-specific entries, reference has cleaner structure, add logs/ folder)
 - `tsconfig.json` - Use reference as base, add POC's stricter options (`strict`, `declaration`, `sourceMap`), add decorator support for InversifyJS
 - `package.json` - Merge scripts, dependencies, and metadata
@@ -222,6 +236,7 @@ src/
 ```
 
 **Note on folder organization:**
+
 - **constants/**: Application-wide constants (API limits, UI strings, validation rules)
 - **errors/**: Error handling infrastructure with unique error codes
 - **logging/**: Structured logging service replacing console.log
@@ -240,6 +255,7 @@ src/
 Merge scripts from both projects and add comprehensive metadata:
 
 **Package.json metadata (from reference):**
+
 ```json
 {
   "name": "events-and-people-syncer",
@@ -296,12 +312,14 @@ Merge scripts from both projects and add comprehensive metadata:
 **Merged scripts:**
 
 **From reference:**
+
 - `lint` - ESLint check
 - `format` - Prettier format
 - `format:check` - Prettier check
 - `script` - Run named script via runner.ts
 
 **From POC:**
+
 - `start` - Run main application
 - `start:verbose` - Run with verbose flag
 - `dev` - Development mode with watch
@@ -310,9 +328,11 @@ Merge scripts from both projects and add comprehensive metadata:
 - `test:coverage` - Coverage report
 
 **New/merged:**
+
 - `build` - TypeScript compilation
 
 **Final package.json scripts section:**
+
 ```json
 "scripts": {
   "lint": "eslint \"src/**/*.ts\"",
@@ -335,17 +355,21 @@ Merge scripts from both projects and add comprehensive metadata:
 ### Phase 4: Dependencies Management
 
 **Preserve POC dependencies:**
+
 - `@types/inquirer`, `bidi-js`, `cli-spinners`, `dotenv`, `fuse.js`, `googleapis`, `inquirer`, `ora`, `zod`
 
 **Add from reference:**
+
 - ESLint packages: `@eslint/js`, `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`, `eslint`, `eslint-config-prettier`, `eslint-plugin-prettier`, `typescript-eslint`
 - Prettier: `prettier`
 
 **Add for new infrastructure:**
+
 - Dependency Injection: `inversify`, `reflect-metadata`
 - Type definitions: `@types/node` (already exists in both)
 
 **Keep POC dev dependencies:**
+
 - `@vitest/ui`, `vitest` (testing)
 - `tsx` (already in both)
 - `@types/node`, `typescript` (already in both)
@@ -353,6 +377,7 @@ Merge scripts from both projects and add comprehensive metadata:
 ### Phase 5: Documentation
 
 **Merge docs folder:**
+
 - Keep all POC docs in `poc/docs`:
   - `VALIDATION_RULES.md`
   - `WINDOWS_SETUP.md`
@@ -361,16 +386,19 @@ Merge scripts from both projects and add comprehensive metadata:
   - And other POC-specific docs
 
 **Add from reference (adapted):**
+
 - `CONTRIBUTING.md` - Update with POC-specific guidelines
 - `LICENSE` - MIT License (update copyright year to 2026)
 - `CHANGELOG.md` - Create changelog for version tracking (from reference)
 - `INSTRUCTIONS.md` - Create usage instructions (from reference)
 
 **Move to `src/docs`:**
+
 - Create consolidated documentation folder
 - Merge POC docs with infrastructure docs
 
 **New documentation to create:**
+
 - `CHANGELOG.md` - Version history and breaking changes
 - `INSTRUCTIONS.md` - Setup, configuration, and running scripts
 - `README.md` - Update with new architecture and dual-mode features
@@ -380,12 +408,14 @@ Merge scripts from both projects and add comprehensive metadata:
 Transform POC's `config.ts` + `settings.ts` into reference's `settings/` folder pattern with environment support:
 
 **Current POC pattern:**
+
 ```typescript
 // config.ts - loads env vars with dotenv, validates required vars
 // settings.ts - application constants, port validation
 ```
 
 **New unified pattern with environment management:**
+
 ```typescript
 // settings/settings.ts - main SETTINGS object with all configs including OAuth
 // settings/initiate.ts - runtime initialization, env validation, environment detection
@@ -393,6 +423,7 @@ Transform POC's `config.ts` + `settings.ts` into reference's `settings/` folder 
 ```
 
 **Key improvements:**
+
 - Eliminate separate `config.ts` - merge OAuth configuration into `settings/settings.ts`
 - Move environment validation to `settings/initiate.ts`
 - **Add environment detection**: Detect test vs prod based on NODE_ENV
@@ -403,10 +434,12 @@ Transform POC's `config.ts` + `settings.ts` into reference's `settings/` folder 
 **Environment Configuration:**
 
 Create environment-specific files:
+
 - `.env.test` - Test environment (current POC credentials)
 - `.env.production` - Production environment (empty for now)
 
 **`settings/initiate.ts`** - Environment detection:
+
 ```typescript
 import { config } from 'dotenv';
 import { SETTINGS } from './settings';
@@ -414,19 +447,21 @@ import { SETTINGS } from './settings';
 export function initiate(): void {
   const environment = process.env.NODE_ENV || 'test';
   SETTINGS.environment = environment;
-  
+
   // Load environment-specific .env file
-  const envFile = environment === 'production' ? '.env.production' : '.env.test';
+  const envFile =
+    environment === 'production' ? '.env.production' : '.env.test';
   config({ path: envFile });
-  
+
   // Validate required environment variables
   validateEnvironment();
-  
+
   // Additional initialization logic
 }
 ```
 
 **`settings/settings.ts`** - With environment field:
+
 ```typescript
 export const SETTINGS = {
   environment: 'test' as 'test' | 'production',
@@ -444,28 +479,29 @@ export const SETTINGS = {
 Create error handling system with unique error codes (from reference project pattern):
 
 **`errors/ErrorCodes.ts`** - Error code enum:
+
 ```typescript
 export enum ErrorCode {
   // Authentication errors (2000xxx)
   AUTH_MISSING_CREDENTIALS = 2000001,
   AUTH_INVALID_TOKEN = 2000002,
   AUTH_TIMEOUT = 2000003,
-  
+
   // Contact errors (2001xxx)
   CONTACT_NOT_FOUND = 2001001,
   CONTACT_INVALID_DATA = 2001002,
   CONTACT_DUPLICATE = 2001003,
-  
+
   // API errors (2002xxx)
   API_RATE_LIMIT = 2002001,
   API_REQUEST_FAILED = 2002002,
   API_NETWORK_ERROR = 2002003,
-  
+
   // Validation errors (2003xxx)
   VALIDATION_FAILED = 2003001,
   VALIDATION_EMAIL_INVALID = 2003002,
   VALIDATION_PHONE_INVALID = 2003003,
-  
+
   // System errors (2009xxx)
   SYSTEM_FILE_NOT_FOUND = 2009001,
   SYSTEM_PORT_IN_USE = 2009002,
@@ -473,6 +509,7 @@ export enum ErrorCode {
 ```
 
 **`errors/AppError.ts`** - Custom error class:
+
 ```typescript
 import { ErrorCode } from './ErrorCodes';
 
@@ -490,6 +527,7 @@ export class AppError extends Error {
 ```
 
 **`errors/errorMessages.ts`** - Centralized messages:
+
 ```typescript
 import { ErrorCode } from './ErrorCodes';
 
@@ -502,6 +540,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
 ```
 
 **Usage example:**
+
 ```typescript
 import { AppError, ErrorCode } from '../errors';
 
@@ -519,6 +558,7 @@ throw new AppError(
 Replace console.log with structured logging service:
 
 **`logging/Logger.ts`** - Logger class:
+
 ```typescript
 export enum LogLevel {
   DEBUG = 'debug',
@@ -529,24 +569,37 @@ export enum LogLevel {
 
 export class Logger {
   constructor(private context: string) {}
-  
+
   debug(message: string, data?: Record<string, unknown>): void {
     this.log(LogLevel.DEBUG, message, data);
   }
-  
-  info(message: string, data?: Record<string, unknown>, options?: { noPHI?: boolean }): void {
+
+  info(
+    message: string,
+    data?: Record<string, unknown>,
+    options?: { noPHI?: boolean }
+  ): void {
     this.log(LogLevel.INFO, message, data, options);
   }
-  
+
   warn(message: string, data?: Record<string, unknown>): void {
     this.log(LogLevel.WARN, message, data);
   }
-  
+
   error(message: string, error?: Error, data?: Record<string, unknown>): void {
-    this.log(LogLevel.ERROR, message, { ...data, error: error?.message, stack: error?.stack });
+    this.log(LogLevel.ERROR, message, {
+      ...data,
+      error: error?.message,
+      stack: error?.stack,
+    });
   }
-  
-  private log(level: LogLevel, message: string, data?: Record<string, unknown>, options?: { noPHI?: boolean }): void {
+
+  private log(
+    level: LogLevel,
+    message: string,
+    data?: Record<string, unknown>,
+    options?: { noPHI?: boolean }
+  ): void {
     const entry = {
       timestamp: new Date().toISOString(),
       level,
@@ -555,14 +608,14 @@ export class Logger {
       data,
       noPHI: options?.noPHI,
     };
-    
+
     // Console output
     console.log(JSON.stringify(entry));
-    
+
     // File output (append to logs/)
     this.writeToFile(entry);
   }
-  
+
   private writeToFile(entry: LogEntry): void {
     // Append to logs/app.log
   }
@@ -570,6 +623,7 @@ export class Logger {
 ```
 
 **`logging/logConfig.ts`** - Configuration:
+
 ```typescript
 export const LOG_CONFIG = {
   level: process.env.LOG_LEVEL || 'info',
@@ -581,15 +635,21 @@ export const LOG_CONFIG = {
 ```
 
 **Usage:**
+
 ```typescript
 import { Logger } from '../logging';
 
 const logger = new Logger('ContactService');
-logger.info('Contact created successfully', { contactId: '123' }, { noPHI: true });
+logger.info(
+  'Contact created successfully',
+  { contactId: '123' },
+  { noPHI: true }
+);
 logger.error('Failed to create contact', error, { input: contactData });
 ```
 
 **Update `.gitignore`:**
+
 ```
 logs/
 *.log
@@ -600,12 +660,14 @@ logs/
 Set up InversifyJS for dependency injection:
 
 **Install InversifyJS:**
+
 ```bash
 pnpm add inversify reflect-metadata
 pnpm add -D @types/node
 ```
 
 **`di/identifiers.ts`** - Service identifiers:
+
 ```typescript
 export const TYPES = {
   // Services
@@ -615,21 +677,22 @@ export const TYPES = {
   ContactSearchService: Symbol.for('ContactSearchService'),
   DuplicateDetector: Symbol.for('DuplicateDetector'),
   ContactValidator: Symbol.for('ContactValidator'),
-  
+
   // API
   ApiTracker: Symbol.for('ApiTracker'),
   RetryHandler: Symbol.for('RetryHandler'),
   RateLimitMonitor: Symbol.for('RateLimitMonitor'),
-  
+
   // Infrastructure
   Logger: Symbol.for('Logger'),
-  
+
   // Auth
   OAuth2Client: Symbol.for('OAuth2Client'),
 };
 ```
 
 **`di/container.ts`** - Container setup:
+
 ```typescript
 import { Container } from 'inversify';
 import 'reflect-metadata';
@@ -642,11 +705,15 @@ export const container = new Container();
 // Bind services
 container.bind(TYPES.ContactService).to(ContactService).inSingletonScope();
 container.bind(TYPES.ContactWizard).to(ContactWizard).inTransientScope();
-container.bind(TYPES.DuplicateDetector).to(DuplicateDetector).inSingletonScope();
+container
+  .bind(TYPES.DuplicateDetector)
+  .to(DuplicateDetector)
+  .inSingletonScope();
 // ... other bindings
 ```
 
 **Service with DI:**
+
 ```typescript
 import { injectable, inject } from 'inversify';
 import { TYPES } from '../../di/identifiers';
@@ -655,10 +722,11 @@ import { TYPES } from '../../di/identifiers';
 export class ContactWizard {
   constructor(
     @inject(TYPES.ContactService) private contactService: ContactService,
-    @inject(TYPES.DuplicateDetector) private duplicateDetector: DuplicateDetector,
+    @inject(TYPES.DuplicateDetector)
+    private duplicateDetector: DuplicateDetector,
     @inject(TYPES.Logger) private logger: Logger
   ) {}
-  
+
   async addContactInteractive(): Promise<Contact> {
     this.logger.info('Starting interactive contact creation');
     // Implementation
@@ -667,6 +735,7 @@ export class ContactWizard {
 ```
 
 **Update `tsconfig.json`:**
+
 ```json
 {
   "compilerOptions": {
@@ -681,6 +750,7 @@ export class ContactWizard {
 Create centralized constants folder:
 
 **`constants/apiConstants.ts`** - API-related constants:
+
 ```typescript
 export const API_CONSTANTS = {
   GOOGLE_PEOPLE_API: {
@@ -688,31 +758,32 @@ export const API_CONSTANTS = {
     PAGE_SIZE: 1000,
     DISPLAY_PAGE_SIZE: 15,
     TOP_CONTACTS_DISPLAY: 10,
-    
+
     // Rate limits (from Google)
     RATE_LIMIT_READ: 300, // per minute
     RATE_LIMIT_WRITE: 60, // per minute
     RATE_LIMIT_DAILY: 1_000_000,
-    
+
     // Timeouts
     BROWSER_TIMEOUT: 240000, // 4 minutes
     REQUEST_TIMEOUT: 30000, // 30 seconds
-    
+
     // Retry configuration
     MAX_RETRIES: 5,
     RETRY_BASE_DELAY: 1000,
     RETRY_MAX_DELAY: 16000,
-    
+
     // Field limits
     MAX_FIELD_LENGTH: 1024,
     MAX_FIELDS_PER_CONTACT: 500,
   },
-  
+
   SCOPES: ['https://www.googleapis.com/auth/contacts'],
 };
 ```
 
 **`constants/uiConstants.ts`** - UI strings and messages:
+
 ```typescript
 export const UI_CONSTANTS = {
   MESSAGES: {
@@ -722,7 +793,7 @@ export const UI_CONSTANTS = {
     CONTACT_CANCELLED: 'Contact creation cancelled',
     FETCHING_CONTACTS: 'Fetching contacts from Google People API...',
   },
-  
+
   PROMPTS: {
     COMPANY: '🏢 Company:',
     FULL_NAME: '👤 Full name:',
@@ -731,7 +802,7 @@ export const UI_CONSTANTS = {
     PHONE: '📞 Phone number:',
     LINKEDIN: '🔗 LinkedIn URL:',
   },
-  
+
   MENU_CHOICES: {
     READ_CONTACTS: 'Read and display all contacts',
     ADD_CONTACT: 'Add new contact',
@@ -741,23 +812,24 @@ export const UI_CONSTANTS = {
 ```
 
 **`constants/validationConstants.ts`** - Validation limits:
+
 ```typescript
 export const VALIDATION_CONSTANTS = {
   EMAIL: {
     MAX_LENGTH: 254,
     MIN_LENGTH: 3,
   },
-  
+
   PHONE: {
     MIN_DIGITS: 1,
     MAX_DIGITS: 100,
   },
-  
+
   PORT: {
     MIN: 1024,
     MAX: 65535,
   },
-  
+
   CACHE: {
     TTL_HOURS: 24,
     TTL_MS: 24 * 60 * 60 * 1000,
@@ -770,6 +842,7 @@ export const VALIDATION_CONSTANTS = {
 Add rate limit warnings to API service:
 
 **`services/api/RateLimitMonitor.ts`** - Rate limit tracking:
+
 ```typescript
 import { injectable, inject } from 'inversify';
 import { TYPES } from '../../di/identifiers';
@@ -782,32 +855,43 @@ export class RateLimitMonitor {
   private writeCount = 0;
   private windowStart = Date.now();
   private readonly WINDOW_MS = 60 * 1000; // 1 minute
-  
+
   constructor(@inject(TYPES.Logger) private logger: Logger) {}
-  
+
   trackRead(): void {
     this.resetWindowIfNeeded();
     this.readCount++;
-    this.checkLimits('read', this.readCount, API_CONSTANTS.GOOGLE_PEOPLE_API.RATE_LIMIT_READ);
+    this.checkLimits(
+      'read',
+      this.readCount,
+      API_CONSTANTS.GOOGLE_PEOPLE_API.RATE_LIMIT_READ
+    );
   }
-  
+
   trackWrite(): void {
     this.resetWindowIfNeeded();
     this.writeCount++;
-    this.checkLimits('write', this.writeCount, API_CONSTANTS.GOOGLE_PEOPLE_API.RATE_LIMIT_WRITE);
+    this.checkLimits(
+      'write',
+      this.writeCount,
+      API_CONSTANTS.GOOGLE_PEOPLE_API.RATE_LIMIT_WRITE
+    );
   }
-  
+
   private checkLimits(operation: string, count: number, limit: number): void {
     const percentUsed = (count / limit) * 100;
-    
+
     if (percentUsed >= 90) {
-      this.logger.warn(`Rate limit warning: ${operation} operations at ${percentUsed.toFixed(1)}% of limit`, {
-        count,
-        limit,
-        percentUsed,
-      });
+      this.logger.warn(
+        `Rate limit warning: ${operation} operations at ${percentUsed.toFixed(1)}% of limit`,
+        {
+          count,
+          limit,
+          percentUsed,
+        }
+      );
     }
-    
+
     if (count >= limit) {
       this.logger.error(`Rate limit exceeded: ${operation} operations`, {
         count,
@@ -815,7 +899,7 @@ export class RateLimitMonitor {
       });
     }
   }
-  
+
   private resetWindowIfNeeded(): void {
     const now = Date.now();
     if (now - this.windowStart >= this.WINDOW_MS) {
@@ -832,6 +916,7 @@ export class RateLimitMonitor {
 Enhance script registration with metadata for better discoverability:
 
 **`types/script.ts`** - Script metadata types:
+
 ```typescript
 export interface ScriptMetadata {
   name: string;
@@ -850,6 +935,7 @@ export interface Script {
 ```
 
 **`scripts/index.ts`** - Enhanced script registry:
+
 ```typescript
 import { Script } from '../types/script';
 import { interactiveContactManager } from './interactive-contact-manager';
@@ -859,7 +945,8 @@ export const AVAILABLE_SCRIPTS: Record<string, Script> = {
   'interactive-contact-manager': {
     metadata: {
       name: 'Interactive Contact Manager',
-      description: 'Manual contact management with user prompts and duplicate detection',
+      description:
+        'Manual contact management with user prompts and duplicate detection',
       version: '1.0.0',
       author: 'Or Assayag',
       category: 'interactive',
@@ -896,6 +983,7 @@ export function listScripts(): void {
 ```
 
 **`runner.ts`** - Enhanced runner with script listing:
+
 ```typescript
 import { initiate } from './settings';
 import { AVAILABLE_SCRIPTS, listScripts } from './scripts';
@@ -931,6 +1019,7 @@ try {
 ```
 
 **Package.json script:**
+
 ```json
 "scripts": {
   "script:list": "tsx src/runner.ts list"
@@ -942,6 +1031,7 @@ try {
 Add factory pattern for creating service instances with proper DI:
 
 **`services/ServiceFactory.ts`** - Service factory:
+
 ```typescript
 import { injectable, inject } from 'inversify';
 import { container } from '../di/container';
@@ -995,6 +1085,7 @@ export class ServiceFactory {
 ```
 
 **Usage in scripts:**
+
 ```typescript
 // scripts/interactive-contact-manager.ts
 import { container } from '../di/container';
@@ -1004,7 +1095,7 @@ import { ServiceFactory } from '../services/ServiceFactory';
 export async function interactiveContactManager(): Promise<void> {
   const factory = container.get<ServiceFactory>(TYPES.ServiceFactory);
   const { wizard } = factory.createInteractiveWorkflow();
-  
+
   await wizard.addContactInteractive();
 }
 ```
@@ -1014,6 +1105,7 @@ export async function interactiveContactManager(): Promise<void> {
 Add health check system for monitoring service health:
 
 **`monitoring/HealthCheck.ts`** - Health check service:
+
 ```typescript
 import { injectable, inject } from 'inversify';
 import { TYPES } from '../di/identifiers';
@@ -1036,7 +1128,7 @@ export class HealthCheck {
 
   async checkAll(): Promise<HealthStatus[]> {
     this.logger.info('Running health checks');
-    
+
     const checks: HealthStatus[] = [
       await this.checkAuth(),
       await this.checkApiConnection(),
@@ -1044,9 +1136,11 @@ export class HealthCheck {
       await this.checkEnvironment(),
     ];
 
-    const unhealthy = checks.filter(c => c.status === 'unhealthy');
+    const unhealthy = checks.filter((c) => c.status === 'unhealthy');
     if (unhealthy.length > 0) {
-      this.logger.error('Health check failed', { unhealthyServices: unhealthy });
+      this.logger.error('Health check failed', {
+        unhealthyServices: unhealthy,
+      });
     } else {
       this.logger.info('All health checks passed', { noPHI: true });
     }
@@ -1076,11 +1170,14 @@ export class HealthCheck {
   private async checkApiConnection(): Promise<HealthStatus> {
     // Check if we can reach Google APIs
     try {
-      const response = await fetch('https://www.googleapis.com/oauth2/v1/certs', {
-        method: 'HEAD',
-        signal: AbortSignal.timeout(5000),
-      });
-      
+      const response = await fetch(
+        'https://www.googleapis.com/oauth2/v1/certs',
+        {
+          method: 'HEAD',
+          signal: AbortSignal.timeout(5000),
+        }
+      );
+
       return {
         service: 'google-api',
         status: response.ok ? 'healthy' : 'degraded',
@@ -1104,7 +1201,7 @@ export class HealthCheck {
       const testFile = 'logs/.health-check';
       await fs.writeFile(testFile, 'test');
       await fs.unlink(testFile);
-      
+
       return {
         service: 'filesystem',
         status: 'healthy',
@@ -1122,8 +1219,8 @@ export class HealthCheck {
 
   private async checkEnvironment(): Promise<HealthStatus> {
     const requiredVars = ['CLIENT_ID', 'CLIENT_SECRET', 'PROJECT_ID'];
-    const missing = requiredVars.filter(v => !process.env[v]);
-    
+    const missing = requiredVars.filter((v) => !process.env[v]);
+
     if (missing.length > 0) {
       return {
         service: 'environment',
@@ -1132,7 +1229,7 @@ export class HealthCheck {
         timestamp: new Date().toISOString(),
       };
     }
-    
+
     return {
       service: 'environment',
       status: 'healthy',
@@ -1145,6 +1242,7 @@ export class HealthCheck {
 **Add health check script:**
 
 **`scripts/health-check.ts`** - Health check script:
+
 ```typescript
 import { container } from '../di/container';
 import { TYPES } from '../di/identifiers';
@@ -1153,18 +1251,23 @@ import { HealthCheck } from '../monitoring/HealthCheck';
 export async function healthCheck(): Promise<void> {
   const checker = container.get<HealthCheck>(TYPES.HealthCheck);
   const results = await checker.checkAll();
-  
+
   console.log('\n=== Health Check Results ===\n');
-  results.forEach(result => {
-    const icon = result.status === 'healthy' ? '✅' : result.status === 'degraded' ? '⚠️' : '❌';
+  results.forEach((result) => {
+    const icon =
+      result.status === 'healthy'
+        ? '✅'
+        : result.status === 'degraded'
+          ? '⚠️'
+          : '❌';
     console.log(`${icon} ${result.service}: ${result.status}`);
     if (result.message) {
       console.log(`   ${result.message}`);
     }
   });
   console.log('');
-  
-  const failed = results.filter(r => r.status === 'unhealthy');
+
+  const failed = results.filter((r) => r.status === 'unhealthy');
   if (failed.length > 0) {
     process.exit(1);
   }
@@ -1172,6 +1275,7 @@ export async function healthCheck(): Promise<void> {
 ```
 
 **Register in scripts/index.ts:**
+
 ```typescript
 'health-check': {
   metadata: {
@@ -1187,6 +1291,7 @@ export async function healthCheck(): Promise<void> {
 ```
 
 **Package.json script:**
+
 ```json
 "scripts": {
   "health": "tsx src/runner.ts health-check"
@@ -1198,12 +1303,14 @@ export async function healthCheck(): Promise<void> {
 Transform POC's `config.ts` + `settings.ts` into reference's `settings/` folder pattern:
 
 **Current POC pattern:**
+
 ```typescript
 // config.ts - loads env vars with dotenv, validates required vars
 // settings.ts - application constants, port validation
 ```
 
 **New unified pattern:**
+
 ```typescript
 // settings/settings.ts - main SETTINGS object with all configs including OAuth
 // settings/initiate.ts - runtime initialization, env validation
@@ -1211,6 +1318,7 @@ Transform POC's `config.ts` + `settings.ts` into reference's `settings/` folder 
 ```
 
 **Key improvements:**
+
 - Eliminate separate `config.ts` - merge OAuth configuration into `settings/settings.ts`
 - Move environment validation to `settings/initiate.ts`
 - Keep all application configuration in one cohesive location
@@ -1218,6 +1326,7 @@ Transform POC's `config.ts` + `settings.ts` into reference's `settings/` folder 
 - Use port validation from `entities/port.schema.ts`
 
 **Example structure:**
+
 ```typescript
 // settings/settings.ts
 export const SETTINGS = {
@@ -1240,13 +1349,14 @@ export const SETTINGS = {
   paths: {
     apiStatsFile: 'api-stats.json',
     tokenFile: 'token.json',
-  }
+  },
 };
 ```
 
 ### Phase 7: File Cleanup
 
 **Remove from POC folder after migration:**
+
 - `dist/` folder (build artifacts)
 - Keep `.env` and `token.json` at root (in .gitignore)
 - Keep `api-stats.json` at root (runtime data)
@@ -1276,7 +1386,10 @@ export class ContactService {
     // Return created contact
   }
 
-  async updateContact(id: string, data: Partial<ContactInput>): Promise<Contact> {
+  async updateContact(
+    id: string,
+    data: Partial<ContactInput>
+  ): Promise<Contact> {
     // Validate input
     // Update via Google People API
     // Track API usage
@@ -1402,16 +1515,21 @@ Keep existing POC logic, enhance with additional methods:
 ```typescript
 export class DuplicateDetector {
   // Existing methods from POC
-  async checkDuplicateName(firstName: string, lastName: string): Promise<DuplicateMatch[]>
-  async checkDuplicateEmail(email: string): Promise<DuplicateMatch[]>
-  
+  async checkDuplicateName(
+    firstName: string,
+    lastName: string
+  ): Promise<DuplicateMatch[]>;
+  async checkDuplicateEmail(email: string): Promise<DuplicateMatch[]>;
+
   // NEW: Programmatic duplicate handling (no prompts)
   async findDuplicates(data: ContactInput): Promise<DuplicateMatch[]> {
     // Check all duplicate types, return results
   }
 
   // Existing: Interactive prompt
-  async promptForDuplicateContinue(matches: DuplicateMatch[]): Promise<boolean> {
+  async promptForDuplicateContinue(
+    matches: DuplicateMatch[]
+  ): Promise<boolean> {
     // Show duplicates, ask user to continue
   }
 }
@@ -1420,10 +1538,12 @@ export class DuplicateDetector {
 #### **Migration from POC:**
 
 **POC contactReader.ts → ContactService + ContactSearchService:**
+
 - `readContacts()` → `ContactService.listContacts()`
 - `displayContacts()` → Move display logic to ContactWizard or script
 
 **POC contactWriter.ts → ContactService + ContactWizard:**
+
 - `addContact()` → Split into:
   - `ContactWizard.addContactInteractive()` (UI)
   - `ContactService.createContact()` (business logic)
@@ -1432,6 +1552,7 @@ export class DuplicateDetector {
 - `createContact()` → `ContactService.createContact()`
 
 **Benefits:**
+
 - **Separation of concerns**: UI separated from business logic
 - **Testability**: Business logic testable without UI
 - **Reusability**: Same ContactService used by wizard and batch scripts
@@ -1443,32 +1564,45 @@ export class DuplicateDetector {
 Split POC's monolithic `types.ts` (129 lines) into focused type files:
 
 **`src/types/contact.ts`** - Contact display and structure types
+
 ```typescript
-EmailAddress, PhoneNumber, Website, ContactData
+(EmailAddress, PhoneNumber, Website, ContactData);
 ```
 
 **`src/types/auth.ts`** - Authentication and credentials
+
 ```typescript
-GoogleCredentials, TokenData, EnvironmentConfig
+(GoogleCredentials, TokenData, EnvironmentConfig);
 ```
 
 **`src/types/api.ts`** - Google People API types
+
 ```typescript
-ContactName, ContactEmail, ContactPhone, ContactOrganization, 
-ContactUrl, ContactMembership, CreateContactRequest, ContactGroup, ApiStats
+(ContactName,
+  ContactEmail,
+  ContactPhone,
+  ContactOrganization,
+  ContactUrl,
+  ContactMembership,
+  CreateContactRequest,
+  ContactGroup,
+  ApiStats);
 ```
 
 **`src/types/validation.ts`** - Input validation types
+
 ```typescript
-InitialContactData, EditableContactData
+(InitialContactData, EditableContactData);
 ```
 
 **`src/types/settings.ts`** - Settings configuration types
+
 ```typescript
-Settings, AuthSettings, ApiSettings, PathSettings
+(Settings, AuthSettings, ApiSettings, PathSettings);
 ```
 
 **`src/types/index.ts`** - Central export
+
 ```typescript
 export * from './contact';
 export * from './auth';
@@ -1482,6 +1616,7 @@ export * from './settings';
 Create new `entities/` folder for Zod validation schemas, extracting from `validators/validationSchemas.ts`:
 
 **Create `regex/patterns.ts`** with all validation patterns:
+
 ```typescript
 export class RegexPatterns {
   // Existing patterns
@@ -1500,13 +1635,14 @@ export class RegexPatterns {
   // New patterns from validationSchemas.ts
   static readonly PHONE_ALLOWED_CHARS = /^[\d+\-\s()#*]+$/;
   static readonly PHONE_ONLY_SPECIAL = /^[\s\-+()#*]+$/;
-  
+
   // Additional patterns for validation
   static readonly DIGITS_ONLY = /[^\d]/g;
 }
 ```
 
 **Create `regex/validationHelpers.ts`** for validation helper functions:
+
 ```typescript
 import { RegexPatterns } from './patterns';
 
@@ -1522,6 +1658,7 @@ export class ValidationHelpers {
 ```
 
 **`src/entities/email.schema.ts`** - Email validation (using centralized regex)
+
 ```typescript
 import { z } from 'zod';
 
@@ -1536,6 +1673,7 @@ export const emailSchema = z
 ```
 
 **`src/entities/phone.schema.ts`** - Phone validation (using centralized regex)
+
 ```typescript
 import { z } from 'zod';
 import { RegexPatterns } from '../regex';
@@ -1557,6 +1695,7 @@ export const phoneSchema = z
 ```
 
 **`src/entities/linkedin.schema.ts`** - LinkedIn URL validation
+
 ```typescript
 import { z } from 'zod';
 
@@ -1580,6 +1719,7 @@ export const linkedinUrlSchema = z
 ```
 
 **`src/entities/field.schema.ts`** - Field length validation
+
 ```typescript
 import { z } from 'zod';
 
@@ -1589,6 +1729,7 @@ export const fieldLengthSchema = z
 ```
 
 **`src/entities/port.schema.ts`** - Port validation
+
 ```typescript
 import { z } from 'zod';
 
@@ -1600,6 +1741,7 @@ export const redirectPortSchema = z
 ```
 
 **`src/entities/index.ts`** - Central export
+
 ```typescript
 export { emailSchema } from './email.schema';
 export { phoneSchema } from './phone.schema';
@@ -1609,6 +1751,7 @@ export { redirectPortSchema } from './port.schema';
 ```
 
 **Migration notes:**
+
 - First create `regex/` folder with patterns and helpers
 - Create entity schema files that import patterns from `regex/patterns`
 - Remove `validators/validationSchemas.ts` after migration
@@ -1621,38 +1764,45 @@ export { redirectPortSchema } from './port.schema';
 **Every folder MUST have an `index.ts` barrel export file:**
 
 **`src/regex/index.ts`**
+
 ```typescript
 export * from './patterns';
 export * from './validationHelpers';
 ```
 
 **`src/cache/index.ts`**
+
 ```typescript
 export * from './contactCache';
 ```
 
 **`src/parsers/index.ts`**
+
 ```typescript
 export * from './nameParser';
 export * from './textParser';
 ```
 
 **`src/managers/index.ts`**
+
 ```typescript
 export * from './portManager';
 ```
 
 **`src/flow/index.ts`**
+
 ```typescript
 export * from './statusBar';
 ```
 
 **`src/validators/index.ts`**
+
 ```typescript
 export * from './inputValidator';
 ```
 
 **`src/services/contacts/index.ts`**
+
 ```typescript
 export * from './ContactService';
 export * from './ContactWizard';
@@ -1662,17 +1812,20 @@ export * from './DuplicateDetector';
 ```
 
 **`src/services/auth/index.ts`**
+
 ```typescript
 export * from './AuthService';
 ```
 
 **`src/services/api/index.ts`**
+
 ```typescript
 export * from './ApiTracker';
 export * from './RetryHandler';
 ```
 
 **`src/services/index.ts`**
+
 ```typescript
 export * from './contacts';
 export * from './auth';
@@ -1680,6 +1833,7 @@ export * from './api';
 ```
 
 **`src/scripts/index.ts`**
+
 ```typescript
 export * from './interactive-contact-manager';
 export * from './import-linkedin-contacts';
@@ -1688,6 +1842,7 @@ export * from './import-linkedin-contacts';
 **Import Convention Rules:**
 
 ❌ **NEVER import with `/index.ts`:**
+
 ```typescript
 // BAD - explicit index.ts
 import { RegexPatterns } from '../regex/index.ts';
@@ -1695,6 +1850,7 @@ import { ContactService } from '../services/contacts/index.ts';
 ```
 
 ✅ **ALWAYS import from folder (implicit index):**
+
 ```typescript
 // GOOD - implicit index.ts
 import { RegexPatterns } from '../regex';
@@ -1702,6 +1858,7 @@ import { ContactService } from '../services/contacts';
 ```
 
 ✅ **Or import from specific file:**
+
 ```typescript
 // ALSO GOOD - specific file
 import { RegexPatterns } from '../regex/patterns';
@@ -1709,6 +1866,7 @@ import { ContactService } from '../services/contacts/ContactService';
 ```
 
 **Benefits:**
+
 - Clean imports without repetitive `/index.ts`
 - Barrel exports provide single import point per domain
 - Easy to switch between folder imports vs specific file imports
@@ -1722,13 +1880,13 @@ Following the reference project pattern, maintain comprehensive documentation:
 
 **1. `README.md`** - Project overview and quick start
 
-**2. `INSTRUCTIONS.md`** - Detailed setup and usage  
+**2. `INSTRUCTIONS.md`** - Detailed setup and usage
 Includes: Setup instructions, configuration, running scripts, development commands
 
-**3. `CHANGELOG.md`** - Version history  
+**3. `CHANGELOG.md`** - Version history
 Track all significant changes, breaking changes, and new features
 
-**4. `CONTRIBUTING.md`** - Contribution guidelines  
+**4. `CONTRIBUTING.md`** - Contribution guidelines
 Code style, testing requirements, pull request process
 
 **5. `LICENSE`** - MIT License (update copyright to 2026)
@@ -1763,6 +1921,7 @@ Code style, testing requirements, pull request process
 ```
 
 **Documentation Maintenance Rules:**
+
 1. Update `CHANGELOG.md` for every significant change
 2. Keep `INSTRUCTIONS.md` in sync with available scripts
 3. Update `README.md` when adding new features
@@ -1772,6 +1931,7 @@ Code style, testing requirements, pull request process
 ## Key Files to Create/Modify
 
 ### New Files in src/
+
 Note: All files follow camelCase naming convention matching POC
 
 1. `src/runner.ts` - Script runner adapted from reference
@@ -1842,6 +2002,7 @@ Note: All files follow camelCase naming convention matching POC
 66. `src/scripts/health-check.ts` - Health check script (placeholder)
 
 ### Modified Files
+
 1. `package.json` - Merge scripts, deps (add inversify, reflect-metadata), metadata
 2. `tsconfig.json` - Merge compiler options, add decorator support
 3. `.gitignore` - Merge ignore patterns, add logs/ folder
@@ -1851,6 +2012,7 @@ Note: All files follow camelCase naming convention matching POC
 7. `.env` - Rename to `.env.test`, create `.env.production`
 
 ### New Root Files
+
 1. `eslint.config.mjs` - From reference
 2. `.prettierrc` - From reference
 3. `pnpm-workspace.yaml` - From reference
@@ -1953,6 +2115,7 @@ Note: All files follow camelCase naming convention matching POC
 ## Migration Validation
 
 After migration, validate:
+
 1. `pnpm install` - All dependencies install correctly
 2. `pnpm build` - TypeScript compiles without errors
 3. `pnpm lint` - No linting errors in migrated code
@@ -1976,21 +2139,22 @@ After migration, validate:
 
 The new architecture eliminates the generic "utils" folder in favor of purposeful, domain-specific folders:
 
-| Folder | Purpose | Examples |
-|--------|---------|----------|
-| **regex/** | All regex patterns & pattern-based validation | `patterns.ts`, `validationHelpers.ts` |
-| **cache/** | Caching mechanisms & strategies | `contactCache.ts` (24h TTL) |
-| **parsers/** | Data parsing & transformation | `nameParser.ts`, `textParser.ts` |
-| **managers/** | System resource management | `portManager.ts` |
-| **flow/** | CLI UI components & user interaction | `statusBar.ts`, progress indicators |
-| **validators/** | Input validation logic | `inputValidator.ts` using Zod schemas |
-| **entities/** | Zod validation schemas | `email.schema.ts`, `phone.schema.ts` |
-| **services/** | Business logic & external integrations | `contacts/`, `auth/`, `api/` |
-| **scripts/** | Executable scripts for different workflows | Interactive wizards, batch imports |
+| Folder          | Purpose                                       | Examples                              |
+| --------------- | --------------------------------------------- | ------------------------------------- |
+| **regex/**      | All regex patterns & pattern-based validation | `patterns.ts`, `validationHelpers.ts` |
+| **cache/**      | Caching mechanisms & strategies               | `contactCache.ts` (24h TTL)           |
+| **parsers/**    | Data parsing & transformation                 | `nameParser.ts`, `textParser.ts`      |
+| **managers/**   | System resource management                    | `portManager.ts`                      |
+| **flow/**       | CLI UI components & user interaction          | `statusBar.ts`, progress indicators   |
+| **validators/** | Input validation logic                        | `inputValidator.ts` using Zod schemas |
+| **entities/**   | Zod validation schemas                        | `email.schema.ts`, `phone.schema.ts`  |
+| **services/**   | Business logic & external integrations        | `contacts/`, `auth/`, `api/`          |
+| **scripts/**    | Executable scripts for different workflows    | Interactive wizards, batch imports    |
 
 **Philosophy**: Each folder answers "What does this code do?" not "How generic is it?"
 
 ### Before Migration (POC):
+
 ```
 poc/
 ├── src/
@@ -2011,6 +2175,7 @@ poc/
 ```
 
 ### After Migration (Clean Architecture):
+
 ```
 src/
 ├── runner.ts                     # Script execution framework
@@ -2038,6 +2203,7 @@ src/
 ```
 
 ### Key Improvements:
+
 1. **Separation of Concerns**: UI separated from business logic
 2. **Dual-Mode Operations**: Interactive + Programmatic APIs
 3. **Extensibility**: Easy to add new scripts with different data flows
@@ -2050,26 +2216,29 @@ src/
 ## Use Cases
 
 ### Interactive Mode (Manual Operations):
+
 ```typescript
 // scripts/interactive-contact-manager.ts
 const wizard = new ContactWizard(contactService, duplicateDetector);
-await wizard.addContactInteractive();  // User prompts
+await wizard.addContactInteractive(); // User prompts
 ```
 
 ### Programmatic Mode (Batch Operations):
+
 ```typescript
 // scripts/import-linkedin-contacts.ts
 const service = new ContactService(auth);
 const contacts = parseCSV('linkedin-contacts.csv');
-await service.batchCreateContacts(contacts);  // No prompts
+await service.batchCreateContacts(contacts); // No prompts
 ```
 
 ### Hybrid Mode (Mix of Both):
+
 ```typescript
 // scripts/sync-contacts.ts
 const contacts = await service.listContacts();
-const selected = await wizard.selectContactInteractive(contacts);  // User selects
-await service.updateContact(selected.id, enrichedData);  // Programmatic update
+const selected = await wizard.selectContactInteractive(contacts); // User selects
+await service.updateContact(selected.id, enrichedData); // Programmatic update
 ```
 
 ## Reference

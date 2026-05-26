@@ -1,6 +1,6 @@
 # Refactoring Decisions Needed
 
-**Date:** March 19, 2026  
+**Date:** March 19, 2026
 **Purpose:** Document inconsistencies and questions that need decisions before/during refactoring
 
 ## Overview
@@ -16,16 +16,19 @@ During Phase 0 investigation, several inconsistencies were found across the code
 Three different cache classes use different TTL (Time-To-Live) configurations:
 
 **ContactCache:**
+
 ```typescript
 private readonly TTL: number = VALIDATION_CONSTANTS.CACHE.TTL_MS;
 ```
 
 **FolderCache:**
+
 ```typescript
 private readonly TTL: number = VALIDATION_CONSTANTS.CACHE.TTL_MS;
 ```
 
 **CompanyCache:**
+
 ```typescript
 this.expirationMs = SETTINGS.linkedin.cacheExpirationDays * 24 * 60 * 60 * 1000;
 ```
@@ -48,16 +51,19 @@ grep -rn "cacheExpirationDays" src/settings/settings.ts
 ### Decision Options
 
 **Option A:** Standardize all caches to use `VALIDATION_CONSTANTS.CACHE.TTL_MS`
+
 - ✅ Pro: Consistent behavior
 - ✅ Pro: Single source of truth
 - ❌ Con: May break existing company cache behavior
 
 **Option B:** Keep different TTLs but make it configurable
+
 - ✅ Pro: Flexibility for different cache types
 - ✅ Pro: Won't break existing behavior
 - ❌ Con: More complexity
 
 **Option C:** Make TTL a BaseCache constructor parameter
+
 - ✅ Pro: Most flexible
 - ✅ Pro: Each cache can decide its TTL
 - ❌ Con: Requires passing TTL everywhere
@@ -69,9 +75,9 @@ grep -rn "cacheExpirationDays" src/settings/settings.ts
 - [ ] Implement in BaseCache during Phase 3.2
 - [ ] Document final decision here
 
-**Chosen Option:** ________________  
-**Rationale:** ________________  
-**Date Decided:** ________________
+**Chosen Option:** **\*\***\_\_\_\_**\*\***
+**Rationale:** **\*\***\_\_\_\_**\*\***
+**Date Decided:** **\*\***\_\_\_\_**\*\***
 
 ---
 
@@ -82,12 +88,13 @@ grep -rn "cacheExpirationDays" src/settings/settings.ts
 Different cache implementations use different patterns:
 
 **ContactCache:**
+
 ```typescript
 export class ContactCache {
   private static instance: ContactCache;
-  
+
   private constructor() { ... }
-  
+
   static getInstance(): ContactCache {
     if (!ContactCache.instance) {
       ContactCache.instance = new ContactCache();
@@ -96,26 +103,31 @@ export class ContactCache {
   }
 }
 ```
+
 **Usage:** `ContactCache.getInstance().get()`
 
 **CompanyCache:**
+
 ```typescript
 export class CompanyCache {
   private readonly cacheFilePath: string;
-  
+
   constructor() { ... }  // PUBLIC constructor
 }
 ```
+
 **Usage:** `new CompanyCache().get()`
 
 **FolderCache:**
+
 ```typescript
 export class FolderCache {
   private static instance: FolderCache;
-  
+
   static getInstance(): FolderCache { ... }
 }
 ```
+
 **Usage:** `FolderCache.getInstance().get()`
 
 ### Questions
@@ -127,11 +139,13 @@ export class FolderCache {
 ### Analysis
 
 **Pros of Singleton:**
+
 - ✅ Single instance per application
 - ✅ Prevents multiple reads/writes to same file
 - ✅ Can cache in-memory after reading
 
 **Cons of Singleton:**
+
 - ❌ Harder to test (mocking getInstance)
 - ❌ Global state
 - ❌ Not necessary if stateless
@@ -141,16 +155,19 @@ export class FolderCache {
 ### Decision Options
 
 **Option A:** Make all caches singletons
+
 - ✅ Pro: Consistent pattern
 - ✅ Pro: Single file access point
 - ❌ Con: Harder to test
 
 **Option B:** Remove singleton, make all caches normal classes
+
 - ✅ Pro: Easier to test
 - ✅ Pro: Simpler code
 - ❌ Con: May break existing code (6 places use FolderCache.getInstance())
 
 **Option C:** Make BaseCache support both patterns
+
 - ✅ Pro: Flexibility
 - ❌ Con: Complexity
 
@@ -160,9 +177,9 @@ export class FolderCache {
 - [ ] If removing singleton, update 6 mock locations
 - [ ] Implement in BaseCache during Phase 3.2
 
-**Chosen Option:** ________________  
-**Rationale:** ________________  
-**Date Decided:** ________________
+**Chosen Option:** **\*\***\_\_\_\_**\*\***
+**Rationale:** **\*\***\_\_\_\_**\*\***
+**Date Decided:** **\*\***\_\_\_\_**\*\***
 
 ---
 
@@ -173,6 +190,7 @@ export class FolderCache {
 Different caches handle schema validation differently:
 
 **FolderCache (Strict):**
+
 ```typescript
 const result = folderCacheDataSchema.safeParse(data);
 if (!result.success) {
@@ -180,21 +198,26 @@ if (!result.success) {
   return null;
 }
 ```
+
 Uses `safeParse()` and explicitly checks success.
 
 **ContactCache (Permissive):**
+
 ```typescript
 const data: ContactCacheData = JSON.parse(fileContent);
 // No schema validation at all!
 ```
+
 No validation, just type assertion.
 
 **CompanyCache (Throws):**
+
 ```typescript
 const data: CompanyCacheData = companyCacheDataSchema.parse(
   JSON.parse(fileContent)
 );
 ```
+
 Uses `parse()` which throws on error, caught by outer catch.
 
 ### Questions
@@ -206,16 +229,19 @@ Uses `parse()` which throws on error, caught by outer catch.
 ### Analysis
 
 **FolderCache approach (safeParse):**
+
 - ✅ Most defensive
 - ✅ Explicitly handles validation failure
 - ✅ Invalidates bad cache
 
 **ContactCache approach (no validation):**
+
 - ❌ Least safe
 - ❌ Could pass invalid data to consumers
 - ✅ Fastest (no validation overhead)
 
 **CompanyCache approach (parse):**
+
 - ✅ Safe (throws on error)
 - ❌ Relies on catch-all error handler
 - ❌ Less explicit
@@ -223,16 +249,19 @@ Uses `parse()` which throws on error, caught by outer catch.
 ### Decision Options
 
 **Option A:** Use safeParse + invalidate (like FolderCache)
+
 - ✅ Pro: Safest, most explicit
 - ✅ Pro: Graceful degradation
 - ❌ Con: More code
 
 **Option B:** Use parse + catch (like CompanyCache)
+
 - ✅ Pro: Simpler code
 - ✅ Pro: Still safe
 - ❌ Con: Less explicit
 
 **Option C:** No validation (like ContactCache)
+
 - ✅ Pro: Fastest
 - ❌ Con: Unsafe
 - ❌ Con: Not recommended
@@ -243,9 +272,9 @@ Uses `parse()` which throws on error, caught by outer catch.
 - [ ] Implement in BaseCache during Phase 3.2
 - [ ] Add schema parameter to BaseCache constructor
 
-**Chosen Option:** ________________  
-**Rationale:** ________________  
-**Date Decided:** ________________
+**Chosen Option:** **\*\***\_\_\_\_**\*\***
+**Rationale:** **\*\***\_\_\_\_**\*\***
+**Date Decided:** **\*\***\_\_\_\_**\*\***
 
 ---
 
@@ -257,7 +286,7 @@ FolderCache stores data in an unexpected location:
 
 ```typescript
 this.cacheFilePath = join(
-  SETTINGS.linkedin.cachePath,  // ← LinkedIn path!
+  SETTINGS.linkedin.cachePath, // ← LinkedIn path!
   'folder-mappings.json'
 );
 ```
@@ -273,6 +302,7 @@ But folder mappings are for **events and jobs**, not LinkedIn.
 ### Analysis
 
 Current structure:
+
 ```
 sources/.cache/
 ├── company-mappings.json    (CompanyCache - LinkedIn ✓)
@@ -285,16 +315,19 @@ All in same directory even though folder-mappings is not LinkedIn-related.
 ### Decision Options
 
 **Option A:** Keep in linkedin.cachePath (current)
+
 - ✅ Pro: All caches in one place
 - ✅ Pro: No breaking changes
 - ❌ Con: Semantically incorrect
 
 **Option B:** Create eventsJobs.cachePath
+
 - ✅ Pro: Semantically correct
 - ❌ Con: Breaking change
 - ❌ Con: More config
 
 **Option C:** Create generic cachePath for all
+
 - ✅ Pro: Most flexible
 - ✅ Pro: Semantically correct
 - ❌ Con: Requires settings refactor
@@ -305,9 +338,9 @@ All in same directory even though folder-mappings is not LinkedIn-related.
 - [ ] Decide if path should change
 - [ ] If changing, migrate existing cache files
 
-**Chosen Option:** ________________  
-**Rationale:** ________________  
-**Date Decided:** ________________
+**Chosen Option:** **\*\***\_\_\_\_**\*\***
+**Rationale:** **\*\***\_\_\_\_**\*\***
+**Date Decided:** **\*\***\_\_\_\_**\*\***
 
 ---
 
@@ -318,12 +351,14 @@ All in same directory even though folder-mappings is not LinkedIn-related.
 Summary box formatting has inconsistent width:
 
 **Most places (56):**
+
 ```typescript
 // In multiple files
 const boxWidth = 56;
 ```
 
 **linkedinSync script (55):**
+
 ```typescript
 const BOX_WIDTH = 55;
 ```
@@ -337,6 +372,7 @@ const BOX_WIDTH = 55;
 ### Analysis
 
 Possible reasons for 55:
+
 - Different terminal width?
 - Specific formatting need?
 - Just a typo?
@@ -344,10 +380,12 @@ Possible reasons for 55:
 ### Decision Options
 
 **Option A:** Standardize to 56 everywhere
+
 - ✅ Pro: Consistent
 - ❌ Con: May break LinkedIn sync display if intentional
 
 **Option B:** Keep 55 if there's a reason
+
 - ✅ Pro: Don't break working code
 - ❌ Con: Inconsistent
 
@@ -357,9 +395,9 @@ Possible reasons for 55:
 - [ ] Test LinkedIn sync with 56
 - [ ] Standardize to 56 in Phase 2.1 unless good reason exists
 
-**Chosen Option:** ________________  
-**Rationale:** ________________  
-**Date Decided:** ________________
+**Chosen Option:** **\*\***\_\_\_\_**\*\***
+**Rationale:** **\*\***\_\_\_\_**\*\***
+**Date Decided:** **\*\***\_\_\_\_**\*\***
 
 ---
 
@@ -370,6 +408,7 @@ Possible reasons for 55:
 Different error handling patterns found:
 
 **Some files:**
+
 ```typescript
 catch (error: unknown) {
   console.warn('Failed:', error instanceof Error ? error.message : 'Unknown error');
@@ -377,6 +416,7 @@ catch (error: unknown) {
 ```
 
 **Other files:**
+
 ```typescript
 catch (error) {
   logger.error('Failed', { noPHI: true });
@@ -384,6 +424,7 @@ catch (error) {
 ```
 
 **Yet others:**
+
 ```typescript
 catch {
   return null;  // Silent failure
@@ -402,8 +443,8 @@ catch {
 - [ ] Document in security-checklist.md
 - [ ] Apply consistently during refactoring
 
-**Standard:** ________________  
-**Date Decided:** ________________
+**Standard:** **\*\***\_\_\_\_**\*\***
+**Date Decided:** **\*\***\_\_\_\_**\*\***
 
 ---
 
@@ -427,12 +468,14 @@ Phase 0.1 found 5 TypeScript compilation errors:
 ### Decision Options
 
 **Option A (RECOMMENDED):** Fix build errors first
+
 - ✅ Pro: Clean baseline
 - ✅ Pro: Easier to detect refactoring issues
 - ✅ Pro: Professional practice
 - ❌ Con: Delays refactoring start
 
 **Option B:** Proceed with broken build
+
 - ✅ Pro: Faster start
 - ❌ Con: Can't verify refactoring doesn't break more
 - ❌ Con: Harder to test
@@ -446,8 +489,8 @@ Phase 0.1 found 5 TypeScript compilation errors:
 - [ ] Verify build succeeds
 - [ ] Then proceed to Phase 1
 
-**Chosen Option:** ________________  
-**Date Decided:** ________________
+**Chosen Option:** **\*\***\_\_\_\_**\*\***
+**Date Decided:** **\*\***\_\_\_\_**\*\***
 
 ---
 
@@ -473,7 +516,7 @@ Use this space to document any additional findings or decisions:
 
 ---
 
-**Status:** ✅ Phase 0.10 Complete  
+**Status:** ✅ Phase 0.10 Complete
 **Next Step:** Review and make decisions, then proceed to Phase 1
 
 **CRITICAL:** Decision 7 (build errors) should be made before ANY refactoring begins.

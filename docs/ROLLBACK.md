@@ -1,6 +1,6 @@
 # Emergency Rollback Instructions
 
-**Created:** March 19, 2026  
+**Created:** March 19, 2026
 **Purpose:** Instructions for rolling back refactoring if critical issues occur
 
 ## ⚠️ IMPORTANT: Git Repository Not Initialized
@@ -110,8 +110,9 @@ tar -xzf backups/code-backup-YYYYMMDD.tar.gz -C code
 
 ### If Phase 1 Causes Issues
 
-**Problem:** Import changes broke the build  
+**Problem:** Import changes broke the build
 **Rollback:**
+
 ```bash
 git checkout before-refactoring-YYYY-MM-DD -- src/types/
 # Re-run tests
@@ -120,8 +121,9 @@ pnpm test
 
 ### If Phase 2 Causes Issues
 
-**Problem:** Utility consolidation broke functionality  
+**Problem:** Utility consolidation broke functionality
 **Rollback:**
+
 ```bash
 git checkout before-refactoring-YYYY-MM-DD -- src/utils/
 # Re-run tests
@@ -130,8 +132,9 @@ pnpm test
 
 ### If Phase 3 Causes Issues
 
-**Problem:** Cache refactoring broke data persistence  
+**Problem:** Cache refactoring broke data persistence
 **Rollback:**
+
 ```bash
 git checkout before-refactoring-YYYY-MM-DD -- src/cache/
 # Clear cache files
@@ -173,7 +176,7 @@ If rollback fails or data is corrupted:
 These files were created in Phase 0 and represent the working state:
 
 - `test-results-before.txt` - Test output
-- `build-output-before.txt` - Build output  
+- `build-output-before.txt` - Build output
 - `lint-output-before.txt` - Lint output
 - `file-count-before.txt` - File count (122 files)
 - `loc-count-before.txt` - Lines of code (15,063)
@@ -189,7 +192,7 @@ These files were created in Phase 0 and represent the working state:
 
 ---
 
-**Status:** ⚠️ Git not initialized - must be set up before refactoring  
+**Status:** ⚠️ Git not initialized - must be set up before refactoring
 **Rollback Tag:** `before-refactoring-YYYY-MM-DD` (to be created after git init)
 
 ## CRITICAL WARNING
@@ -197,6 +200,7 @@ These files were created in Phase 0 and represent the working state:
 🚨 **DO NOT PROCEED WITH REFACTORING WITHOUT GIT OR BACKUPS** 🚨
 
 Without version control or backups:
+
 - You cannot easily undo changes
 - You risk losing working code
 - Recovery from errors is extremely difficult

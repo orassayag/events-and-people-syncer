@@ -31,7 +31,7 @@ flowchart TB
         DuplicateDetector[DuplicateDetector]
         AuthService[AuthService]
     end
-    
+
     subgraph utils [Utilities & Validation]
         RetryHandler[RetryHandler]
         ContactCache[ContactCache Singleton]
@@ -40,13 +40,13 @@ flowchart TB
         NameParser[NameParser]
         TextUtils[TextUtils]
     end
-    
+
     subgraph external [External Libraries]
         Fuse[Fuse.js Fuzzy Match]
         BidiJS[bidi-js RTL/LTR]
         Zod[Zod Validation]
     end
-    
+
     ContactWriter --> RetryHandler
     ContactReader --> RetryHandler
     ContactWriter --> ContactCache
@@ -58,7 +58,7 @@ flowchart TB
     ContactWriter --> StatusBar
     TextUtils --> BidiJS
     ValidationSchemas --> Zod
-    
+
     RetryHandler --> StatusBar
 ```
 
@@ -74,14 +74,14 @@ flowchart TB
 export class RetryHandler {
   private static readonly MAX_RETRIES = 5;
   private static readonly INITIAL_DELAY = 1000; // 1 second
-  
+
   static async executeWithRetry<T>(
     operation: () => Promise<T>,
     operationName: string,
     apiType: 'read' | 'write'
   ): Promise<T> {
     let lastError: Error;
-    
+
     for (let attempt = 1; attempt <= this.MAX_RETRIES; attempt++) {
       try {
         const result = await operation();
@@ -90,23 +90,27 @@ export class RetryHandler {
         return result;
       } catch (error) {
         lastError = error as Error;
-        
+
         // Don't retry on non-transient errors (4xx except 429)
         if (this.isNonRetriableError(error)) {
           throw error;
         }
-        
+
         if (attempt < this.MAX_RETRIES) {
           const delay = this.calculateBackoff(attempt);
-          console.log(`Retry ${attempt}/${this.MAX_RETRIES} for ${operationName} after ${delay}ms...`);
+          console.log(
+            `Retry ${attempt}/${this.MAX_RETRIES} for ${operationName} after ${delay}ms...`
+          );
           await this.sleep(delay);
         }
       }
     }
-    
-    throw new Error(`Failed after ${this.MAX_RETRIES} attempts: ${lastError.message}`);
+
+    throw new Error(
+      `Failed after ${this.MAX_RETRIES} attempts: ${lastError.message}`
+    );
   }
-  
+
   private static isNonRetriableError(error: any): boolean {
     const statusCode = error?.response?.status || error?.code;
     // Retry on: network errors, 5xx, 429 (rate limit)
@@ -117,7 +121,7 @@ export class RetryHandler {
     if (statusCode >= 400 && statusCode < 500) return true; // Non-retriable
     return false;
   }
-  
+
   private static calculateBackoff(attempt: number): number {
     return this.INITIAL_DELAY * Math.pow(2, attempt - 1); // Exponential: 1s, 2s, 4s, 8s, 16s
   }
@@ -134,35 +138,35 @@ export class ContactCache {
   private cachedContacts: ContactData[] | null = null;
   private cacheTimestamp: number | null = null;
   private readonly TTL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-  
+
   private constructor() {}
-  
+
   static getInstance(): ContactCache {
     if (!ContactCache.instance) {
       ContactCache.instance = new ContactCache();
     }
     return ContactCache.instance;
   }
-  
+
   get(auth: OAuth2Client): Promise<ContactData[]> | null {
     if (!this.cachedContacts || !this.cacheTimestamp) {
       return null;
     }
-    
+
     const now = Date.now();
     if (now - this.cacheTimestamp > this.TTL) {
       this.invalidate();
       return null;
     }
-    
+
     return Promise.resolve(this.cachedContacts);
   }
-  
+
   set(contacts: ContactData[]): void {
     this.cachedContacts = contacts;
     this.cacheTimestamp = Date.now();
   }
-  
+
   invalidate(): void {
     this.cachedContacts = null;
     this.cacheTimestamp = null;
@@ -180,34 +184,34 @@ export class StatusBar {
   private readCount = 0;
   private writeCount = 0;
   private isEnabled = true;
-  
+
   static getInstance(): StatusBar {
     if (!StatusBar.instance) {
       StatusBar.instance = new StatusBar();
     }
     return StatusBar.instance;
   }
-  
+
   updateCounts(read: number, write: number): void {
     this.readCount = read;
     this.writeCount = write;
     this.render();
   }
-  
+
   private render(): void {
     if (!this.isEnabled) return;
-    
+
     // Save cursor, move to bottom, clear line, print status, restore cursor
     const status = `[API Usage] Read: ${this.readCount} | Write: ${this.writeCount}`;
     process.stdout.write(`\x1b[s\x1b[999;0H\x1b[K${status}\x1b[u`);
   }
-  
+
   hide(): void {
     this.isEnabled = false;
     // Clear bottom line
     process.stdout.write('\x1b[s\x1b[999;0H\x1b[K\x1b[u');
   }
-  
+
   show(): void {
     this.isEnabled = true;
     this.render();
@@ -218,6 +222,7 @@ export class StatusBar {
 #### 1.4 Windows Compatibility
 
 **Updates needed**:
+
 - `poc/src/utils/portManager.ts`: Replace `lsof -ti:${port}` with cross-platform solution using `netstat` for Windows
 - Path handling: Already using `path.join()` which is cross-platform ✓
 - File operations: Already using `fs/promises` which is cross-platform ✓
@@ -228,7 +233,7 @@ private static async findProcessOnPort(port: number): Promise<number | null> {
   try {
     const platform = process.platform;
     let command: string;
-    
+
     if (platform === 'win32') {
       // Windows: netstat -ano | findstr :PORT
       command = `netstat -ano | findstr :${port}`;
@@ -236,9 +241,9 @@ private static async findProcessOnPort(port: number): Promise<number | null> {
       // Unix: lsof -ti:PORT
       command = `lsof -ti:${port}`;
     }
-    
+
     const { stdout } = await execAsync(command);
-    
+
     if (platform === 'win32') {
       // Parse Windows netstat output to extract PID
       const lines = stdout.trim().split('\n');
@@ -258,8 +263,8 @@ private static async killProcessOnPort(port: number): Promise<void> {
   if (pid !== null) {
     try {
       const platform = process.platform;
-      const killCommand = platform === 'win32' 
-        ? `taskkill /F /PID ${pid}` 
+      const killCommand = platform === 'win32'
+        ? `taskkill /F /PID ${pid}`
         : `kill -9 ${pid}`;
       await execAsync(killCommand);
       console.log(`Process ${pid} killed successfully.`);
@@ -281,55 +286,54 @@ private static async killProcessOnPort(port: number): Promise<void> {
 import { z } from 'zod';
 
 export const ValidationSchemas = {
-  email: z.string()
+  email: z
+    .string()
     .email('Invalid email address format')
     .max(254, 'Email address too long (max 254 characters)')
     .refine(
       (email) => !email.includes('..'),
       'Email cannot contain consecutive dots'
     ),
-  
-  phone: z.string()
-    .regex(/^[\d+\-\s()]+$/, 'Only numbers, +, -, spaces, and parentheses allowed')
-    .refine(
-      (phone) => {
-        const digits = phone.replace(/[^\d]/g, '');
-        return digits.length >= 7 && digits.length <= 15;
-      },
-      'Phone must contain 7-15 digits'
+
+  phone: z
+    .string()
+    .regex(
+      /^[\d+\-\s()]+$/,
+      'Only numbers, +, -, spaces, and parentheses allowed'
     )
+    .refine((phone) => {
+      const digits = phone.replace(/[^\d]/g, '');
+      return digits.length >= 7 && digits.length <= 15;
+    }, 'Phone must contain 7-15 digits')
     .refine(
       (phone) => !/^[\s\-+()]+$/.test(phone),
       'Phone cannot be only special characters'
     ),
-  
-  linkedinUrl: z.string()
+
+  linkedinUrl: z
+    .string()
     .url('Invalid URL format')
-    .refine(
-      (url) => {
-        try {
-          const parsed = new URL(url.startsWith('http') ? url : `https://${url}`);
-          const validHosts = ['linkedin.com', 'www.linkedin.com'];
-          return validHosts.includes(parsed.hostname);
-        } catch {
-          return false;
-        }
-      },
-      'Must be a valid LinkedIn URL'
-    )
-    .refine(
-      (url) => {
+    .refine((url) => {
+      try {
         const parsed = new URL(url.startsWith('http') ? url : `https://${url}`);
-        const validPaths = ['/in/', '/company/', '/school/'];
-        return validPaths.some(path => parsed.pathname.includes(path));
-      },
-      'LinkedIn URL must contain a valid profile path (/in/, /company/, or /school/)'
-    ),
-  
-  fieldLength: z.string()
+        const validHosts = ['linkedin.com', 'www.linkedin.com'];
+        return validHosts.includes(parsed.hostname);
+      } catch {
+        return false;
+      }
+    }, 'Must be a valid LinkedIn URL')
+    .refine((url) => {
+      const parsed = new URL(url.startsWith('http') ? url : `https://${url}`);
+      const validPaths = ['/in/', '/company/', '/school/'];
+      return validPaths.some((path) => parsed.pathname.includes(path));
+    }, 'LinkedIn URL must contain a valid profile path (/in/, /company/, or /school/)'),
+
+  fieldLength: z
+    .string()
     .max(1024, 'Field exceeds Google API limit of 1024 characters'),
-  
-  redirectPort: z.number()
+
+  redirectPort: z
+    .number()
     .int('Port must be an integer')
     .min(1024, 'Port must be >= 1024')
     .max(65535, 'Port must be <= 65535'),
@@ -346,15 +350,15 @@ Replace email, phone, URL validation methods with Zod schema validation:
 static validateEmail(email: string): string | true {
   const trimmed = email.trim();
   if (!trimmed) return true;
-  
+
   const hebrewCheck = InputValidator.validateNoHebrew(trimmed);
   if (hebrewCheck !== true) return hebrewCheck;
-  
+
   const result = ValidationSchemas.email.safeParse(trimmed);
   if (!result.success) {
     return result.error.errors[0].message;
   }
-  
+
   return true;
 }
 ```
@@ -374,7 +378,7 @@ private validateFieldLimits(data: EditableContactData): string | true {
     ...data.phones,
     data.linkedInUrl || ''
   ];
-  
+
   // Check individual field length (1024 chars)
   for (const field of fields) {
     const result = ValidationSchemas.fieldLength.safeParse(field);
@@ -382,9 +386,9 @@ private validateFieldLimits(data: EditableContactData): string | true {
       return `Field too long: ${field.substring(0, 50)}... (max 1024 characters)`;
     }
   }
-  
+
   // Check total field count (500 fields)
-  const totalFields = 
+  const totalFields =
     (data.firstName ? 1 : 0) +
     (data.lastName ? 1 : 0) +
     (data.company ? 1 : 0) +
@@ -393,11 +397,11 @@ private validateFieldLimits(data: EditableContactData): string | true {
     data.phones.length +
     (data.linkedInUrl ? 1 : 0) +
     data.labelResourceNames.length;
-  
+
   if (totalFields > 500) {
     return `Too many fields (${totalFields}). Google API allows maximum 500 fields per contact.`;
   }
-  
+
   return true;
 }
 ```
@@ -408,10 +412,14 @@ private validateFieldLimits(data: EditableContactData): string | true {
 
 ```typescript
 const portEnv = process.env.REDIRECT_PORT || '3000';
-const portResult = ValidationSchemas.redirectPort.safeParse(parseInt(portEnv, 10));
+const portResult = ValidationSchemas.redirectPort.safeParse(
+  parseInt(portEnv, 10)
+);
 
 if (!portResult.success) {
-  throw new Error(`Invalid REDIRECT_PORT: ${portResult.error.errors[0].message}`);
+  throw new Error(
+    `Invalid REDIRECT_PORT: ${portResult.error.errors[0].message}`
+  );
 }
 
 export const SETTINGS = {
@@ -434,10 +442,10 @@ static reverseHebrewText(text: string): string {
   if (!text || !this.hasHebrewCharacters(text)) {
     return text;
   }
-  
+
   // Use bidi-js for proper bidirectional text handling
   const bidiText = bidi(text);
-  
+
   // bidi-js returns an array of tokens with direction info
   // Process and format for terminal display
   return bidiText;
@@ -451,53 +459,82 @@ static reverseHebrewText(text: string): string {
 ```typescript
 export class NameParser {
   private static readonly PREFIXES = [
-    'dr', 'mr', 'mrs', 'ms', 'miss', 'prof', 'rev', 'hon', 
-    'sir', 'lady', 'lord', 'dame', 'capt', 'col', 'gen', 'maj'
+    'dr',
+    'mr',
+    'mrs',
+    'ms',
+    'miss',
+    'prof',
+    'rev',
+    'hon',
+    'sir',
+    'lady',
+    'lord',
+    'dame',
+    'capt',
+    'col',
+    'gen',
+    'maj',
   ];
-  
+
   private static readonly SUFFIXES = [
-    'jr', 'sr', 'ii', 'iii', 'iv', 'v', 
-    'phd', 'md', 'esq', 'cpa', 'dds', 'jd', 'pe', 'rn'
+    'jr',
+    'sr',
+    'ii',
+    'iii',
+    'iv',
+    'v',
+    'phd',
+    'md',
+    'esq',
+    'cpa',
+    'dds',
+    'jd',
+    'pe',
+    'rn',
   ];
-  
-  static parseFullName(fullName: string): { firstName: string; lastName: string } {
+
+  static parseFullName(fullName: string): {
+    firstName: string;
+    lastName: string;
+  } {
     const trimmed = fullName.trim();
-    const parts = trimmed.split(RegexPatterns.MULTIPLE_SPACES).filter(p => p);
-    
+    const parts = trimmed.split(RegexPatterns.MULTIPLE_SPACES).filter((p) => p);
+
     if (parts.length === 0) {
       return { firstName: '', lastName: '' };
     }
-    
+
     // Remove prefixes from beginning
     while (parts.length > 0 && this.isPrefix(parts[0])) {
       parts.shift();
     }
-    
+
     // Remove suffixes from end
     while (parts.length > 0 && this.isSuffix(parts[parts.length - 1])) {
       parts.pop();
     }
-    
+
     if (parts.length === 0) {
       return { firstName: '', lastName: '' };
     }
-    
+
     if (parts.length === 1) {
       return { firstName: parts[0], lastName: '' };
     }
-    
+
     // First part is first name, rest is last name
     return {
       firstName: parts[0],
-      lastName: parts.slice(1).join(' ')
+      lastName: parts.slice(1).join(' '),
     };
   }
-  
+
   private static isPrefix(word: string): boolean {
     const normalized = word.toLowerCase().replace('.', '');
     return this.PREFIXES.includes(normalized);
   }
-  
+
   private static isSuffix(word: string): boolean {
     const normalized = word.toLowerCase().replace('.', '');
     return this.SUFFIXES.includes(normalized);
@@ -517,45 +554,48 @@ import { ContactCache } from '../utils/contactCache.js';
 
 export class DuplicateDetector {
   private readonly FUZZY_THRESHOLD = 0.2; // Strict matching
-  
+
   constructor(private auth: OAuth2Client) {}
-  
-  async checkDuplicateName(firstName: string, lastName: string): Promise<DuplicateMatch[]> {
+
+  async checkDuplicateName(
+    firstName: string,
+    lastName: string
+  ): Promise<DuplicateMatch[]> {
     const contacts = await this.fetchAllContacts();
     const fullName = `${firstName} ${lastName}`.trim().toLowerCase();
-    
+
     // Use Fuse.js for fuzzy string matching
     const fuse = new Fuse(contacts, {
       keys: [
         { name: 'firstName', weight: 0.5 },
-        { name: 'lastName', weight: 0.5 }
+        { name: 'lastName', weight: 0.5 },
       ],
       threshold: this.FUZZY_THRESHOLD,
       ignoreLocation: true,
     });
-    
+
     const results = fuse.search(fullName);
-    
-    return results.map(result => ({
+
+    return results.map((result) => ({
       contact: result.item,
       similarityType: 'Full Name' as SimilarityType,
     }));
   }
-  
+
   private async fetchAllContacts(): Promise<ContactData[]> {
     const cache = ContactCache.getInstance();
     const cached = cache.get(this.auth);
-    
+
     if (cached) {
       return cached;
     }
-    
+
     // Fetch from API with retry logic
     const contacts = await this.fetchContactsFromAPI();
     cache.set(contacts);
     return contacts;
   }
-  
+
   clearCache(): void {
     ContactCache.getInstance().invalidate();
   }
@@ -573,32 +613,32 @@ In `showSummaryAndEdit()`, dynamically generate menu choices:
 ```typescript
 private async showSummaryAndEdit(data: EditableContactData): Promise<EditableContactData> {
   let editableData = { ...data };
-  
+
   while (true) {
     // ... display summary ...
-    
+
     const validationResult = InputValidator.validateMinimumRequirements(editableData);
     const isValid = validationResult === true;
-    
+
     const choices = [];
-    
+
     if (isValid) {
       choices.push({ name: 'Create contact', value: 'create' });
     } else {
-      choices.push({ 
-        name: `Create contact (disabled: ${validationResult})`, 
+      choices.push({
+        name: `Create contact (disabled: ${validationResult})`,
         value: 'create_disabled',
-        disabled: true 
+        disabled: true
       });
     }
-    
+
     choices.push(
       { name: 'Edit labels', value: 'edit_labels' },
       // ... other options ...
     );
-    
+
     const { action } = await inquirer.prompt([{ /* ... */ choices }]);
-    
+
     if (action === 'create') {
       break;
     }
@@ -631,12 +671,12 @@ import ora from 'ora';
 
 async displayContacts(): Promise<void> {
   const spinner = ora('Fetching contacts from Google People API...').start();
-  
+
   try {
     const contacts = await this.readContacts((current, total) => {
       spinner.text = `Fetching contacts... ${current}/${total || '?'}`;
     });
-    
+
     spinner.succeed(`Found ${contacts.length.toLocaleString('en-US')} contacts`);
     this.displayContactList(contacts);
   } catch (error) {
@@ -661,13 +701,13 @@ private async readContacts(
 ```typescript
 private async getNewToken(): Promise<void> {
   const OAUTH_TIMEOUT = 10 * 60 * 1000; // 10 minutes
-  
+
   const timeoutPromise = new Promise<never>((_, reject) => {
     setTimeout(() => {
       reject(new Error('OAuth authentication timeout after 10 minutes'));
     }, OAUTH_TIMEOUT);
   });
-  
+
   return Promise.race([
     this.startAuthServer(),
     timeoutPromise
@@ -707,7 +747,7 @@ if (isVerbose) {
 ```typescript
 private displayContact(contact: ContactData, index: number, total: number): void {
   const isVerbose = process.env.VERBOSE_MODE === 'true';
-  
+
   if (isVerbose) {
     // Accessible text-only format
     console.log(`Person ${index + 1} of ${total}`);
@@ -750,9 +790,9 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
-      exclude: ['dist/**', 'node_modules/**', '**/*.test.ts']
-    }
-  }
+      exclude: ['dist/**', 'node_modules/**', '**/*.test.ts'],
+    },
+  },
 });
 ```
 
@@ -761,6 +801,7 @@ export default defineConfig({
 Create test files for each utility/validator:
 
 **Files to create**:
+
 - `poc/src/validators/__tests__/inputValidator.test.ts`
 - `poc/src/validators/__tests__/validationSchemas.test.ts`
 - `poc/src/utils/__tests__/nameParser.test.ts`
@@ -778,33 +819,49 @@ import { ValidationSchemas } from '../validationSchemas';
 describe('ValidationSchemas', () => {
   describe('email', () => {
     it('should validate correct email addresses', () => {
-      expect(ValidationSchemas.email.safeParse('user@example.com').success).toBe(true);
-      expect(ValidationSchemas.email.safeParse('test.user@domain.co.uk').success).toBe(true);
+      expect(
+        ValidationSchemas.email.safeParse('user@example.com').success
+      ).toBe(true);
+      expect(
+        ValidationSchemas.email.safeParse('test.user@domain.co.uk').success
+      ).toBe(true);
     });
-    
+
     it('should reject invalid emails', () => {
-      expect(ValidationSchemas.email.safeParse('not-an-email').success).toBe(false);
-      expect(ValidationSchemas.email.safeParse('user..name@example.com').success).toBe(false);
-      expect(ValidationSchemas.email.safeParse('.user@example.com').success).toBe(false);
+      expect(ValidationSchemas.email.safeParse('not-an-email').success).toBe(
+        false
+      );
+      expect(
+        ValidationSchemas.email.safeParse('user..name@example.com').success
+      ).toBe(false);
+      expect(
+        ValidationSchemas.email.safeParse('.user@example.com').success
+      ).toBe(false);
     });
-    
+
     it('should reject emails longer than 254 characters', () => {
       const longEmail = 'a'.repeat(250) + '@example.com';
       expect(ValidationSchemas.email.safeParse(longEmail).success).toBe(false);
     });
   });
-  
+
   describe('phone', () => {
     it('should validate phone numbers with 7-15 digits', () => {
-      expect(ValidationSchemas.phone.safeParse('+1-555-0123').success).toBe(true);
-      expect(ValidationSchemas.phone.safeParse('(555) 123-4567').success).toBe(true);
+      expect(ValidationSchemas.phone.safeParse('+1-555-0123').success).toBe(
+        true
+      );
+      expect(ValidationSchemas.phone.safeParse('(555) 123-4567').success).toBe(
+        true
+      );
     });
-    
+
     it('should reject phones with too few or too many digits', () => {
       expect(ValidationSchemas.phone.safeParse('123456').success).toBe(false);
-      expect(ValidationSchemas.phone.safeParse('1234567890123456').success).toBe(false);
+      expect(
+        ValidationSchemas.phone.safeParse('1234567890123456').success
+      ).toBe(false);
     });
-    
+
     it('should reject phones with only special characters', () => {
       expect(ValidationSchemas.phone.safeParse('+++---').success).toBe(false);
       expect(ValidationSchemas.phone.safeParse('((((').success).toBe(false);
@@ -836,28 +893,28 @@ Update project structure section:
 
 poc/
 ├── src/
-│   ├── index.ts                    # Main entry point
-│   ├── config.ts                   # Environment configuration
-│   ├── settings.ts                 # Application settings
-│   ├── types.ts                    # TypeScript interfaces
-│   ├── services/                   # Service layer
-│   │   ├── authService.ts          # OAuth authentication
-│   │   ├── contactReader.ts        # Read contacts
-│   │   ├── contactWriter.ts        # Create contacts
-│   │   ├── duplicateDetector.ts    # Fuzzy duplicate detection
-│   │   └── apiTracker.ts           # API usage tracking
-│   ├── validators/                 # Input validation
-│   │   ├── inputValidator.ts       # Custom validators
-│   │   └── validationSchemas.ts    # Zod schemas
-│   └── utils/                      # Utilities
-│       ├── textUtils.ts            # Text processing
-│       ├── nameParser.ts           # Name parsing with title detection
-│       ├── regexPatterns.ts        # Regex patterns
-│       ├── portManager.ts          # Port management (cross-platform)
-│       ├── retryHandler.ts         # API retry logic
-│       ├── contactCache.ts         # Contact caching with TTL
-│       └── statusBar.ts            # Persistent status bar
-├── docs/                           # Documentation
+│ ├── index.ts # Main entry point
+│ ├── config.ts # Environment configuration
+│ ├── settings.ts # Application settings
+│ ├── types.ts # TypeScript interfaces
+│ ├── services/ # Service layer
+│ │ ├── authService.ts # OAuth authentication
+│ │ ├── contactReader.ts # Read contacts
+│ │ ├── contactWriter.ts # Create contacts
+│ │ ├── duplicateDetector.ts # Fuzzy duplicate detection
+│ │ └── apiTracker.ts # API usage tracking
+│ ├── validators/ # Input validation
+│ │ ├── inputValidator.ts # Custom validators
+│ │ └── validationSchemas.ts # Zod schemas
+│ └── utils/ # Utilities
+│ ├── textUtils.ts # Text processing
+│ ├── nameParser.ts # Name parsing with title detection
+│ ├── regexPatterns.ts # Regex patterns
+│ ├── portManager.ts # Port management (cross-platform)
+│ ├── retryHandler.ts # API retry logic
+│ ├── contactCache.ts # Contact caching with TTL
+│ └── statusBar.ts # Persistent status bar
+├── docs/ # Documentation
 └── package.json
 ```
 
@@ -878,6 +935,7 @@ Add new sections:
 ## Validation
 
 The application uses Zod schemas for robust validation:
+
 - Emails: RFC-compliant, max 254 chars
 - Phones: 7-15 digits, international format support
 - LinkedIn URLs: Strict hostname and path validation
@@ -886,6 +944,7 @@ The application uses Zod schemas for robust validation:
 ## Testing
 
 Run tests with:
+
 - `pnpm test` - Run all tests
 - `pnpm test:watch` - Watch mode
 - `pnpm test:coverage` - Coverage report
@@ -894,15 +953,18 @@ Run tests with:
 
 Run in verbose mode for screen reader compatibility:
 ```
+
 pnpm start:verbose
+
 ```
+
 ```
 
 #### 7.2 Create Windows Setup Guide
 
 **File**: `poc/docs/WINDOWS_SETUP.md` (new)
 
-```markdown
+````markdown
 # Windows Setup Guide
 
 This guide covers Windows-specific setup and known differences.
@@ -915,6 +977,7 @@ This guide covers Windows-specific setup and known differences.
 ## Port Management
 
 The application automatically detects and kills processes on port 3000 using:
+
 - macOS/Linux: `lsof`
 - Windows: `netstat` and `taskkill`
 
@@ -925,21 +988,25 @@ No manual configuration needed.
 ### PowerShell Execution Policy
 
 If you encounter execution policy errors, run:
+
 ```powershell
 powershell -ExecutionPolicy Bypass -File script.ps1
 ```
+````
 
 ### Terminal Colors
 
-Some Windows terminals may not support ANSI escape sequences. 
+Some Windows terminals may not support ANSI escape sequences.
 Use Windows Terminal (recommended) or enable ANSI support in Command Prompt.
 
 ## Testing
 
 Run tests normally:
+
 ```bash
 pnpm test
 ```
+
 ```
 
 #### 7.3 Create Validation Documentation
@@ -1025,3 +1092,4 @@ Existing files (12):
 - **Testing**: Comprehensive unit tests for new modules before integration
 - **Rollback**: Git commits after each phase for easy rollback
 - **Windows Testing**: Cannot test on Windows, but using well-documented cross-platform patterns
+```

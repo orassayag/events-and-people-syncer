@@ -60,12 +60,14 @@ Add new enum value: `WRITE_NOTES = 'write_notes'` to the `MenuOption` enum
 **Solution**: Refactor both methods to accept an optional parameter controlling whether to create a note after folder creation.
 
 **Updated Signatures**:
+
 ```typescript
 private async createJobFolderFlow(initialInput: string, createNoteAfter: boolean = true): Promise<FolderMapping | null>
 private async createLifeEventFolderFlow(initialInput: string, createNoteAfter: boolean = true): Promise<FolderMapping | null>
 ```
 
 **Changes**:
+
 1. Add `createNoteAfter` parameter with default `true` (maintains backward compatibility)
 2. Change return type from `Promise<void>` to `Promise<FolderMapping | null>`
 3. After folder creation, if `createNoteAfter === true`, call `createNoteInFolder()` and return null (existing behavior)
@@ -73,6 +75,7 @@ private async createLifeEventFolderFlow(initialInput: string, createNoteAfter: b
 5. On cancellation or error, return null
 
 **Example Changes**:
+
 ```typescript
 // In createJobFolderFlow, after successful folder creation:
 const cache = await FolderCache.getInstance().get();
@@ -88,6 +91,7 @@ return null;
 ```
 
 **Refactor `createFolderFlow()` Signature**:
+
 ```typescript
 private async createFolderFlow(initialInput: string, createNoteAfter: boolean = true): Promise<FolderMapping | null>
 ```
@@ -101,23 +105,27 @@ This method passes the `createNoteAfter` parameter to the specific folder creati
 Extract folder selection logic into a reusable helper method to avoid code duplication.
 
 **Purpose**: Handle the complete folder selection flow including:
+
 - Prompting for folder name
 - Finding exact or fuzzy matches
 - Handling folder creation if needed (WITHOUT creating a note)
 - Validating folder still exists
 
 **Signature**:
+
 ```typescript
 private async selectOrCreateFolder(): Promise<FolderMapping | null>
 ```
 
 **Returns**:
+
 - `FolderMapping` - Successfully selected or created folder
 - `null` - User cancelled the operation
 
 **Implementation**: Extract lines 343-468 from `createNoteFlow()` into this helper method.
 
 **Behavior**:
+
 1. Check cache exists
 2. Prompt for event/company name with validation
 3. Search for exact match
@@ -132,6 +140,7 @@ private async selectOrCreateFolder(): Promise<FolderMapping | null>
 **Critical**: When calling `createFolderFlow()`, pass `false` for `createNoteAfter` parameter to prevent automatic note creation.
 
 **Error Handling**:
+
 - If folder deleted externally: invalidate cache, re-scan, return null
 - If folder creation fails: log error, return null (handled by createFolderFlow returning null)
 - If user cancels: log cancellation, return null
@@ -162,6 +171,7 @@ This simplifies the method from ~125 lines to ~5 lines.
 This method implements the continuous note creation loop.
 
 **Signature**:
+
 ```typescript
 private async writeNotesFlow(): Promise<void>
 ```
@@ -169,62 +179,90 @@ private async writeNotesFlow(): Promise<void>
 **Implementation Flow**:
 
 1. **Initialization**:
+
    ```typescript
    await this.logger.logMain('Starting write notes flow');
    let noteCount = 0;
    ```
 
 2. **Folder Selection Phase** (one-time):
+
    ```typescript
    const selectedFolder = await this.selectOrCreateFolder();
    if (!selectedFolder) {
-     await this.logger.logMain('Folder selection cancelled - exiting write notes flow');
+     await this.logger.logMain(
+       'Folder selection cancelled - exiting write notes flow'
+     );
      return;
    }
-   await this.logger.logMain(`Selected folder for batch notes: '${selectedFolder.name}'`);
+   await this.logger.logMain(
+     `Selected folder for batch notes: '${selectedFolder.name}'`
+   );
    ```
 
 3. **Endless Loop Phase**:
+
    ```typescript
    while (true) {
      // Check folder still exists before each iteration (handles race condition)
      try {
        await fs.access(selectedFolder.path);
      } catch {
-       const message = noteCount === 0 
-         ? '\n===⚠️  Folder was deleted externally===\n'
-         : `\n===⚠️  Folder was deleted. Created ${noteCount} note(s)===\n`;
+       const message =
+         noteCount === 0
+           ? '\n===⚠️  Folder was deleted externally===\n'
+           : `\n===⚠️  Folder was deleted. Created ${noteCount} note(s)===\n`;
        console.log(message);
-       await this.logger.logMain('Folder deleted during batch creation - exiting loop');
+       await this.logger.logMain(
+         'Folder deleted during batch creation - exiting loop'
+       );
        return;
      }
 
      // Create note with progress indicator
      try {
-       await this.createNoteInFolder(selectedFolder, { noteCount, allowCancel: true });
+       await this.createNoteInFolder(selectedFolder, {
+         noteCount,
+         allowCancel: true,
+       });
        noteCount++;
-       await this.logger.logMain(`Note ${noteCount} created successfully in batch (${noteCount} of batch)`);
+       await this.logger.logMain(
+         `Note ${noteCount} created successfully in batch (${noteCount} of batch)`
+       );
      } catch (error) {
        if (error instanceof UserCancelledError) {
-         const message = noteCount === 0
-           ? '\n===No notes created. Returning to main menu...===\n'
-           : `\n===✅ Created ${noteCount} note(s). Returning to main menu...===\n`;
+         const message =
+           noteCount === 0
+             ? '\n===No notes created. Returning to main menu...===\n'
+             : `\n===✅ Created ${noteCount} note(s). Returning to main menu...===\n`;
          console.log(message);
-         await this.logger.logMain(`User exited write notes loop after ${noteCount} notes`);
+         await this.logger.logMain(
+           `User exited write notes loop after ${noteCount} notes`
+         );
          return;
        }
        // Handle ENOENT (folder deleted) as immediate exit
-       if (error instanceof Error && error.message.includes('Folder no longer exists')) {
-         const message = noteCount === 0
-           ? '\n===⚠️  Folder was deleted===\n'
-           : `\n===⚠️  Folder was deleted. Created ${noteCount} note(s)===\n`;
+       if (
+         error instanceof Error &&
+         error.message.includes('Folder no longer exists')
+       ) {
+         const message =
+           noteCount === 0
+             ? '\n===⚠️  Folder was deleted===\n'
+             : `\n===⚠️  Folder was deleted. Created ${noteCount} note(s)===\n`;
          console.log(message);
-         await this.logger.logMain('Folder deleted during note creation - exiting loop');
+         await this.logger.logMain(
+           'Folder deleted during note creation - exiting loop'
+         );
          return;
        }
        // Other errors: log and ask user if they want to continue
-       await this.logger.logError(`Error during note creation: ${(error as Error).message}`);
-       console.log(`\n===⚠️  Error creating note: ${(error as Error).message}===`);
+       await this.logger.logError(
+         `Error during note creation: ${(error as Error).message}`
+       );
+       console.log(
+         `\n===⚠️  Error creating note: ${(error as Error).message}===`
+       );
        const { shouldContinue } = await inquirer.prompt([
          {
            type: 'confirm',
@@ -234,7 +272,9 @@ private async writeNotesFlow(): Promise<void>
          },
        ]);
        if (!shouldContinue) {
-         await this.logger.logMain(`User stopped after error. Created ${noteCount} notes`);
+         await this.logger.logMain(
+           `User stopped after error. Created ${noteCount} notes`
+         );
          return;
        }
        // Note: noteCount is NOT incremented on error, so next prompt shows same note number
@@ -243,6 +283,7 @@ private async writeNotesFlow(): Promise<void>
    ```
 
 **Key Points**:
+
 - All exit paths return to main menu (no process.exit)
 - Folder existence validated before each iteration to catch external deletions early
 - ENOENT errors cause immediate exit (folder deleted) without asking to continue
@@ -266,6 +307,7 @@ class UserCancelledError extends Error {
 ```
 
 **Benefits**:
+
 - Type-safe error checking with `instanceof`
 - No string comparison needed
 - Clear intent and better maintainability
@@ -276,11 +318,13 @@ class UserCancelledError extends Error {
 **Location**: `src/scripts/eventsJobsSync.ts`
 
 **Current Signature**:
+
 ```typescript
 private async createNoteInFolder(folder: FolderMapping): Promise<void>
 ```
 
 **New Signature**:
+
 ```typescript
 private async createNoteInFolder(
   folder: FolderMapping,
@@ -289,6 +333,7 @@ private async createNoteInFolder(
 ```
 
 **Parameters**:
+
 - `folder`: The folder to create the note in
 - `options.noteCount`: Optional note number for progress display (e.g., "Note 3")
 - `options.allowCancel`: If true, allows user to exit on empty clipboard; if false, retries automatically (existing behavior)
@@ -296,20 +341,29 @@ private async createNoteInFolder(
 **Changes**:
 
 1. **Modified prompt message** (when `noteCount` provided):
+
    ```typescript
-   const noteLabel = options?.noteCount !== undefined 
-     ? `(Note ${options.noteCount + 1} of batch)` 
-     : '';
-   console.log(`\n===📋 Copy your message now and press Enter ${noteLabel}===\n`);
+   const noteLabel =
+     options?.noteCount !== undefined
+       ? `(Note ${options.noteCount + 1} of batch)`
+       : '';
+   console.log(
+     `\n===📋 Copy your message now and press Enter ${noteLabel}===\n`
+   );
    ```
 
 2. **Modified empty clipboard handling**:
+
    ```typescript
    while (!message.trim()) {
-     console.log('\n===📋 Copy your message now and press Enter ${noteLabel}===\n');
-     await inquirer.prompt([/* ... */]);
+     console.log(
+       '\n===📋 Copy your message now and press Enter ${noteLabel}===\n'
+     );
+     await inquirer.prompt([
+       /* ... */
+     ]);
      // ... read clipboard ...
-     
+
      if (!message.trim()) {
        if (options?.allowCancel) {
          // Batch mode: offer to exit
@@ -328,7 +382,9 @@ private async createNoteInFolder(
          }
        } else {
          // Single note mode: auto-retry (existing behavior)
-         console.log('\n===⚠️  Clipboard is empty. Please copy your message first===');
+         console.log(
+           '\n===⚠️  Clipboard is empty. Please copy your message first==='
+         );
          await this.logger.logMain('⚠️  Clipboard validation failed: empty');
        }
      }
@@ -338,12 +394,14 @@ private async createNoteInFolder(
 3. **All other logic remains unchanged**: size validation, null byte check, file writing, clipboard clearing, stats update
 
 **Backward Compatibility**: Both parameters are optional, so existing calls work without modification:
+
 ```typescript
 await this.createNoteInFolder(folder); // Works as before
 await this.createNoteInFolder(folder, { noteCount: 0, allowCancel: true }); // Batch mode
 ```
 
 **Why This Approach (Alternative Approach from Original Plan)**:
+
 - **Eliminates code duplication**: No need for `createNoteInFolderWithCounter()` (~80 lines saved)
 - **Single source of truth**: All note creation logic in one place
 - **Easier to maintain**: Bug fixes apply to both single and batch modes
@@ -351,6 +409,7 @@ await this.createNoteInFolder(folder, { noteCount: 0, allowCancel: true }); // B
 - **Clear intent**: Options object makes behavior explicit
 
 **UX Difference - Deliberate Design**:
+
 - **Single note mode** (`allowCancel: false` or undefined): Empty clipboard auto-retries indefinitely. User must paste content to proceed.
 - **Batch note mode** (`allowCancel: true`): Empty clipboard offers exit option. This is the **intentional exit mechanism** for the batch loop.
 
@@ -371,12 +430,14 @@ await this.createNoteInFolder(folder, { noteCount: 0, allowCancel: true }); // B
 
 ### 10. Code Reuse Strategy
 
-**Decision**: 
+**Decision**:
+
 1. Refactor folder creation methods to support both single-note and batch modes
 2. Extract folder selection logic into shared helper `selectOrCreateFolder()`
 3. Refactor `createNoteInFolder()` to accept optional parameters instead of duplicating code
 
 **Benefits**:
+
 - Eliminates ~125 lines of folder selection duplication
 - Eliminates ~80 lines of note creation duplication
 - Makes both `createNoteFlow` and `writeNotesFlow` cleaner and easier to maintain
@@ -385,6 +446,7 @@ await this.createNoteInFolder(folder, { noteCount: 0, allowCancel: true }); // B
 - Follows existing codebase pattern of extracting reusable components
 
 **Affected Methods**:
+
 1. `createFolderFlow()` - REFACTORED to return `Promise<FolderMapping | null>` and accept `createNoteAfter` param
 2. `createJobFolderFlow()` - REFACTORED to return `Promise<FolderMapping | null>` and accept `createNoteAfter` param
 3. `createLifeEventFolderFlow()` - REFACTORED to return `Promise<FolderMapping | null>` and accept `createNoteAfter` param
@@ -397,31 +459,36 @@ await this.createNoteInFolder(folder, { noteCount: 0, allowCancel: true }); // B
 ### 11. Exit Mechanism
 
 **User exits the loop by**:
+
 - Leaving clipboard empty
 - Responding "no" to "Try again?" prompt
 - This throws `UserCancelledError` which is caught in the loop
 - Loop displays summary and returns to main menu
 
 **All exit paths return to main menu**:
+
 - Folder selection cancelled → return to menu
-- Folder deleted during loop → return to menu  
+- Folder deleted during loop → return to menu
 - User cancels on first note (zero notes) → return to menu with "No notes created" message
 - User cancels after N notes → return to menu with "Created N note(s)" message
 - User chooses not to continue after error → return to menu
 
 **Not exiting the entire script**:
+
 - The existing `process.on('SIGINT')` handler (line 116) will still exit the entire script if user presses Ctrl+C
 - This is acceptable behavior as it matches existing script behavior across all flows
 
 ### 12. Error Handling
 
 **During folder selection**:
+
 - Cache empty: Show message, return to menu
 - Folder deleted externally: Re-scan, return to menu
 - User cancels: Return to menu
 - All handled by `selectOrCreateFolder()` returning null
 
 **During loop execution**:
+
 - **Folder deleted between notes** (ENOENT): Show message, exit loop immediately, return to menu (not recoverable)
 - **User cancels** (empty clipboard + no retry): Throw `UserCancelledError`, exit loop with summary, return to menu
 - **Clipboard read error**: Throw error from spawn handlers (existing behavior)
@@ -429,11 +496,13 @@ await this.createNoteInFolder(folder, { noteCount: 0, allowCancel: true }); // B
 - **Clipboard permission error**: Throw error, caught by loop's catch block, ask user to continue or stop
 
 **Error Recovery Strategy**:
+
 - **ENOENT errors** (folder deleted): Immediate exit - folder is gone, cannot continue
 - **User cancellation**: Immediate exit - user explicitly requested exit
 - **All other errors**: Ask "Continue creating notes?" before stopping - these may be transient
 
 **Race Condition Handling**:
+
 - Folder existence is checked at the start of each loop iteration
 - However, there's a race condition window between the check and the actual file write
 - If folder is deleted after check but before write, `createNoteInFolder()` will throw ENOENT
@@ -443,6 +512,7 @@ await this.createNoteInFolder(folder, { noteCount: 0, allowCancel: true }); // B
 ### 13. Logging Requirements
 
 **writeNotesFlow() logs**:
+
 - Flow entry: `'Starting write notes flow'`
 - Folder selected: `'Selected folder for batch notes: [name]'`
 - Folder cancelled: `'Folder selection cancelled - exiting write notes flow'`
@@ -453,19 +523,23 @@ await this.createNoteInFolder(folder, { noteCount: 0, allowCancel: true }); // B
 - Error stop: `'User stopped after error. Created N notes'`
 
 **createNoteInFolder() logs**:
+
 - Same as existing logs for regular flow
 - Additional (when `allowCancel: true`): Log when user cancels on empty clipboard
 
 **selectOrCreateFolder() logs**:
+
 - All existing logs from extracted code (lines 343-468)
 
 **createFolderFlow() logs**:
+
 - Same as existing logs
 - Return value changes don't affect logging
 
 ### 14. Stats Tracking
 
 **Behavior**:
+
 - Each note created increments `jobNotes` or `lifeEventNotes` (existing logic in `createNoteInFolder`)
 - Each note updates `lastCreatedNotePath` and `lastSelectedFolder` (existing logic)
 - If user creates 5 notes and deletes the last one, it deletes note #5 (correct behavior)
@@ -473,6 +547,7 @@ await this.createNoteInFolder(folder, { noteCount: 0, allowCancel: true }); // B
 - Stats are accurate per note created, regardless of which flow created them
 
 **Edge Case Documentation**:
+
 - User creates 3 notes in batch loop → stats show +3
 - Loop encounters error on note 4 before creation completes → stats still show 3 (correct)
 - User exits loop and deletes last note → stats show 2 notes + 1 deletion
@@ -488,6 +563,7 @@ await this.createNoteInFolder(folder, { noteCount: 0, allowCancel: true }); // B
 ## Testing Considerations
 
 ### Happy Path Tests
+
 - Test folder selection works correctly (exact match)
 - Test folder selection with fuzzy matches
 - Test folder creation flow (verify folder created WITHOUT note when called from batch mode)
@@ -499,6 +575,7 @@ await this.createNoteInFolder(folder, { noteCount: 0, allowCancel: true }); // B
 - Verify clipboard is actually cleared between notes (not showing stale content)
 
 ### Error & Edge Case Tests
+
 - **Delete last note**: After creating multiple notes in loop, verify "Delete last note" deletes the final note from the batch
 - **Folder validation (pre-check)**: Delete folder externally between note #2 and note #3 (before prompt), verify folder check catches it and loop exits
 - **Folder validation (race condition)**: Delete folder after prompt but during file write, verify ENOENT error causes immediate exit
@@ -519,6 +596,7 @@ await this.createNoteInFolder(folder, { noteCount: 0, allowCancel: true }); // B
 - **Note counter on retry after error**: Create note 1, error on note 2, retry note 2, verify counter shows correct sequence
 
 ### Integration Tests
+
 - Create notes via "📓 Write notes" (3 notes), then create one via "📝 Write a note", verify all 4 notes exist
 - Create notes in Job folder via batch, then in Life-event folder via batch, verify stats separate correctly
 - Create 3 notes via batch, delete last one, create 2 more via batch in same folder, verify state consistency
@@ -527,6 +605,7 @@ await this.createNoteInFolder(folder, { noteCount: 0, allowCancel: true }); // B
 - Rename folder after creating batch notes, verify existing notes preserved
 
 ### User Experience Tests
+
 - Verify menu shows "📓 Write notes" as **first option**
 - Verify progress indicator shows correct note number with "of batch" suffix
 - Verify summary message shows correct count when exiting
@@ -537,12 +616,14 @@ await this.createNoteInFolder(folder, { noteCount: 0, allowCancel: true }); // B
 - Verify error messages maintain note counter consistency
 
 ### Clipboard Behavior Tests
+
 - **Rapid note creation**: Create 5 notes rapidly, verify clipboard clear/read works correctly
 - **Large content between notes**: Alternate between small and large (near 1MB) content, verify no issues
 - **Permission denied on clipboard read**: Simulate permission error, verify graceful handling with continue option
 - **Permission denied on clipboard clear**: Verify clear errors are caught and don't break flow (existing behavior at line 150)
 
 ### Performance Tests
+
 - **Many notes in single batch**: Create 20+ notes in one batch, verify no memory leaks or performance degradation
 - **Loop iteration limit**: Verify loop has no artificial limit (can create 50+ notes if desired)
 - **Cache consistency during long batch**: Create 15+ notes, verify cache stays valid throughout
@@ -695,6 +776,7 @@ Enter event/company name: HR_AddedValue
 ## Edge Cases & Design Decisions
 
 ### Clipboard Behavior
+
 - **Rapid clipboard changes**: Not a concern - clipboard is read synchronously when user presses Enter
 - **Unicode/emoji content**: Handled identically to single note creation (existing validation)
 - **Very large content**: 1MB limit check is sufficient (existing validation)
@@ -702,12 +784,14 @@ Enter event/company name: HR_AddedValue
 - **Clipboard clear failures**: Silently caught (line 150 in existing code), doesn't break flow
 
 ### Filesystem Operations
+
 - **Folder deleted during loop (pre-check)**: Validated at start of each iteration via `fs.access()`, exits gracefully with message
 - **Folder deleted during write (race condition)**: `createNoteInFolder()` throws ENOENT, caught as immediate exit
 - **Permission errors**: User prompted to continue or stop (may be transient)
 - **Race conditions**: Accepted and handled gracefully - no way to eliminate the window entirely
 
 ### Exit Mechanisms
+
 - **User cancellation**: Empty clipboard + "no" to retry → throws `UserCancelledError` → exits with summary
 - **Ctrl+C**: Exits entire script (existing behavior, unchanged)
 - **Error-based exit**: User chooses "no" to continue after error
@@ -715,12 +799,14 @@ Enter event/company name: HR_AddedValue
 - **All paths return to main menu** (no process.exit calls in flow)
 
 ### State Management
+
 - **lastCreatedNotePath**: Always points to most recent note (even across different flows)
 - **Stats tracking**: Cumulative across all flows in session, accurate per note created
 - **Cache consistency**: Validated during folder selection, invalidated if external changes detected
 - **Note counter**: Only increments after successful creation; errors retry same note number
 
 ### User Experience Decisions
+
 - **Note counter**: 1-indexed (Note 1, Note 2, ...) for user-friendliness
 - **Progress indication**: Shows "Note N of batch" to distinguish from single-note mode
 - **Summary on exit**: Shows total notes created ("Created N note(s)") or "No notes created" for zero case
@@ -731,18 +817,21 @@ Enter event/company name: HR_AddedValue
   - **Rationale**: Single mode assumes user wants exactly one note; batch mode needs graceful exit without Ctrl+C
 
 ### Integration with Existing Features
+
 - **Delete last note**: Works correctly - deletes the most recent note from any flow (including batch)
 - **Cross-flow consistency**: Stats and state are shared across single-note and batch-note flows
 - **Folder creation from batch mode**: Creates folder WITHOUT initial note, then enters batch loop
 - **Folder creation from single-note mode**: Creates folder WITH initial note (existing behavior preserved)
 
 ### Performance Considerations
+
 - **Loop iteration limit**: None - by design, users can create unlimited notes in one batch
 - **Memory**: No leaks expected - each iteration is independent, no accumulation
 - **Cache validity**: Remains valid throughout batch (only invalidated on external folder changes)
 - **Tested up to**: Plan assumes testing with 20-50 notes to verify no performance degradation
 
 ### Delete Last Note Integration
+
 - **After batch creation**: "Delete last note" deletes the final note from the batch (correct)
 - **Cross-flow deletion**: Works correctly across single and batch flows
 - **Multiple deletions**: User can delete multiple times to remove notes from batch one by one (existing behavior)
@@ -755,24 +844,28 @@ Enter event/company name: HR_AddedValue
 This plan has been thoroughly reviewed and improved based on deep code analysis and edge case consideration. Key improvements include:
 
 ### Architecture Improvements
+
 1. **Refactored folder creation methods** to return `Promise<FolderMapping | null>` and accept `createNoteAfter` parameter, solving the critical issue where folders were auto-creating notes
 2. **Eliminated code duplication** by refactoring `createNoteInFolder()` to accept optional parameters instead of creating a duplicate method (~80 lines saved)
 3. **Added custom `UserCancelledError` class** for type-safe error handling instead of string comparison
 4. **Extracted folder selection logic** into reusable `selectOrCreateFolder()` helper (~125 lines of duplication eliminated)
 
 ### Error Handling Improvements
+
 5. **ENOENT errors cause immediate exit** (folder deleted) instead of asking to continue
 6. **Race condition explicitly documented and handled** - folder deletion between check and write is gracefully caught
 7. **All exit paths return to main menu** - clearly documented in plan
 8. **Zero-notes case handled specially** with "No notes created" message instead of "Created 0 note(s)"
 
 ### UX Improvements
+
 9. **Progress indicators enhanced** with "Note N of batch" suffix to distinguish from single-note mode
 10. **Empty clipboard behavior differences documented** with clear rationale for why single and batch modes differ
 11. **Note counter behavior clarified** - only increments on success, errors retry same number
 12. **All summary messages improved** to show appropriate context (note count, zero notes, folder deleted)
 
 ### Testing Improvements
+
 13. **Comprehensive test coverage added** including:
     - Clipboard state verification between notes
     - Race condition testing (folder deletion timing)
@@ -782,12 +875,14 @@ This plan has been thoroughly reviewed and improved based on deep code analysis 
     - Integration with existing "Delete last note" feature
 
 ### Documentation Improvements
+
 14. **Stats tracking edge cases documented** with clear examples
 15. **Performance considerations added** (no iteration limit, memory, cache validity)
 16. **Integration with existing features clearly documented** (folder creation differences, delete last note)
 17. **All design decisions have explicit rationale** (empty clipboard differences, exit mechanisms, etc.)
 
 ### Implementation Clarity
+
 18. **Step-by-step implementation order** clearly defined with 11 numbered steps
 19. **Backward compatibility explicitly maintained** through optional parameters and default values
 20. **All affected methods clearly listed** with their changes documented

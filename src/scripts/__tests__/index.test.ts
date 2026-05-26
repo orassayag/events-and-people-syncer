@@ -21,7 +21,7 @@ describe('Scripts Index', () => {
       'clear-logs',
     ];
 
-    expectedKeys.forEach(key => {
+    expectedKeys.forEach((key) => {
       expect(AVAILABLE_SCRIPTS).toHaveProperty(key);
       expect(AVAILABLE_SCRIPTS[key]).toHaveProperty('metadata');
       expect(AVAILABLE_SCRIPTS[key]).toHaveProperty('run');
@@ -30,10 +30,10 @@ describe('Scripts Index', () => {
 
   it('should list scripts without throwing', () => {
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    
+
     expect(() => listScripts()).not.toThrow();
     expect(consoleSpy).toHaveBeenCalled();
-    
+
     consoleSpy.mockRestore();
   });
 });

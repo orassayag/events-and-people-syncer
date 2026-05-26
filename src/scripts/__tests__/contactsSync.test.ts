@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ContactsSyncScript } from '../contactsSync';
-import { SyncLogger, Logger } from '../../logging';
-import { EMOJIS } from '../../constants';
 
 vi.mock('../../logging', () => ({
   SyncLogger: class {

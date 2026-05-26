@@ -5,6 +5,7 @@
 Contacts were incorrectly changing labels from "Job" to "HR" (or vice versa) due to overly permissive CamelCase segment matching in the company matcher.
 
 ### Example
+
 - **Contact**: Rotem Cohen from "Microsoft"
 - **Expected**: Label = "Job" (matches `Job_Microsoft` folder)
 - **Actual**: Label = "HR" (incorrectly matched `HR_ITSOFT.co.il` folder)
@@ -22,6 +23,7 @@ The `CompanyMatcher` uses CamelCase segment matching to find company matches. Wh
 ### Impact
 
 This bug caused mass label changes affecting multiple contacts:
+
 - Microsoft → matched ITSOFT
 - InteliATE → matched various HR folders via short segments
 - Wolfson Medical Center → matched other HR folders
@@ -48,7 +50,7 @@ async getLabel(linkedinCompany: string): Promise<string> {
   const mappings: CompanyMapping[] = await this.getMappings();
   const cleanedLinkedInCompany: string = this.cleanCompanyName(linkedinCompany);
   const normalizedLinkedIn: string = cleanedLinkedInCompany.toLowerCase().trim();
-  
+
   // FIRST PASS: Look for exact matches
   for (const mapping of mappings) {
     const normalizedFolder: string = mapping.companyName.toLowerCase().trim();
@@ -56,14 +58,14 @@ async getLabel(linkedinCompany: string): Promise<string> {
       return mapping.label;
     }
   }
-  
+
   // SECOND PASS: Fuzzy matching (contains, segments)
   for (const mapping of mappings) {
     if (this.matchesCompany(cleanedLinkedInCompany, mapping.companyName)) {
       return mapping.label;
     }
   }
-  
+
   return this.defaultLabel;
 }
 ```
@@ -101,13 +103,13 @@ if (segment.length <= 5) {
 
 ### Examples After Fix
 
-| LinkedIn Company | Exact Match? | Fuzzy Match Needed? | Result | Label |
-|-----------------|--------------|---------------------|--------|-------|
-| Microsoft | ✅ Yes (`Job_Microsoft`) | ❌ No | Exact match wins | Job ✅ |
-| Microsoft Corp | ❌ No | ✅ Yes (contains "Microsoft") | Contains match | Job ✅ |
-| GoogleCloud | ❌ No | ✅ Yes (segment "Google"=6 chars) | Segment match | Job ✅ |
-| ITSOFT | ✅ Yes (`HR_ITSOFT.co.il`) | ❌ No | Exact match wins | HR ✅ |
-| NewCompany | ❌ No | ❌ No match | Default | Job ✅ |
+| LinkedIn Company | Exact Match?               | Fuzzy Match Needed?               | Result           | Label  |
+| ---------------- | -------------------------- | --------------------------------- | ---------------- | ------ |
+| Microsoft        | ✅ Yes (`Job_Microsoft`)   | ❌ No                             | Exact match wins | Job ✅ |
+| Microsoft Corp   | ❌ No                      | ✅ Yes (contains "Microsoft")     | Contains match   | Job ✅ |
+| GoogleCloud      | ❌ No                      | ✅ Yes (segment "Google"=6 chars) | Segment match    | Job ✅ |
+| ITSOFT           | ✅ Yes (`HR_ITSOFT.co.il`) | ❌ No                             | Exact match wins | HR ✅  |
+| NewCompany       | ❌ No                      | ❌ No match                       | Default          | Job ✅ |
 
 ### Matching Priority Order
 
@@ -122,6 +124,7 @@ The new logic follows this priority:
 ### Alternative Considered
 
 We chose **both fixes together** over single approaches:
+
 - ~~Word boundary matching~~: More complex, requires regex
 - ~~Exact match priority alone~~: Doesn't prevent segment false positives
 - ~~Segment length alone~~: Doesn't guarantee exact matches win first
@@ -146,6 +149,7 @@ The combination provides **defense in depth**.
 ## Impact on Future Syncs
 
 After this fix and cache invalidation:
+
 - Contacts previously mislabeled as "HR" (but should be "Job") will update back to "Job"
 - Contacts correctly labeled will remain unchanged
 - New contacts will be labeled correctly on first sync
@@ -153,6 +157,7 @@ After this fix and cache invalidation:
 ## Recommendation
 
 After deploying this fix:
+
 1. **Invalidate company cache**: Delete `sources/.cache/company-mappings.json`
 2. **Run LinkedIn sync**: Labels will be recalculated with the fixed logic
 3. **Monitor logs**: Verify contacts get correct labels

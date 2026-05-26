@@ -143,7 +143,7 @@ Google People API enforces a **1024-character limit** per field. Exceeding this 
 ### Field Count Calculation
 
 ```typescript
-totalFields = 
+totalFields =
   (firstName ? 1 : 0) +
   (lastName ? 1 : 0) +
   (company ? 1 : 0) +
@@ -151,12 +151,13 @@ totalFields =
   emails.length +
   phones.length +
   (linkedInUrl ? 1 : 0) +
-  labelResourceNames.length
+  labelResourceNames.length;
 ```
 
 ### Rationale
 
 Google People API enforces a **500-field maximum** per contact. This includes:
+
 - Name fields
 - Organization fields
 - All email addresses
@@ -221,7 +222,7 @@ These are the minimum fields required for a meaningful contact in the Google Peo
 
 ### Rules
 
-1. **Allowed Characters**: Letters, numbers, spaces, hyphens (-), and underscores (_)
+1. **Allowed Characters**: Letters, numbers, spaces, hyphens (-), and underscores (\_)
 2. **Not Empty**: Must contain at least one character after trimming
 3. **Uniqueness**: Label name must not already exist (case-insensitive)
 4. **Reserved**: `'cancel'` is reserved for UI navigation
@@ -262,6 +263,7 @@ Google People API may have issues with bidirectional (RTL) text. The application
 ## Unique Email/Phone Validation
 
 **Methods**:
+
 - `InputValidator.validateUniqueEmail()`
 - `InputValidator.validateUniquePhone()`
 
@@ -281,6 +283,7 @@ Google People API may have issues with bidirectional (RTL) text. The application
 **File**: `.env`
 
 **Required Variables**:
+
 ```
 CLIENT_ID          # Google OAuth Client ID
 CLIENT_SECRET      # Google OAuth Client Secret
@@ -315,11 +318,13 @@ All validation errors return **clear, actionable error messages**:
 ## Testing Validation
 
 Run validation tests:
+
 ```bash
 pnpm test src/validators/__tests__/validationSchemas.test.ts
 ```
 
 The test suite covers:
+
 - Valid inputs for all schemas
 - Edge cases (boundaries, empty strings)
 - Invalid formats

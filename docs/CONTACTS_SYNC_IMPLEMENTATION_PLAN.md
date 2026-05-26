@@ -40,12 +40,14 @@ Following the existing pattern from `src/scripts/linkedinSync.ts`:
 ### Phase 1: Contact Fetching & Filtering
 
 **Fetch Logic**:
+
 - Use `DuplicateDetector` or `ContactCache` to fetch all contacts
 - Fetch contact fields: `names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies,metadata`
 - Include `metadata.sources` to get `resourceName` for updates
 - Store in memory for processing
 
 **Filter Logic**:
+
 - Exclude contacts with notes containing:
   - "Added by the people syncer script" (from POC manual adds)
   - "Updated by the people syncer script" (from POC manual updates)
@@ -59,6 +61,7 @@ Following the existing pattern from `src/scripts/linkedinSync.ts`:
   - `SYNC_UPDATED_NOTE = /Updated by the contacts sync script/`
 
 **Implementation Note**:
+
 - Reuse existing `ContactCache` or create dedicated fetch method
 - Parse Google People API response to `ContactData` interface from `src/types/contact.ts`
 - Track resourceName for each contact (required for updates)
@@ -68,6 +71,7 @@ Following the existing pattern from `src/scripts/linkedinSync.ts`:
 **Hebrew Detection** (Priority 1):
 
 Check ALL fields for Hebrew characters using `RegexPatterns.HEBREW` **EXCEPT LinkedIn URLs**:
+
 - First name, last name
 - Company, job title
 - Email values (not email labels)
@@ -79,13 +83,16 @@ Check ALL fields for Hebrew characters using `RegexPatterns.HEBREW` **EXCEPT Lin
 **Rationale**: LinkedIn URLs are always ASCII (linkedin.com/in/name), Hebrew in URLs should not trigger fixing.
 
 **Missing Label Detection** (Priority 2):
+
 - Check if `memberships` array is empty or undefined
 - Contact must have at least one contact group membership
 
 **Missing Company Detection** (Priority 3):
+
 - Check if `organizations[0].name` is empty, undefined, or only whitespace
 
 **Missing Other Data Detection** (Priority 4):
+
 - Missing email: `emailAddresses` empty or undefined
 - Missing phone: `phoneNumbers` empty or undefined
 - Missing LinkedIn URL: no URL with type "LinkedIn" in `urls` array
@@ -112,6 +119,7 @@ interface FixableContact {
 ### Phase 3: Display Contact for Fixing
 
 **Display Format**:
+
 ```
 ===Contacts Sync===  (shown once at script start)
 
@@ -128,12 +136,14 @@ Contact ID: people/c1234567890
 -LinkedIn URL: https://linkedin.com/in/yossi-cohen LinkedIn
 ```
 
-**Note**: 
+**Note**:
+
 - "===Contacts Sync===" header shown once at script start
 - Don't display existing note content to user
 - Script manages notes automatically
 
 **Display Rules**:
+
 - Use `FormatUtils` from `src/constants/formatUtils.ts` for number formatting
 - Show contact index as `current/total` (e.g., 00,234/03,455)
 - Display **primary reason first**, then list all applicable reasons
@@ -145,6 +155,7 @@ Contact ID: people/c1234567890
 **Implementation Approach**:
 
 Reuse POC's `contactWriter.ts` methods:
+
 - `handleEditAction()` - field editing logic (EXCLUDE note editing)
 - `promptForLabels()` - label selection/creation
 - `fetchContactGroups()` - get all contact groups
@@ -152,6 +163,7 @@ Reuse POC's `contactWriter.ts` methods:
 - All edit logic already exists in POC
 
 **New Logic Required**:
+
 - Pre-populate edit form with current contact data
 - Highlight fields that are missing/incorrect (based on reasons)
 - Loop until user selects "Save changes" or "Cancel"
@@ -159,6 +171,7 @@ Reuse POC's `contactWriter.ts` methods:
 - **NO "Edit note" option** - script manages notes automatically
 
 **Edit Options Available**:
+
 ```
 ✏️  Edit labels
 🏷️  Create new label
@@ -250,17 +263,20 @@ await service.people.updateContact({
 **Note Management** (using NEW function):
 
 Use `determineSyncNoteUpdate()` (NOT `determineNoteUpdate()`):
+
 - For fix flow: "Updated by the contacts sync script - Last update: DD/MM/YYYY"
 - Same date: don't update (matches LinkedIn sync behavior)
 - Preserves existing notes by appending
 
 **Critical Points**:
+
 1. **Memberships**: Always merge system + user groups (never replace)
 2. **Update mask**: Only include fields that actually changed
 3. **Note function**: Use `determineSyncNoteUpdate()` for sync, NOT `determineNoteUpdate()`
 4. **etag**: Required from existing contact fetch
 
 **Field Mapping**:
+
 - Follow exact POC format for last name: `{lastName} {Label} {Company}`
 - Extract first label from contact groups
 - Use composite suffix for email/phone labels: `{Label} {Company}`
@@ -271,12 +287,14 @@ Use `determineSyncNoteUpdate()` (NOT `determineNoteUpdate()`):
 **Flow Overview**:
 
 Copy entire POC add contact flow from `poc/src/services/contactWriter.ts`:
+
 1. `collectInitialInput()` - prompt for all fields **EXCEPT note** (script manages notes)
 2. Duplicate detection using `DuplicateDetector`
 3. `showSummaryAndEdit()` - display summary and allow edits
 4. `createContact()` - save to Google Contacts
 
 **Integration Points**:
+
 - Use existing `DuplicateDetector` service
 - Use existing validation from POC `InputValidator`
 - Track added count for final summary
@@ -286,7 +304,7 @@ Copy entire POC add contact flow from `poc/src/services/contactWriter.ts`:
 **Reuse Strategy**:
 
 Option 1: Extract shared logic into reusable service
-Option 2: Duplicate POC logic into contactSyncer service  
+Option 2: Duplicate POC logic into contactSyncer service
 Option 3: Import and adapt POC methods directly
 
 Recommendation: Option 2 - Duplicate and adapt (simpler than extracting shared service).
@@ -294,8 +312,9 @@ Recommendation: Option 2 - Duplicate and adapt (simpler than extracting shared s
 ### Phase 7: Statistics & Summary Display
 
 **Track Counts During Execution**:
+
 - `addedCount` - contacts created via add flow
-- `updatedCount` - contacts updated via fix flow  
+- `updatedCount` - contacts updated via fix flow
 - `skippedCount` - contacts user viewed but didn't save (chose Cancel)
 
 **Skipped Logic**: Increment when user views contact display and cancels (even without making edits).
@@ -309,11 +328,13 @@ Recommendation: Option 2 - Duplicate and adapt (simpler than extracting shared s
 ```
 
 Use `FormatUtils.padLineWithEquals()` to align:
+
 - Total width: 56 characters (matching LinkedIn sync)
 - Center text between equals signs
 - Format numbers with leading zeros and thousands separators
 
 **Display Timing**:
+
 - Show when user exits the script
 - Show when user chooses "Exit" from main menu
 - Show when script completes (no more contacts to fix)
@@ -323,12 +344,14 @@ Use `FormatUtils.padLineWithEquals()` to align:
 **Validation Flow**:
 
 At script start, before main menu:
+
 1. Check if token file exists and is valid
 2. If expired or missing, trigger `AuthService.authorize()`
 3. Show message: "✓ People API credentials validated"
 4. If auth fails, show error and exit
 
 **Implementation**:
+
 - Use existing `src/services/auth/authService.ts`
 - Reuse OAuth2Client setup from LinkedIn sync script
 - No changes to auth logic needed
@@ -402,6 +425,7 @@ Contacts are displayed in this exact order:
    - Within this group, maintain fetch order
 
 **Implementation**:
+
 - Sort all fixable contacts by `priorityLevel`
 - Use stable sort to maintain order within each priority
 - Display contacts sequentially from sorted array
@@ -515,8 +539,9 @@ The `etag` (entity tag) is a version identifier returned by Google People API fo
 **Why do we need it?**
 
 When updating a contact, Google requires the `etag` to prevent conflicts:
+
 - User A fetches contact (etag: "abc123")
-- User B fetches same contact (etag: "abc123")  
+- User B fetches same contact (etag: "abc123")
 - User A updates contact → Google changes etag to "xyz789"
 - User B tries to update with old etag "abc123" → Google returns 412 error (Precondition Failed)
 
@@ -525,8 +550,9 @@ This prevents User B from overwriting User A's changes.
 **The Problem**:
 
 Our initial fetch via `DuplicateDetector.fetchContactsFromAPI()` uses:
+
 ```typescript
-personFields: 'names,emailAddresses,phoneNumbers,organizations,urls,memberships'
+personFields: 'names,emailAddresses,phoneNumbers,organizations,urls,memberships';
 ```
 
 Notice `etag` is NOT included in the response. When we try to update a contact, we don't have the required `etag` value.
@@ -534,20 +560,23 @@ Notice `etag` is NOT included in the response. When we try to update a contact, 
 **The Solution**:
 
 Before updating any contact in fix flow:
+
 1. Fetch the contact again using `people.get()` with all fields
 2. This fetch includes `etag` in the response automatically
 3. Use that `etag` in the update request
 
 **Example from LinkedIn sync** (`contactSyncer.ts` lines 130-136):
+
 ```typescript
 const existingContact = await service.people.get({
   resourceName,
-  personFields: 'names,emailAddresses,urls,organizations,biographies'
+  personFields: 'names,emailAddresses,urls,organizations,biographies',
 });
 // existingContact.data.etag is now available
 ```
 
 **Implementation**:
+
 - For fix flow: Always fetch contact individually before updating
 - Extract `etag` from `existingContact.data.etag`
 - Include in update: `requestBody.etag = existingData.etag`
@@ -559,14 +588,16 @@ const existingContact = await service.people.get({
 
 **Impact**: Cannot filter out contacts with syncer notes during initial load.
 
-**ACTION**: 
+**ACTION**:
+
 - Add `biographies` to `personFields` in fetch
 - Add optional `note?: string` field to `ContactData` interface
 - Filter contacts with syncer notes during categorization phase
 
 **Implementation**:
+
 ```typescript
-personFields: 'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies'
+personFields: 'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies';
 ```
 
 ### 3. Contact Updated Externally During Session [DECISION: SKIP - WON'T HAPPEN]
@@ -576,12 +607,14 @@ personFields: 'names,emailAddresses,phoneNumbers,organizations,urls,memberships,
 **DECISION**: No need to implement 412 error handling.
 
 **Rationale**:
+
 - Only you use the script
 - You run one script at a time
 - No concurrent modifications possible
 - Reduces complexity
 
-**ACTION**: 
+**ACTION**:
+
 - ❌ No 412 error handling needed
 - ✅ Keep basic try-catch for other errors
 - ✅ If 412 somehow occurs, show generic error (unlikely edge case)
@@ -591,17 +624,20 @@ personFields: 'names,emailAddresses,phoneNumbers,organizations,urls,memberships,
 **Current Behavior**: POC's `InputValidator` blocks Hebrew text with error message.
 
 **Desired Behavior**: Sync script must ALLOW Hebrew input because:
+
 - User is fixing Hebrew text → English
 - Some fields might remain Hebrew temporarily
 - On next iteration, user will fix remaining Hebrew
 
 **ACTION**:
+
 - When using POC validation in sync, SKIP Hebrew validation
 - Only validate format (email format, phone format, length limits)
 - Allow Hebrew characters in all text fields
 - User manually converts Hebrew → English field by field
 
 **Implementation Options**:
+
 1. Add `allowHebrew: boolean` parameter to `InputValidator` methods
 2. Create `SyncInputValidator` that extends POC validator with Hebrew allowed
 3. Conditionally skip Hebrew checks based on context
@@ -613,11 +649,13 @@ personFields: 'names,emailAddresses,phoneNumbers,organizations,urls,memberships,
 **Issue**: User might create duplicates while editing.
 
 **Example**:
+
 - Contact A: John Smith, john@example.com
 - Contact B: John Doe, different@example.com
 - User edits Contact B's email to john@example.com → Creates duplicate!
 
 **ACTION**:
+
 - Before saving, run duplicate detection (like POC add flow)
 - Check: name, email, phone, LinkedIn URL
 - If duplicates found, show warning with matched contacts
@@ -636,19 +674,19 @@ personFields: 'names,emailAddresses,phoneNumbers,organizations,urls,memberships,
 function categorizContact(contact: ContactData): FixableContact {
   const reasons: string[] = [];
   let priorityLevel: 1 | 2 | 3 | 4;
-  
+
   // Check all criteria and collect reasons
   const hasHebrew = checkHebrewInAllFields(contact);
   const noLabel = !contact.label || contact.label.trim() === '';
   const noCompany = !contact.company || contact.company.trim() === '';
   const missingOther = checkMissingFields(contact);
-  
+
   // Build reasons array
   if (hasHebrew) reasons.push(`Contains Hebrew (${hebrewFieldsList})`);
   if (noLabel) reasons.push('Missing label');
   if (noCompany) reasons.push('Missing company');
   if (missingOther.length > 0) reasons.push(...missingOther);
-  
+
   // Assign to HIGHEST priority that applies
   if (hasHebrew) {
     priorityLevel = 1;
@@ -659,12 +697,18 @@ function categorizContact(contact: ContactData): FixableContact {
   } else {
     priorityLevel = 4;
   }
-  
-  return { contact, priorityLevel, reasons, resourceName: contact.resourceName };
+
+  return {
+    contact,
+    priorityLevel,
+    reasons,
+    resourceName: contact.resourceName,
+  };
 }
 ```
 
 **Display Format**:
+
 ```
 Reason: Contains Hebrew (first name, company), Missing company
 Contact Index: 00,123/10,000
@@ -673,6 +717,7 @@ Contact ID: people/c1234567890
 ```
 
 **Behavior**:
+
 - Contact appears ONCE in the queue
 - Assigned to highest priority level (1 = highest)
 - All applicable reasons displayed
@@ -683,6 +728,7 @@ Contact ID: people/c1234567890
 **Issue**: Contact group names (labels) are fetched separately and mapped by resourceName. We need to check these for Hebrew characters too.
 
 **ACTION**:
+
 - Store contact group names in the contact data during fetch
 - Check `label` field (which contains joined group names) for Hebrew
 - Include in detection: `RegexPatterns.HEBREW.test(contact.label)`
@@ -690,6 +736,7 @@ Contact ID: people/c1234567890
 ### 8. Contact Has No Data At All [ACTION: INCLUDE IN PRIORITY 4]
 
 **ACTION**:
+
 - Include it in Priority 4 (missing other data)
 - Reasons: "Missing first name, Missing last name, Missing email, Missing phone, Missing label, Missing company, Missing job title, Missing LinkedIn URL"
 - User can decide to delete or populate
@@ -698,7 +745,8 @@ Contact ID: people/c1234567890
 
 **Issue**: If many contacts have Hebrew in company name "אלביט", user has to type English translation repeatedly.
 
-**ACTION**: 
+**ACTION**:
+
 - **V1**: User must edit each contact individually
 - **Future Enhancement**: Cache translations (Hebrew → English mapping)
 
@@ -706,7 +754,8 @@ Contact ID: people/c1234567890
 
 **Issue**: Manual editing takes time. Will we hit rate limits?
 
-**ACTION**: 
+**ACTION**:
+
 - Use existing `retryWithBackoff` utility for all API calls
 - Add write delay after each update: 500ms (configurable)
 - Track API stats throughout session
@@ -718,21 +767,26 @@ Contact ID: people/c1234567890
 **Issue**: If user has 50,000+ contacts, loading all into memory might be problematic.
 
 **ACTION**:
+
 - Add hard limit: 50,000 contacts maximum
 - If user has more, show error: "Too many contacts (X found, 50,000 max). Please archive older contacts."
 - Exit script gracefully
 - For most users (< 10,000 contacts), no issue
 
 **Implementation**:
+
 ```typescript
 if (contacts.length > 50000) {
-  throw new Error(`Too many contacts: ${contacts.length}. Maximum supported: 50,000`);
+  throw new Error(
+    `Too many contacts: ${contacts.length}. Maximum supported: 50,000`
+  );
 }
 ```
 
 ### 12. Cancel vs Exit Behavior [ACTION: CLARIFY IN UI]
 
 **ACTION**:
+
 - **Cancel** (during edit): Discard changes to current contact, return to main menu (don't increment updated count)
 - **Exit** (main menu): Show summary and terminate script
 - **Ctrl+C** (anywhere): Show partial summary, terminate script gracefully
@@ -740,6 +794,7 @@ if (contacts.length > 50000) {
 ### 13. Updating Label Membership [ACTION: FOLLOW POC PATTERN]
 
 **ACTION**:
+
 - Fetch existing memberships from contact
 - Build new memberships array based on user selection
 - Include in `updatePersonFields`: `memberships`
@@ -754,7 +809,8 @@ if (contacts.length > 50000) {
 
 ### 15. Phone Number Country Code [ACTION: KEEP SIMPLE]
 
-**ACTION**: 
+**ACTION**:
+
 - Store phone as-is (matching POC)
 - No country code detection
 - No phone number formatting
@@ -763,6 +819,7 @@ if (contacts.length > 50000) {
 ### 16. Session State Persistence [ACTION: NO PERSISTENCE FOR V1]
 
 **ACTION**:
+
 - NO persistence
 - Script always starts fresh
 - Contacts with sync notes are excluded, so re-running is safe
@@ -771,6 +828,7 @@ if (contacts.length > 50000) {
 ### 17. POC TextUtils.reverseHebrewText() Handling [ACTION: COPY TO SRC]
 
 **ACTION**:
+
 - Copy POC's `TextUtils` and `NameParser` classes to `src/utils/` or `src/parsers/`
 - Avoid POC dependency
 - Ensure Hebrew reversal logic is available
@@ -778,6 +836,7 @@ if (contacts.length > 50000) {
 ### 18. Note Parser Generic Script Name [ACTION: REFACTOR WITH PARAMETER]
 
 **ACTION**:
+
 - Refactor `buildNewContactNote()` to accept `scriptName: string` parameter
 - Refactor `buildUpdatedContactNote()` similarly
 - Update all callers:
@@ -787,6 +846,7 @@ if (contacts.length > 50000) {
 ### 19. Display Format Alignment [ACTION: NO TRUNCATION]
 
 **ACTION**:
+
 - Don't truncate - show full data (user needs to see everything to fix it)
 - Accept that long text might break visual alignment
 - Use consistent format matching LinkedIn sync output
@@ -800,16 +860,20 @@ if (contacts.length > 50000) {
 **Solution**: Create new function `determineSyncNoteUpdate()` in noteParser.ts:
 
 ```typescript
-export function determineSyncNoteUpdate(existingNote: string, currentDate: string): NoteUpdateResult {
+export function determineSyncNoteUpdate(
+  existingNote: string,
+  currentDate: string
+): NoteUpdateResult {
   if (!existingNote) {
     return {
       shouldUpdate: true,
       newNoteValue: `Updated by the contacts sync script - Last update: ${currentDate}`,
     };
   }
-  
-  const hasFixedMessage: boolean = RegexPatterns.SYNC_FIXED_NOTE.test(existingNote);
-  
+
+  const hasFixedMessage: boolean =
+    RegexPatterns.SYNC_FIXED_NOTE.test(existingNote);
+
   if (hasFixedMessage) {
     const existingDate: string | null = extractDateFromNote(existingNote);
     if (existingDate === currentDate) {
@@ -825,7 +889,7 @@ export function determineSyncNoteUpdate(existingNote: string, currentDate: strin
       newNoteValue: updateNoteDateOnly(existingNote, currentDate),
     };
   }
-  
+
   // No sync note, append it
   return {
     shouldUpdate: true,
@@ -834,7 +898,8 @@ export function determineSyncNoteUpdate(existingNote: string, currentDate: strin
 }
 ```
 
-**ACTION**: 
+**ACTION**:
+
 1. Add `determineSyncNoteUpdate()` to noteParser.ts
 2. Use it in fix flow (NOT `determineNoteUpdate()`)
 3. Same date behavior: don't update (matches LinkedIn sync)
@@ -851,12 +916,12 @@ export function determineSyncNoteUpdate(existingNote: string, currentDate: strin
 // Get current contact with memberships
 const existingContact = await service.people.get({
   resourceName,
-  personFields: 'memberships'
+  personFields: 'memberships',
 });
 
 // Separate system groups from user groups
 const systemMemberships = (existingContact.data.memberships || []).filter(
-  m => {
+  (m) => {
     const resourceName = m.contactGroupMembership?.contactGroupResourceName;
     // System groups don't have 'contactGroups/' prefix, or are null
     return !resourceName || !resourceName.startsWith('contactGroups/');
@@ -864,8 +929,8 @@ const systemMemberships = (existingContact.data.memberships || []).filter(
 );
 
 // Build new user memberships from selected labels
-const newUserMemberships = selectedLabels.map(resourceName => ({
-  contactGroupMembership: { contactGroupResourceName: resourceName }
+const newUserMemberships = selectedLabels.map((resourceName) => ({
+  contactGroupMembership: { contactGroupResourceName: resourceName },
 }));
 
 // MERGE: combine system + new user groups
@@ -873,7 +938,8 @@ requestBody.memberships = [...systemMemberships, ...newUserMemberships];
 updateMask.push('memberships');
 ```
 
-**ACTION**: 
+**ACTION**:
+
 1. Always fetch existing memberships before update
 2. Preserve system memberships
 3. Replace ONLY user contact groups
@@ -884,6 +950,7 @@ updateMask.push('memberships');
 **Detection must handle**: empty string, null, undefined
 
 **Implementation**:
+
 ```typescript
 function isMissingField(value: string | null | undefined): boolean {
   return value === null || value === undefined || value.trim() === '';
@@ -891,7 +958,9 @@ function isMissingField(value: string | null | undefined): boolean {
 
 // Usage
 const isMissingCompany = isMissingField(contact.company);
-const isMissingEmail = !contact.emails?.length || contact.emails.every(e => isMissingField(e.value));
+const isMissingEmail =
+  !contact.emails?.length ||
+  contact.emails.every((e) => isMissingField(e.value));
 ```
 
 **ACTION**: Use consistent null/undefined/empty detection across all missing field checks.
@@ -901,16 +970,19 @@ const isMissingEmail = !contact.emails?.length || contact.emails.every(e => isMi
 **DECISION**: Don't specify which fields contain Hebrew.
 
 **Display**:
+
 ```
 Reason: Contains Hebrew, Missing company
 ```
 
 NOT:
+
 ```
 Reason: Contains Hebrew (first name, last name, company), Missing company
 ```
 
-**ACTION**: 
+**ACTION**:
+
 - Primary reason: "Contains Hebrew" (no field list)
 - Other reasons: comma-separated on same line
 - If line too long (>100 chars), acceptable to wrap
@@ -920,11 +992,13 @@ Reason: Contains Hebrew (first name, last name, company), Missing company
 **DECISION**: Increment skipped anytime user views contact and doesn't save.
 
 **When skipped increments**:
+
 - User views contact
 - User chooses "Cancel" (even without making changes)
 - Skipped +1
 
 **When skipped does NOT increment**:
+
 - User views contact
 - User makes changes
 - User saves successfully → Updated +1 (not skipped)
@@ -952,25 +1026,27 @@ if (existingDate === currentDate) {
 **Fix flow**: Uses `people.updateContact()` (LinkedIn sync pattern)
 
 **Key differences**:
+
 ```typescript
 // CREATE (add flow)
 await service.people.createContact({
   requestBody: { names: [...], emails: [...] }
 });
 
-// UPDATE (fix flow)  
+// UPDATE (fix flow)
 await service.people.updateContact({
   resourceName: 'people/c123',           // ← Required
   updatePersonFields: 'names,emails',    // ← Required - only changed fields
-  requestBody: { 
+  requestBody: {
     etag: existingContact.etag,          // ← Required
-    names: [...], 
-    emails: [...] 
+    names: [...],
+    emails: [...]
   }
 });
 ```
 
-**ACTION**: 
+**ACTION**:
+
 1. Add flow: reuse POC's createContact() as-is
 2. Fix flow: implement updateContact() following LinkedIn sync pattern
 3. Document that these are different APIs
@@ -979,20 +1055,24 @@ await service.people.updateContact({
 
 **CLARIFICATION**: Users NEVER see or edit notes.
 
-**Add flow**: 
+**Add flow**:
+
 - No "note" prompt in input collection
 - Script automatically adds: "Added by the contacts sync script..."
 
 **Fix flow**:
+
 - Don't display existing note to user
 - Don't offer "Edit note" option
 - Script automatically manages note on save
 
 **Existing note preservation**:
+
 - If contact has personal notes (not syncer notes), preserve them
 - Append sync note: `{existing note}\nUpdated by the contacts sync script...`
 
-**ACTION**: 
+**ACTION**:
+
 1. Remove any "note" prompts from user flows
 2. Never display note content
 3. Script manages notes automatically
@@ -1023,15 +1103,22 @@ await service.people.updateContact({
 ### 12. Ctrl+C Graceful Handler [ACTION: IMPLEMENT]
 
 **Add to main script**:
+
 ```typescript
 let stats = { added: 0, updated: 0, skipped: 0 };
 
 process.on('SIGINT', () => {
   console.log('\n\n⚠️  Script interrupted by user');
   console.log('Progress so far:');
-  console.log(`  Added: ${FormatUtils.formatNumberWithLeadingZeros(stats.added)}`);
-  console.log(`  Updated: ${FormatUtils.formatNumberWithLeadingZeros(stats.updated)}`);
-  console.log(`  Skipped: ${FormatUtils.formatNumberWithLeadingZeros(stats.skipped)}`);
+  console.log(
+    `  Added: ${FormatUtils.formatNumberWithLeadingZeros(stats.added)}`
+  );
+  console.log(
+    `  Updated: ${FormatUtils.formatNumberWithLeadingZeros(stats.updated)}`
+  );
+  console.log(
+    `  Skipped: ${FormatUtils.formatNumberWithLeadingZeros(stats.skipped)}`
+  );
   console.log('\nYou can re-run the script to continue fixing contacts.');
   process.exit(0);
 });
@@ -1048,13 +1135,16 @@ process.on('SIGINT', () => {
 **Strategy**: Build update payload with all original contact fields, change only user-edited fields, track which fields changed for update mask.
 
 **Implementation**:
+
 ```typescript
 const updateMask: string[] = [];
 const requestBody: any = { ...existingContact };
 
 // User edited first name
 if (editedData.firstName !== originalData.firstName) {
-  requestBody.names = [{ givenName: editedData.firstName, familyName: editedData.lastName }];
+  requestBody.names = [
+    { givenName: editedData.firstName, familyName: editedData.lastName },
+  ];
   updateMask.push('names');
 }
 
@@ -1068,7 +1158,7 @@ if (emailsChanged) {
 await service.people.updateContact({
   resourceName,
   updatePersonFields: updateMask.join(','),
-  requestBody
+  requestBody,
 });
 ```
 
@@ -1081,6 +1171,7 @@ await service.people.updateContact({
 **Key Insight**: "Updated by" means the contact CAN be fetched and fixed again if new issues appear!
 
 **Filter Logic**:
+
 - ✅ **EXCLUDE**: "Added by the people syncer script" (LinkedIn sync - complete contact)
 - ✅ **EXCLUDE**: "Updated by the people syncer script" (LinkedIn sync - already processed)
 - ✅ **EXCLUDE**: "Added by the contacts sync script" (added via this script's add flow)
@@ -1088,10 +1179,11 @@ await service.people.updateContact({
 - ✅ **INCLUDE**: Contacts WITHOUT any notes (need fixing)
 
 **Why "Updated by" is different**:
+
 ```
 Iteration 1: Contact has Hebrew name
            → User fixes Hebrew → Note: "Updated by contacts sync - 13/03/2026"
-           
+
 Iteration 2 (later): Same contact now missing email
            → Script sees "Updated by..." note → INCLUDES IT ✓
            → User can fix the missing email!
@@ -1099,22 +1191,25 @@ Iteration 2 (later): Same contact now missing email
 ```
 
 **Comparison**:
+
 - "Added by" = Complete contact, don't touch
-- "Updated by" = LinkedIn sync processed, don't touch  
+- "Updated by" = LinkedIn sync processed, don't touch
 - "Updated by" = Previously fixed, but CAN fix again if needed
 
 **New Regex Patterns**:
+
 ```typescript
 // Exclude these (complete contacts)
-SYNCER_ADDED_NOTE = /Added by the people syncer script/
-SYNCER_UPDATED_NOTE = /Updated by the people syncer script/
-SYNC_ADDED_NOTE = /Added by the contacts sync script/
+SYNCER_ADDED_NOTE = /Added by the people syncer script/;
+SYNCER_UPDATED_NOTE = /Updated by the people syncer script/;
+SYNC_ADDED_NOTE = /Added by the contacts sync script/;
 
 // Include these (can be fixed again)
-SYNC_FIXED_NOTE = /Updated by the contacts sync script/
+SYNC_FIXED_NOTE = /Updated by the contacts sync script/;
 ```
 
 **Filter Implementation**:
+
 ```typescript
 function shouldExcludeContact(note: string): boolean {
   // Exclude if has "Added by" or "Updated by" from any script
@@ -1128,12 +1223,14 @@ function shouldExcludeContact(note: string): boolean {
 ```
 
 **Note Building**:
+
 - Add flow: "Added by the contacts sync script - Last update: DD/MM/YYYY"
 - Fix flow: "Updated by the contacts sync script - Last update: DD/MM/YYYY"
   - If note already has "Updated by", update the date
   - If note is empty or other text, append "Updated by..."
 
-**ACTION**: 
+**ACTION**:
+
 1. Add `SYNC_FIXED_NOTE` regex pattern (for detection, not filtering)
 2. Use "Updated by..." in fix flow, "Added by..." in add flow
 3. Filter ONLY excludes: SYNCER_ADDED_NOTE, SYNCER_UPDATED_NOTE, SYNC_ADDED_NOTE
@@ -1144,6 +1241,7 @@ function shouldExcludeContact(note: string): boolean {
 **DECISION**: Rebuild last name composite suffix when company changes.
 
 **Example**:
+
 - Original: "Smith Job Microsoft"
 - User changes company to "Google"
 - New last name: "Smith Job Google"
@@ -1157,8 +1255,9 @@ function shouldExcludeContact(note: string): boolean {
 **DECISION**: Update email/phone labels when company changes.
 
 **Example**:
+
 - Email: "john@example.com" with label "Job Microsoft"
-- User changes company to "Google"  
+- User changes company to "Google"
 - Updated email label: "Job Google"
 
 **Implementation**: Update labels for ALL existing emails/phones to match new composite suffix.
@@ -1176,26 +1275,35 @@ function shouldExcludeContact(note: string): boolean {
 When you fetch contacts via `people.connections.list()`, Google automatically includes `resourceName` in each person object. However, in rare cases it might be missing.
 
 **Why this matters**:
+
 - Without resourceName, you CAN'T update contacts (API requires it)
 - Script would fail at update time with cryptic error
 
 **DECISION**: Skip contacts without resourceName (don't display them in sync).
 
-**Implementation**: 
+**Implementation**:
+
 ```typescript
 // After fetching all contacts
-const validContacts = allContacts.filter(c => {
+const validContacts = allContacts.filter((c) => {
   if (!c.resourceName) {
-    logger.warn(`Skipping contact without resourceName: ${c.firstName} ${c.lastName}`, { noPHI: true });
+    logger.warn(
+      `Skipping contact without resourceName: ${c.firstName} ${c.lastName}`,
+      { noPHI: true }
+    );
     return false;
   }
   return true;
 });
 
-logger.info(`Fetched ${allContacts.length} contacts, ${validContacts.length} valid`, { noPHI: true });
+logger.info(
+  `Fetched ${allContacts.length} contacts, ${validContacts.length} valid`,
+  { noPHI: true }
+);
 ```
 
-**ACTION**: 
+**ACTION**:
+
 1. After fetch, filter out contacts without resourceName
 2. Log warning for each skipped contact (no PHI)
 3. Continue with valid contacts only
@@ -1218,7 +1326,8 @@ logger.info(`Fetched ${allContacts.length} contacts, ${validContacts.length} val
 
 **After fixing**: Show success message immediately.
 
-**ACTION**: 
+**ACTION**:
+
 - Show summary when no more contacts to fix
 - Message: "✓ All contacts fixed! No more contacts need fixing."
 
@@ -1227,6 +1336,7 @@ logger.info(`Fetched ${allContacts.length} contacts, ${validContacts.length} val
 **Scenario**: No contacts need fixing (all have syncer notes).
 
 **Display**:
+
 ```
 No contacts need fixing!
 
@@ -1243,10 +1353,12 @@ Contacts without syncer notes: 0
 ### 9. Skipped Contacts Counter [ACTION: ADD TO SUMMARY]
 
 **When to increment skipped**:
+
 - User chooses "Cancel" during edit (discards changes)
 - User doesn't complete editing a contact
 
 **Summary Display**:
+
 ```
 =================Contacts Sync Summary=================
 ========Added: 00,001 | Updated: 09,042 | Skipped: 00,023========
@@ -1264,8 +1376,9 @@ Contacts without syncer notes: 0
 **Logic**: If note matches ANY syncer pattern, exclude.
 
 **ACTION**: Filter checks all patterns with OR logic:
+
 ```typescript
-const hasSyncerNote = 
+const hasSyncerNote =
   SYNCER_ADDED_NOTE.test(note) ||
   SYNCER_UPDATED_NOTE.test(note) ||
   SYNC_ADDED_NOTE.test(note) ||
@@ -1278,7 +1391,8 @@ const hasSyncerNote =
 
 **DECISION**: Detect as Priority 1 (highest - Hebrew present).
 
-**Behavior**: 
+**Behavior**:
+
 - Hebrew detection scans ALL text in field
 - Triggers duplicate detection when fixed (name changed)
 - This is desired behavior
@@ -1290,10 +1404,12 @@ const hasSyncerNote =
 **DECISION**: Copy POC validators to `src/validators/` folder in root.
 
 **Files to copy**:
+
 - `poc/src/validators/inputValidator.ts` → `src/validators/inputValidator.ts`
 - `poc/src/validators/validationSchemas.ts` → `src/validators/validationSchemas.ts`
 
 **Modifications needed**:
+
 - Add `allowHebrew: boolean` parameter to validation methods
 - Skip Hebrew checks when `allowHebrew = true`
 
@@ -1305,7 +1421,8 @@ const hasSyncerNote =
 
 **Usage**: User input for menu choices, field editing, confirmations
 
-**ACTION**: 
+**ACTION**:
+
 1. Verify `inquirer` is in main package.json dependencies (not just POC)
 2. If missing, add: `pnpm add inquirer @types/inquirer`
 3. Import: `import inquirer from 'inquirer';`
@@ -1313,11 +1430,14 @@ const hasSyncerNote =
 ### 15. DI Container Registration [ACTION: REGISTER SYNC SERVICE]
 
 **Services to register**:
+
 - `ContactSyncer` - main service
 - Dependencies: OAuth2Client, DuplicateDetector
 
 **Files to modify**:
+
 1. `src/di/identifiers.ts` - add identifier:
+
 ```typescript
 export const TYPES = {
   // ... existing
@@ -1326,6 +1446,7 @@ export const TYPES = {
 ```
 
 2. `src/di/container.ts` - register service:
+
 ```typescript
 container.bind(ContactSyncer).toSelf().inSingletonScope();
 ```
@@ -1335,6 +1456,7 @@ container.bind(ContactSyncer).toSelf().inSingletonScope();
 ### 16. Error Codes for Fixer [ACTION: ADD TO ERROR_CODES.TS]
 
 **New error codes**:
+
 ```typescript
 // Contacts Sync errors (3001xxx)
 CONTACTS_SYNC_NO_CONTACTS = 3001001,
@@ -1349,6 +1471,7 @@ CONTACTS_SYNC_VALIDATION_FAILED = 3001005,
 ### 17. Testing Gaps - Complete Checklist [ACTION: ADD TO TESTING]
 
 **Additional test scenarios**:
+
 - [ ] Contact with empty string vs undefined fields (both should work)
 - [ ] Contact with very long note (>1024 chars) - should handle gracefully
 - [ ] Contact with special characters in name (emojis: 😀, accents: José, Müller)
@@ -1380,6 +1503,7 @@ CONTACTS_SYNC_VALIDATION_FAILED = 3001005,
 **Without indicator**: User thinks script is frozen/crashed ❌
 
 **With indicator**: User sees real-time progress ✅
+
 ```
 ⠋ Fetching contacts: 1,000 contacts fetched...
 ⠙ Fetching contacts: 2,000 contacts fetched...
@@ -1391,12 +1515,14 @@ CONTACTS_SYNC_VALIDATION_FAILED = 3001005,
 ```
 
 **Implementation**:
+
 - Use ora spinner (already used in POC and LinkedIn sync)
 - Update count in real-time during pagination
 - Show final count when complete
 - Include skipped count (contacts without resourceName)
 
 **Code Example**:
+
 ```typescript
 const spinner = ora('Fetching contacts...').start();
 
@@ -1404,12 +1530,15 @@ const spinner = ora('Fetching contacts...').start();
 spinner.text = `Fetching contacts: ${contacts.length} contacts fetched...`;
 
 // When done
-const validCount = contacts.filter(c => c.resourceName).length;
+const validCount = contacts.filter((c) => c.resourceName).length;
 const skippedCount = contacts.length - validCount;
-spinner.succeed(`Fetched ${validCount} contacts${skippedCount > 0 ? ` (${skippedCount} skipped: missing ID)` : ''}`);
+spinner.succeed(
+  `Fetched ${validCount} contacts${skippedCount > 0 ? ` (${skippedCount} skipped: missing ID)` : ''}`
+);
 ```
 
-**ACTION**: 
+**ACTION**:
+
 1. Add ora spinner during fetch
 2. Update text in real-time with running count
 3. Show final count with skipped breakdown
@@ -1422,6 +1551,7 @@ spinner.succeed(`Fetched ${validCount} contacts${skippedCount > 0 ? ` (${skipped
 ### 1. Shared Contact Editor Service [ACTION: REFACTOR FIRST]
 
 **Refactor**: Extract shared logic into `src/services/contacts/contactEditor.ts`:
+
 - `promptForLabels()`
 - `handleEditAction()`
 - `fetchContactGroups()`
@@ -1435,6 +1565,7 @@ spinner.succeed(`Fetched ${validCount} contacts${skippedCount > 0 ? ` (${skipped
 ### 2. Note Parser Generalization [ACTION: IMPLEMENT]
 
 **Refactor**: Make it accept script name as parameter:
+
 ```typescript
 export function buildNewContactNote(date: Date, scriptName: string): string {
   return `Added by the ${scriptName} - Last update: ${formatDateDDMMYYYY(date)}`;
@@ -1444,6 +1575,7 @@ export function buildNewContactNote(date: Date, scriptName: string): string {
 ### 3. Dedicated Sync Fetch Method [ACTION: CREATE]
 
 **Refactor**: Create `fetchContactsWithNotes()` in `ContactSyncer` service:
+
 - Include `biographies` in personFields
 - Return contacts with notes populated
 - Don't modify existing `DuplicateDetector` behavior
@@ -1451,6 +1583,7 @@ export function buildNewContactNote(date: Date, scriptName: string): string {
 ### 4. ContactData Interface Extension [ACTION: ADD OPTIONAL FIELDS]
 
 **Refactor**: Add optional fields:
+
 ```typescript
 interface ContactData {
   // ... existing fields
@@ -1463,8 +1596,9 @@ interface ContactData {
 ## Action Items Summary - UPDATED
 
 ### Must Implement (Critical)
+
 1. ✅ Add `biographies` to personFields in fetch
-2. ✅ Add `note?: string` and `etag?: string` fields to ContactData interface  
+2. ✅ Add `note?: string` and `etag?: string` fields to ContactData interface
 3. ✅ Allow Hebrew characters in sync validation
 4. ✅ Run duplicate detection before saving edits
 5. ✅ Implement highest-priority-wins logic (Option A)
@@ -1478,6 +1612,7 @@ interface ContactData {
 13. ⚠️ **CRITICAL**: Add fetch progress indicator with skipped count (essential UX)
 
 ### Should Implement (Important)
+
 13. ✅ Refactor note parser to accept script name parameter
 14. ✅ Add 50,000 contact limit with error message
 15. ✅ Copy POC TextUtils, NameParser, validators to src/
@@ -1489,11 +1624,13 @@ interface ContactData {
 21. ✅ Handle single contact edge case gracefully
 
 ### New Regex Patterns Required
+
 - `SYNC_ADDED_NOTE = /Added by the contacts sync script/` (EXCLUDE from fix flow)
 - `SYNC_FIXED_NOTE = /Updated by the contacts sync script/` (INCLUDE in fix flow - can re-fix!)
 - Note: Keep existing SYNCER patterns for filtering (EXCLUDE both)
 
 ### Explicitly Skipped (By Decision)
+
 22. ❌ 412 error handling - single user, one script at a time
 23. ❌ Session state persistence - not needed for v1
 24. ❌ Translation caching - future enhancement
@@ -1514,7 +1651,7 @@ interface ContactData {
 
 3. **Add error codes** (5 min)
    - CONTACTS_SYNC_NO_CONTACTS
-   - CONTACTS_SYNC_TOO_MANY_CONTACTS  
+   - CONTACTS_SYNC_TOO_MANY_CONTACTS
    - CONTACTS_SYNC_INVALID_CONTACT_DATA
    - CONTACTS_SYNC_MISSING_RESOURCE_NAME
    - CONTACTS_SYNC_VALIDATION_FAILED
@@ -1527,7 +1664,7 @@ interface ContactData {
    - Add `note?: string`
    - Add `etag?: string`
 
-5. **Copy POC code to src** (30 min)
+6. **Copy POC code to src** (30 min)
    - Copy `TextUtils` class to `src/utils/`
    - Copy `NameParser` class to `src/parsers/`
    - Copy `InputValidator` to `src/validators/`
@@ -1539,34 +1676,35 @@ interface ContactData {
    - Check package.json
    - Install if missing: `pnpm add inquirer @types/inquirer`
 
-7. **Add 50K limit check** (5 min)
+8. **Add 50K limit check** (5 min)
    - Check contact count after fetch
    - Show error and exit if exceeded
 
-8. **Register in DI container** (10 min)
+9. **Register in DI container** (10 min)
    - Add identifier to `identifiers.ts`
    - Bind ContactSyncer in `container.ts`
 
-9. **Add Ctrl+C handler** (10 min)
-   - Add SIGINT handler at script start
-   - Show partial summary on interrupt
-   - Format numbers with leading zeros
+10. **Add Ctrl+C handler** (10 min)
+    - Add SIGINT handler at script start
+    - Show partial summary on interrupt
+    - Format numbers with leading zeros
 
-10. **Create ContactSyncer service** (3-4 hours)
-   - Fetch with biographies + **progress indicator** ⚠️ CRITICAL UX
-   - Filter contacts without resourceName (log warning, don't fail)
-   - Filter logic: exclude ONLY "Added by" and "Updated by" notes (3 patterns)
-     - EXCLUDE: SYNCER_ADDED_NOTE
-     - EXCLUDE: SYNCER_UPDATED_NOTE  
-     - EXCLUDE: SYNC_ADDED_NOTE
-     - INCLUDE: SYNC_FIXED_NOTE (allows re-fixing!)
-     - INCLUDE: No notes
-   - Priority categorization: highest-priority-wins (Option A)
-   - Hebrew detection: simplified - "Contains Hebrew" (no field list)
-   - **EXCLUDE LinkedIn URLs from Hebrew detection** (LinkedIn normalizes to ASCII)
-   - Null/undefined/empty detection: handle all three cases
-   - Build reasons array for each contact (comma-separated)
-   - Track: added, updated, skipped counters
+11. **Create ContactSyncer service** (3-4 hours)
+
+- Fetch with biographies + **progress indicator** ⚠️ CRITICAL UX
+- Filter contacts without resourceName (log warning, don't fail)
+- Filter logic: exclude ONLY "Added by" and "Updated by" notes (3 patterns)
+  - EXCLUDE: SYNCER_ADDED_NOTE
+  - EXCLUDE: SYNCER_UPDATED_NOTE
+  - EXCLUDE: SYNC_ADDED_NOTE
+  - INCLUDE: SYNC_FIXED_NOTE (allows re-fixing!)
+  - INCLUDE: No notes
+- Priority categorization: highest-priority-wins (Option A)
+- Hebrew detection: simplified - "Contains Hebrew" (no field list)
+- **EXCLUDE LinkedIn URLs from Hebrew detection** (LinkedIn normalizes to ASCII)
+- Null/undefined/empty detection: handle all three cases
+- Build reasons array for each contact (comma-separated)
+- Track: added, updated, skipped counters
 
 11. **Build display logic** (1-2 hours)
     - Format contact display
@@ -1617,15 +1755,16 @@ interface ContactData {
     - Interactive menu only (no package.json command)
 
 17. **Complete testing** (3-4 hours)
-   - All 25+ testing checklist items
-   - Edge cases
-   - Special characters
-   - Large numbers
-   - Error scenarios
-   - Same-date note update (should skip)
-   - Memberships merge (verify system groups preserved)
-   - Skipped counter logic
-   - Hebrew in LinkedIn URL (should NOT trigger Priority 1)
+
+- All 25+ testing checklist items
+- Edge cases
+- Special characters
+- Large numbers
+- Error scenarios
+- Same-date note update (should skip)
+- Memberships merge (verify system groups preserved)
+- Skipped counter logic
+- Hebrew in LinkedIn URL (should NOT trigger Priority 1)
 
 ### Total Estimate: 15-22 hours (increased due to additional requirements)
 

@@ -12,9 +12,11 @@ Two user interface improvements to enhance readability and visual clarity:
 ## Change 1: Reorganized Summary Layout
 
 ### Problem
+
 The summary statistics were showing "Updated" on the first line with "New" and "Processed", which didn't group related metrics logically.
 
 **Before:**
+
 ```
 ===========New: 000,000 | Processed: 009,042 | Updated: 000,030==
 =========Warning: 000,000 | UpToDate: 000,042==========
@@ -22,6 +24,7 @@ The summary statistics were showing "Updated" on the first line with "New" and "
 ```
 
 **After:**
+
 ```
 ===========New: 000,000 | Processed: 009,042===========
 =========Warning: 000,000 | UpToDate: 000,042 | Updated: 000,030==========
@@ -31,6 +34,7 @@ The summary statistics were showing "Updated" on the first line with "New" and "
 ### Rationale
 
 Better logical grouping:
+
 - **Line 1**: New contacts and total processed (additions)
 - **Line 2**: Status metrics (warnings, up-to-date, **and updates**)
 - **Line 3**: Issues (skipped and errors)
@@ -38,6 +42,7 @@ Better logical grouping:
 This groups "Updated" with other status indicators (UpToDate, Warning) rather than with creation metrics (New, Processed).
 
 ### Files Modified
+
 - `src/scripts/linkedinSync.ts` - Lines 468-483
 - `src/scripts/hibobSync.ts` - Lines 458-473
 
@@ -46,9 +51,11 @@ This groups "Updated" with other status indicators (UpToDate, Warning) rather th
 ## Change 2: Added Emojis to Status Bar Fields
 
 ### Problem
+
 The current contact display in the status bar used plain dashes (`-`) which made it harder to quickly scan and identify different field types.
 
 **Before:**
+
 ```
 Current:
   -Full name: Tzlil Hemo HR MalamTeam
@@ -60,6 +67,7 @@ Current:
 ```
 
 **After:**
+
 ```
 Current:
   👤 Full name: Tzlil Hemo HR MalamTeam
@@ -72,14 +80,14 @@ Current:
 
 ### Emoji Mappings
 
-| Field | Emoji | Constant |
-|-------|-------|----------|
-| Full name | 👤 | `EMOJIS.FIELDS.PERSON` |
-| Labels | 🏷️ | `EMOJIS.FIELDS.LABEL` |
-| Company | 🏢 | `EMOJIS.FIELDS.COMPANY` |
-| Job Title | 💼 | `EMOJIS.FIELDS.JOB_TITLE` |
-| Email | 📧 | `EMOJIS.FIELDS.EMAIL` |
-| LinkedIn URL | 🔗 | `EMOJIS.FIELDS.LINKEDIN` |
+| Field        | Emoji | Constant                  |
+| ------------ | ----- | ------------------------- |
+| Full name    | 👤    | `EMOJIS.FIELDS.PERSON`    |
+| Labels       | 🏷️    | `EMOJIS.FIELDS.LABEL`     |
+| Company      | 🏢    | `EMOJIS.FIELDS.COMPANY`   |
+| Job Title    | 💼    | `EMOJIS.FIELDS.JOB_TITLE` |
+| Email        | 📧    | `EMOJIS.FIELDS.EMAIL`     |
+| LinkedIn URL | 🔗    | `EMOJIS.FIELDS.LINKEDIN`  |
 
 ### Benefits
 
@@ -90,6 +98,7 @@ Current:
 5. **Works for Both Scripts**: Applied to both LinkedIn and HiBob sync scripts
 
 ### Files Modified
+
 - `src/flow/syncStatusBar.ts`
   - Line 4: Added EMOJIS import
   - Lines 180-205: Replaced dashes with appropriate emojis for both LinkedIn and HiBob contacts
@@ -106,10 +115,13 @@ Current:
 ## Visual Impact
 
 ### Summary Layout
+
 Users will see better-organized statistics that group related metrics together, making it easier to understand sync results at a glance.
 
 ### Status Bar Emojis
+
 The status bar becomes more scannable during long sync operations. Users can quickly identify:
+
 - 👤 Who is being processed
 - 🏢 What company they work for
 - 💼 Their job title

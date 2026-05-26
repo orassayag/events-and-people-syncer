@@ -15,7 +15,14 @@ export interface PrePopulatedData extends Partial<EditableContactData> {
   company?: string;
 }
 
-export type SupportedContact = LinkedInConnection | { type: ContactType.HIBOB; firstName: string; lastName?: string; email?: string };
+export type SupportedContact =
+  | LinkedInConnection
+  | {
+      type: ContactType.HIBOB;
+      firstName: string;
+      lastName?: string;
+      email?: string;
+    };
 
 export interface DuplicateMatch {
   contact: ContactData;

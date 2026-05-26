@@ -254,7 +254,7 @@ SolarEdge Technologies → SolarEdge
 3. One general note: your normalization will convert abra → Abra and matrix → Matrix due to title-casing, so make sure your comparison logic is case-insensitive when matching.
 4. Let's address Stealth by a rule:
 You already mapped:
-Stealth Variations: Your list covers several, but I found StealthModeStartup and StartupInStealthMode in the file. 
+Stealth Variations: Your list covers several, but I found StealthModeStartup and StartupInStealthMode in the file.
 A catch-all for any word containing Stealth mapping to Stealth would be efficient.
 
 StealthAI
@@ -346,5 +346,5 @@ SVTJobs and Svt.jobsRecruitment are mapped to SVT.Jobs. For a cleaner contact li
 11. Removed the "Israel" in the end.
 -If the comany name ends with "Israel" remove the "israel" word.
 
-12. Legal/Consulting: 
+12. Legal/Consulting:
 Many entries end in LawOffice, Co, or Ltd. You can programmatically strip these if they appear at the end of the string.

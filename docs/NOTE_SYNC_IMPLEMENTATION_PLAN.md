@@ -7,21 +7,25 @@ Add automated note tracking to the LinkedIn contact syncer that records when con
 ## Note Format Specifications
 
 ### New Contact Note
+
 ```
 Added by the people syncer script - Last update: 13/03/2026
 ```
 
 ### Updated Contact Note (appended)
+
 ```
 [existing note content]
 Updated by the people syncer script - Last update: 13/03/2026
 ```
 
 ### Line Break Strategy
+
 - Use single newline (`\n`) to separate existing notes from new syncer notes
 - Only add line break if existing notes are present
 
 ### Date Handling
+
 - Format: `dd/MM/yyyy` (e.g., `13/03/2026`)
 - Only update date if different from current date in note
 - Preserve all other existing note content when updating dates
@@ -33,12 +37,14 @@ Updated by the people syncer script - Last update: 13/03/2026
 **Location**: `src/services/linkedin/contactSyncer.ts` - `addContact()` method
 
 **Logic**:
+
 - When creating a new contact (lines 28-112), add a `biographies` field to the request body
 - Format: `"Added by the people syncer script - Last update: dd/MM/yyyy"`
 - Use current date in `dd/MM/yyyy` format
 - Insert after the `memberships` field setup (around line 95)
 
 **Code Addition**:
+
 ```typescript
 if (Object.keys(requestBody).length === 0) {
   return SyncStatusType.SKIPPED;
@@ -64,23 +70,27 @@ await retryWithBackoff(async () => {
 **Logic Flow** (lines 114-249):
 
 #### a. Fetch existing contact with biographies
+
 - Update the `personFields` parameter in `service.people.get()` call (line 125)
 - Change from: `personFields: 'names,emailAddresses,urls,organizations'`
 - Change to: `personFields: 'names,emailAddresses,urls,organizations,biographies'`
 
 #### b. Parse existing note content
+
 - Extract existing `biographies` field from `existingData.biographies?.[0]?.value`
 - Check for presence of syncer-related messages
 
 #### c. Apply update logic based on note state
 
 **Case 1: Contains "Added by the people syncer script"**
+
 - Convert "Added by" to "Updated by" to reflect that the contact was modified
 - Extract the date from the note using `RegexPatterns.SYNCER_NOTE_DATE`
 - Update the date to current date
 - Message format: `"Updated by the people syncer script - Last update: dd/MM/yyyy"`
 
 **Case 2: Contains "Updated by the people syncer script"**
+
 - Extract the date from the note
 - Compare extracted date with current date
 - If dates differ: Update "Last update: dd/MM/yyyy" to current date
@@ -88,17 +98,20 @@ await retryWithBackoff(async () => {
 - Preserve the "Updated by" message
 
 **Case 3: No syncer message present**
+
 - Check if existing notes exist (non-empty biography)
 - If yes: Append `\n` + new note message
 - If no: Set note message directly
 - Message format: `"Updated by the people syncer script - Last update: dd/MM/yyyy"`
 
 #### d. Add to update request
+
 - If note changes are needed, add `biographies` to `requestBody`
 - Add `'biographies'` to the `updateMask` array
 - Set `hasChanges = true`
 
 **Code Addition** (after line 227):
+
 ```typescript
 // Handle note updates
 const existingNote = existingData.biographies?.[0]?.value?.trim() || '';
@@ -124,6 +137,7 @@ if (noteUpdate.shouldUpdate) {
 **File**: `src/utils/dateFormatter.ts` (new file)
 
 Create a utility function to format dates:
+
 ```typescript
 import { RegexPatterns } from '../regex/patterns';
 
@@ -153,6 +167,7 @@ export function parseDateDDMMYYYY(dateStr: string): Date | null {
 **File**: `src/services/linkedin/noteParser.ts` (new file)
 
 Create utilities to:
+
 - Extract date from syncer note using regex
 - Determine if note contains "Added by" or "Updated by" messages
 - Build updated note with new date while preserving other content
@@ -171,7 +186,10 @@ export function buildNewContactNote(date: Date): string {
   return `Added by the people syncer script - Last update: ${formatDateDDMMYYYY(date)}`;
 }
 
-export function buildUpdatedContactNote(date: Date, existingNote: string): string {
+export function buildUpdatedContactNote(
+  date: Date,
+  existingNote: string
+): string {
   if (!existingNote) {
     return `Updated by the people syncer script - Last update: ${formatDateDDMMYYYY(date)}`;
   }
@@ -184,18 +202,26 @@ export function extractDateFromNote(note: string): string | null {
 }
 
 export function updateNoteDateOnly(note: string, newDate: string): string {
-  return note.replace(RegexPatterns.SYNCER_NOTE_DATE, `Last update: ${newDate}`);
+  return note.replace(
+    RegexPatterns.SYNCER_NOTE_DATE,
+    `Last update: ${newDate}`
+  );
 }
 
-export function determineNoteUpdate(existingNote: string, currentDate: string): NoteUpdateResult {
+export function determineNoteUpdate(
+  existingNote: string,
+  currentDate: string
+): NoteUpdateResult {
   if (!existingNote) {
     return {
       shouldUpdate: true,
       newNoteValue: `Updated by the people syncer script - Last update: ${currentDate}`,
     };
   }
-  const hasAddedMessage: boolean = RegexPatterns.SYNCER_ADDED_NOTE.test(existingNote);
-  const hasUpdatedMessage: boolean = RegexPatterns.SYNCER_UPDATED_NOTE.test(existingNote);
+  const hasAddedMessage: boolean =
+    RegexPatterns.SYNCER_ADDED_NOTE.test(existingNote);
+  const hasUpdatedMessage: boolean =
+    RegexPatterns.SYNCER_UPDATED_NOTE.test(existingNote);
   if (hasAddedMessage || hasUpdatedMessage) {
     const existingDate: string | null = extractDateFromNote(existingNote);
     if (existingDate === currentDate) {
@@ -221,6 +247,7 @@ export function determineNoteUpdate(existingNote: string, currentDate: string): 
 **File**: `src/regex/patterns.ts`
 
 Add new regex patterns for note syncing:
+
 ```typescript
 static readonly SYNCER_ADDED_NOTE = /Added by the people syncer script/;
 static readonly SYNCER_UPDATED_NOTE = /Updated by the people syncer script/;
@@ -295,6 +322,7 @@ No changes needed to existing types - `biographies` field is part of Google Peop
 ### Unit Tests
 
 #### Date Formatter Tests (`src/utils/__tests__/dateFormatter.test.ts`)
+
 ```typescript
 describe('formatDateDDMMYYYY', () => {
   it('should format date correctly', () => {
@@ -313,50 +341,63 @@ describe('formatDateDDMMYYYY', () => {
 ```
 
 #### Note Parser Tests (`src/services/linkedin/__tests__/noteParser.test.ts`)
+
 ```typescript
 describe('buildNewContactNote', () => {
   it('should create note with correct format', () => {
     const note = buildNewContactNote(new Date(2026, 2, 13));
-    expect(note).toBe('Added by the people syncer script - Last update: 13/03/2026');
+    expect(note).toBe(
+      'Added by the people syncer script - Last update: 13/03/2026'
+    );
   });
 });
 
 describe('determineNoteUpdate', () => {
   it('should not update if Added message with same date', () => {
-    const existingNote = 'Added by the people syncer script - Last update: 13/03/2026';
+    const existingNote =
+      'Added by the people syncer script - Last update: 13/03/2026';
     const result = determineNoteUpdate(existingNote, '13/03/2026');
     expect(result.shouldUpdate).toBe(false);
   });
 
   it('should update if Added message with different date', () => {
-    const existingNote = 'Added by the people syncer script - Last update: 12/03/2026';
+    const existingNote =
+      'Added by the people syncer script - Last update: 12/03/2026';
     const result = determineNoteUpdate(existingNote, '13/03/2026');
     expect(result.shouldUpdate).toBe(true);
-    expect(result.newNoteValue).toBe('Added by the people syncer script - Last update: 13/03/2026');
+    expect(result.newNoteValue).toBe(
+      'Added by the people syncer script - Last update: 13/03/2026'
+    );
   });
 
   it('should append Updated message to existing non-syncer note', () => {
     const existingNote = 'Some personal note';
     const result = determineNoteUpdate(existingNote, '13/03/2026');
     expect(result.shouldUpdate).toBe(true);
-    expect(result.newNoteValue).toBe('Some personal note\nUpdated by the people syncer script - Last update: 13/03/2026');
+    expect(result.newNoteValue).toBe(
+      'Some personal note\nUpdated by the people syncer script - Last update: 13/03/2026'
+    );
   });
 
   it('should create Updated message for empty note', () => {
     const result = determineNoteUpdate('', '13/03/2026');
     expect(result.shouldUpdate).toBe(true);
-    expect(result.newNoteValue).toBe('Updated by the people syncer script - Last update: 13/03/2026');
+    expect(result.newNoteValue).toBe(
+      'Updated by the people syncer script - Last update: 13/03/2026'
+    );
   });
 });
 ```
 
 #### Contact Syncer Integration Tests
+
 - Test new contact creation includes biography
 - Test update contact with no existing note adds Updated message
 - Test update contact with existing syncer note updates date
 - Test update contact with existing syncer note same date skips update
 
 ### Manual Testing
+
 - Run sync with new contacts → verify "Added by" note in Google Contacts
 - Run sync again same day → verify no changes, "Up-To-Date" status
 - Run sync next day → verify date updated

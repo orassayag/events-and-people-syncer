@@ -1,12 +1,12 @@
-import { google, Auth } from "googleapis";
-import { readFile, writeFile } from "fs/promises";
-import { existsSync } from "fs";
-import { createServer, IncomingMessage, ServerResponse, Server } from "http";
-import { parse } from "url";
-import { exec } from "child_process";
-import type { GoogleCredentials, TokenData } from "../types.js";
-import { SETTINGS } from "../settings.js";
-import { PortManager } from "../utils/index.js";
+import { google, Auth } from 'googleapis';
+import { readFile, writeFile } from 'fs/promises';
+import { existsSync } from 'fs';
+import { createServer, IncomingMessage, ServerResponse, Server } from 'http';
+import { parse } from 'url';
+import { exec } from 'child_process';
+import type { GoogleCredentials, TokenData } from '../types.js';
+import { SETTINGS } from '../settings.js';
+import { PortManager } from '../utils/index.js';
 
 type OAuth2Client = Auth.OAuth2Client;
 
@@ -42,7 +42,7 @@ export class AuthService {
       !authProviderCertUrl
     ) {
       throw new Error(
-        "Missing required environment variables. Please check .env file.",
+        'Missing required environment variables. Please check .env file.'
       );
     }
     return {
@@ -61,13 +61,13 @@ export class AuthService {
     if (!existsSync(SETTINGS.TOKEN_PATH)) {
       return null;
     }
-    const content = await readFile(SETTINGS.TOKEN_PATH, "utf-8");
+    const content = await readFile(SETTINGS.TOKEN_PATH, 'utf-8');
     return JSON.parse(content);
   }
 
   private async saveToken(token: TokenData): Promise<void> {
     await writeFile(SETTINGS.TOKEN_PATH, JSON.stringify(token, null, 2));
-    console.log("Token saved to:", SETTINGS.TOKEN_PATH);
+    console.log('Token saved to:', SETTINGS.TOKEN_PATH);
   }
 
   private createOAuth2Client(credentials: GoogleCredentials): OAuth2Client {
@@ -78,13 +78,13 @@ export class AuthService {
 
   private async getNewToken(): Promise<void> {
     if (!this.oAuth2Client) {
-      throw new Error("OAuth2 client not initialized");
+      throw new Error('OAuth2 client not initialized');
     }
     await PortManager.ensurePortAvailable(SETTINGS.REDIRECT_PORT);
     const OAUTH_TIMEOUT = 10 * 60 * 1000;
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => {
-        reject(new Error("OAuth authentication timeout after 10 minutes"));
+        reject(new Error('OAuth authentication timeout after 10 minutes'));
       }, OAUTH_TIMEOUT);
     });
     return Promise.race([this.startAuthServer(), timeoutPromise]);
@@ -92,7 +92,7 @@ export class AuthService {
 
   private async startAuthServer(): Promise<void> {
     if (!this.oAuth2Client) {
-      throw new Error("OAuth2 client not initialized");
+      throw new Error('OAuth2 client not initialized');
     }
     return new Promise((resolve, reject) => {
       let serverClosed = false;
@@ -103,12 +103,12 @@ export class AuthService {
         }
       };
       const handleSignal = () => {
-        console.log("\nReceived interrupt signal. Cleaning up...");
+        console.log('\nReceived interrupt signal. Cleaning up...');
         closeServer();
         process.exit(0);
       };
-      process.on("SIGINT", handleSignal);
-      process.on("SIGTERM", handleSignal);
+      process.on('SIGINT', handleSignal);
+      process.on('SIGTERM', handleSignal);
       try {
         this.server = createServer(
           async (req: IncomingMessage, res: ServerResponse) => {
@@ -118,67 +118,67 @@ export class AuthService {
             const queryData = parse(req.url, true).query;
             if (queryData.code) {
               const code = queryData.code as string;
-              res.writeHead(200, { "Content-Type": "text/html" });
+              res.writeHead(200, { 'Content-Type': 'text/html' });
               res.end(
-                "<h1>Authentication successful!</h1><p>You can close this window and return to the terminal.</p>",
+                '<h1>Authentication successful!</h1><p>You can close this window and return to the terminal.</p>'
               );
               closeServer();
               try {
                 if (!this.oAuth2Client) {
-                  throw new Error("OAuth2 client not initialized");
+                  throw new Error('OAuth2 client not initialized');
                 }
                 const { tokens } = await this.oAuth2Client.getToken(code);
                 this.oAuth2Client.setCredentials(tokens);
                 await this.saveToken(tokens as TokenData);
-                console.log("\n✓ Authentication successful!\n");
-                process.removeListener("SIGINT", handleSignal);
-                process.removeListener("SIGTERM", handleSignal);
+                console.log('\n✓ Authentication successful!\n');
+                process.removeListener('SIGINT', handleSignal);
+                process.removeListener('SIGTERM', handleSignal);
                 resolve();
               } catch (err) {
-                process.removeListener("SIGINT", handleSignal);
-                process.removeListener("SIGTERM", handleSignal);
-                reject(new Error("Error retrieving access token: " + err));
+                process.removeListener('SIGINT', handleSignal);
+                process.removeListener('SIGTERM', handleSignal);
+                reject(new Error('Error retrieving access token: ' + err));
               }
             } else if (queryData.error) {
-              res.writeHead(400, { "Content-Type": "text/html" });
+              res.writeHead(400, { 'Content-Type': 'text/html' });
               res.end(
-                "<h1>Authentication failed!</h1><p>Error: " +
+                '<h1>Authentication failed!</h1><p>Error: ' +
                   queryData.error +
-                  "</p>",
+                  '</p>'
               );
               closeServer();
-              process.removeListener("SIGINT", handleSignal);
-              process.removeListener("SIGTERM", handleSignal);
-              reject(new Error("Authentication failed: " + queryData.error));
+              process.removeListener('SIGINT', handleSignal);
+              process.removeListener('SIGTERM', handleSignal);
+              reject(new Error('Authentication failed: ' + queryData.error));
             }
-          },
+          }
         );
         this.server.listen(SETTINGS.REDIRECT_PORT, () => {
           if (!this.oAuth2Client) {
-            reject(new Error("OAuth2 client not initialized"));
+            reject(new Error('OAuth2 client not initialized'));
             return;
           }
           const authUrl = this.oAuth2Client.generateAuthUrl({
-            access_type: "offline",
+            access_type: 'offline',
             scope: SETTINGS.SCOPES,
           });
-          console.log("\nOpening browser for authentication...");
+          console.log('\nOpening browser for authentication...');
           console.log(
-            "If the browser does not open automatically, visit this URL:\n",
+            'If the browser does not open automatically, visit this URL:\n'
           );
           console.log(authUrl);
-          console.log("\n");
+          console.log('\n');
           this.openBrowser(authUrl);
         });
-        this.server.on("error", (err) => {
-          process.removeListener("SIGINT", handleSignal);
-          process.removeListener("SIGTERM", handleSignal);
-          reject(new Error("Failed to start local server: " + err.message));
+        this.server.on('error', (err) => {
+          process.removeListener('SIGINT', handleSignal);
+          process.removeListener('SIGTERM', handleSignal);
+          reject(new Error('Failed to start local server: ' + err.message));
         });
       } catch (error) {
         closeServer();
-        process.removeListener("SIGINT", handleSignal);
-        process.removeListener("SIGTERM", handleSignal);
+        process.removeListener('SIGINT', handleSignal);
+        process.removeListener('SIGTERM', handleSignal);
         reject(error);
       }
     });
@@ -187,22 +187,22 @@ export class AuthService {
   private openBrowser(url: string): void {
     const platform = process.platform;
     const command =
-      platform === "darwin"
-        ? "open"
-        : platform === "win32"
-          ? "start"
-          : "xdg-open";
+      platform === 'darwin'
+        ? 'open'
+        : platform === 'win32'
+          ? 'start'
+          : 'xdg-open';
     exec(
       `${command} "${url}"`,
       { timeout: SETTINGS.BROWSER_TIMEOUT },
       (error) => {
         if (error) {
           console.log(
-            "\nCould not automatically open browser. Please visit this URL manually:\n",
+            '\nCould not automatically open browser. Please visit this URL manually:\n'
           );
           console.log(url);
         }
-      },
+      }
     );
   }
 }

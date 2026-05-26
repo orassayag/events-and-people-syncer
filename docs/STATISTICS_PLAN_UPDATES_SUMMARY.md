@@ -9,21 +9,27 @@ This document summarizes all updates made to the Statistics Script Implementatio
 ## Key Decisions Made
 
 ### 1. File Counting Strategy
+
 **Decision:** Count ALL `.txt` files (not just `notes_*.txt` pattern)
-**Impact:** 
+**Impact:**
+
 - Simpler implementation
 - More inclusive counting
 - Will catch any text files in folders
 
 ### 2. Empty Folder Counting
+
 **Decision:** Count empty folders (folders with 0 `.txt` files) in statistics
 **Impact:**
+
 - Added `emptyFolders` field to `FolderStatistics`
 - Provides insight into unused folders
 
 ### 3. Estimated Duration
+
 **Decision:** Updated from "5-10 seconds" to "10-30 seconds"
-**Rationale:** 
+**Rationale:**
+
 - Realistic estimate for file I/O operations
 - Accounts for API latency
 - Better user expectation management
@@ -76,9 +82,9 @@ interface Statistics {
   folders: FolderStatistics;
   notes: NoteStatistics;
   contacts: ContactStatistics;
-  averages: AverageStatistics;      // NEW
-  activity: ActivityStatistics;      // NEW
-  timestamp: number;                 // NEW
+  averages: AverageStatistics; // NEW
+  activity: ActivityStatistics; // NEW
+  timestamp: number; // NEW
 }
 ```
 
@@ -116,13 +122,16 @@ interface Statistics {
 ## Technical Implementation Changes
 
 ### 1. Contact Fetching - FIXED
+
 **Old approach:** Access private `DuplicateDetector` method
+
 ```typescript
 // ❌ BAD - accessing private method
 const contacts = await this.duplicateDetector['fetchAllContacts']();
 ```
 
 **New approach:** Use Google People API directly
+
 ```typescript
 // ✅ GOOD - direct API access
 const service = google.people({ version: 'v1', auth: this.auth });
@@ -130,17 +139,21 @@ const service = google.people({ version: 'v1', auth: this.auth });
 ```
 
 ### 2. File Counting - ENHANCED
+
 **Added metadata collection:**
+
 ```typescript
 interface FileMetadata {
   name: string;
-  mtime: Date;    // For date calculations
-  size: number;   // For storage calculations
+  mtime: Date; // For date calculations
+  size: number; // For storage calculations
 }
 ```
 
 ### 3. Progress Tracking - CLARIFIED
+
 **Percentages updated:**
+
 - Scanning job-interviews: 20%
 - Scanning life-events: 20%
 - Counting notes: 30%
@@ -148,7 +161,9 @@ interface FileMetadata {
 - Calculating: 10%
 
 ### 4. API Tracking - ADDED
+
 Track API calls at start and end:
+
 ```typescript
 const apiTracker = ApiTracker.getInstance();
 const startStats = await apiTracker.getStats();
@@ -171,6 +186,7 @@ const endStats = await apiTracker.getStats();
 7. **Storage = bytes** → Format as "X.X KB/MB/GB"
 
 ### Storage Formatting:
+
 ```typescript
 function formatStorage(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -223,11 +239,13 @@ function formatStorage(bytes: number): string {
 ## Files to Create/Modify
 
 ### Create:
+
 1. `src/types/statistics.ts` - Enhanced with 5 interfaces
 2. `src/services/statistics/statisticsCollector.ts` - Full implementation
 3. `src/scripts/statistics.ts` - Script with display logic
 
 ### Modify:
+
 1. `src/scripts/index.ts` - Register new script
 2. `src/index.ts` - Add to script order (last position)
 
@@ -236,6 +254,7 @@ function formatStorage(bytes: number): string {
 ## Checklist Updates
 
 Expanded from 10 items to 24 items with detailed sub-tasks:
+
 - ✅ Type definitions with all interfaces
 - ✅ Service implementation with 6 methods
 - ✅ Script implementation with all features
@@ -247,6 +266,7 @@ Expanded from 10 items to 24 items with detailed sub-tasks:
 ## Documentation Additions
 
 ### New Sections:
+
 1. **Complete Implementation Flow** - Step-by-step execution
 2. **Detailed Implementation Examples** - 200+ lines of example code
 3. **Date Calculations** - Helper functions for today/week

@@ -21,7 +21,10 @@ describe('TextUtils.handleNicknames', () => {
   });
 
   it('drops they/them style parentheticals', () => {
-    const { lastName } = TextUtils.handleNicknames('Alex', 'Rivera (They/them)');
+    const { lastName } = TextUtils.handleNicknames(
+      'Alex',
+      'Rivera (They/them)'
+    );
     expect(lastName).toBe('Rivera');
   });
 });
