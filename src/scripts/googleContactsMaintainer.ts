@@ -506,6 +506,7 @@ export class GoogleContactsMaintainerScript implements Script {
           p.number
         );
         variations.forEach((v) => {
+          if (!v) return; // Skip empty variations (prevents non-numeric phone collisions)
           if (!phoneMap.has(v)) phoneMap.set(v, []);
           phoneMap.get(v)!.push(c.resourceName!);
         });
@@ -1360,6 +1361,7 @@ export class GoogleContactsMaintainerScript implements Script {
           this.phoneNormalizer.getAllNormalizedVariations(phone);
         const allMatches: string[] = [];
         variations.forEach((v) => {
+          if (!v) return;
           const matches = (phoneMap.get(v) || []).filter(
             (id) => id !== contact.resourceName
           );

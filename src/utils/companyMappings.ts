@@ -99,6 +99,8 @@ export const MANUAL_COMPANY_MAPPINGS: Record<string, string> = {
   EToro: 'eToro',
   'AbraR&D': 'Abra',
   AbraRDSolutionsFormerlyDevalore: 'Abra',
+  SMS: 'SMS',
+  Sms: 'SMS',
   NestléNespresso: 'Nestlé',
   'Investing.com': 'Investing.com',
   Investingcom: 'Investing.com',
@@ -224,8 +226,6 @@ export const MANUAL_COMPANY_MAPPINGS: Record<string, string> = {
   Ideodigital: 'IDEODIGITAL',
   YaelGroup: 'YaelGroup',
   JobInfo: 'JobInfo',
-  Sms: 'SMS',
-  SMS: 'SMS',
 };
 
 /**
