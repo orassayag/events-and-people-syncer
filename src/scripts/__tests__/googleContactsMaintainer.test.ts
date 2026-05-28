@@ -1300,16 +1300,11 @@ CreatedAt: 1/1/20, 12:00 PM`,
 
   describe('run', () => {
     let originalArgv: string[];
-    let refreshTokenSpy: any;
     let generateReportSpy: any;
     let scanContactsSpy: any;
 
     beforeEach(() => {
       originalArgv = process.argv;
-      refreshTokenSpy = vi
-        .spyOn(maintainer as any, 'refreshToken')
-        .mockResolvedValue(undefined);
-      vi.spyOn(maintainer as any, 'validateAuth').mockResolvedValue(undefined);
       vi.spyOn(maintainer as any, 'fetchAllContacts').mockResolvedValue({
         contacts: [],
         allLabels: [],
@@ -1338,7 +1333,6 @@ CreatedAt: 1/1/20, 12:00 PM`,
 
       await maintainer.run();
 
-      expect(refreshTokenSpy).toHaveBeenCalled();
       expect(existsSpy).toHaveBeenCalled();
       expect(unlinkSpy).toHaveBeenCalled();
     });
@@ -1365,8 +1359,6 @@ CreatedAt: 1/1/20, 12:00 PM`,
       scanContactsSpy.mockReturnValue([]);
 
       await maintainer.run();
-
-      expect(refreshTokenSpy).not.toHaveBeenCalled();
     });
   });
 });

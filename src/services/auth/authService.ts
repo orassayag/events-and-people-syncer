@@ -27,18 +27,53 @@ export class AuthService {
     this.logger.debug('Ensuring valid authentication');
     const credentials: GoogleCredentials = this.loadCredentials();
     this.oAuth2Client = this.createOAuth2Client(credentials);
-    const validationStatus: TokenValidationStatus = await this.validateToken();
-    this.logger.debug('Token validation status', { status: validationStatus });
-    if (validationStatus === 'valid' && this.oAuth2Client) {
-      this.logger.debug('Authentication is valid');
-      return this.oAuth2Client;
-    }
-    if (validationStatus === 'invalid') {
-      this.logger.warn('Token is invalid or expired - re-authenticating');
-      await this.deleteToken();
-    } else if (validationStatus === 'missing') {
+
+    const token: TokenData | null = await this.loadToken();
+    if (token) {
+      this.oAuth2Client.setCredentials(token);
+
+      // Proactive refresh if expired or near expiry (5 minutes buffer)
+      const isExpired = token.expiry_date
+        ? token.expiry_date <= Date.now() + 300000
+        : true;
+
+      if (isExpired && token.refresh_token) {
+        this.logger.info(
+          'Token expired or nearing expiry - attempting auto-refresh'
+        );
+        try {
+          const { credentials: refreshedTokens } =
+            await this.oAuth2Client.refreshAccessToken();
+          this.oAuth2Client.setCredentials(refreshedTokens);
+          this.logger.info('Token auto-refresh successful');
+          return this.oAuth2Client;
+        } catch (error) {
+          this.logger.warn('Token auto-refresh failed', {
+            error: error instanceof Error ? error.message : String(error),
+          });
+          // Fall through to standard validation/re-auth
+        }
+      }
+
+      const validationStatus: TokenValidationStatus =
+        await this.validateToken();
+      this.logger.debug('Token validation status', {
+        status: validationStatus,
+      });
+
+      if (validationStatus === 'valid') {
+        this.logger.debug('Authentication is valid');
+        return this.oAuth2Client;
+      }
+
+      if (validationStatus === 'invalid') {
+        this.logger.warn('Token is invalid or expired - re-authenticating');
+        await this.deleteToken();
+      }
+    } else {
       this.logger.info('Token is missing - starting initial authentication');
     }
+
     await this.getNewToken();
     return this.oAuth2Client;
   }
@@ -190,11 +225,17 @@ export class AuthService {
       return null;
     }
     const content: string = await readFile(SETTINGS.paths.tokenFile, 'utf-8');
+    if (!content.trim()) {
+      return null;
+    }
     return JSON.parse(content);
   }
 
   public async saveToken(token: TokenData): Promise<void> {
-    await writeFile(SETTINGS.paths.tokenFile, JSON.stringify(token, null, 2));
+    const tempFile = `${SETTINGS.paths.tokenFile}.tmp`;
+    await writeFile(tempFile, JSON.stringify(token, null, 2));
+    const { rename } = await import('fs/promises');
+    await rename(tempFile, SETTINGS.paths.tokenFile);
     this.logger.info('Token saved');
   }
 
@@ -213,7 +254,30 @@ export class AuthService {
   private createOAuth2Client(credentials: GoogleCredentials): OAuth2Client {
     const { client_id, client_secret } = credentials.web;
     const redirectUri: string = `http://localhost:${SETTINGS.auth.redirectPort}`;
-    return new google.auth.OAuth2(client_id, client_secret, redirectUri);
+    const client = new google.auth.OAuth2(
+      client_id,
+      client_secret,
+      redirectUri
+    );
+
+    // Listen for token updates from the client
+    client.on('tokens', (tokens) => {
+      this.logger.debug('OAuth2Client received new tokens');
+      this.loadToken()
+        .then((existingToken) => {
+          if (existingToken) {
+            const updatedToken = { ...existingToken, ...tokens };
+            this.saveToken(updatedToken as TokenData).catch((err) => {
+              this.logger.error('Failed to save auto-refreshed tokens', err);
+            });
+          }
+        })
+        .catch((err) => {
+          this.logger.error('Failed to load token for auto-refresh', err);
+        });
+    });
+
+    return client;
   }
 
   private async getNewToken(): Promise<void> {

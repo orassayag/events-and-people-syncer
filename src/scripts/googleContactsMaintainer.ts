@@ -16,14 +16,12 @@ import type {
   OAuth2Client,
   Script,
   ContactData,
-  TokenData,
   MaintainerException,
   MaintainerReportItem,
   OtherContactEntry,
 } from '../types';
 import { MaintainerIssueType } from '../types';
 import { Logger, SyncLogger } from '../logging';
-import { AuthService } from '../services/auth';
 import { RegexPatterns } from '../regex';
 import { calculateFormattedCompany } from '../utils/companyFormatter';
 import { TextUtils } from '../utils/textUtils';
@@ -72,23 +70,12 @@ export class GoogleContactsMaintainerScript implements Script {
   }
 
   async run(): Promise<void> {
-    const isAuto = process.argv.some((arg) =>
-      ['--auto', 'AUTO', 'auto'].includes(arg)
-    );
     const reportPath = join(this.desktopPath, this.reportFileName);
 
     this.uiLogger.display('Google Contacts Maintainer');
     await this.logger.initialize();
 
     try {
-      if (isAuto) {
-        this.uiLogger.displayInfo(
-          'Automatic run detected. Refreshing token...'
-        );
-        await this.refreshToken();
-      }
-
-      await this.validateAuth();
       this.uiLogger.displayInfo('Fetching all Google contacts...');
 
       const { contacts, allLabels } = await this.fetchAllContacts();
@@ -147,24 +134,6 @@ export class GoogleContactsMaintainerScript implements Script {
       this.uiLogger.error('Script failed', error as Error);
       await this.logger.logError(`Script failed: ${(error as Error).message}`);
     }
-  }
-
-  private async refreshToken(): Promise<void> {
-    try {
-      const { credentials } = await this.auth.refreshAccessToken();
-      this.auth.setCredentials(credentials);
-      const authService = new AuthService();
-      await authService.saveToken(credentials as TokenData);
-      this.uiLogger.displayInfo('Token refreshed successfully.');
-    } catch (error) {
-      this.uiLogger.error('Failed to refresh token', error as Error);
-      throw error;
-    }
-  }
-
-  private async validateAuth(): Promise<void> {
-    const authService = new AuthService();
-    await authService.authorize();
   }
 
   private checkHebrew(text: string | undefined): boolean {
