@@ -2,9 +2,7 @@ import { injectable, inject } from 'inversify';
 import { google } from 'googleapis';
 import {
   existsSync,
-  writeFileSync,
   readFileSync,
-  unlinkSync,
   mkdirSync,
   readdirSync,
   promises as fs,
@@ -119,13 +117,13 @@ export class GoogleContactsMaintainerScript implements Script {
       if (reportItems.length === 0) {
         this.uiLogger.displaySuccess('No issues found in contacts!');
         if (existsSync(reportPath)) {
-          unlinkSync(reportPath);
+          await this.safeUnlink(reportPath);
           this.uiLogger.displayInfo('Previous report file removed.');
         }
         return;
       }
 
-      this.generateReport(reportItems, reportPath, backupStats);
+      await this.generateReport(reportItems, reportPath, backupStats);
       this.uiLogger.displaySuccess(
         `Scan complete. ${reportItems.length} contacts have issues.`
       );
@@ -238,6 +236,44 @@ export class GoogleContactsMaintainerScript implements Script {
     return { contacts, allLabels: Array.from(allLabelsSet) };
   }
 
+  private async safeUnlink(path: string): Promise<void> {
+    for (let i = 0; i < 10; i++) {
+      try {
+        if (existsSync(path)) {
+          await fs.unlink(path);
+        }
+        return;
+      } catch (error: any) {
+        if (i < 9 && (error.code === 'EPERM' || error.code === 'EBUSY')) {
+          this.uiLogger.debug(
+            `Retrying unlink of ${path} due to ${error.code} (attempt ${i + 1}/10)`
+          );
+          await new Promise((resolve) => setTimeout(resolve, 500 * (i + 1)));
+          continue;
+        }
+        throw error;
+      }
+    }
+  }
+
+  private async safeWriteFile(path: string, content: string): Promise<void> {
+    for (let i = 0; i < 10; i++) {
+      try {
+        await fs.writeFile(path, content, 'utf-8');
+        return;
+      } catch (error: any) {
+        if (i < 9 && (error.code === 'EPERM' || error.code === 'EBUSY')) {
+          this.uiLogger.debug(
+            `Retrying write to ${path} due to ${error.code} (attempt ${i + 1}/10)`
+          );
+          await new Promise((resolve) => setTimeout(resolve, 500 * (i + 1)));
+          continue;
+        }
+        throw error;
+      }
+    }
+  }
+
   private async backupContacts(
     contacts: ContactData[],
     allLabels: string[],
@@ -249,50 +285,6 @@ export class GoogleContactsMaintainerScript implements Script {
   }> {
     const backupPath = SETTINGS.backup.contactsPath;
 
-    const sleep = (ms: number): Promise<void> =>
-      new Promise((resolve) => setTimeout(resolve, ms));
-
-    const safeUnlink = async (path: string): Promise<void> => {
-      for (let i = 0; i < 10; i++) {
-        try {
-          if (existsSync(path)) {
-            await fs.unlink(path);
-          }
-          return;
-        } catch (error: any) {
-          if (i < 9 && (error.code === 'EPERM' || error.code === 'EBUSY')) {
-            this.uiLogger.debug(
-              `Retrying unlink of ${path} due to ${error.code} (attempt ${i + 1}/10)`
-            );
-            await sleep(500 * (i + 1));
-            continue;
-          }
-          throw error;
-        }
-      }
-    };
-
-    const safeWriteFile = async (
-      path: string,
-      content: string
-    ): Promise<void> => {
-      for (let i = 0; i < 10; i++) {
-        try {
-          await fs.writeFile(path, content, 'utf-8');
-          return;
-        } catch (error: any) {
-          if (i < 9 && (error.code === 'EPERM' || error.code === 'EBUSY')) {
-            this.uiLogger.debug(
-              `Retrying write to ${path} due to ${error.code} (attempt ${i + 1}/10)`
-            );
-            await sleep(500 * (i + 1));
-            continue;
-          }
-          throw error;
-        }
-      }
-    };
-
     if (!existsSync(backupPath)) {
       mkdirSync(backupPath, { recursive: true });
     } else {
@@ -300,7 +292,7 @@ export class GoogleContactsMaintainerScript implements Script {
       const files = readdirSync(backupPath);
       for (const file of files) {
         if (file.toLowerCase().endsWith('.json')) {
-          await safeUnlink(join(backupPath, file));
+          await this.safeUnlink(join(backupPath, file));
         }
       }
     }
@@ -339,7 +331,7 @@ export class GoogleContactsMaintainerScript implements Script {
     let fileCount = 0;
     for (let i = 0; i < contactChunks.length; i++) {
       const fileName = `contacts_${String(i + 1).padStart(2, '0')}.json`;
-      await safeWriteFile(
+      await this.safeWriteFile(
         join(backupPath, fileName),
         JSON.stringify(contactChunks[i], null, 2)
       );
@@ -368,7 +360,7 @@ export class GoogleContactsMaintainerScript implements Script {
 
     for (let i = 0; i < otherChunks.length; i++) {
       const fileName = `other_contacts_${String(i + 1).padStart(2, '0')}.json`;
-      await safeWriteFile(
+      await this.safeWriteFile(
         join(backupPath, fileName),
         JSON.stringify(otherChunks[i], null, 2)
       );
@@ -391,7 +383,7 @@ export class GoogleContactsMaintainerScript implements Script {
       .filter((l) => !excludedLabels.includes(l.toLowerCase()))
       .sort((a, b) => a.localeCompare(b));
 
-    await safeWriteFile(
+    await this.safeWriteFile(
       join(backupPath, 'labels.json'),
       JSON.stringify(filteredLabels, null, 2)
     );
@@ -1407,7 +1399,7 @@ export class GoogleContactsMaintainerScript implements Script {
     return reportItems;
   }
 
-  private generateReport(
+  private async generateReport(
     items: MaintainerReportItem[],
     reportPath: string,
     backupStats: {
@@ -1415,7 +1407,7 @@ export class GoogleContactsMaintainerScript implements Script {
       otherContactCount: number;
       fileCount: number;
     }
-  ): void {
+  ): Promise<void> {
     const issueOrder = Object.values(MaintainerIssueType);
 
     // Sort items based on the order of 4.x points (which is the order in MaintainerIssueType)
@@ -1520,7 +1512,7 @@ export class GoogleContactsMaintainerScript implements Script {
     report += `Files:          ${backupStats.fileCount}\n`;
     report += `=======================\n`;
 
-    writeFileSync(reportPath, report, 'utf-8');
+    await this.safeWriteFile(reportPath, report);
   }
 }
 
