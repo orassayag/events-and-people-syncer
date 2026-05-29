@@ -36,6 +36,32 @@ export class GoogleContactsMaintainerScript implements Script {
   private readonly desktopPath: string;
   private readonly reportFileName: string = 'SCAN_CONTACTS_REPORT.txt';
   private readonly exceptionsFile: string;
+  private readonly REQUIRED_URL_LABELS = [
+    'HR',
+    'Job',
+    'MCPD',
+    'LinkedIn',
+    'Novo',
+    'Tennis',
+    'OSR',
+    'AnyClip',
+    'Perspective',
+    'Yotpo',
+    'JUMBOmail',
+    'Netbiz',
+    'MCP Group',
+    'John Bryce',
+    'GitHub',
+    'Clawders',
+    'Append',
+    'Alexbot',
+    'Ai Agents',
+    'Eyefeelit',
+    'JVP',
+    'Mamash',
+    'Melon',
+    'Vim',
+  ];
 
   constructor(
     @inject('OAuth2Client') private auth: OAuth2Client,
@@ -743,8 +769,8 @@ export class GoogleContactsMaintainerScript implements Script {
         .split(' | ')
         .filter((l) => l && !l.toLowerCase().startsWith('imported'));
 
-      const isHrOrJob = activeLabels.some(
-        (l) => l === 'HR' || l === 'Job' || l === 'LinkedIn'
+      const isHrOrJob = activeLabels.some((l) =>
+        this.REQUIRED_URL_LABELS.includes(l)
       );
 
       const hasLabelInName = activeLabels.some(
@@ -818,6 +844,13 @@ export class GoogleContactsMaintainerScript implements Script {
           issues.push(MaintainerIssueType.INVALID_PHONE_EMAIL_LABEL);
         }
 
+        // 4.5.1 Phone label matching company name
+        if (contact.company && label !== contact.company.toLowerCase()) {
+          issues.push(
+            MaintainerIssueType.PHONE_LABEL_NOT_MATCH_TO_COMPANY_NAME
+          );
+        }
+
         // Phone number validation
         const phone = p.number;
         if (phone) {
@@ -848,9 +881,10 @@ export class GoogleContactsMaintainerScript implements Script {
 
           // 3. Check for spaces if it contains only numbers and spaces
           const hasSpaces = phone.includes(' ');
+          const hasLetters = /[a-zA-Z]/.test(phone);
           const cleanedPhone = phone.replace(/\s/g, '');
           const isOnlyNumbersAndSpaces =
-            /^\+?\d+$/.test(cleanedPhone) && hasSpaces;
+            /^\+?\d+$/.test(cleanedPhone) && hasSpaces && !hasLetters;
 
           if (isOnlyNumbersAndSpaces) {
             issues.push(MaintainerIssueType.PHONE_CONTAIN_SPACES);
@@ -890,6 +924,13 @@ export class GoogleContactsMaintainerScript implements Script {
           ].includes(label)
         ) {
           issues.push(MaintainerIssueType.INVALID_PHONE_EMAIL_LABEL);
+        }
+
+        // 4.6.1 Email label matching company name
+        if (contact.company && label !== contact.company.toLowerCase()) {
+          issues.push(
+            MaintainerIssueType.EMAIL_LABEL_NOT_MATCH_TO_COMPANY_NAME
+          );
         }
       });
 
@@ -1097,10 +1138,7 @@ export class GoogleContactsMaintainerScript implements Script {
         }
       }
 
-      // 4.12 Missing URL for HR/Job label
-      const hasHrOrJobLabel = activeLabels.some(
-        (l) => l === 'HR' || l === 'Job'
-      );
+      // 4.12 Missing URL for specific labels
       const hasProperName = firstName.length > 1 && lastName.length > 1;
       const hasLinkedInUrl = contact.websites.some(
         (w) =>
@@ -1110,13 +1148,35 @@ export class GoogleContactsMaintainerScript implements Script {
       // and the family name not equal to the label name
       const familyNameNotLabel = !activeLabels.includes(lastName);
 
-      if (
-        hasHrOrJobLabel &&
-        !hasLinkedInUrl &&
-        hasProperName &&
-        familyNameNotLabel
-      ) {
-        issues.push(MaintainerIssueType.MISSING_REQUIRED_URL_FOR_HR_JOB_LABEL);
+      if (!hasLinkedInUrl && hasProperName && familyNameNotLabel) {
+        activeLabels.forEach((label) => {
+          if (this.REQUIRED_URL_LABELS.includes(label)) {
+            if (
+              !issues.includes(
+                MaintainerIssueType.MISSING_REQUIRED_URL_FOR_LABEL
+              )
+            ) {
+              issues.push(MaintainerIssueType.MISSING_REQUIRED_URL_FOR_LABEL);
+              customMessages[
+                MaintainerIssueType.MISSING_REQUIRED_URL_FOR_LABEL
+              ] = '';
+            }
+
+            const msg = `-${MaintainerIssueType.MISSING_REQUIRED_URL_FOR_LABEL.replace(
+              '#LABEL#',
+              label
+            )}`;
+            const currentMsg =
+              customMessages[
+                MaintainerIssueType.MISSING_REQUIRED_URL_FOR_LABEL
+              ] || '';
+            if (!currentMsg.includes(label)) {
+              customMessages[
+                MaintainerIssueType.MISSING_REQUIRED_URL_FOR_LABEL
+              ] = currentMsg ? `${currentMsg}\n${msg}` : msg;
+            }
+          }
+        });
       }
 
       // 4.15.2 INVALID CONTACT - Company logic
@@ -1213,6 +1273,26 @@ export class GoogleContactsMaintainerScript implements Script {
         issues.push(MaintainerIssueType.CONTAINS_WHITE_SPACES);
         customMessages[MaintainerIssueType.CONTAINS_WHITE_SPACES] =
           `CONTAINS WHITE SPACES IN FIELDS: ${uniqueFields.join(', ')}`;
+      }
+
+      // 4.18 Multiple spaces in field
+      const fieldsWithMultipleSpaces: string[] = [];
+      const multiSpaceRegex = /  +/; // Matches 2 or more spaces
+
+      if (multiSpaceRegex.test(firstName))
+        fieldsWithMultipleSpaces.push('First Name');
+      if (multiSpaceRegex.test(lastName))
+        fieldsWithMultipleSpaces.push('Last Name');
+      if (multiSpaceRegex.test(contact.company))
+        fieldsWithMultipleSpaces.push('Company');
+      if (multiSpaceRegex.test(contact.jobTitle))
+        fieldsWithMultipleSpaces.push('Job Title');
+
+      if (fieldsWithMultipleSpaces.length > 0) {
+        const uniqueFields = [...new Set(fieldsWithMultipleSpaces)];
+        issues.push(MaintainerIssueType.CONTAINS_MULTIPLE_SPACES);
+        customMessages[MaintainerIssueType.CONTAINS_MULTIPLE_SPACES] =
+          `CONTAINS MULTIPLE SPACES IN FIELD: ${uniqueFields.join(', ')}`;
       }
 
       // New Sub-Label Validations (Date, Tattoo, etc.)

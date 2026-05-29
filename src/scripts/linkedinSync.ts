@@ -15,6 +15,7 @@ import {
   confirmWithEscape,
   formatMixedHebrewEnglish,
   calculateFormattedCompany,
+  TextUtils,
 } from '../utils';
 import { SETTINGS } from '../settings';
 import {
@@ -222,7 +223,7 @@ export class LinkedInSyncScript {
           email: connection.email,
           url: connection.url,
           company: formattedCompany,
-          jobTitle: connection.position,
+          jobTitle: TextUtils.normalizeJobTitle(connection.position ?? ''),
           labels: [label],
         };
         try {

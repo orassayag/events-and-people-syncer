@@ -251,6 +251,33 @@ describe('ContactSyncer', () => {
       expect(requestBody.organizations[0]).not.toHaveProperty('title');
       expect(requestBody.organizations[0].name).toBeDefined();
     });
+
+    it('should normalize job title (remove multiple spaces and trailing spaces)', async () => {
+      const mockCreateFn = vi.fn().mockResolvedValue({});
+      const mockListFn = vi.fn().mockResolvedValue({
+        data: { contactGroups: [] },
+      });
+      const mockBatchGetFn = vi.fn().mockResolvedValue({
+        data: { responses: [] },
+      });
+      vi.mocked(google.people).mockReturnValue({
+        contactGroups: {
+          list: mockListFn,
+          batchGet: mockBatchGetFn,
+        },
+        people: {
+          createContact: mockCreateFn,
+        },
+      } as any);
+      await contactSyncer.initialize();
+      const connection: LinkedInConnection = {
+        ...mockConnection,
+        position: '  Software    Engineer   ',
+      };
+      await contactSyncer.addContact(connection, 'Job');
+      const requestBody = mockCreateFn.mock.calls[0][0].requestBody;
+      expect(requestBody.organizations[0].title).toBe('Software Engineer');
+    });
   });
 
   describe('addContact - biographies field', () => {
@@ -441,6 +468,51 @@ describe('ContactSyncer', () => {
       expect(requestBody.biographies[0].value).toContain('Some personal note');
       expect(requestBody.biographies[0].value).toMatch(
         /Some personal note\nUpdated by the people syncer script \(LinkedIn\) - Last update: \d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}$/
+      );
+    });
+
+    it('should normalize job title during update', async () => {
+      const mockGetFn = vi.fn().mockResolvedValue({
+        data: {
+          etag: 'test-etag',
+          names: [{ givenName: 'John', familyName: 'Doe LinkedIn Microsoft' }],
+          emailAddresses: [{ value: 'john@example.com' }],
+          organizations: [{ title: 'Software Engineer', name: 'Microsoft' }],
+          urls: [{ value: 'linkedin.com/in/test-user', type: 'LinkedIn' }],
+        },
+      });
+      const mockUpdateFn = vi.fn().mockResolvedValue({});
+      vi.mocked(google.people).mockReturnValue({
+        people: {
+          get: mockGetFn,
+          updateContact: mockUpdateFn,
+        },
+      } as any);
+
+      const messyConnection: LinkedInConnection = {
+        ...mockConnection,
+        position: '  Software    Engineer   ',
+      };
+
+      // If it normalizes correctly, it should NOT call updateContact because 'Software Engineer' === 'Software Engineer'
+      const result = await contactSyncer.updateContact(
+        'people/123',
+        messyConnection,
+        'Job'
+      );
+      expect(result.status).toBe('upToDate');
+      expect(mockUpdateFn).not.toHaveBeenCalled();
+
+      // Now test with a different title that needs normalization
+      const diffConnection: LinkedInConnection = {
+        ...mockConnection,
+        position: '  Senior    Software    Engineer   ',
+      };
+      await contactSyncer.updateContact('people/123', diffConnection, 'Job');
+      expect(mockUpdateFn).toHaveBeenCalled();
+      const requestBody = mockUpdateFn.mock.calls[0][0].requestBody;
+      expect(requestBody.organizations[0].title).toBe(
+        'Senior Software Engineer'
       );
     });
   });

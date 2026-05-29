@@ -521,6 +521,46 @@ describe('GoogleContactsMaintainerScript', () => {
       expect(issues[0].issues).toContain('INVALID PHONE/EMAIL LABEL');
     });
 
+    it('should detect phone and email labels not matching company name', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          company: 'Google',
+          phones: [{ number: '123456', label: 'Work' }],
+          emails: [{ value: 'john@google.com', label: 'Personal' }],
+          resourceName: 'people/match-test',
+        },
+      ];
+      const report = maintainer.testScanContacts(contacts, []);
+      const issues = report[0].issues;
+      expect(issues).toContain(
+        MaintainerIssueType.PHONE_LABEL_NOT_MATCH_TO_COMPANY_NAME
+      );
+      expect(issues).toContain(
+        MaintainerIssueType.EMAIL_LABEL_NOT_MATCH_TO_COMPANY_NAME
+      );
+    });
+
+    it('should NOT detect label mismatch if they match company name (case-insensitive)', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          company: 'Google',
+          phones: [{ number: '123456', label: 'google' }],
+          emails: [{ value: 'john@google.com', label: 'Google' }],
+          resourceName: 'people/match-success',
+        },
+      ];
+      const report = maintainer.testScanContacts(contacts, []);
+      const issues = report.length > 0 ? report[0].issues : [];
+      expect(issues).not.toContain(
+        MaintainerIssueType.PHONE_LABEL_NOT_MATCH_TO_COMPANY_NAME
+      );
+      expect(issues).not.toContain(
+        MaintainerIssueType.EMAIL_LABEL_NOT_MATCH_TO_COMPANY_NAME
+      );
+    });
+
     it('should detect invalid URL label', () => {
       const contacts = [
         { ...mockContact, websites: [{ url: 'url', label: 'Blog' }] },
@@ -614,6 +654,22 @@ describe('GoogleContactsMaintainerScript', () => {
       expect(
         issues[0].customIssueMessages[MaintainerIssueType.PHONE_CONTAIN_SPACES]
       ).toBe('PHONE_CONTAIN_SPACES: +1 334 34553');
+    });
+
+    it('should NOT flag phone numbers with spaces if they contain letters or separators', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          phones: [
+            { number: 'Hot mobile', label: 'Job' },
+            { number: '+1 444-53438', label: 'Job' },
+          ],
+        },
+      ];
+      const issues = maintainer.testScanContacts(contacts, []);
+      expect(issues[0].issues).not.toContain(
+        MaintainerIssueType.PHONE_CONTAIN_SPACES
+      );
     });
 
     it('should detect duplicate email globally and in single contact with details', () => {
@@ -751,7 +807,7 @@ describe('GoogleContactsMaintainerScript', () => {
       const report = maintainer.testScanContacts(contacts, []);
       const item = report.find((r) => r.contact.firstName === 'Test');
       expect(item?.issues).toContain(
-        MaintainerIssueType.MISSING_REQUIRED_URL_FOR_HR_JOB_LABEL
+        MaintainerIssueType.MISSING_REQUIRED_URL_FOR_LABEL
       );
     });
 
@@ -1102,8 +1158,26 @@ describe('GoogleContactsMaintainerScript', () => {
         []
       );
       expect(issues[0].issues).toContain(
-        'MISSING REQUIRED URL FOR HR/JOB LABEL'
+        MaintainerIssueType.MISSING_REQUIRED_URL_FOR_LABEL
       );
+    });
+
+    it('should detect missing required URL for new labels', () => {
+      const labelsToTest = ['MCPD', 'LinkedIn', 'Novo', 'Tennis', 'OSR'];
+      labelsToTest.forEach((label) => {
+        const issues = maintainer.testScanContacts(
+          [{ ...mockContact, label, websites: [] }],
+          []
+        );
+        expect(issues[0].issues).toContain(
+          MaintainerIssueType.MISSING_REQUIRED_URL_FOR_LABEL
+        );
+        expect(
+          issues[0].customIssueMessages[
+            MaintainerIssueType.MISSING_REQUIRED_URL_FOR_LABEL
+          ]
+        ).toContain(`-MISSING REQUIRED URL FOR ${label}`);
+      });
     });
 
     it('should detect trailing whitespace', () => {
@@ -1116,6 +1190,21 @@ describe('GoogleContactsMaintainerScript', () => {
           (i: string) => i && i.startsWith('CONTAINS WHITE SPACES')
         )
       ).toBe(true);
+    });
+
+    it('should detect multiple spaces in name fields', () => {
+      const issues = maintainer.testScanContacts(
+        [{ ...mockContact, firstName: 'Kerner   Job Test' }],
+        []
+      );
+      expect(issues[0].issues).toContain(
+        MaintainerIssueType.CONTAINS_MULTIPLE_SPACES
+      );
+      expect(
+        issues[0].customIssueMessages[
+          MaintainerIssueType.CONTAINS_MULTIPLE_SPACES
+        ]
+      ).toBe('CONTAINS MULTIPLE SPACES IN FIELD: First Name');
     });
 
     it('should detect outdated name from LinkedIn', () => {
@@ -1329,7 +1418,7 @@ CreatedAt: 1/1/20, 12:00 PM`,
       scanContactsSpy.mockReturnValue([]);
 
       const existsSpy = vi.mocked(fs.existsSync).mockReturnValue(true);
-      const unlinkSpy = vi.mocked(fs.unlinkSync);
+      const unlinkSpy = vi.mocked(fs.promises.unlink);
 
       await maintainer.run();
 
@@ -1345,7 +1434,7 @@ CreatedAt: 1/1/20, 12:00 PM`,
         { issues: ['some issue'], contact: { fullName: 'Test' } },
       ]);
 
-      const unlinkSpy = vi.mocked(fs.unlinkSync);
+      const unlinkSpy = vi.mocked(fs.promises.unlink);
 
       await maintainer.run();
 

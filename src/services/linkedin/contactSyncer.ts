@@ -18,6 +18,7 @@ import {
   DryModeChecker,
   DryModeMocks,
   stripCompanyPrefixOverlapFromName,
+  TextUtils,
 } from '../../utils';
 import { buildNewContactNote, determineNoteUpdate } from './noteParser';
 import { ContactCache } from '../../cache';
@@ -97,8 +98,10 @@ export class ContactSyncer {
           type: emailLabel,
         }));
       }
-      const positionTrimmed = (connection.position ?? '').trim();
-      if (formattedCompany || positionTrimmed) {
+      const positionNormalized = TextUtils.normalizeJobTitle(
+        connection.position ?? ''
+      );
+      if (formattedCompany || positionNormalized) {
         const organizationEntry: {
           name?: string;
           title?: string;
@@ -107,8 +110,8 @@ export class ContactSyncer {
         if (formattedCompany) {
           organizationEntry.name = formattedCompany;
         }
-        if (positionTrimmed) {
-          organizationEntry.title = positionTrimmed;
+        if (positionNormalized) {
+          organizationEntry.title = positionNormalized;
         }
         requestBody.organizations = [organizationEntry];
       }
@@ -160,7 +163,7 @@ export class ContactSyncer {
           firstName: connection.firstName,
           lastName: lastNameValue,
           company: formattedCompany,
-          jobTitle: connection.position,
+          jobTitle: positionNormalized,
           emails: connection.email
             ? [{ value: connection.email, label: compositeSuffix }]
             : [],
@@ -311,6 +314,9 @@ export class ContactSyncer {
       const currentJobTitle: string = (
         existingData.organizations?.[0]?.title || ''
       ).trim();
+      const positionNormalized = TextUtils.normalizeJobTitle(
+        connection.position ?? ''
+      );
       let hasChanges: boolean = false;
       const updateMask: string[] = [];
       const requestBody: any = {};
@@ -330,14 +336,11 @@ export class ContactSyncer {
           to: lastNameValue,
         };
       }
-      if (
-        connection.position &&
-        currentJobTitle !== connection.position.trim()
-      ) {
+      if (connection.position && currentJobTitle !== positionNormalized) {
         requestBody.organizations = [
           {
             name: existingData.organizations?.[0]?.name || formattedCompany,
-            title: connection.position.trim(),
+            title: positionNormalized,
             type: 'work',
           },
         ];
@@ -345,7 +348,7 @@ export class ContactSyncer {
         hasChanges = true;
         updateDetails.jobTitle = {
           from: currentJobTitle || '(empty)',
-          to: connection.position.trim(),
+          to: positionNormalized,
         };
       }
       const existingEmails: string[] = (existingData.emailAddresses || []).map(

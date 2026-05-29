@@ -50,6 +50,18 @@ describe('PhoneNormalizer', () => {
       const uniqueCount = new Set(variations).size;
       expect(variations.length).toBe(uniqueCount);
     });
+
+    it('should NOT include digitsOnly for short codes starting with *', () => {
+      const variations = normalizer.getAllNormalizedVariations('*166');
+      expect(variations).toContain('*166');
+      expect(variations).not.toContain('166');
+    });
+
+    it('should NOT include digitsOnly for short codes starting with #', () => {
+      const variations = normalizer.getAllNormalizedVariations('#123');
+      expect(variations).toContain('#123');
+      expect(variations).not.toContain('123');
+    });
   });
 
   describe('phonesMatch', () => {

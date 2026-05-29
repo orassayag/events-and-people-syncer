@@ -11,7 +11,13 @@ export class PhoneNormalizer {
     const normalized = this.normalize(phone);
     const digitsOnly = phone.replace(/\D/g, '');
     variations.push(normalized);
-    variations.push(digitsOnly);
+
+    // Only add digits-only variation if it doesn't strip important prefixes like * or #
+    // which are common in Israeli short codes/service numbers.
+    if (!normalized.startsWith('*') && !normalized.startsWith('#')) {
+      variations.push(digitsOnly);
+    }
+
     variations.push(phone);
 
     // Israeli specific logic

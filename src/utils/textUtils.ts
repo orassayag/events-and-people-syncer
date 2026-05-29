@@ -294,6 +294,14 @@ export class TextUtils {
   }
 
   /**
+   * Normalizes a job title by removing multiple spaces and trailing spaces.
+   */
+  static normalizeJobTitle(title: string): string {
+    if (!title) return '';
+    return title.replace(/\s+/g, ' ').trim();
+  }
+
+  /**
    * Parenthetical pronoun lines (e.g. "(She/her/hers)") must not be treated as nicknames;
    * they are dropped entirely. Slash- or comma-separated tokens must all be known pronoun forms.
    */

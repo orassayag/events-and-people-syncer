@@ -12,6 +12,7 @@ import {
   calculateFormattedCompany,
   DryModeChecker,
   stripCompanyPrefixOverlapFromName,
+  TextUtils,
 } from '../utils';
 
 export class SyncStatusBar {
@@ -221,8 +222,10 @@ export class SyncStatusBar {
           company
         );
         const label = this.currentLabel;
-        const positionRaw = (linkedInConn.position ?? '').trim();
-        const positionDisplay = positionRaw || '(none)';
+        const positionNormalized = TextUtils.normalizeJobTitle(
+          linkedInConn.position ?? ''
+        );
+        const positionDisplay = positionNormalized || '(none)';
         const formattedCompany: string = calculateFormattedCompany(
           company,
           2,
@@ -230,7 +233,7 @@ export class SyncStatusBar {
           lastName
         );
         const emailSuffix = [
-          positionRaw,
+          positionNormalized,
           formattedCompany ? `@ ${formattedCompany}` : '',
           label &&
           formattedCompany &&
