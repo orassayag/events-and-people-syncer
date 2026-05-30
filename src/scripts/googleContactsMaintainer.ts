@@ -1,5 +1,6 @@
 import { injectable, inject } from 'inversify';
 import { google } from 'googleapis';
+import { z } from 'zod';
 import {
   existsSync,
   readFileSync,
@@ -932,6 +933,22 @@ export class GoogleContactsMaintainerScript implements Script {
             MaintainerIssueType.EMAIL_LABEL_NOT_MATCH_TO_COMPANY_NAME
           );
         }
+
+        // Email validation
+        const email = e.value.trim();
+        if (email) {
+          const emailSchema = z.string().email();
+          const validation = emailSchema.safeParse(email);
+          if (!validation.success) {
+            issues.push(MaintainerIssueType.INVALID_EMAIL);
+            const msg = `INVALID EMAIL: ${email}`;
+            if (!customMessages[MaintainerIssueType.INVALID_EMAIL]) {
+              customMessages[MaintainerIssueType.INVALID_EMAIL] = msg;
+            } else {
+              customMessages[MaintainerIssueType.INVALID_EMAIL] += `\n-${msg}`;
+            }
+          }
+        }
       });
 
       // 4.7, 4.8, 4.13, 4.14 URL
@@ -1108,15 +1125,24 @@ export class GoogleContactsMaintainerScript implements Script {
           ? suggested.substring(9)
           : suggested;
 
-        // Use the contact's own label if it's HR or Job
-        const specialLabel = activeLabels.find(
-          (l) => l === 'HR' || l === 'Job'
+        // Use the contact's own label if it's in REQUIRED_URL_LABELS
+        const specialLabel = activeLabels.find((l) =>
+          this.REQUIRED_URL_LABELS.includes(l)
         );
         const prefix = specialLabel || 'LinkedIn';
 
         // If the suggested company is not just the prefix itself
         if (suggestedClean && suggestedClean !== 'LinkedIn') {
-          const finalSuggested = `${prefix} ${suggestedClean}`;
+          // AVOID DOUBLE PREFIX: if suggestedClean is same as prefix, or already starts with it
+          let finalSuggested: string;
+          if (
+            suggestedClean.toLowerCase() === prefix.toLowerCase() ||
+            suggestedClean.toLowerCase().startsWith(prefix.toLowerCase() + ' ')
+          ) {
+            finalSuggested = suggestedClean;
+          } else {
+            finalSuggested = `${prefix} ${suggestedClean}`;
+          }
 
           // CRITICAL FIX: Check if the full name already contains the correct suffix or if the current company matches
           const currentSuffix = `${prefix} ${companyToTest}`;
@@ -1458,6 +1484,31 @@ export class GoogleContactsMaintainerScript implements Script {
 
     // Add other contacts to the report
     for (const other of otherContacts) {
+      const otherIssues: MaintainerIssueType[] = [
+        MaintainerIssueType.OTHER_CONTACT,
+      ];
+      const otherCustomMessages: Partial<Record<MaintainerIssueType, string>> =
+        {};
+
+      other.emails.forEach((email) => {
+        if (email) {
+          const emailSchema = z.string().email();
+          const validation = emailSchema.safeParse(email);
+          if (!validation.success) {
+            if (!otherIssues.includes(MaintainerIssueType.INVALID_EMAIL)) {
+              otherIssues.push(MaintainerIssueType.INVALID_EMAIL);
+            }
+            const msg = `INVALID EMAIL: ${email}`;
+            if (!otherCustomMessages[MaintainerIssueType.INVALID_EMAIL]) {
+              otherCustomMessages[MaintainerIssueType.INVALID_EMAIL] = msg;
+            } else {
+              otherCustomMessages[MaintainerIssueType.INVALID_EMAIL] +=
+                `\n-${msg}`;
+            }
+          }
+        }
+      });
+
       reportItems.push({
         contact: {
           firstName: '',
@@ -1472,7 +1523,8 @@ export class GoogleContactsMaintainerScript implements Script {
           biography: '',
           resourceName: other.resourceName,
         },
-        issues: [MaintainerIssueType.OTHER_CONTACT],
+        issues: otherIssues,
+        customIssueMessages: otherCustomMessages,
       });
     }
 
