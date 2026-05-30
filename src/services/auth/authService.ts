@@ -32,6 +32,7 @@ export class AuthService {
   private oAuth2Client?: OAuth2Client;
   private server?: Server;
   private logger: Logger = new Logger('AuthService');
+  private isSavingToken: boolean = false;
 
   // -------------------------------------------------------------------------
   // Public API
@@ -46,10 +47,25 @@ export class AuthService {
     if (token) {
       this.oAuth2Client.setCredentials(token);
 
-      // Proactive refresh if expired or near expiry (5-minute buffer)
-      const isExpired = token.expiry_date
-        ? token.expiry_date <= Date.now() + 300_000
-        : true;
+      // Proactive refresh only if token is genuinely near expiry.
+      // Missing expiry_date → don't assume expired; trust the token until Google rejects it.
+      const EXPIRY_BUFFER_MS = 5 * 60 * 1_000; // 5 minutes
+      const now = Date.now();
+      let isExpired: boolean;
+
+      if (!token.expiry_date) {
+        this.logger.debug(
+          'Token has no expiry_date — skipping proactive refresh'
+        );
+        isExpired = false;
+      } else {
+        const expiresInMs = token.expiry_date - now;
+        const expiresInMin = Math.round(expiresInMs / 60_000);
+        isExpired = expiresInMs <= EXPIRY_BUFFER_MS;
+        this.logger.debug(
+          `Token expiry check: expires in ${expiresInMin} min — ${isExpired ? 'needs refresh' : 'still valid'}`
+        );
+      }
 
       if (isExpired && token.refresh_token) {
         this.logger.info(
@@ -428,22 +444,29 @@ export class AuthService {
   }
 
   public async saveToken(token: TokenData): Promise<void> {
-    // Merge with existing token to preserve refresh_token if the new one
-    // doesn't include it (Google only returns it on first auth)
-    const existing = await this.loadToken().catch(() => null);
-    const merged: TokenData = existing
-      ? {
-          ...existing,
-          ...token,
-          refresh_token: token.refresh_token ?? existing.refresh_token,
-        }
-      : token;
+    this.isSavingToken = true;
+    try {
+      // Merge with existing token to preserve refresh_token if the new one
+      // doesn't include it (Google only returns it on first auth)
+      const existing = await this.loadToken().catch(() => null);
+      const merged: TokenData = existing
+        ? {
+            ...existing,
+            ...token,
+            // Preserve fields Google omits on refresh responses
+            refresh_token: token.refresh_token ?? existing.refresh_token,
+            expiry_date: token.expiry_date ?? existing.expiry_date,
+          }
+        : token;
 
-    const tempFile = `${SETTINGS.paths.tokenFile}.tmp`;
-    await writeFile(tempFile, JSON.stringify(merged, null, 2));
-    const { rename } = await import('fs/promises');
-    await rename(tempFile, SETTINGS.paths.tokenFile);
-    this.logger.info('Token saved');
+      const tempFile = `${SETTINGS.paths.tokenFile}.tmp`;
+      await writeFile(tempFile, JSON.stringify(merged, null, 2));
+      const { rename } = await import('fs/promises');
+      await rename(tempFile, SETTINGS.paths.tokenFile);
+      this.logger.info('Token saved');
+    } finally {
+      this.isSavingToken = false;
+    }
   }
 
   private async deleteToken(): Promise<void> {
@@ -473,6 +496,14 @@ export class AuthService {
 
     client.on('tokens', (tokens) => {
       this.logger.debug('OAuth2Client received new tokens');
+      // Guard: if saveToken is already running (e.g. from refreshWithRetry),
+      // skip this duplicate event — both are triggered by the same refresh.
+      if (this.isSavingToken) {
+        this.logger.debug(
+          'Skipping on(tokens) save — saveToken already in progress'
+        );
+        return;
+      }
       this.loadToken()
         .then((existingToken) => {
           if (existingToken) {
@@ -627,7 +658,7 @@ export class AuthService {
         );
       });
 
-      this.server.on('error', (err: NodeJS.ErrnoException) => {
+      this.server.on('error', (err: Error) => {
         process.removeListener('SIGINT', handleSignal);
         process.removeListener('SIGTERM', handleSignal);
         reject(
