@@ -2,7 +2,11 @@ import { Auth } from 'googleapis';
 
 export type OAuth2Client = Auth.OAuth2Client;
 
-export type TokenValidationStatus = 'valid' | 'invalid' | 'missing';
+export type TokenValidationStatus =
+  | 'valid'
+  | 'invalid'
+  | 'missing'
+  | 'network_error';
 
 export interface ScopeValidationResult {
   hasAllScopes: boolean;
