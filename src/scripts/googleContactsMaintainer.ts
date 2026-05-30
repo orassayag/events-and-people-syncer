@@ -11,15 +11,18 @@ import {
 import { join } from 'path';
 import { homedir } from 'os';
 import { SETTINGS } from '../settings';
+import {
+  MaintainerIssueType,
+  MaintainerIssueDefinitions,
+  ExclusionFile,
+} from '../types/maintainer';
 import type {
   OAuth2Client,
   Script,
   ContactData,
-  MaintainerException,
   MaintainerReportItem,
   OtherContactEntry,
 } from '../types';
-import { MaintainerIssueType } from '../types';
 import { Logger, SyncLogger } from '../logging';
 import { RegexPatterns } from '../regex';
 import { calculateFormattedCompany } from '../utils/companyFormatter';
@@ -36,7 +39,7 @@ export class GoogleContactsMaintainerScript implements Script {
   private readonly uiLogger: Logger;
   private readonly desktopPath: string;
   private readonly reportFileName: string = 'SCAN_CONTACTS_REPORT.txt';
-  private readonly exceptionsFile: string;
+  private readonly exclusionsFile: string;
   private readonly REQUIRED_URL_LABELS = [
     'HR',
     'Job',
@@ -73,7 +76,7 @@ export class GoogleContactsMaintainerScript implements Script {
     this.logger = new SyncLogger('google-contacts-maintainer');
     this.uiLogger = new Logger('GoogleContactsMaintainer');
     this.desktopPath = join(homedir(), 'Desktop');
-    this.exceptionsFile = join(process.cwd(), 'maintainer-exceptions.json');
+    this.exclusionsFile = join(SETTINGS.backup.contactsPath, 'exclusions.json');
   }
 
   get metadata(): {
@@ -130,16 +133,24 @@ export class GoogleContactsMaintainerScript implements Script {
         );
       }
 
-      const exceptions = this.loadExceptions();
-      this.uiLogger.displayInfo(`Loaded ${exceptions.length} exceptions.`);
+      const exclusions = await this.loadExclusions();
+      this.uiLogger.displayInfo(
+        `Loaded ${exclusions.skippedContacts.length + exclusions.contactExclusions.length} exclusions.`
+      );
 
       this.uiLogger.display('===Creating the report===');
-      const reportItems = this.scanContacts(
+      const rawReportItems = this.scanContacts(
         contacts,
-        exceptions,
         allLabels,
         otherContacts
       );
+
+      const reportItems = rawReportItems
+        .map((item) => this.filterExcludedIssues(item, exclusions))
+        .filter(
+          (item): item is MaintainerReportItem =>
+            item !== null && item.issues.length > 0
+        );
 
       if (reportItems.length === 0) {
         this.uiLogger.displaySuccess('No issues found in contacts!');
@@ -318,7 +329,10 @@ export class GoogleContactsMaintainerScript implements Script {
       // Delete all JSON files in the backup folder before writing new ones
       const files = readdirSync(backupPath);
       for (const file of files) {
-        if (file.toLowerCase().endsWith('.json')) {
+        if (
+          file.toLowerCase().endsWith('.json') &&
+          file.toLowerCase() !== 'exclusions.json'
+        ) {
           await this.safeUnlink(join(backupPath, file));
         }
       }
@@ -423,16 +437,87 @@ export class GoogleContactsMaintainerScript implements Script {
     };
   }
 
-  private loadExceptions(): MaintainerException[] {
-    if (existsSync(this.exceptionsFile)) {
+  private async loadExclusions(): Promise<ExclusionFile> {
+    const defaultExclusions: ExclusionFile = {
+      skippedContacts: [],
+      contactExclusions: [],
+    };
+
+    if (!existsSync(this.exclusionsFile)) {
       try {
-        const content = readFileSync(this.exceptionsFile, 'utf-8');
-        return JSON.parse(content);
-      } catch {
-        return [];
+        await this.safeWriteFile(
+          this.exclusionsFile,
+          JSON.stringify(defaultExclusions, null, 2)
+        );
+        this.uiLogger.displayInfo(
+          `Created new exclusions file at: ${this.exclusionsFile}`
+        );
+      } catch (error) {
+        this.uiLogger.warn(
+          `Failed to create default exclusions file: ${(error as Error).message}`
+        );
+      }
+      return defaultExclusions;
+    }
+
+    try {
+      const content = readFileSync(this.exclusionsFile, 'utf-8');
+      const exclusions: ExclusionFile = JSON.parse(content);
+      this.validateExclusionFile(exclusions);
+      return exclusions;
+    } catch (error) {
+      this.uiLogger.error(
+        `Failed to load or validate exclusions file: ${(error as Error).message}`
+      );
+      throw error;
+    }
+  }
+
+  private validateExclusionFile(exclusions: ExclusionFile): void {
+    const validIds = new Set<number>(
+      Object.values(MaintainerIssueDefinitions).map((d) => d.id)
+    );
+
+    for (const contact of exclusions.contactExclusions) {
+      for (const issueId of contact.excludeIssues) {
+        if (!validIds.has(issueId)) {
+          throw new Error(
+            `❌ Exclusion file references unknown issue ID "${issueId}" ` +
+              `for contact "${contact.id}". ` +
+              `Valid IDs: ${[...validIds].sort((a, b) => a - b).join(', ')}`
+          );
+        }
       }
     }
-    return [];
+
+    this.uiLogger.displayInfo('✅ Exclusion file validated successfully.');
+  }
+
+  private filterExcludedIssues(
+    reportItem: MaintainerReportItem,
+    exclusions: ExclusionFile
+  ): MaintainerReportItem | null {
+    const contactId = reportItem.contact.resourceName?.split('/').pop();
+
+    // Skip contact entirely
+    const isSkipped = exclusions.skippedContacts.some(
+      (e) => e.id === contactId
+    );
+    if (isSkipped) return null;
+
+    // Skip specific issues
+    const contactExclusion = exclusions.contactExclusions.find(
+      (e) => e.id === contactId
+    );
+    if (!contactExclusion) return reportItem;
+
+    const excludeIds = new Set(contactExclusion.excludeIssues);
+    const filteredIssues = reportItem.issues.filter((issueKey) => {
+      const id = MaintainerIssueDefinitions[issueKey].id;
+      return !excludeIds.has(id);
+    });
+
+    return { ...reportItem, issues: filteredIssues };
   }
 
   private extractDataFromNotes(notes: string): {
@@ -465,7 +550,6 @@ export class GoogleContactsMaintainerScript implements Script {
 
   private scanContacts(
     contacts: ContactData[],
-    exceptions: MaintainerException[],
     allLabels: string[],
     otherContacts: OtherContactEntry[] = []
   ): MaintainerReportItem[] {
@@ -523,18 +607,6 @@ export class GoogleContactsMaintainerScript implements Script {
       const lastName = contact.lastName || '';
       const fullName = `${firstName} ${lastName}`.trim();
       const fullNameLower = fullName.toLowerCase();
-
-      // Check exceptions
-      if (
-        exceptions.some((e) => {
-          if (e.name && fullName === e.name) return true;
-          if (e.url && contact.websites.some((w) => w.url === e.url))
-            return true;
-          return false;
-        })
-      ) {
-        continue;
-      }
 
       const issues: MaintainerIssueType[] = [];
       const customMessages: Partial<Record<MaintainerIssueType, string>> = {};
@@ -1154,7 +1226,7 @@ export class GoogleContactsMaintainerScript implements Script {
 
           if (
             !isAlreadyCorrect &&
-            suggestedClean !== companyToTest &&
+            (suggestedClean !== companyToTest || !fullName.includes(prefix)) &&
             companyToTest !== 'LinkedIn'
           ) {
             issues.push(MaintainerIssueType.OUTDATED_COMPANY_NAME);
@@ -1188,10 +1260,9 @@ export class GoogleContactsMaintainerScript implements Script {
               ] = '';
             }
 
-            const msg = `-${MaintainerIssueType.MISSING_REQUIRED_URL_FOR_LABEL.replace(
-              '#LABEL#',
-              label
-            )}`;
+            const msg = `-${MaintainerIssueDefinitions[
+              MaintainerIssueType.MISSING_REQUIRED_URL_FOR_LABEL
+            ].message.replace('#LABEL#', label)}`;
             const currentMsg =
               customMessages[
                 MaintainerIssueType.MISSING_REQUIRED_URL_FOR_LABEL
@@ -1344,10 +1415,9 @@ export class GoogleContactsMaintainerScript implements Script {
               if (!issues.includes(MaintainerIssueType.MISSING_SUB_LABEL)) {
                 issues.push(MaintainerIssueType.MISSING_SUB_LABEL);
                 customMessages[MaintainerIssueType.MISSING_SUB_LABEL] =
-                  MaintainerIssueType.MISSING_SUB_LABEL.replace(
-                    '#LABEL#',
-                    baseLabel
-                  );
+                  MaintainerIssueDefinitions[
+                    MaintainerIssueType.MISSING_SUB_LABEL
+                  ].message.replace('#LABEL#', baseLabel);
               }
               if (
                 !issues.includes(
@@ -1374,10 +1444,9 @@ export class GoogleContactsMaintainerScript implements Script {
                 }
 
                 missingLabels.forEach((label) => {
-                  const msg = MaintainerIssueType.MISSING_SUB_LABEL.replace(
-                    '#LABEL#',
-                    label
-                  );
+                  const msg = MaintainerIssueDefinitions[
+                    MaintainerIssueType.MISSING_SUB_LABEL
+                  ].message.replace('#LABEL#', label);
                   const currentMsg =
                     customMessages[MaintainerIssueType.MISSING_SUB_LABEL] || '';
                   if (!currentMsg.includes(label)) {
@@ -1540,9 +1609,11 @@ export class GoogleContactsMaintainerScript implements Script {
       fileCount: number;
     }
   ): Promise<void> {
-    const issueOrder = Object.values(MaintainerIssueType);
+    const issueOrder = Object.keys(
+      MaintainerIssueDefinitions
+    ) as MaintainerIssueType[];
 
-    // Sort items based on the order of 4.x points (which is the order in MaintainerIssueType)
+    // Sort items based on the order of 4.x points (which is the order in MaintainerIssueDefinitions)
     items.sort((a, b) => {
       const getMinIndex = (issueList: MaintainerIssueType[]): number => {
         const indices = issueList.map((issue) => issueOrder.indexOf(issue));
@@ -1609,7 +1680,8 @@ export class GoogleContactsMaintainerScript implements Script {
       report += `Reasons:\n`;
 
       item.issues.forEach((issue) => {
-        let message = item.customIssueMessages?.[issue] || `-${issue}`;
+        const defaultMessage = MaintainerIssueDefinitions[issue].message;
+        let message = item.customIssueMessages?.[issue] || defaultMessage;
 
         const isDuplicateIssue =
           issue.startsWith('DUPLICATE') && !issue.includes('CONTACTS');

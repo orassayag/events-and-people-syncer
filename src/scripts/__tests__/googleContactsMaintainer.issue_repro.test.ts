@@ -4,18 +4,8 @@ import { MaintainerIssueType } from '../../types';
 
 // Test-only subclass to access private methods for testing
 class TestMaintainerScript extends GoogleContactsMaintainerScript {
-  public testScanContacts(
-    contacts: any[],
-    exceptions: any[],
-    allLabels: string[] = [],
-    otherContacts: any[] = []
-  ): any[] {
-    return (this as any).scanContacts(
-      contacts,
-      exceptions,
-      allLabels,
-      otherContacts
-    );
+  public testScanContacts(contacts: any[], allLabels: string[] = []): any[] {
+    return (this as any).scanContacts(contacts, allLabels);
   }
 }
 
@@ -62,7 +52,7 @@ describe('GoogleContactsMaintainer - Reported Issues Repro', () => {
         company: 'OSR',
       },
     ];
-    const report = maintainer.testScanContacts(contacts, []);
+    const report = maintainer.testScanContacts(contacts);
     const item = report[0];
 
     // Should NOT have OUTDATED_COMPANY_NAME issue because OSR is used as prefix and matches suggestedClean
@@ -81,7 +71,7 @@ describe('GoogleContactsMaintainer - Reported Issues Repro', () => {
         company: 'Hr',
       },
     ];
-    const report = maintainer.testScanContacts(contacts, []);
+    const report = maintainer.testScanContacts(contacts);
     const item = report[0];
 
     // Should NOT suggest "HR Hr"
@@ -100,7 +90,7 @@ describe('GoogleContactsMaintainer - Reported Issues Repro', () => {
         company: 'Pagaya',
       },
     ];
-    const report = maintainer.testScanContacts(contacts, []);
+    const report = maintainer.testScanContacts(contacts);
     const item = report[0];
 
     // Should NOT have OUTDATED_COMPANY_NAME issue because Pagaya no longer maps to Papaya
@@ -119,7 +109,7 @@ describe('GoogleContactsMaintainer - Reported Issues Repro', () => {
         company: 'Google',
       },
     ];
-    const report = maintainer.testScanContacts(contacts, []);
+    const report = maintainer.testScanContacts(contacts);
     const item = report[0];
 
     expect(item.issues).toContain(MaintainerIssueType.OUTDATED_COMPANY_NAME);

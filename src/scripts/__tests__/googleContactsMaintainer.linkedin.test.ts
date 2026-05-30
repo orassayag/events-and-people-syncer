@@ -10,9 +10,9 @@ import {
 class TestMaintainerScript extends GoogleContactsMaintainerScript {
   public testScanContacts(
     contacts: any[],
-    exceptions: any[]
+    allLabels: string[] = []
   ): MaintainerReportItem[] {
-    return (this as any).scanContacts(contacts, exceptions, []);
+    return (this as any).scanContacts(contacts, allLabels);
   }
 }
 
@@ -64,7 +64,7 @@ describe('GoogleContactsMaintainerScript LinkedIn Duplicates', () => {
         ],
       },
     ];
-    const report = maintainer.testScanContacts(contacts, []);
+    const report = maintainer.testScanContacts(contacts);
     const issues1 = report.find(
       (r: MaintainerReportItem) => r.contact.resourceName === 'people/1'
     )?.issues;
@@ -92,7 +92,7 @@ describe('GoogleContactsMaintainerScript LinkedIn Duplicates', () => {
         ],
       },
     ];
-    const report = maintainer.testScanContacts(contacts, []);
+    const report = maintainer.testScanContacts(contacts);
     const issues1 = report.find(
       (r: MaintainerReportItem) => r.contact.resourceName === 'people/1'
     )?.issues;
@@ -122,7 +122,7 @@ describe('GoogleContactsMaintainerScript LinkedIn Duplicates', () => {
         ],
       },
     ];
-    const report = maintainer.testScanContacts(contacts, []);
+    const report = maintainer.testScanContacts(contacts);
     const issues1 = report.find(
       (r: MaintainerReportItem) => r.contact.resourceName === 'people/1'
     )?.issues;
@@ -150,7 +150,7 @@ describe('GoogleContactsMaintainerScript LinkedIn Duplicates', () => {
         ],
       },
     ];
-    const report = maintainer.testScanContacts(contacts, []);
+    const report = maintainer.testScanContacts(contacts);
     const issues1 = report.find(
       (r: MaintainerReportItem) => r.contact.resourceName === 'people/1'
     )?.issues;
@@ -174,7 +174,7 @@ describe('GoogleContactsMaintainerScript LinkedIn Duplicates', () => {
         resourceName: 'people/2',
       },
     ];
-    const report = maintainer.testScanContacts(contacts, []);
+    const report = maintainer.testScanContacts(contacts);
     const issues1 = report.find(
       (r: MaintainerReportItem) => r.contact.resourceName === 'people/1'
     )?.issues;
