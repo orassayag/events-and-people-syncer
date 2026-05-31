@@ -45,6 +45,18 @@ export class AuthService {
 
     const token: TokenData | null = await this.loadToken();
     if (token) {
+      // Fix: guard against a token file that lost its refresh_token (e.g. due
+      // to a partial save). Without this, we'd attempt a refresh that will
+      // always fail and then fall through to a full re-auth anyway.
+      if (!token.refresh_token) {
+        this.logger.warn(
+          'Stored token is missing refresh_token — deleting and re-authenticating'
+        );
+        await this.deleteToken();
+        await this.getNewToken();
+        return this.oAuth2Client;
+      }
+
       this.oAuth2Client.setCredentials(token);
 
       // Proactive refresh only if token is genuinely near expiry.
@@ -100,7 +112,15 @@ export class AuthService {
           // Interactive context: fall through to normal validation below
         } else if (refreshResult === 'auth_error') {
           this.logger.warn(
-            'Token refresh rejected by Google - deleting token and re-authenticating'
+            'Token refresh rejected by Google - deleting token and re-authenticating. ' +
+              'This usually means the refresh token was revoked or superseded. ' +
+              'Cause: invalid_grant / token rotation / credentials change.',
+            {
+              error:
+                this.lastAuthError instanceof Error
+                  ? this.lastAuthError.message
+                  : String(this.lastAuthError),
+            }
           );
           await this.deleteToken();
           await this.getNewToken();
@@ -238,11 +258,14 @@ export class AuthService {
    *   'network_error' – could not reach Google after all retries
    *   'auth_error'    – Google rejected the token (invalid_grant, etc.)
    */
+  private lastAuthError: unknown = undefined;
+
   private async refreshWithRetry(): Promise<
     'success' | 'network_error' | 'auth_error'
   > {
     if (!this.oAuth2Client) return 'auth_error';
 
+    this.lastAuthError = undefined;
     let lastError: unknown;
     let delayMs = NETWORK_RETRY_DELAY_MS;
 
@@ -261,6 +284,7 @@ export class AuthService {
 
         if (this.isAuthError(error)) {
           // Auth errors won't get better with retries
+          this.lastAuthError = error;
           this.logger.warn('Token refresh rejected by Google (auth error)', {
             error: error instanceof Error ? error.message : String(error),
           });
@@ -630,7 +654,7 @@ export class AuthService {
         }
       );
 
-      this.server.listen(SETTINGS.auth.redirectPort, () => {
+      this.server.listen(SETTINGS.auth.redirectPort, async () => {
         if (!this.oAuth2Client) {
           reject(
             new AppError(
@@ -640,9 +664,14 @@ export class AuthService {
           );
           return;
         }
+        // Fix: Only force 'consent' on first-ever auth (no saved refresh_token).
+        // Using prompt:'consent' unconditionally causes Google to rotate the
+        // refresh token on every interactive login, silently revoking the old one.
+        const existingToken = await this.loadToken().catch(() => null);
+        const isFirstAuth = !existingToken?.refresh_token;
         const authUrl = this.oAuth2Client.generateAuthUrl({
           access_type: 'offline',
-          prompt: 'consent',
+          prompt: isFirstAuth ? 'consent' : undefined,
           scope: SETTINGS.auth.scopes,
         });
         this.logger.info('Opening browser for Google authentication...', {
