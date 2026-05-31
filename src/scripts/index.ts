@@ -9,6 +9,7 @@ import { smsWhatsappSyncScript } from './smsWhatsappSync';
 import { syncPhonesScript } from './syncPhones';
 import { deleteEmptyContactsScript } from './deleteEmptyContacts';
 import { googleContactsMaintainerScript } from './googleContactsMaintainer';
+import { googleContactsExcluderScript } from './googleContactsExcluder';
 import { statisticsScript } from './statistics';
 import { clearCacheScript } from './clearCache';
 import { clearLogsScript } from './clearLogs';
@@ -26,6 +27,7 @@ export { SyncPhonesScript } from './syncPhones';
 export { DeleteEmptyContactsScript } from './deleteEmptyContacts';
 export { OtherContactsSyncScript } from './otherContactsSync';
 export { GoogleContactsMaintainerScript } from './googleContactsMaintainer';
+export { GoogleContactsExcluderScript } from './googleContactsExcluder';
 
 export const AVAILABLE_SCRIPTS: Record<string, Script> = {
   'hibob-sync': hibobSyncScript,
@@ -38,6 +40,7 @@ export const AVAILABLE_SCRIPTS: Record<string, Script> = {
   'sync-phones': syncPhonesScript,
   'delete-empty-contacts': deleteEmptyContactsScript,
   'google-contacts-maintainer': googleContactsMaintainerScript,
+  'google-contacts-excluder': googleContactsExcluderScript,
   statistics: statisticsScript,
   'clear-cache': clearCacheScript,
   'clear-logs': clearLogsScript,

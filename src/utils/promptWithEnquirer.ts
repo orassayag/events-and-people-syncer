@@ -122,7 +122,7 @@ async function runPrompt<T>(
 // ─── public API ───────────────────────────────────────────────────────────────
 
 export function selectWithEscape<T = string>(
-  config: SelectConfig<T>
+  config: SelectConfig<T> & { searchable?: boolean }
 ): Promise<PromptResult<T>> {
   const choiceNames = config.choices.map((c) => c.name || String(c.value));
   const defaultIndex = config.default
@@ -131,8 +131,10 @@ export function selectWithEscape<T = string>(
 
   return runPrompt<T>(
     (): any => {
-      const { Select } = Enquirer as any;
-      return new Select({
+      const PromptClass = config.searchable
+        ? SearchableSelect
+        : (Enquirer as any).Select;
+      return new PromptClass({
         type: 'select',
         name: 'value',
         message: config.message,

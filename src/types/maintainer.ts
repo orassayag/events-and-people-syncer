@@ -95,7 +95,7 @@ export const issueIdMap = new Map(
 
 export interface ExclusionEntry {
   id: string;
-  reason: string;
+  reason?: string;
 }
 
 export interface ContactExclusion extends ExclusionEntry {

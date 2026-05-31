@@ -118,6 +118,7 @@ async function main(): Promise<void> {
     const scriptOrder = [
       'contacts-sync',
       'google-contacts-maintainer',
+      'google-contacts-excluder',
       'events-jobs-sync',
       'linkedin-sync',
       'linkedin-exporter',

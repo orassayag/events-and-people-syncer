@@ -90,8 +90,7 @@ The file is located at `exclusions.json` in the backup folder.
   "contactExclusions": [
     {
       "id": "c1234567890123456789",
-      "excludeIssues": [1, 33, 34],
-      "reason": "Hebrew name and casing are intentional"
+      "excludeIssues": [1, 33, 34]
     }
   ]
 }
@@ -142,8 +141,7 @@ https://contacts.google.com/person/c3558846282243878481
    ```json
    {
      "id": "c9876543210987654321",
-     "excludeIssues": [6, 8],
-     "reason": "Label structure is intentionally non-standard for this vendor"
+     "excludeIssues": [6, 8]
    }
    ```
 4. Run the validator (see Section 7) to confirm no unknown IDs were introduced.
