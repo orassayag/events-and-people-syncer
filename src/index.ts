@@ -121,6 +121,7 @@ async function main(): Promise<void> {
       'google-contacts-excluder',
       'events-jobs-sync',
       'linkedin-sync',
+      'linkedin-matcher',
       'linkedin-exporter',
       'hibob-sync',
       'other-contacts-sync',

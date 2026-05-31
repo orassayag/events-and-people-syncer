@@ -479,6 +479,180 @@ export class ContactSyncer {
     }
   }
 
+  async matcherUpdateContact(
+    resourceName: string,
+    connection: LinkedInConnection,
+    existingContact: ContactData
+  ): Promise<SyncResult> {
+    try {
+      const service = google.people({ version: 'v1', auth: this.auth });
+      const apiTracker: ApiTracker = ApiTracker.getInstance();
+
+      const formattedCompany = calculateFormattedCompany(
+        connection.company,
+        2,
+        connection.firstName,
+        connection.lastName
+      );
+
+      const baseLastName = stripCompanyPrefixOverlapFromName(
+        existingContact.lastName,
+        connection.company
+      );
+      const lastNameValue = `${baseLastName} ${formattedCompany}`.trim();
+
+      const requestBody: any = {
+        etag: existingContact.etag,
+      };
+      const updateMask: string[] = [];
+      const updateDetails: UpdateDetails = {};
+
+      // 4.6. Add to the last name of the contact: "LinkedIn " + {CompanyName}
+      requestBody.names = [
+        {
+          givenName: existingContact.firstName,
+          familyName: lastNameValue,
+        },
+      ];
+      updateMask.push('names');
+      updateDetails.lastName = {
+        from: existingContact.lastName || '(empty)',
+        to: lastNameValue,
+      };
+
+      // 4.4 & 4.5. Set company name to: "LinkedIn " + {CompanyName}
+      const positionNormalized = TextUtils.normalizeJobTitle(
+        connection.position ?? ''
+      );
+      requestBody.organizations = [
+        {
+          name: formattedCompany,
+          title: positionNormalized,
+          type: 'work',
+        },
+      ];
+      updateMask.push('organizations');
+      updateDetails.jobTitle = {
+        from: existingContact.jobTitle || '(empty)',
+        to: positionNormalized,
+      };
+
+      // 4.2 & 4.3. Add the LinkedIn URL to the website
+      const existingUrls = existingContact.websites || [];
+      const updatedUrls = [
+        ...existingUrls,
+        {
+          value: UrlNormalizer.formatLinkedInUrl(connection.url),
+          type: 'LinkedIn',
+        },
+      ];
+      requestBody.urls = updatedUrls;
+      updateMask.push('urls');
+      updateDetails.linkedInUrlAdded = true;
+
+      // 4.1. Add the label "LinkedIn"
+      const groupResourceName = await this.ensureGroupExists('LinkedIn');
+
+      // To merge memberships, we need the existing memberships in person format.
+      // Since we don't have them in existingContact (which is ContactData),
+      // we need to fetch the full person if we want to merge.
+      // However, looking at the standard updateContact, it fetches from API if not in cache.
+
+      const personResponse = await retryWithBackoff(async () => {
+        return await service.people.get({
+          resourceName,
+          personFields: 'memberships,biographies',
+        });
+      });
+      await apiTracker.trackRead();
+      const existingPerson = personResponse.data;
+      const existingMemberships = existingPerson.memberships || [];
+      const hasLinkedInLabel = existingMemberships.some(
+        (m) =>
+          m.contactGroupMembership?.contactGroupResourceName ===
+          groupResourceName
+      );
+
+      if (!hasLinkedInLabel) {
+        requestBody.memberships = [
+          ...existingMemberships,
+          {
+            contactGroupMembership: {
+              contactGroupResourceName: groupResourceName,
+            },
+          },
+        ];
+        updateMask.push('memberships');
+      }
+
+      // Add biography update like standard sync
+      const existingBiography =
+        existingPerson.biographies?.[0]?.value?.trim() || '';
+      const currentDate: string = formatDateTimeDDMMYYYY_HHMMSS(new Date());
+      const noteUpdate = determineNoteUpdate(
+        existingBiography,
+        currentDate,
+        'LinkedIn Matcher'
+      );
+      if (noteUpdate.shouldUpdate) {
+        requestBody.biographies = [
+          {
+            value: noteUpdate.newNoteValue,
+            contentType: 'TEXT_PLAIN',
+          },
+        ];
+        updateMask.push('biographies');
+        updateDetails.noteUpdated = {
+          from: existingBiography || '(empty)',
+          to: noteUpdate.newNoteValue,
+        };
+      }
+
+      if (SETTINGS.dryMode) {
+        const changes = updateMask
+          .map((field) => field.charAt(0).toUpperCase() + field.slice(1))
+          .join(', ');
+        DryModeChecker.logApiCall(
+          'service.people.updateContact() [Matcher]',
+          `${resourceName}: Updated fields [${changes}]`,
+          this.logger
+        );
+        await apiTracker.trackWrite();
+        await this.delay(this.writeDelayMs);
+        await ContactCache.getInstance().invalidate();
+        return { status: SyncStatusType.UPDATED, updateDetails };
+      }
+
+      await retryWithBackoff(async () => {
+        await service.people.updateContact({
+          resourceName,
+          updatePersonFields: updateMask.join(','),
+          requestBody,
+        });
+      });
+
+      await apiTracker.trackWrite();
+      await this.delay(this.writeDelayMs);
+      await ContactCache.getInstance().invalidate();
+      return { status: SyncStatusType.UPDATED, updateDetails };
+    } catch (error: unknown) {
+      this.logger.debug(
+        `Error in matcherUpdateContact: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined,
+        }
+      );
+      return {
+        status: SyncStatusType.ERROR,
+        error: {
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined,
+        },
+      };
+    }
+  }
+
   private async loadContactGroups(): Promise<void> {
     const service = google.people({ version: 'v1', auth: this.auth });
     const apiTracker: ApiTracker = ApiTracker.getInstance();

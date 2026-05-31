@@ -13,10 +13,12 @@ import {
   LinkedInExtractor,
   CompanyMatcher,
   ConnectionMatcher,
+  LinkedInMatcher,
   ContactSyncer,
 } from '../services/linkedin';
 import {
   LinkedInSyncScript,
+  LinkedInMatcherScript,
   LinkedInExporterScript,
   HibobSyncScript,
   ContactsSyncScript,
@@ -53,8 +55,10 @@ container.bind(DuplicateDetector).toSelf().inSingletonScope();
 container.bind(LinkedInExtractor).toSelf();
 container.bind(CompanyMatcher).toSelf();
 container.bind(ConnectionMatcher).toSelf();
+container.bind(LinkedInMatcher).toSelf();
 container.bind(ContactSyncer).toSelf();
 container.bind(LinkedInSyncScript).toSelf();
+container.bind(LinkedInMatcherScript).toSelf();
 container.bind(LinkedInExporterScript).toSelf();
 container.bind(HibobExtractor).toSelf();
 container.bind(HibobContactSyncer).toSelf();

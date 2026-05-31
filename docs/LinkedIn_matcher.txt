@@ -1,0 +1,26 @@
+Today we have the
+  🔗 LinkedIn Sync              - Syncs LinkedIn connections from exported CSV to Google Contacts
+script which is working well.
+
+1. I want to build a new script. On the menu it will be under the "LinkedIn Sync" on the menu and it will be called:
+  🔗 LinkedIn Matcher              - Syncs LinkedIn empty connections with default values
+2. We need to reuse anything we can from the "LinkedIn Sync" logic. It will also based on the zip file with the same logic.
+3 The differences:
+3.1. For each linkedin contact from the csv file on the loop we will try to find a google contact match that matches the following:
+3.1.1. Match both first name and last name (ignore case) - MATCH EXACTLY. Same letters. Ignore case.
+3.1.2. The google contact have "Connected On:" on the notes.
+3.1.3. The google contact have no emails.
+3.1.4. The google contact have no phones.
+3.1.5. The google contact don't have Website (URL).
+4. If we have a match - Do the following:
+4.1. We will add the label "LinkedIn" to the contact's labels.
+4.2. Add the LinkedIn URL to the website, for example: linkedin.com/in/user-name (WITHOUT the https://www.)
+4.3. The label of the URL is "LinkedIn" hardcoded.
+4.4. We will calculate the company name IN THE SAME WAY WE DO IN THE "LinkedIn Sync" script. We need to reuse this logic.
+4.5. With the formatted company name, set the company name to: "LinkedIn " + {CompanyName} - The {CompanyName} should be replaced by the formatted company name.
+4.6. With the formatted company name, add to the last name of the contact: "LinkedIn " + {CompanyName} - The {CompanyName} should be replaced by the formatted company name.
+5. WE ONLY UPDATE EXISTING CONTACTS - WE NEVER CREATE NEW CONTACTS IN THIS SCRIPT.
+6. We should enable dry mode as other scripts does so i will be able to test it before i run it on live contacts.
+7. We will have the same log files like the "LinkedIn Sync" script have with the following diffs:
+7.1. Log only the contacts you update.
+7.2. The name of the log files will be, for example: "linkedin-matcher_31_05_2026-1.txt"
