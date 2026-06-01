@@ -30,3 +30,18 @@ minimumReleaseAgeExclude:
   - '@inquirer/type@4.0.7'
   - eslint@10.4.1
   - fuse.js@7.4.0
+  - '@inquirer/editor@5.2.2'
+  - '@inquirer/external-editor@3.0.3'
+  - '@inquirer/input@5.1.2'
+  - '@inquirer/prompts@8.5.2'
+  - '@vitest/coverage-istanbul@4.1.8'
+  - '@vitest/expect@4.1.8'
+  - '@vitest/mocker@4.1.8'
+  - '@vitest/pretty-format@4.1.8'
+  - '@vitest/runner@4.1.8'
+  - '@vitest/snapshot@4.1.8'
+  - '@vitest/spy@4.1.8'
+  - '@vitest/ui@4.1.8'
+  - '@vitest/utils@4.1.8'
+  - tsx@4.22.4
+  - vitest@4.1.8
