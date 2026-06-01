@@ -76,6 +76,10 @@ export const MaintainerIssueDefinitions = {
     message: 'CONTAINS MULTIPLE SPACES IN FIELD: #FIELD#',
   },
   INVALID_EMAIL: { id: 42, message: 'INVALID EMAIL' },
+  LINKEDIN_CONTACT_MISSING_EMAIL_OR_PHONE: {
+    id: 43,
+    message: 'LINKEDIN CONTACT MISSING EMAIL OR PHONE',
+  },
 } as const;
 
 export type MaintainerIssueType = keyof typeof MaintainerIssueDefinitions;

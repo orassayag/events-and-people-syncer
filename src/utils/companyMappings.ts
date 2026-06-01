@@ -87,6 +87,15 @@ export const MANUAL_COMPANY_MAPPINGS: Record<string, string> = {
   Hms: 'HMS',
   OSR: 'OSR',
   Osr: 'OSR',
+  MCPD: 'MCPD',
+  Mcpd: 'MCPD',
+  AVIF: 'AVIF',
+  Avif: 'AVIF',
+  HR: 'HR',
+  Hr: 'HR',
+  Entrosecurity: 'EntroSecurity',
+  Jvp: 'JVP',
+  McpGroup: 'MCPGroup',
   MercantileDiscount: 'DiscountBank',
   MercantileDiscountBankLtd: 'DiscountBank',
   AgoraRE: 'Agora',
@@ -228,6 +237,7 @@ export const MANUAL_COMPANY_MAPPINGS: Record<string, string> = {
   Ideodigital: 'IDEODIGITAL',
   YaelGroup: 'YaelGroup',
   JobInfo: 'JobInfo',
+  'Dun & Bradstreet': 'Dun & Bradstreet',
 };
 
 /**

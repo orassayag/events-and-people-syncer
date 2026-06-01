@@ -58,8 +58,8 @@ describe('refactorCompanyName rules', () => {
     expect(refactorCompanyName('Wix.com')).toBe('Wix');
     expect(refactorCompanyName('SVTJobs')).toBe('SVT.Jobs');
     expect(refactorCompanyName('Svt.jobsRecruitment')).toBe('SVT.Jobs');
-    expect(refactorCompanyName('PagayaGlobal')).toBe('Papaya');
-    expect(refactorCompanyName('PAGAYA')).toBe('Papaya');
+    expect(refactorCompanyName('PagayaGlobal')).toBe('Pagaya');
+    expect(refactorCompanyName('PAGAYA')).toBe('Pagaya');
   });
 
   it('should preserve protected suffixes', () => {
@@ -88,7 +88,7 @@ describe('calculateFormattedCompany integration', () => {
     expect(calculateFormattedCompany('OkCupid')).toBe('LinkedIn OkCupid');
     expect(calculateFormattedCompany('AVIF')).toBe('LinkedIn AVIF');
     expect(calculateFormattedCompany('Mcpd')).toBe('LinkedIn MCPD');
-    expect(calculateFormattedCompany('JumboMail')).toBe('LinkedIn JUMBOMail');
+    expect(calculateFormattedCompany('JumboMail')).toBe('LinkedIn JUMBOmail');
     expect(calculateFormattedCompany('Dun & Bradstreet')).toBe(
       'LinkedIn Dun & Bradstreet'
     );

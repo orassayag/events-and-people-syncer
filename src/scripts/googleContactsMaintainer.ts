@@ -896,6 +896,15 @@ export class GoogleContactsMaintainerScript implements Script {
         issues.push(MaintainerIssueType.INVALID_MIXED_LABELED);
       }
 
+      // Check if LinkedIn contact has at least one email or one phone
+      if (activeLabels.includes('LinkedIn')) {
+        if (contact.emails.length === 0 && contact.phones.length === 0) {
+          issues.push(
+            MaintainerIssueType.LINKEDIN_CONTACT_MISSING_EMAIL_OR_PHONE
+          );
+        }
+      }
+
       // 4.5 & 4.6 Phones/Emails labels
       contact.phones.forEach((p) => {
         const label = (p.label || '').trim().toLowerCase();
