@@ -19,6 +19,12 @@ export class TextUtils {
     return hiddenRegex.test(text);
   }
 
+  static cleanHiddenUnicode(text: string): string {
+    if (!text) return '';
+    const hiddenRegex = /[\u200B-\u200F\u202A-\u202E\uFEFF\u00AD]/g;
+    return text.replace(hiddenRegex, '').trim();
+  }
+
   static reverseHebrewText(text: string): string {
     if (!text || !this.hasHebrewCharacters(text)) {
       return text;
@@ -447,6 +453,13 @@ export class TextUtils {
       .trim();
 
     return { firstName: finalFirstName, lastName: finalLastName };
+  }
+
+  static cleanJobTitle(title: string): string {
+    if (!title) return '';
+    // Trim non-alphanumeric characters from the start
+    // We keep letters (including international) and numbers
+    return title.replace(/^[^\p{L}\p{N}]+/u, '').trim();
   }
 
   /**

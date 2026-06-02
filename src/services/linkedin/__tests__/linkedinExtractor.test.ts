@@ -31,7 +31,7 @@ vi.mock('../../../settings', () => ({
 
 vi.mock('adm-zip', () => {
   return {
-    default: vi.fn().mockImplementation(function () {
+    default: vi.fn().mockImplementation(function (this: any) {
       this.getEntries = vi.fn().mockReturnValue([
         {
           entryName: 'connections.csv',
@@ -97,6 +97,15 @@ describe('LinkedInExtractor', () => {
         company: 'Microsoft Corporation',
         position: 'Software Engineer',
       });
+    });
+
+    it('should trim job titles during parsing', async () => {
+      const csvWithDirtyTitle = MOCK_CSV_CONTENT.replace(
+        'Software Engineer',
+        '- Software Engineer'
+      );
+      const connections = await (extractor as any).parseCsv(csvWithDirtyTitle);
+      expect(connections[0].position).toBe('Software Engineer');
     });
     it('should skip rows with missing required fields', async () => {
       await expect(

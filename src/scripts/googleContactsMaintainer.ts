@@ -1016,8 +1016,11 @@ export class GoogleContactsMaintainerScript implements Script {
         }
 
         // Email validation
-        const email = e.value.trim();
+        let email = e.value.trim();
         if (email) {
+          // Clean hidden characters before validation
+          email = TextUtils.cleanHiddenUnicode(email);
+
           const emailSchema = z.string().email();
           const validation = emailSchema.safeParse(email);
           if (!validation.success) {
@@ -1172,6 +1175,22 @@ export class GoogleContactsMaintainerScript implements Script {
                 name: resourceToNameMap.get(id) || 'Unknown',
               })),
           }));
+      }
+
+      // Check for invalid job title start
+      if (contact.jobTitle) {
+        const cleanedJobTitle = TextUtils.cleanJobTitle(contact.jobTitle);
+        if (cleanedJobTitle !== contact.jobTitle.trim()) {
+          issues.push(MaintainerIssueType.JOB_TITLE_START_IS_INVALID);
+          const msg = `JOB TITLE START IS INVALID: "${contact.jobTitle}" - SHOULD BE: "${cleanedJobTitle}"`;
+          if (!customMessages[MaintainerIssueType.JOB_TITLE_START_IS_INVALID]) {
+            customMessages[MaintainerIssueType.JOB_TITLE_START_IS_INVALID] =
+              msg;
+          } else {
+            customMessages[MaintainerIssueType.JOB_TITLE_START_IS_INVALID] +=
+              `\n-${msg}`;
+          }
+        }
       }
 
       // 4.15 Company name refactoring
@@ -1438,13 +1457,45 @@ export class GoogleContactsMaintainerScript implements Script {
               break;
             } else {
               // Case 2: Has something after it (Sub-Label) - Verify if labels are present
-              const subLabel = words[baseLabelIndex + 1];
+              const textAfter = words.slice(baseLabelIndex + 1).join(' ');
+
+              // Find the longest match in allLabels that starts at the beginning of textAfter
+              let subLabel = '';
+              const sortedAllLabels = [...allLabels].sort(
+                (a, b) => b.length - a.length
+              );
+
+              for (const label of sortedAllLabels) {
+                if (textAfter.toLowerCase().startsWith(label.toLowerCase())) {
+                  // Check if it's a whole word match or followed by space/dash
+                  if (
+                    textAfter.length === label.length ||
+                    [' ', '-'].includes(textAfter[label.length])
+                  ) {
+                    subLabel = label;
+                    break;
+                  }
+                }
+              }
+
+              // If no label found in allLabels, fallback to the first word (current behavior)
+              if (!subLabel) {
+                subLabel = words[baseLabelIndex + 1];
+              }
+
               const missingLabels: string[] = [];
 
-              if (!activeLabels.includes(baseLabel))
+              if (
+                !activeLabels.some(
+                  (l) => l.toLowerCase() === baseLabel.toLowerCase()
+                )
+              )
                 missingLabels.push(baseLabel);
-              if (!activeLabels.includes(subLabel))
-                missingLabels.push(subLabel);
+
+              const hasSubLabel = activeLabels.some(
+                (l) => l.toLowerCase() === subLabel.toLowerCase()
+              );
+              if (!hasSubLabel) missingLabels.push(subLabel);
 
               if (missingLabels.length > 0) {
                 if (!issues.includes(MaintainerIssueType.MISSING_SUB_LABEL)) {
@@ -1568,8 +1619,9 @@ export class GoogleContactsMaintainerScript implements Script {
       const otherCustomMessages: Partial<Record<MaintainerIssueType, string>> =
         {};
 
-      other.emails.forEach((email) => {
-        if (email) {
+      other.emails.forEach((emailValue) => {
+        if (emailValue) {
+          const email = TextUtils.cleanHiddenUnicode(emailValue.trim());
           const emailSchema = z.string().email();
           const validation = emailSchema.safeParse(email);
           if (!validation.success) {

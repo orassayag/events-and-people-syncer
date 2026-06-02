@@ -80,6 +80,10 @@ export const MaintainerIssueDefinitions = {
     id: 43,
     message: 'LINKEDIN CONTACT MISSING EMAIL OR PHONE',
   },
+  JOB_TITLE_START_IS_INVALID: {
+    id: 44,
+    message: 'JOB TITLE START IS INVALID',
+  },
 } as const;
 
 export type MaintainerIssueType = keyof typeof MaintainerIssueDefinitions;

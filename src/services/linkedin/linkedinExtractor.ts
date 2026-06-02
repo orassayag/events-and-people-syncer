@@ -142,7 +142,7 @@ export class LinkedInExtractor {
         throw new Error('CSV header row not found');
       }
       const csvWithoutNotes: string = lines.slice(headerIndex).join('\n');
-      const records = parse(csvWithoutNotes, {
+      const records: any[] = parse(csvWithoutNotes, {
         columns: true,
         skip_empty_lines: true,
         trim: true,
@@ -224,8 +224,8 @@ export class LinkedInExtractor {
                 (record['Email Address'] || '').trim()
               ),
               company,
-              position: TextUtils.removeHebrew(
-                (record['Position'] || '').trim()
+              position: TextUtils.cleanJobTitle(
+                TextUtils.removeHebrew((record['Position'] || '').trim())
               ),
               url: UrlNormalizer.formatLinkedInUrl(url),
               connectedOn: (record['Connected On'] || '').trim(),

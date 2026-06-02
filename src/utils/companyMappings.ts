@@ -238,6 +238,18 @@ export const MANUAL_COMPANY_MAPPINGS: Record<string, string> = {
   YaelGroup: 'YaelGroup',
   JobInfo: 'JobInfo',
   'Dun & Bradstreet': 'Dun & Bradstreet',
+  Elta: 'ELTA',
+  Ibc: 'IBC',
+  Nvidia: 'NVIDIA',
+  LogicaIt: 'LogicaIT',
+  Talentspace: 'TalentSpace',
+  Talentspacecoil: 'TalentSpace',
+  Fordefi: 'FORDEFI',
+  InnovHr: 'InnovHR',
+  Grth: 'GRTH',
+  Bynetsoft: 'Bynetsoft',
+  Bynetsoftcoil: 'Bynetsoft',
+  Bmc: 'BMC',
 };
 
 /**

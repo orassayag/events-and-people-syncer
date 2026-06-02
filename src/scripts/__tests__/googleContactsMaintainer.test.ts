@@ -1002,6 +1002,48 @@ describe('GoogleContactsMaintainerScript', () => {
       expect(subLabelIssues?.length || 0).toBe(0);
     });
 
+    it('should correctly identify multi-word sub-labels (e.g., Twitter x.AI)', () => {
+      const allLabels = ['Date', 'Twitter x.AI'];
+      const contacts = [
+        {
+          ...mockContact,
+          resourceName: 'people/twitter_xai',
+          firstName: 'Carmel',
+          lastName: 'Raz Date Twitter x.AI',
+          label: 'Date | Twitter x.AI', // Has both labels - should be fine
+        },
+        {
+          ...mockContact,
+          resourceName: 'people/twitter_xai_missing',
+          firstName: 'Carmel',
+          lastName: 'Raz Date Twitter x.AI',
+          label: 'Date', // Missing "Twitter x.AI" label
+        },
+      ];
+
+      const report = maintainer.testScanContacts(contacts, allLabels);
+
+      const item1 = report.find(
+        (r) => r.contact.resourceName === 'people/twitter_xai'
+      );
+      const subLabelIssues1 = item1?.issues.filter(
+        (i: string) => i === MaintainerIssueType.MISSING_SUB_LABEL
+      );
+      expect(subLabelIssues1?.length || 0).toBe(0);
+
+      const item2 = report.find(
+        (r) => r.contact.resourceName === 'people/twitter_xai_missing'
+      );
+      expect(item2?.issues).toContain(MaintainerIssueType.MISSING_SUB_LABEL);
+      expect(
+        item2?.customIssueMessages[MaintainerIssueType.MISSING_SUB_LABEL]
+      ).toContain('MISSING SUB-LABEL FOR: Twitter x.AI');
+      // Should not report "Twitter" as a separate missing sub-label
+      expect(
+        item2?.customIssueMessages[MaintainerIssueType.MISSING_SUB_LABEL]
+      ).not.toMatch(/^MISSING SUB-LABEL FOR: Twitter$/m);
+    });
+
     it('should check for other new validations', () => {
       const contacts = [
         {
@@ -1104,6 +1146,26 @@ describe('GoogleContactsMaintainerScript', () => {
       expect(otherItem).toBeDefined();
       expect(otherItem?.contact.fullName).toBe('Other Person');
       expect(otherItem?.contact.emails[0].value).toBe('other@example.com');
+    });
+
+    it('should detect invalid job title start', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          jobTitle: '- Software Engineer',
+        },
+      ];
+      const results = maintainer.testScanContacts(contacts);
+      expect(results[0].issues).toContain(
+        MaintainerIssueType.JOB_TITLE_START_IS_INVALID
+      );
+      expect(
+        results[0].customIssueMessages[
+          MaintainerIssueType.JOB_TITLE_START_IS_INVALID
+        ]
+      ).toBe(
+        'JOB TITLE START IS INVALID: "- Software Engineer" - SHOULD BE: "Software Engineer"'
+      );
     });
 
     it('should NOT detect invalid contact company if company name exactly equals a label', () => {
