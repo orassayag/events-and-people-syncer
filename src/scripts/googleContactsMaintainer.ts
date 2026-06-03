@@ -32,6 +32,7 @@ import { FormatUtils } from '../constants';
 import { UrlNormalizer } from '../services/linkedin/urlNormalizer';
 import { PhoneNormalizer } from '../services/contacts/phoneNormalizer';
 import { OtherContactsFetcher } from '../services/otherContacts';
+import { withNetworkRetry } from '../services/auth/authService';
 
 @injectable()
 export class GoogleContactsMaintainerScript implements Script {
@@ -202,10 +203,14 @@ export class GoogleContactsMaintainerScript implements Script {
     const groupIdToName: Record<string, string> = {};
     let groupPageToken: string | undefined;
     do {
-      const groupResponse = await service.contactGroups.list({
-        pageSize: 1000,
-        pageToken: groupPageToken,
-      });
+      const groupResponse = await withNetworkRetry(
+        () =>
+          service.contactGroups.list({
+            pageSize: 1000,
+            pageToken: groupPageToken,
+          }),
+        this.uiLogger
+      );
       const groups = groupResponse.data.contactGroups || [];
       groups.forEach((g) => {
         if (g.resourceName && g.name) {
@@ -217,13 +222,17 @@ export class GoogleContactsMaintainerScript implements Script {
     } while (groupPageToken);
 
     do {
-      const response = await service.people.connections.list({
-        resourceName: 'people/me',
-        pageSize: 1000,
-        personFields:
-          'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies,metadata',
-        pageToken,
-      });
+      const response = await withNetworkRetry(
+        () =>
+          service.people.connections.list({
+            resourceName: 'people/me',
+            pageSize: 1000,
+            personFields:
+              'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies,metadata',
+            pageToken,
+          }),
+        this.uiLogger
+      );
 
       const connections = response.data.connections || [];
       for (const person of connections) {

@@ -27,12 +27,112 @@ const NETWORK_RETRY_BACKOFF_FACTOR = 2; // 5s → 10s → 20s
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
+// ---------------------------------------------------------------------------
+// Network-wait configuration
+// ---------------------------------------------------------------------------
+// On startup, if the network is down we poll until it comes up rather than
+// immediately continuing with a stale token (which would fail downstream).
+const NETWORK_WAIT_TIMEOUT_MS = 5 * 60_000; // give up after 5 minutes
+const NETWORK_WAIT_POLL_MS = 15_000; // re-check every 15 seconds
+const NETWORK_PROBE_URL = 'https://oauth2.googleapis.com/token';
+
+/**
+ * Waits until a DNS lookup for Google's OAuth endpoint succeeds, or the
+ * timeout is reached.
+ *
+ * Returns true  → network is available
+ * Returns false → timed out, still no network
+ */
+async function waitForNetwork(
+  logger: Logger,
+  timeoutMs = NETWORK_WAIT_TIMEOUT_MS,
+  pollMs = NETWORK_WAIT_POLL_MS
+): Promise<boolean> {
+  const { lookup } = await import('dns/promises');
+  const host = new URL(NETWORK_PROBE_URL).hostname;
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    try {
+      await lookup(host);
+      return true;
+    } catch {
+      const remaining = Math.round((deadline - Date.now()) / 1000);
+      logger.warn(
+        `Network unavailable — retrying in ${pollMs / 1000}s ` +
+          `(giving up in ${remaining}s)`
+      );
+      await sleep(Math.min(pollMs, deadline - Date.now()));
+    }
+  }
+  return false;
+}
+
+/**
+ * Wraps any async API call with network-aware retries.
+ * Use this in scripts (e.g. GoogleContactsMaintainer) to handle transient
+ * network drops mid-run without crashing the entire job.
+ *
+ * @example
+ *   const contacts = await withNetworkRetry(() => fetchPage(pageToken), logger);
+ */
+export async function withNetworkRetry<T>(
+  fn: () => Promise<T>,
+  logger: Logger,
+  attempts = NETWORK_RETRY_ATTEMPTS,
+  baseDelayMs = NETWORK_RETRY_DELAY_MS
+): Promise<T> {
+  let delayMs = baseDelayMs;
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      const isNetwork =
+        error instanceof Error &&
+        [
+          'enotfound',
+          'econnrefused',
+          'econnreset',
+          'etimedout',
+          'esockettimedout',
+          'eai_again',
+          'enetunreach',
+          'getaddrinfo',
+          'failed to fetch',
+          'network request failed',
+        ].some((code) => error.message.toLowerCase().includes(code));
+
+      if (!isNetwork) throw error; // non-network errors bubble up immediately
+
+      logger.warn(
+        `API call failed (network error) on attempt ${attempt}/${attempts}`,
+        { error: error instanceof Error ? error.message : String(error) }
+      );
+      if (attempt < attempts) {
+        logger.info(`Retrying in ${delayMs / 1000}s...`);
+        await sleep(delayMs);
+        delayMs *= NETWORK_RETRY_BACKOFF_FACTOR;
+      }
+    }
+  }
+
+  throw lastError;
+}
+
 @injectable()
 export class AuthService {
   private oAuth2Client?: OAuth2Client;
   private server?: Server;
   private logger: Logger = new Logger('AuthService');
-  private isSavingToken: boolean = false;
+  // Mutex for saveToken: holds the tail of the promise chain so concurrent
+  // callers queue up instead of racing on the .tmp file.
+  private saveTokenQueue: Promise<void> = Promise.resolve();
+  // Set to true while refreshWithRetry owns a refresh cycle so the on('tokens')
+  // event handler knows to skip its own redundant save.
+  private isRefreshing: boolean = false;
 
   // -------------------------------------------------------------------------
   // Public API
@@ -88,28 +188,44 @@ export class AuthService {
 
         if (refreshResult === 'network_error') {
           // ----------------------------------------------------------------
-          // KEY FIX: A network failure is NOT a bad token.
-          // If we are in a headless / scheduled context, the safest thing is
-          // to keep the existing token and let the caller fail gracefully
-          // rather than destroying the token and demanding interactive auth.
+          // Network is down — wait for it to come back before giving up.
+          // This handles the common Task Scheduler race where the job fires
+          // before the NIC/DNS is fully ready.
           // ----------------------------------------------------------------
           this.logger.warn(
-            'Auto-refresh failed due to network error - ' +
-              'keeping existing token and continuing (will retry on next run)'
+            'Token refresh failed due to network error — waiting for network before retrying...'
           );
 
-          if (this.isHeadlessContext()) {
-            this.logger.error(
-              'Running headless with unreachable network. ' +
-                'Check that the Task Scheduler task waits for network ' +
-                'availability, and that DNS/proxy settings match your ' +
-                'interactive session.'
+          const networkCameUp = await waitForNetwork(this.logger);
+          if (networkCameUp) {
+            this.logger.info(
+              'Network is now available — retrying token refresh'
             );
-            // Return the client with the stale-but-present credentials so
-            // downstream code can decide whether to abort gracefully.
-            return this.oAuth2Client;
+            const retryResult = await this.refreshWithRetry();
+            if (retryResult === 'success') {
+              this.logger.info('Token refresh succeeded after network wait');
+              return this.oAuth2Client;
+            }
+            if (retryResult === 'auth_error') {
+              // Treat same as the auth_error branch below
+              await this.deleteToken();
+              await this.getNewToken();
+              return this.oAuth2Client;
+            }
+            // Still a network error after waiting — fall through to throw
           }
-          // Interactive context: fall through to normal validation below
+
+          // Network never came up within the timeout
+          this.logger.error(
+            'Network did not become available within the wait window. ' +
+              'Aborting run — Task Scheduler will retry on the next trigger, ' +
+              'or configure "Restart task if it fails" in the task settings.'
+          );
+          throw new AppError(
+            ErrorCode.AUTH_INVALID_TOKEN,
+            'Cannot refresh token: network unreachable after waiting. ' +
+              'The run will be retried by Task Scheduler.'
+          );
         } else if (refreshResult === 'auth_error') {
           this.logger.warn(
             'Token refresh rejected by Google - deleting token and re-authenticating. ' +
@@ -269,51 +385,56 @@ export class AuthService {
     let lastError: unknown;
     let delayMs = NETWORK_RETRY_DELAY_MS;
 
-    for (let attempt = 1; attempt <= NETWORK_RETRY_ATTEMPTS; attempt++) {
-      try {
-        this.logger.debug(
-          `Token refresh attempt ${attempt}/${NETWORK_RETRY_ATTEMPTS}`
-        );
-        const { credentials: refreshedTokens } =
-          await this.oAuth2Client.refreshAccessToken();
-        this.oAuth2Client.setCredentials(refreshedTokens);
-        await this.saveToken(refreshedTokens as TokenData);
-        return 'success';
-      } catch (error) {
-        lastError = error;
-
-        if (this.isAuthError(error)) {
-          // Auth errors won't get better with retries
-          this.lastAuthError = error;
-          this.logger.warn('Token refresh rejected by Google (auth error)', {
-            error: error instanceof Error ? error.message : String(error),
-          });
-          return 'auth_error';
-        }
-
-        if (this.isNetworkError(error)) {
-          this.logger.warn(
-            `Token refresh failed (network error) on attempt ${attempt}/${NETWORK_RETRY_ATTEMPTS}`,
-            { error: error instanceof Error ? error.message : String(error) }
+    try {
+      for (let attempt = 1; attempt <= NETWORK_RETRY_ATTEMPTS; attempt++) {
+        try {
+          this.logger.debug(
+            `Token refresh attempt ${attempt}/${NETWORK_RETRY_ATTEMPTS}`
           );
-          if (attempt < NETWORK_RETRY_ATTEMPTS) {
-            this.logger.info(`Retrying in ${delayMs / 1000}s...`);
-            await sleep(delayMs);
-            delayMs *= NETWORK_RETRY_BACKOFF_FACTOR;
+          this.isRefreshing = true;
+          const { credentials: refreshedTokens } =
+            await this.oAuth2Client.refreshAccessToken();
+          this.oAuth2Client.setCredentials(refreshedTokens);
+          await this.saveToken(refreshedTokens as TokenData);
+          return 'success';
+        } catch (error) {
+          lastError = error;
+
+          if (this.isAuthError(error)) {
+            // Auth errors won't get better with retries
+            this.lastAuthError = error;
+            this.logger.warn('Token refresh rejected by Google (auth error)', {
+              error: error instanceof Error ? error.message : String(error),
+            });
+            return 'auth_error';
           }
-          continue;
+
+          if (this.isNetworkError(error)) {
+            this.logger.warn(
+              `Token refresh failed (network error) on attempt ${attempt}/${NETWORK_RETRY_ATTEMPTS}`,
+              { error: error instanceof Error ? error.message : String(error) }
+            );
+            if (attempt < NETWORK_RETRY_ATTEMPTS) {
+              this.logger.info(`Retrying in ${delayMs / 1000}s...`);
+              await sleep(delayMs);
+              delayMs *= NETWORK_RETRY_BACKOFF_FACTOR;
+            }
+            continue;
+          }
+
+          // Unknown error — don't retry, surface it
+          throw error;
         }
-
-        // Unknown error — don't retry, surface it
-        throw error;
       }
-    }
 
-    this.logger.error(
-      'All token refresh attempts exhausted',
-      lastError instanceof Error ? lastError : new Error(String(lastError))
-    );
-    return 'network_error';
+      this.logger.error(
+        'All token refresh attempts exhausted',
+        lastError instanceof Error ? lastError : new Error(String(lastError))
+      );
+      return 'network_error';
+    } finally {
+      this.isRefreshing = false;
+    }
   }
 
   /**
@@ -467,30 +588,35 @@ export class AuthService {
     return JSON.parse(content);
   }
 
-  public async saveToken(token: TokenData): Promise<void> {
-    this.isSavingToken = true;
-    try {
-      // Merge with existing token to preserve refresh_token if the new one
-      // doesn't include it (Google only returns it on first auth)
-      const existing = await this.loadToken().catch(() => null);
-      const merged: TokenData = existing
-        ? {
-            ...existing,
-            ...token,
-            // Preserve fields Google omits on refresh responses
-            refresh_token: token.refresh_token ?? existing.refresh_token,
-            expiry_date: token.expiry_date ?? existing.expiry_date,
-          }
-        : token;
+  public saveToken(token: TokenData): Promise<void> {
+    // Queue saves so concurrent callers never race on the .tmp file.
+    // Each call chains onto the previous one; if a save is already in flight
+    // the next one waits for it to finish before starting.
+    this.saveTokenQueue = this.saveTokenQueue.then(() =>
+      this.saveTokenImpl(token)
+    );
+    return this.saveTokenQueue;
+  }
 
-      const tempFile = `${SETTINGS.paths.tokenFile}.tmp`;
-      await writeFile(tempFile, JSON.stringify(merged, null, 2));
-      const { rename } = await import('fs/promises');
-      await rename(tempFile, SETTINGS.paths.tokenFile);
-      this.logger.info('Token saved');
-    } finally {
-      this.isSavingToken = false;
-    }
+  private async saveTokenImpl(token: TokenData): Promise<void> {
+    // Merge with existing token to preserve refresh_token if the new one
+    // doesn't include it (Google only returns it on first auth)
+    const existing = await this.loadToken().catch(() => null);
+    const merged: TokenData = existing
+      ? {
+          ...existing,
+          ...token,
+          // Preserve fields Google omits on refresh responses
+          refresh_token: token.refresh_token ?? existing.refresh_token,
+          expiry_date: token.expiry_date ?? existing.expiry_date,
+        }
+      : token;
+
+    const tempFile = `${SETTINGS.paths.tokenFile}.tmp`;
+    await writeFile(tempFile, JSON.stringify(merged, null, 2));
+    const { rename } = await import('fs/promises');
+    await rename(tempFile, SETTINGS.paths.tokenFile);
+    this.logger.info('Token saved');
   }
 
   private async deleteToken(): Promise<void> {
@@ -520,11 +646,12 @@ export class AuthService {
 
     client.on('tokens', (tokens) => {
       this.logger.debug('OAuth2Client received new tokens');
-      // Guard: if saveToken is already running (e.g. from refreshWithRetry),
-      // skip this duplicate event — both are triggered by the same refresh.
-      if (this.isSavingToken) {
+      // refreshWithRetry sets isRefreshing=true BEFORE calling refreshAccessToken(),
+      // which is what triggers this event. So if isRefreshing is true here, the
+      // refresh cycle already owns the save — skip to avoid the .tmp race.
+      if (this.isRefreshing) {
         this.logger.debug(
-          'Skipping on(tokens) save — saveToken already in progress'
+          'Skipping on(tokens) save — refreshWithRetry is already saving'
         );
         return;
       }
