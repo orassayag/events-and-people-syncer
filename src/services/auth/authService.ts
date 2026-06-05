@@ -674,9 +674,24 @@ export class AuthService {
 
   private async testTokenValidity(): Promise<boolean> {
     if (!this.oAuth2Client) return false;
+
+    // Hard timeout — if the API call doesn't respond in 15s we treat it as a
+    // network error rather than hanging the process indefinitely.
+    const VALIDITY_CHECK_TIMEOUT_MS = 15_000;
+
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(
+        () => reject(new Error('enotfound token validity check timed out')),
+        VALIDITY_CHECK_TIMEOUT_MS
+      )
+    );
+
     try {
       const service = google.people({ version: 'v1', auth: this.oAuth2Client });
-      const response = await service.contactGroups.list({ pageSize: 1 });
+      const response = await Promise.race([
+        service.contactGroups.list({ pageSize: 1 }),
+        timeoutPromise,
+      ]);
       return response.status === 200;
     } catch (error: unknown) {
       if (this.isAuthError(error)) return false;
