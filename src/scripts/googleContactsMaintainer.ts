@@ -1784,7 +1784,17 @@ export class GoogleContactsMaintainerScript implements Script {
     report += `Contacts:       ${FormatUtils.formatNumberWithLeadingZeros(backupStats.contactCount, 6)}\n`;
     report += `Other Contacts: ${FormatUtils.formatNumberWithLeadingZeros(backupStats.otherContactCount, 6)}\n`;
     report += `Files:          ${backupStats.fileCount}\n`;
-    report += `=======================\n`;
+    report += `=======================\n\n`;
+
+    report += `#FOR-BOT#\n`;
+    report += `Issues:\n`;
+    report += `Contacts to Fix: ${new Intl.NumberFormat('en-US').format(items.length)} (${contactsToFixPercentage})\n`;
+    report += `Issues to fix:   ${new Intl.NumberFormat('en-US').format(totalIssues)}\n`;
+    report += `Total contacts:  ${new Intl.NumberFormat('en-US').format(backupStats.contactCount)}\n`;
+    report += `Backup:\n`;
+    report += `Contacts:       ${FormatUtils.formatNumberWithLeadingZeros(backupStats.contactCount, 6)}\n`;
+    report += `Other Contacts: ${FormatUtils.formatNumberWithLeadingZeros(backupStats.otherContactCount, 6)}\n`;
+    report += `Files:          ${backupStats.fileCount}\n`;
 
     await this.safeWriteFile(reportPath, report);
   }
