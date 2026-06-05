@@ -537,6 +537,32 @@ describe('GoogleContactsMaintainerScript', () => {
       );
     });
 
+    it('should NOT detect mixed "Unknown" if other labels contain "Imported"', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          label: 'Unknown | Some Imported Label',
+        },
+      ];
+      const issues = maintainer.testScanContacts(contacts);
+      expect(issues[0].issues).not.toContain(
+        MaintainerIssueType.MIXED_UNKNOWN_AND_OTHER_TAGS
+      );
+    });
+
+    it('should NOT detect mixed "Unknown" if other labels include "myContacts"', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          label: 'Unknown | myContacts',
+        },
+      ];
+      const issues = maintainer.testScanContacts(contacts);
+      expect(issues[0].issues).not.toContain(
+        MaintainerIssueType.MIXED_UNKNOWN_AND_OTHER_TAGS
+      );
+    });
+
     it('should detect missing label if any other label is missing from name', () => {
       const contacts = [
         {
@@ -1155,7 +1181,7 @@ describe('GoogleContactsMaintainerScript', () => {
       );
       expect(
         item1?.customIssueMessages[MaintainerIssueType.OUTDATED_COMPANY_NAME]
-      ).toBe('OUTDATED COMPANY NAME - SHOULD BE: LinkedIn JUMBOmail');
+      ).toBe('OUTDATED COMPANY NAME - SHOULD BE: LinkedIn JumboMail');
 
       const item2 = report.find((r) => r.contact.company === 'JUMBOMail');
       expect(item2?.issues).toContain(
@@ -1163,7 +1189,7 @@ describe('GoogleContactsMaintainerScript', () => {
       );
       expect(
         item2?.customIssueMessages[MaintainerIssueType.OUTDATED_COMPANY_NAME]
-      ).toBe('OUTDATED COMPANY NAME - SHOULD BE: LinkedIn JUMBOmail');
+      ).toBe('OUTDATED COMPANY NAME - SHOULD BE: LinkedIn JUMBOMail');
     });
 
     it('should include "Other contacts" in the report', () => {

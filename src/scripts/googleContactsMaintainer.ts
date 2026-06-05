@@ -863,7 +863,13 @@ export class GoogleContactsMaintainerScript implements Script {
       // 4.4 Missing/Wrong label
       const activeLabels = contact.label
         .split(' | ')
-        .filter((l) => l && !l.toLowerCase().startsWith('imported'));
+        .map((l) => l.trim())
+        .filter(
+          (l) =>
+            l &&
+            !l.toLowerCase().includes('imported') &&
+            l.toLowerCase() !== 'mycontacts'
+        );
 
       const isHrOrJob = activeLabels.some((l) =>
         this.REQUIRED_URL_LABELS.includes(l)
