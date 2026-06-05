@@ -500,6 +500,43 @@ describe('GoogleContactsMaintainerScript', () => {
       );
     });
 
+    it('should detect contact containing an address', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          addresses: [{ formattedValue: '123 Main St', label: 'Home' }],
+        },
+      ];
+      const issues = maintainer.testScanContacts(contacts);
+      expect(issues[0].issues).toContain(MaintainerIssueType.CONTAINS_ADDRESS);
+    });
+
+    it('should detect mixed "Unknown" and other labels', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          label: 'Unknown | Friends',
+        },
+      ];
+      const issues = maintainer.testScanContacts(contacts);
+      expect(issues[0].issues).toContain(
+        MaintainerIssueType.MIXED_UNKNOWN_AND_OTHER_TAGS
+      );
+    });
+
+    it('should NOT detect mixed "Unknown" if it is the only active label', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          label: 'Unknown | Imported on 6/27',
+        },
+      ];
+      const issues = maintainer.testScanContacts(contacts);
+      expect(issues[0].issues).not.toContain(
+        MaintainerIssueType.MIXED_UNKNOWN_AND_OTHER_TAGS
+      );
+    });
+
     it('should detect missing label if any other label is missing from name', () => {
       const contacts = [
         {

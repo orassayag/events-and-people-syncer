@@ -84,6 +84,11 @@ export const MaintainerIssueDefinitions = {
     id: 44,
     message: 'JOB TITLE START IS INVALID',
   },
+  CONTAINS_ADDRESS: { id: 45, message: 'CONTAINS ADDRESS' },
+  MIXED_UNKNOWN_AND_OTHER_TAGS: {
+    id: 46,
+    message: 'MIXED UNKNOWN AND OTHER TAGS',
+  },
 } as const;
 
 export type MaintainerIssueType = keyof typeof MaintainerIssueDefinitions;
@@ -131,6 +136,7 @@ export interface MaintainerReportItem {
     phones: { number: string; label: string }[];
     emails: { value: string; label: string }[];
     websites: { url: string; label: string }[];
+    addresses: { formattedValue: string; label: string }[];
     company: string;
     jobTitle: string;
     biography: string;

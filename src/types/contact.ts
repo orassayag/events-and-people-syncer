@@ -13,6 +13,11 @@ export interface Website {
   label: string;
 }
 
+export interface Address {
+  formattedValue: string;
+  label: string;
+}
+
 export interface ContactData {
   label: string;
   labels?: string[];
@@ -23,6 +28,7 @@ export interface ContactData {
   emails: EmailAddress[];
   phones: PhoneNumber[];
   websites: Website[];
+  addresses: Address[];
   resourceName?: string;
   biography?: string;
   etag?: string;

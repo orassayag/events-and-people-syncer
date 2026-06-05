@@ -228,7 +228,7 @@ export class GoogleContactsMaintainerScript implements Script {
             resourceName: 'people/me',
             pageSize: 1000,
             personFields:
-              'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies,metadata',
+              'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies,metadata,addresses',
             pageToken,
           }),
         this.uiLogger
@@ -251,6 +251,10 @@ export class GoogleContactsMaintainerScript implements Script {
           url: u.value || '',
           label: u.type || u.formattedType || '',
         }));
+        const addresses = (person.addresses || []).map((a) => ({
+          formattedValue: a.formattedValue || '',
+          label: a.type || a.formattedType || '',
+        }));
         const memberships = (person.memberships || [])
           .map(
             (m) =>
@@ -268,6 +272,7 @@ export class GoogleContactsMaintainerScript implements Script {
           emails,
           phones,
           websites,
+          addresses,
           label: memberships.join(' | '),
           labels: memberships,
           biography: person.biographies?.[0]?.value || '',
@@ -870,6 +875,17 @@ export class GoogleContactsMaintainerScript implements Script {
 
       if (activeLabels.length > 0 && !hasLabelInName) {
         issues.push(MaintainerIssueType.MISSING_LABEL);
+      }
+
+      // Requirement 1: CONTAINS ADDRESS
+      if (contact.addresses && contact.addresses.length > 0) {
+        issues.push(MaintainerIssueType.CONTAINS_ADDRESS);
+      }
+
+      // Requirement 2: MIXED UNKNOWN AND OTHER TAGS
+      const hasUnknownLabel = activeLabels.includes('Unknown');
+      if (hasUnknownLabel && activeLabels.length > 1) {
+        issues.push(MaintainerIssueType.MIXED_UNKNOWN_AND_OTHER_TAGS);
       }
 
       // New Label Validations
@@ -1657,6 +1673,7 @@ export class GoogleContactsMaintainerScript implements Script {
           phones: other.phones.map((p) => ({ number: p, label: '' })),
           emails: other.emails.map((e) => ({ value: e, label: '' })),
           websites: [],
+          addresses: [],
           company: '',
           jobTitle: '',
           biography: '',
