@@ -1,0 +1,27 @@
+We need to refactor the companies suggestions:
+1. Create a new file - It should be located on "C:\Users\Or Assayag\Dropbox\contacts\companies_mapping.json"
+2. This file needs to be backup as the other files on this folder each time we run the Contacts Scan Syncer script.
+3. Move all the companies suggestions to replace from "src\utils\companyMappings.ts" to the new json file.
+4. In addition we need to add a new option to the menu.
+5. The new option will be "  🏭 Google Contacts Mapper   - Manager the companies mapping of Google Contacts Maintainer".
+6. The new option will be under the "  🚫 Google Contacts Excluder   - Manage validation exclusions for the Google Contacts Maintainer" option.
+7. Once this option selected, we will have 2 options:
+7.1. Add company -
+7.1.1. Once selected, the CLI will ask the user to type the company name typo.
+7.1.2. If empty, display validation error but let the user recover.
+7.1.3. If typo already exists (case sensitive) display a message that the typo {TYPO_NAME} is already exists for {COMPANY_NAME} (replace the placeholders of course)
+7.1.4. Once the typo successfully submitted to the CLI, the CLI will ask for the correct name of the company.
+7.1.5. If empty, display validation error but let the user recover.
+7.1.6. Once the correct company name submitted successfully to the CLI, it will save a new item to the json file.
+7.2. Delete company -
+7.2.1. Once selected, the CLI will ask the user to type the company name typo.
+7.2.2. If empty, display validation error but let the user recover.
+7.2.3. If not exists on the json file, display a message to the user and ask again (in a loop, until a existing typo will be entered)
+7.2.4. Once the typo successfully submitted to the CLI and found on the json file, it will be deleted from the json file.
+
+JSON structure items for example:
+
+{
+  "Googlee": "Google",
+  "Facebok": "Meta"
+}

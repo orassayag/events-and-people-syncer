@@ -119,6 +119,7 @@ async function main(): Promise<void> {
       'contacts-sync',
       'google-contacts-maintainer',
       'google-contacts-excluder',
+      'google-contacts-mapper',
       'events-jobs-sync',
       'linkedin-sync',
       'linkedin-matcher',

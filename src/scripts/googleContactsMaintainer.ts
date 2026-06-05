@@ -345,7 +345,8 @@ export class GoogleContactsMaintainerScript implements Script {
       for (const file of files) {
         if (
           file.toLowerCase().endsWith('.json') &&
-          file.toLowerCase() !== 'exclusions.json'
+          file.toLowerCase() !== 'exclusions.json' &&
+          file.toLowerCase() !== 'companies_mapping.json'
         ) {
           await this.safeUnlink(join(backupPath, file));
         }
@@ -443,6 +444,14 @@ export class GoogleContactsMaintainerScript implements Script {
       JSON.stringify(filteredLabels, null, 2)
     );
     fileCount++;
+
+    if (existsSync(join(backupPath, 'exclusions.json'))) {
+      fileCount++;
+    }
+
+    if (existsSync(join(backupPath, 'companies_mapping.json'))) {
+      fileCount++;
+    }
 
     return {
       contactCount: contacts.length,
