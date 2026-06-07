@@ -261,7 +261,7 @@ describe('GoogleContactsMaintainerScript', () => {
       expect(hasInvalidName).toBe(false);
     });
 
-    it('should not flag invalid name if contact has "Life" or "Customer Service" label', () => {
+    it('should not flag invalid name if contact has "Life", "Customer Service" or "Clash Royale" label', () => {
       const contacts = [
         {
           ...mockContact,
@@ -275,12 +275,18 @@ describe('GoogleContactsMaintainerScript', () => {
           lastName: 'Adv.',
           label: 'Customer Service',
         },
+        {
+          ...mockContact,
+          firstName: 'T-800',
+          lastName: 'Clash Royale',
+          label: 'Clash Royale | Job',
+        },
       ];
-      const issues = maintainer.testScanContacts(contacts);
-      // Both contacts have invalid names but should be ignored due to their labels
+      const issues = maintainer.testScanContacts(contacts, ['Life', 'Customer Service', 'Clash Royale', 'Job']);
+      // All contacts have invalid names/formats but should be ignored due to their labels
       expect(
         issues.some((item: any) =>
-          item.issues.some((i: string) => i.startsWith('INVALID NAME'))
+          item.issues.some((i: string) => i.startsWith('INVALID NAME') || i.startsWith('INVALID CONTACT'))
         )
       ).toBe(false);
     });
@@ -903,16 +909,9 @@ describe('GoogleContactsMaintainerScript', () => {
       const allLabels = ['HR', 'Job', 'Unknown'];
       const report = maintainer.testScanContacts(contacts, allLabels);
 
-      // First contact: "John Doe - Director HR" -> remove label -> "John Doe - Director" -> clean -> "John Doe"
-      // "John Doe" !== "John Doe - Director" -> Flagged
+      // First contact: "John Doe - Director HR" -> "HR" is a label the contact has -> VALID case as per new logic
       const item1 = report.find((c) => c.contact.firstName === 'John');
-      expect(item1?.issues).toContain(MaintainerIssueType.INVALID_CONTACT_NAME);
-      expect(
-        item1?.customIssueMessages[MaintainerIssueType.INVALID_CONTACT_NAME]
-      ).toContain('INVALID CONTACT - Name: John Doe');
-      expect(
-        item1?.customIssueMessages[MaintainerIssueType.INVALID_CONTACT_NAME]
-      ).toContain('SHOULD BE: John Doe HR');
+      expect(item1?.issues).not.toContain(MaintainerIssueType.INVALID_CONTACT_NAME);
 
       expect(item1?.issues).toContain(
         MaintainerIssueType.INVALID_CONTACT_COMPANY

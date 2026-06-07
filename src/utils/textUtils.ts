@@ -197,14 +197,35 @@ export class TextUtils {
     );
     // Remove C-level titles, professional roles, and everything after them
     const jobTitles = TextUtils.getJobTitlesRegex();
-    // If title is in the middle/end (has space before), remove it and everything after
+    const joiners = 'of|at|in|and|&|for|with';
+    // Strong titles that are almost certainly professional roles and should be removed if they appear after a space
+    const strongTitles =
+      'ceo|coo|cfo|cto|cio|ciso|cso|cdo|caio|cpo|cmo|cro|cco|cbdo|chro|clo|gc|cxo|cao|cico|vp|svp|evp|md|fd|vice\\s+president';
+
+    // 1. Remove strong titles and company suffixes at the end or followed by anything
+    const companySuffixes =
+      'ltd|inc|llc|gmbh|corp|corporation|co|company|limited';
     cleaned = cleaned.replace(
-      new RegExp(`\\s+\\b${jobTitles}\\b.*$`, 'gi'),
+      new RegExp(`\\s+\\b(${strongTitles}|${companySuffixes})\\b.*$`, 'gi'),
       ''
     );
+
+    // 2. For other job titles, only remove if followed by a joiner (of, at, in, etc.) or another job title
+    // This prevents removing legitimate names like "Ella Head Glazer" while still catching "John Doe Head of Product"
+    cleaned = cleaned.replace(
+      new RegExp(
+        `\\s+\\b(${jobTitles})\\b\\s+\\b(${joiners}|${jobTitles})\\b.*$`,
+        'gi'
+      ),
+      ''
+    );
+
     // If title is at the very start, remove only the title and common joiners
     cleaned = cleaned.replace(
-      new RegExp(`^\\b${jobTitles}\\b\\s*(?:\\b(at|of|in|the)\\b\\s*)?`, 'gi'),
+      new RegExp(
+        `^\\b${jobTitles}\\b\\s*(?:\\b(at|of|in|the|and|&)\\b\\s*)?`,
+        'gi'
+      ),
       ''
     );
 

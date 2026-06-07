@@ -631,6 +631,26 @@ export class GoogleContactsMaintainerScript implements Script {
       const fullName = `${firstName} ${lastName}`.trim();
       const fullNameLower = fullName.toLowerCase();
 
+      const activeLabels = contact.label
+        .split(' | ')
+        .map((l) => l.trim())
+        .filter(
+          (l) =>
+            l &&
+            !l.toLowerCase().includes('imported') &&
+            l.toLowerCase() !== 'mycontacts'
+        );
+
+      const isHrOrJob = activeLabels.some((l) =>
+        this.REQUIRED_URL_LABELS.includes(l)
+      );
+      const isLinkedIn = activeLabels.includes('LinkedIn');
+
+      const skipLabels = ['Life', 'Customer Service', 'Clash Royale'];
+      const shouldSkipNameValidation = activeLabels.some((l) =>
+        skipLabels.includes(l)
+      );
+
       const issues: MaintainerIssueType[] = [];
       const customMessages: Partial<Record<MaintainerIssueType, string>> = {};
       const duplicateDetails: Partial<
@@ -673,8 +693,10 @@ export class GoogleContactsMaintainerScript implements Script {
           fullName === fullName.toUpperCase() &&
           fullName !== fullName.toLowerCase();
 
-        if (isAllLower) issues.push(MaintainerIssueType.LOWER_CASE_NAME);
-        if (isAllUpper) issues.push(MaintainerIssueType.UPPER_CASE_NAME);
+        if (isAllLower && !shouldSkipNameValidation)
+          issues.push(MaintainerIssueType.LOWER_CASE_NAME);
+        if (isAllUpper && !shouldSkipNameValidation)
+          issues.push(MaintainerIssueType.UPPER_CASE_NAME);
 
         // 4.2.1 Invalid Name logic - handle labels and company suffixes
         let baseName = fullName;
@@ -698,20 +720,13 @@ export class GoogleContactsMaintainerScript implements Script {
 
         const cleanedBaseName = TextUtils.cleanName(baseName);
         if (cleanedBaseName !== baseName && cleanedBaseName) {
-          // Rule: Skip if contact has "Life" or "Customer Service" label
-          const activeLabels = contact.label
-            .split(' | ')
-            .filter((l) => l && !l.toLowerCase().startsWith('imported'));
-          const skipLabels = ['Life', 'Customer Service'];
-          const shouldSkip = activeLabels.some((l) => skipLabels.includes(l));
-
           // Rule: Skip if OSR convention matches
           const isOSR =
             activeLabels.includes('Job') &&
             contact.company === 'OSR' &&
             fullName.endsWith('OSR Job OSR');
 
-          if (!shouldSkip && !isOSR) {
+          if (!shouldSkipNameValidation && !isOSR) {
             const hasHidden = TextUtils.hasHiddenUnicode(fullName);
             const suggestedFullName = detectedLabel
               ? `${cleanedBaseName} ${detectedLabel}`
@@ -734,57 +749,72 @@ export class GoogleContactsMaintainerScript implements Script {
         }
 
         // 4.2.2 INVALID CONTACT - Name logic
-        const lastNameWords = lastName.split(' ');
-        let cleanedLastNameForContactVal = lastName;
-        let detectedLastNameLabel = '';
-        const sortedLabelsForNameVal = [...allLabels].sort(
-          (a, b) => b.length - a.length
-        );
-
-        for (let i = 0; i < lastNameWords.length; i++) {
-          const word = lastNameWords[i].toLowerCase();
-          const hasMatch = sortedLabelsForNameVal.some(
-            (l) => l.toLowerCase() === word
+        if ((isHrOrJob || isLinkedIn) && !shouldSkipNameValidation) {
+          const lastNameWords = lastName.split(' ');
+          let cleanedLastNameForContactVal = lastName;
+          let detectedLastNameLabel = '';
+          const sortedLabelsForNameVal = [...allLabels].sort(
+            (a, b) => b.length - a.length
           );
-          if (hasMatch) {
-            cleanedLastNameForContactVal = lastNameWords.slice(0, i).join(' ');
-            detectedLastNameLabel = lastNameWords.slice(i).join(' ');
-            break;
-          }
-        }
 
-        const cleanedFullNameForVal =
-          `${firstName} ${cleanedLastNameForContactVal}`.trim();
-        const formattedFullNameVal = TextUtils.cleanName(cleanedFullNameForVal);
+          // If any word in the last name is identical to a label which the contact includes, it's a valid case.
+          const hasLabelInLastNameMatch = lastNameWords.some((word) =>
+            activeLabels.some(
+              (label) => label.toLowerCase() === word.toLowerCase()
+            )
+          );
 
-        if (
-          formattedFullNameVal !== cleanedFullNameForVal &&
-          formattedFullNameVal
-        ) {
-          const hasHidden = TextUtils.hasHiddenUnicode(fullName);
-          const suggestedFullName = detectedLastNameLabel
-            ? `${formattedFullNameVal} ${detectedLastNameLabel}`
-            : formattedFullNameVal;
-
-          if (hasHidden) {
-            // If we already added CONTAINS_HIDDEN_UNICODE_CHARACTER in 4.2.1, we don't need to add it again
-            if (
-              !issues.includes(
-                MaintainerIssueType.CONTAINS_HIDDEN_UNICODE_CHARACTER
-              )
-            ) {
-              issues.push(
-                MaintainerIssueType.CONTAINS_HIDDEN_UNICODE_CHARACTER
+          if (!hasLabelInLastNameMatch) {
+            for (let i = 0; i < lastNameWords.length; i++) {
+              const word = lastNameWords[i].toLowerCase();
+              const hasMatch = sortedLabelsForNameVal.some(
+                (l) => l.toLowerCase() === word
               );
-              customMessages[
-                MaintainerIssueType.CONTAINS_HIDDEN_UNICODE_CHARACTER
-              ] =
-                `CONTAINS_HIDDEN_UNICODE_CHARACTER - SHOULD BE: ${suggestedFullName}`;
+              if (hasMatch) {
+                cleanedLastNameForContactVal = lastNameWords
+                  .slice(0, i)
+                  .join(' ');
+                detectedLastNameLabel = lastNameWords.slice(i).join(' ');
+                break;
+              }
             }
-          } else {
-            issues.push(MaintainerIssueType.INVALID_CONTACT_NAME);
-            customMessages[MaintainerIssueType.INVALID_CONTACT_NAME] =
-              `INVALID CONTACT - Name: ${cleanedFullNameForVal} | SHOULD BE: ${suggestedFullName}`;
+
+            const cleanedFullNameForVal =
+              `${firstName} ${cleanedLastNameForContactVal}`.trim();
+            const formattedFullNameVal = TextUtils.cleanName(
+              cleanedFullNameForVal
+            );
+
+            if (
+              formattedFullNameVal !== cleanedFullNameForVal &&
+              formattedFullNameVal
+            ) {
+              const hasHidden = TextUtils.hasHiddenUnicode(fullName);
+              const suggestedFullName = detectedLastNameLabel
+                ? `${formattedFullNameVal} ${detectedLastNameLabel}`
+                : formattedFullNameVal;
+
+              if (hasHidden) {
+                // If we already added CONTAINS_HIDDEN_UNICODE_CHARACTER in 4.2.1, we don't need to add it again
+                if (
+                  !issues.includes(
+                    MaintainerIssueType.CONTAINS_HIDDEN_UNICODE_CHARACTER
+                  )
+                ) {
+                  issues.push(
+                    MaintainerIssueType.CONTAINS_HIDDEN_UNICODE_CHARACTER
+                  );
+                  customMessages[
+                    MaintainerIssueType.CONTAINS_HIDDEN_UNICODE_CHARACTER
+                  ] =
+                    `CONTAINS_HIDDEN_UNICODE_CHARACTER - SHOULD BE: ${suggestedFullName}`;
+                }
+              } else {
+                issues.push(MaintainerIssueType.INVALID_CONTACT_NAME);
+                customMessages[MaintainerIssueType.INVALID_CONTACT_NAME] =
+                  `INVALID CONTACT - Name: ${cleanedFullNameForVal} | SHOULD BE: ${suggestedFullName}`;
+              }
+            }
           }
         }
       }
@@ -861,20 +891,6 @@ export class GoogleContactsMaintainerScript implements Script {
       }
 
       // 4.4 Missing/Wrong label
-      const activeLabels = contact.label
-        .split(' | ')
-        .map((l) => l.trim())
-        .filter(
-          (l) =>
-            l &&
-            !l.toLowerCase().includes('imported') &&
-            l.toLowerCase() !== 'mycontacts'
-        );
-
-      const isHrOrJob = activeLabels.some((l) =>
-        this.REQUIRED_URL_LABELS.includes(l)
-      );
-
       const hasLabelInName = activeLabels.some(
         (l) => lastName.includes(l) || firstName.includes(l)
       );
@@ -1253,7 +1269,11 @@ export class GoogleContactsMaintainerScript implements Script {
       const companyToTest = currentCompany || companyInLastName;
       let suggestedClean = '';
 
-      if (companyToTest && (isHrOrJob || activeLabels.includes('LinkedIn'))) {
+      if (
+        companyToTest &&
+        (isHrOrJob || isLinkedIn) &&
+        !shouldSkipNameValidation
+      ) {
         const suggested = calculateFormattedCompany(
           companyToTest,
           undefined,
@@ -1345,7 +1365,8 @@ export class GoogleContactsMaintainerScript implements Script {
       }
 
       // 4.15.2 INVALID CONTACT - Company logic
-      const hasRelevantLabel = isHrOrJob || activeLabels.includes('LinkedIn');
+      const hasRelevantLabel =
+        (isHrOrJob || isLinkedIn) && !shouldSkipNameValidation;
 
       if (hasRelevantLabel) {
         const companyWords = currentCompany.split(' ');
@@ -1821,12 +1842,12 @@ export class GoogleContactsMaintainerScript implements Script {
     report += `#FOR-BOT#\n`;
     report += `Issues:\n`;
     report += `Contacts to Fix: ${new Intl.NumberFormat('en-US').format(items.length)} (${contactsToFixPercentage})\n`;
-    report += `Issues to fix:   ${new Intl.NumberFormat('en-US').format(totalIssues)}\n`;
-    report += `Total contacts:  ${new Intl.NumberFormat('en-US').format(backupStats.contactCount)}\n`;
+    report += `Issues to fix: ${new Intl.NumberFormat('en-US').format(totalIssues)}\n`;
+    report += `Total contacts: ${new Intl.NumberFormat('en-US').format(backupStats.contactCount)}\n`;
     report += `Backup:\n`;
-    report += `Contacts:       ${FormatUtils.formatNumberWithLeadingZeros(backupStats.contactCount, 6)}\n`;
+    report += `Contacts: ${FormatUtils.formatNumberWithLeadingZeros(backupStats.contactCount, 6)}\n`;
     report += `Other Contacts: ${FormatUtils.formatNumberWithLeadingZeros(backupStats.otherContactCount, 6)}\n`;
-    report += `Files:          ${backupStats.fileCount}\n`;
+    report += `Files: ${backupStats.fileCount}\n`;
 
     await this.safeWriteFile(reportPath, report);
   }

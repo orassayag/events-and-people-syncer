@@ -2013,7 +2013,7 @@ export class EventsJobsSyncScript {
 
       let finalNote = '';
       if (contact.biography) {
-        const trimmedBio = contact.biography.replace(/\n+$/, '');
+        const trimmedBio = contact.biography.trimEnd();
         finalNote = `${trimmedBio}\n${updateNote}`;
       } else {
         finalNote = updateNote;

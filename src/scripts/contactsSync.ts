@@ -363,7 +363,7 @@ export class ContactsSyncScript {
 
       let finalNote = '';
       if (selectedContact.biography) {
-        const trimmedBio = selectedContact.biography.replace(/\n+$/, '');
+        const trimmedBio = selectedContact.biography.trimEnd();
         finalNote = `${trimmedBio}\n${updateNote}`;
       } else {
         finalNote = updateNote;

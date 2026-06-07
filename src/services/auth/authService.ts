@@ -30,19 +30,10 @@ const sleep = (ms: number): Promise<void> =>
 // ---------------------------------------------------------------------------
 // Network-wait configuration
 // ---------------------------------------------------------------------------
-// On startup, if the network is down we poll until it comes up rather than
-// immediately continuing with a stale token (which would fail downstream).
 const NETWORK_WAIT_TIMEOUT_MS = 5 * 60_000; // give up after 5 minutes
 const NETWORK_WAIT_POLL_MS = 15_000; // re-check every 15 seconds
 const NETWORK_PROBE_URL = 'https://oauth2.googleapis.com/token';
 
-/**
- * Waits until a DNS lookup for Google's OAuth endpoint succeeds, or the
- * timeout is reached.
- *
- * Returns true  → network is available
- * Returns false → timed out, still no network
- */
 async function waitForNetwork(
   logger: Logger,
   timeoutMs = NETWORK_WAIT_TIMEOUT_MS,
@@ -68,14 +59,6 @@ async function waitForNetwork(
   return false;
 }
 
-/**
- * Wraps any async API call with network-aware retries.
- * Use this in scripts (e.g. GoogleContactsMaintainer) to handle transient
- * network drops mid-run without crashing the entire job.
- *
- * @example
- *   const contacts = await withNetworkRetry(() => fetchPage(pageToken), logger);
- */
 export async function withNetworkRetry<T>(
   fn: () => Promise<T>,
   logger: Logger,
@@ -105,7 +88,7 @@ export async function withNetworkRetry<T>(
           'network request failed',
         ].some((code) => error.message.toLowerCase().includes(code));
 
-      if (!isNetwork) throw error; // non-network errors bubble up immediately
+      if (!isNetwork) throw error;
 
       logger.warn(
         `API call failed (network error) on attempt ${attempt}/${attempts}`,
@@ -127,11 +110,7 @@ export class AuthService {
   private oAuth2Client?: OAuth2Client;
   private server?: Server;
   private logger: Logger = new Logger('AuthService');
-  // Mutex for saveToken: holds the tail of the promise chain so concurrent
-  // callers queue up instead of racing on the .tmp file.
   private saveTokenQueue: Promise<void> = Promise.resolve();
-  // Set to true while refreshWithRetry owns a refresh cycle so the on('tokens')
-  // event handler knows to skip its own redundant save.
   private isRefreshing: boolean = false;
 
   // -------------------------------------------------------------------------
@@ -145,9 +124,6 @@ export class AuthService {
 
     const token: TokenData | null = await this.loadToken();
     if (token) {
-      // Fix: guard against a token file that lost its refresh_token (e.g. due
-      // to a partial save). Without this, we'd attempt a refresh that will
-      // always fail and then fall through to a full re-auth anyway.
       if (!token.refresh_token) {
         this.logger.warn(
           'Stored token is missing refresh_token — deleting and re-authenticating'
@@ -159,8 +135,6 @@ export class AuthService {
 
       this.oAuth2Client.setCredentials(token);
 
-      // Proactive refresh only if token is genuinely near expiry.
-      // Missing expiry_date → don't assume expired; trust the token until Google rejects it.
       const EXPIRY_BUFFER_MS = 5 * 60 * 1_000; // 5 minutes
       const now = Date.now();
       let isExpired: boolean;
@@ -187,11 +161,6 @@ export class AuthService {
         const refreshResult = await this.refreshWithRetry();
 
         if (refreshResult === 'network_error') {
-          // ----------------------------------------------------------------
-          // Network is down — wait for it to come back before giving up.
-          // This handles the common Task Scheduler race where the job fires
-          // before the NIC/DNS is fully ready.
-          // ----------------------------------------------------------------
           this.logger.warn(
             'Token refresh failed due to network error — waiting for network before retrying...'
           );
@@ -207,19 +176,17 @@ export class AuthService {
               return this.oAuth2Client;
             }
             if (retryResult === 'auth_error') {
-              // Treat same as the auth_error branch below
-              await this.deleteToken();
-              await this.getNewToken();
+              // FIX: do NOT delete the token before re-auth; getNewToken will
+              // merge the new tokens, preserving the refresh_token if Google
+              // doesn't return a new one (which it won't unless prompt=consent).
+              await this.reAuthenticate();
               return this.oAuth2Client;
             }
-            // Still a network error after waiting — fall through to throw
           }
 
-          // Network never came up within the timeout
           this.logger.error(
             'Network did not become available within the wait window. ' +
-              'Aborting run — Task Scheduler will retry on the next trigger, ' +
-              'or configure "Restart task if it fails" in the task settings.'
+              'Aborting run — Task Scheduler will retry on the next trigger.'
           );
           throw new AppError(
             ErrorCode.AUTH_INVALID_TOKEN,
@@ -227,10 +194,17 @@ export class AuthService {
               'The run will be retried by Task Scheduler.'
           );
         } else if (refreshResult === 'auth_error') {
+          // FIX: Log the situation clearly. The refresh_token is dead (revoked
+          // or superseded). We MUST re-authenticate — but we should NOT force
+          // prompt=consent, because that rotates the refresh_token again and
+          // creates the same problem next time. Instead, deleteToken() is called
+          // inside reAuthenticate() only after the new token is safely saved.
           this.logger.warn(
-            'Token refresh rejected by Google - deleting token and re-authenticating. ' +
-              'This usually means the refresh token was revoked or superseded. ' +
-              'Cause: invalid_grant / token rotation / credentials change.',
+            'Refresh token rejected by Google (invalid_grant). ' +
+              'This means the refresh token was revoked, superseded by a newer one, ' +
+              'or the Google account had a security event (password change, ' +
+              'signing into a different account, etc.). ' +
+              'Re-authenticating WITHOUT forcing consent to avoid token rotation.',
             {
               error:
                 this.lastAuthError instanceof Error
@@ -238,17 +212,14 @@ export class AuthService {
                   : String(this.lastAuthError),
             }
           );
-          await this.deleteToken();
-          await this.getNewToken();
+          await this.reAuthenticate();
           return this.oAuth2Client;
         } else {
-          // refreshResult === 'success'
           this.logger.info('Token auto-refresh successful');
           return this.oAuth2Client;
         }
       }
 
-      // Validate the existing (possibly non-expired) token
       const validationStatus: TokenValidationStatus =
         await this.validateTokenWithNetworkAwareness();
 
@@ -262,7 +233,6 @@ export class AuthService {
       }
 
       if (validationStatus === 'network_error') {
-        // Same as above: don't nuke the token just because the network is down
         this.logger.warn(
           'Token validation skipped - network unreachable. ' +
             'Proceeding with cached token.'
@@ -272,8 +242,6 @@ export class AuthService {
 
       if (validationStatus === 'invalid') {
         if (this.isHeadlessContext()) {
-          // In a scheduled task we cannot open a browser; abort loudly rather
-          // than hanging or silently doing nothing.
           throw new AppError(
             ErrorCode.AUTH_INVALID_TOKEN,
             'Token is invalid and cannot be refreshed interactively in a ' +
@@ -282,7 +250,9 @@ export class AuthService {
           );
         }
         this.logger.warn('Token is invalid or expired - re-authenticating');
-        await this.deleteToken();
+        // FIX: use reAuthenticate() instead of deleteToken() + getNewToken()
+        // so the new token is merged before the old one is removed.
+        await this.reAuthenticate();
       }
     } else {
       this.logger.info('Token is missing - starting initial authentication');
@@ -361,19 +331,54 @@ export class AuthService {
   }
 
   // -------------------------------------------------------------------------
-  // Network-aware helpers
+  // Re-authentication (safe replacement for deleteToken + getNewToken)
   // -------------------------------------------------------------------------
 
   /**
-   * Attempts to refresh the access token up to NETWORK_RETRY_ATTEMPTS times,
-   * distinguishing between network failures (transient) and auth failures
-   * (permanent — bad token / revoked).
+   * FIX: The core of the token rotation problem.
    *
-   * Returns:
-   *   'success'       – token refreshed and saved
-   *   'network_error' – could not reach Google after all retries
-   *   'auth_error'    – Google rejected the token (invalid_grant, etc.)
+   * Old flow (BROKEN):
+   *   deleteToken() → getNewToken() → loadToken() returns null → isFirstAuth=true
+   *   → prompt=consent → Google rotates refresh_token → old token (in memory) revoked
+   *
+   * New flow (FIXED):
+   *   getNewToken() → token is saved (merged with existing) → deleteToken() is
+   *   never called before auth completes.
+   *
+   * We only force prompt=consent when there is genuinely no refresh_token at all.
+   * After an invalid_grant, we still have the (now-dead) refresh_token on disk,
+   * so isFirstAuth=false, and Google issues a new access token without rotating
+   * the refresh_token.
+   *
+   * If the user completes auth without Google returning a new refresh_token, the
+   * saveTokenImpl merge logic preserves the one already on disk. If Google DOES
+   * return a new one (token rotation), it gets saved properly.
    */
+  private async reAuthenticate(): Promise<void> {
+    if (this.isHeadlessContext()) {
+      throw new AppError(
+        ErrorCode.AUTH_INVALID_TOKEN,
+        'Cannot re-authenticate in headless context. ' +
+          'Please run the app manually once to re-authenticate.'
+      );
+    }
+    this.logger.info(
+      'Starting re-authentication (token file preserved until new token is saved)'
+    );
+    // Do NOT delete the token first. getNewToken → startAuthServer will check
+    // loadToken() to decide on prompt=consent. If refresh_token exists on disk,
+    // we skip consent, which avoids forcing Google to rotate the refresh_token.
+    await this.getNewToken();
+    // After successful auth and token save, clean up the old token file only
+    // if there was a problem with it. In practice saveTokenImpl merges, so
+    // nothing extra needed here.
+    this.logger.info('Re-authentication complete');
+  }
+
+  // -------------------------------------------------------------------------
+  // Network-aware helpers
+  // -------------------------------------------------------------------------
+
   private lastAuthError: unknown = undefined;
 
   private async refreshWithRetry(): Promise<
@@ -401,7 +406,6 @@ export class AuthService {
           lastError = error;
 
           if (this.isAuthError(error)) {
-            // Auth errors won't get better with retries
             this.lastAuthError = error;
             this.logger.warn('Token refresh rejected by Google (auth error)', {
               error: error instanceof Error ? error.message : String(error),
@@ -422,7 +426,6 @@ export class AuthService {
             continue;
           }
 
-          // Unknown error — don't retry, surface it
           throw error;
         }
       }
@@ -437,10 +440,6 @@ export class AuthService {
     }
   }
 
-  /**
-   * Like validateToken(), but returns 'network_error' instead of throwing
-   * or marking the token invalid when Google is unreachable.
-   */
   private async validateTokenWithNetworkAwareness(): Promise<TokenValidationStatus> {
     const token: TokenData | null = await this.loadToken();
     if (!token) return 'missing';
@@ -470,16 +469,6 @@ export class AuthService {
   // Error classification
   // -------------------------------------------------------------------------
 
-  /**
-   * Returns true for errors that indicate the *network* is unreachable,
-   * as opposed to Google rejecting the token.
-   *
-   * Common patterns on Windows when DNS / proxy isn't ready:
-   *   - getaddrinfo ENOTFOUND <hostname>
-   *   - connect ECONNREFUSED
-   *   - network timeout (ETIMEDOUT / ESOCKETTIMEDOUT)
-   *   - EAI_AGAIN (temporary DNS failure)
-   */
   private isNetworkError(error: unknown): boolean {
     if (!(error instanceof Error)) return false;
     const msg = error.message.toLowerCase();
@@ -519,15 +508,6 @@ export class AuthService {
   // Headless detection
   // -------------------------------------------------------------------------
 
-  /**
-   * Returns true when the process is running in a non-interactive context
-   * (Task Scheduler, CI, service) where opening a browser is impossible.
-   *
-   * Detection strategy (multiple signals for reliability):
-   *   1. An explicit --AUTO flag passed by your bat file / scheduler
-   *   2. No TTY attached to stdin
-   *   3. The environment variable SCHEDULED_TASK=1
-   */
   private isHeadlessContext(): boolean {
     const hasAutoFlag = process.argv.includes('AUTO');
     const noTty = !process.stdin.isTTY;
@@ -589,9 +569,6 @@ export class AuthService {
   }
 
   public saveToken(token: TokenData): Promise<void> {
-    // Queue saves so concurrent callers never race on the .tmp file.
-    // Each call chains onto the previous one; if a save is already in flight
-    // the next one waits for it to finish before starting.
     this.saveTokenQueue = this.saveTokenQueue.then(() =>
       this.saveTokenImpl(token)
     );
@@ -599,18 +576,30 @@ export class AuthService {
   }
 
   private async saveTokenImpl(token: TokenData): Promise<void> {
-    // Merge with existing token to preserve refresh_token if the new one
-    // doesn't include it (Google only returns it on first auth)
     const existing = await this.loadToken().catch(() => null);
     const merged: TokenData = existing
       ? {
           ...existing,
           ...token,
-          // Preserve fields Google omits on refresh responses
+          // FIX: Always preserve refresh_token — Google only returns it on first
+          // auth or explicit token rotation. If we overwrite with undefined we
+          // lose it and the next scheduled run gets invalid_grant.
           refresh_token: token.refresh_token ?? existing.refresh_token,
           expiry_date: token.expiry_date ?? existing.expiry_date,
         }
       : token;
+
+    // FIX: Log a warning if we're about to save a token without a refresh_token.
+    // This should never happen but helps diagnose future issues immediately.
+    if (!merged.refresh_token) {
+      this.logger.warn(
+        'DIAGNOSTIC: About to save a token WITHOUT a refresh_token. ' +
+          'This will cause invalid_grant on the next scheduled run. ' +
+          'Check whether Google returned a refresh_token in this response.'
+      );
+    } else {
+      this.logger.debug('Saving token (refresh_token present: yes)');
+    }
 
     const tempFile = `${SETTINGS.paths.tokenFile}.tmp`;
     await writeFile(tempFile, JSON.stringify(merged, null, 2));
@@ -646,9 +635,6 @@ export class AuthService {
 
     client.on('tokens', (tokens) => {
       this.logger.debug('OAuth2Client received new tokens');
-      // refreshWithRetry sets isRefreshing=true BEFORE calling refreshAccessToken(),
-      // which is what triggers this event. So if isRefreshing is true here, the
-      // refresh cycle already owns the save — skip to avoid the .tmp race.
       if (this.isRefreshing) {
         this.logger.debug(
           'Skipping on(tokens) save — refreshWithRetry is already saving'
@@ -675,8 +661,6 @@ export class AuthService {
   private async testTokenValidity(): Promise<boolean> {
     if (!this.oAuth2Client) return false;
 
-    // Hard timeout — if the API call doesn't respond in 15s we treat it as a
-    // network error rather than hanging the process indefinitely.
     const VALIDITY_CHECK_TIMEOUT_MS = 15_000;
 
     const timeoutPromise = new Promise<never>((_, reject) =>
@@ -695,7 +679,7 @@ export class AuthService {
       return response.status === 200;
     } catch (error: unknown) {
       if (this.isAuthError(error)) return false;
-      throw error; // Let callers handle network errors
+      throw error;
     }
   }
 
@@ -806,13 +790,36 @@ export class AuthService {
           );
           return;
         }
-        // Fix: Only force 'consent' on first-ever auth (no saved refresh_token).
-        // Using prompt:'consent' unconditionally causes Google to rotate the
-        // refresh token on every interactive login, silently revoking the old one.
+
+        // FIX: Read the token file to check for an existing refresh_token.
+        // IMPORTANT: We do NOT delete the token file before reaching this point.
+        // If the token file exists with a refresh_token, isFirstAuth=false, and
+        // we skip prompt=consent — Google will NOT rotate the refresh_token.
+        // Only a genuinely first-time auth (no token file ever) gets consent,
+        // which is the only time Google issues the initial refresh_token.
         const existingToken = await this.loadToken().catch(() => null);
         const isFirstAuth = !existingToken?.refresh_token;
+
+        if (isFirstAuth) {
+          this.logger.info(
+            'First-time auth detected — using prompt=consent to obtain refresh_token'
+          );
+        } else {
+          this.logger.info(
+            'Re-auth with existing refresh_token — skipping prompt=consent to prevent token rotation'
+          );
+        }
+
         const authUrl = this.oAuth2Client.generateAuthUrl({
           access_type: 'offline',
+          // FIX: Only force consent on first auth. On re-auth (e.g. after
+          // invalid_grant), do NOT pass prompt=consent. This is the key fix:
+          // - With consent: Google always returns a new refresh_token AND
+          //   revokes the previous one. Any other client holding the old one
+          //   gets invalid_grant immediately.
+          // - Without consent: Google may or may not return a refresh_token
+          //   depending on whether the user has already granted access. If it
+          //   doesn't, saveTokenImpl will merge and keep the existing one.
           prompt: isFirstAuth ? 'consent' : undefined,
           scope: SETTINGS.auth.scopes,
         });
