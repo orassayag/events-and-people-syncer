@@ -9,6 +9,7 @@ import { otherContactsSyncScript } from './otherContactsSync';
 import { smsWhatsappSyncScript } from './smsWhatsappSync';
 import { syncPhonesScript } from './syncPhones';
 import { deleteEmptyContactsScript } from './deleteEmptyContacts';
+import { fixEmptyContactsScript } from './fixEmptyContacts';
 import { googleContactsMaintainerScript } from './googleContactsMaintainer';
 import { googleContactsExcluderScript } from './googleContactsExcluder';
 import { googleContactsMapperScript } from './googleContactsMapper';
@@ -28,6 +29,7 @@ export { ClearLogsScript } from './clearLogs';
 export { SmsWhatsappSyncScript } from './smsWhatsappSync';
 export { SyncPhonesScript } from './syncPhones';
 export { DeleteEmptyContactsScript } from './deleteEmptyContacts';
+export { FixEmptyContactsScript } from './fixEmptyContacts';
 export { OtherContactsSyncScript } from './otherContactsSync';
 export { GoogleContactsMaintainerScript } from './googleContactsMaintainer';
 export { GoogleContactsExcluderScript } from './googleContactsExcluder';
@@ -44,6 +46,7 @@ export const AVAILABLE_SCRIPTS: Record<string, Script> = {
   'sms-whatsapp-sync': smsWhatsappSyncScript,
   'sync-phones': syncPhonesScript,
   'delete-empty-contacts': deleteEmptyContactsScript,
+  'fix-empty-contacts': fixEmptyContactsScript,
   'google-contacts-maintainer': googleContactsMaintainerScript,
   'google-contacts-excluder': googleContactsExcluderScript,
   'google-contacts-mapper': googleContactsMapperScript,

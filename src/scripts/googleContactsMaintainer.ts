@@ -552,7 +552,7 @@ export class GoogleContactsMaintainerScript implements Script {
 
     if (!notes) return { emails, phones };
 
-    // Extract Emails
+    // 1. Extract Emails using prefixed pattern
     // Pattern: Emails: email1, email2
     const emailMatches = notes.matchAll(/Emails:\s*([^\r\n]+)/gi);
     for (const match of emailMatches) {
@@ -560,12 +560,29 @@ export class GoogleContactsMaintainerScript implements Script {
       emails.push(...emailList.filter((e) => e && e !== 'null'));
     }
 
-    // Extract PhoneNumbers
+    // 2. Extract PhoneNumbers using prefixed pattern
     // Pattern: PhoneNumbers: phone1, phone2
     const phoneMatches = notes.matchAll(/PhoneNumbers:\s*([^\r\n]+)/gi);
     for (const match of phoneMatches) {
       const phoneList = match[1].split(',').map((p) => p.trim());
       phones.push(...phoneList.filter((p) => p && p !== 'null'));
+    }
+
+    // 3. Extract any other emails found in the notes
+    const generalEmailRegex =
+      /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi;
+    const generalEmailMatches = notes.matchAll(generalEmailRegex);
+    for (const match of generalEmailMatches) {
+      emails.push(match[0].toLowerCase());
+    }
+
+    // 4. Extract any other phones found in the notes
+    const generalPhoneMatches = notes.matchAll(RegexPatterns.PHONE_EXTRACTION);
+    for (const match of generalPhoneMatches) {
+      const phone = match[0].trim();
+      if (this.phoneNormalizer.isValidPhone(phone)) {
+        phones.push(phone);
+      }
     }
 
     return { emails: [...new Set(emails)], phones: [...new Set(phones)] };
@@ -841,11 +858,13 @@ export class GoogleContactsMaintainerScript implements Script {
 
           let isPossibleDuplicate = false;
 
-          if (namesEqual) {
+          if (sameLinkedIn) {
+            isPossibleDuplicate = true;
+          } else if (namesEqual) {
             // If the names are EQUAL EXACTLY - AND - both of them have the same LinkedIn URL, ONLY then, its possible duplicate.
-            if (sameLinkedIn) {
-              isPossibleDuplicate = true;
-            }
+            // But we already checked sameLinkedIn above, so if we are here, sameLinkedIn is false.
+            // If both have LI and they are different, it's definitely not a duplicate.
+            // If one has LI and other doesn't, we still don't flag as POSSIBLE_DUPLICATE_CONTACT to avoid false positives for common names.
           } else {
             // Keep the rest of the logic of "POSSIBLE DUPLICATE CONTACT" the same.
             const words1 = fullNameLower
@@ -919,6 +938,15 @@ export class GoogleContactsMaintainerScript implements Script {
         issues.push(MaintainerIssueType.MIXED_UNKNOWN_AND_OTHER_TAGS);
       }
 
+      // Requirement 3: UNKNOWN label with "Connected On" in notes
+      if (
+        hasUnknownLabel &&
+        contact.biography &&
+        contact.biography.includes('Connected On')
+      ) {
+        issues.push(MaintainerIssueType.UNKNOWN_LABEL_WITH_CONNECTED_ON);
+      }
+
       // New Label Validations
       const hasSQLink = activeLabels.some(
         (l) => l === 'SQLink' || l === 'SQLLink'
@@ -959,6 +987,30 @@ export class GoogleContactsMaintainerScript implements Script {
             MaintainerIssueType.LINKEDIN_CONTACT_MISSING_EMAIL_OR_PHONE
           );
         }
+      }
+
+      // MISSING COMPANY AFTER LINKEDIN
+      const missingLinkedInFields: string[] = [];
+      if (lastName.trim().endsWith('LinkedIn')) {
+        missingLinkedInFields.push('Last Name');
+      }
+      if (
+        contact.phones.some((p) => (p.label || '').trim().endsWith('LinkedIn'))
+      ) {
+        missingLinkedInFields.push('Phone Label');
+      }
+      if (
+        contact.emails.some((e) => (e.label || '').trim().endsWith('LinkedIn'))
+      ) {
+        missingLinkedInFields.push('Email Label');
+      }
+
+      if (missingLinkedInFields.length > 0) {
+        issues.push(MaintainerIssueType.MISSING_COMPANY_AFTER_LINKEDIN);
+        customMessages[MaintainerIssueType.MISSING_COMPANY_AFTER_LINKEDIN] =
+          MaintainerIssueDefinitions[
+            MaintainerIssueType.MISSING_COMPANY_AFTER_LINKEDIN
+          ].message.replace('#FIELDS#', missingLinkedInFields.join(', '));
       }
 
       // 4.5 & 4.6 Phones/Emails labels
@@ -1106,8 +1158,8 @@ export class GoogleContactsMaintainerScript implements Script {
         }
 
         if (
-          !url.includes('linkedin.com/in') ||
-          url.includes('https://www.linkedin.com')
+          url.includes('linkedin.com') &&
+          !url.startsWith('linkedin.com/in/')
         ) {
           issues.push(MaintainerIssueType.INVALID_URL);
         }
@@ -1656,6 +1708,55 @@ export class GoogleContactsMaintainerScript implements Script {
           MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACTS_BY_NOTES
         ] = noteDuplicateMessages.join('\n');
       }
+
+      // Check for emails in notes that are not in contact's emails
+      extracted.emails.forEach((email) => {
+        const emailExists = contact.emails.some(
+          (e) => e.value.trim().toLowerCase() === email
+        );
+        if (!emailExists) {
+          if (
+            !issues.includes(MaintainerIssueType.EMAIL_IN_NOTES_NOT_IN_CONTACT)
+          ) {
+            issues.push(MaintainerIssueType.EMAIL_IN_NOTES_NOT_IN_CONTACT);
+          }
+          const msg = `EMAIL IN NOTES NOT IN CONTACT: ${email}`;
+          if (
+            !customMessages[MaintainerIssueType.EMAIL_IN_NOTES_NOT_IN_CONTACT]
+          ) {
+            customMessages[MaintainerIssueType.EMAIL_IN_NOTES_NOT_IN_CONTACT] =
+              msg;
+          } else {
+            customMessages[MaintainerIssueType.EMAIL_IN_NOTES_NOT_IN_CONTACT] +=
+              `\n-${msg}`;
+          }
+        }
+      });
+
+      // Check for phones in notes that are not in contact's phones
+      extracted.phones.forEach((phone) => {
+        const phoneExists = contact.phones.some((p) =>
+          this.phoneNormalizer.phonesMatch(p.number, phone)
+        );
+
+        if (!phoneExists) {
+          if (
+            !issues.includes(MaintainerIssueType.PHONE_IN_NOTES_NOT_IN_CONTACT)
+          ) {
+            issues.push(MaintainerIssueType.PHONE_IN_NOTES_NOT_IN_CONTACT);
+          }
+          const msg = `PHONE IN NOTES NOT IN CONTACT: ${phone}`;
+          if (
+            !customMessages[MaintainerIssueType.PHONE_IN_NOTES_NOT_IN_CONTACT]
+          ) {
+            customMessages[MaintainerIssueType.PHONE_IN_NOTES_NOT_IN_CONTACT] =
+              msg;
+          } else {
+            customMessages[MaintainerIssueType.PHONE_IN_NOTES_NOT_IN_CONTACT] +=
+              `\n-${msg}`;
+          }
+        }
+      });
 
       if (issues.length > 0) {
         reportItems.push({

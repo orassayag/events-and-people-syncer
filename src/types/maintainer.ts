@@ -89,6 +89,22 @@ export const MaintainerIssueDefinitions = {
     id: 46,
     message: 'MIXED UNKNOWN AND OTHER TAGS',
   },
+  UNKNOWN_LABEL_WITH_CONNECTED_ON: {
+    id: 47,
+    message: 'UNKNOWN LABEL WITH CONNECTED ON IN NOTES',
+  },
+  EMAIL_IN_NOTES_NOT_IN_CONTACT: {
+    id: 48,
+    message: 'EMAIL IN NOTES NOT IN CONTACT: #VALUE#',
+  },
+  PHONE_IN_NOTES_NOT_IN_CONTACT: {
+    id: 49,
+    message: 'PHONE IN NOTES NOT IN CONTACT: #VALUE#',
+  },
+  MISSING_COMPANY_AFTER_LINKEDIN: {
+    id: 50,
+    message: 'MISSING COMPANY AFTER LINKEDIN: #FIELDS#',
+  },
 } as const;
 
 export type MaintainerIssueType = keyof typeof MaintainerIssueDefinitions;
@@ -136,7 +152,7 @@ export interface MaintainerReportItem {
     phones: { number: string; label: string }[];
     emails: { value: string; label: string }[];
     websites: { url: string; label: string }[];
-    addresses: { formattedValue: string; label: string }[];
+    addresses?: { formattedValue: string; label: string }[];
     company: string;
     jobTitle: string;
     biography: string;

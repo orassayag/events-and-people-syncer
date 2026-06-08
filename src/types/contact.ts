@@ -28,7 +28,7 @@ export interface ContactData {
   emails: EmailAddress[];
   phones: PhoneNumber[];
   websites: Website[];
-  addresses: Address[];
+  addresses?: Address[];
   resourceName?: string;
   biography?: string;
   etag?: string;

@@ -436,7 +436,7 @@ export class DuplicateDetector {
           resourceName: 'people/me',
           pageSize: SETTINGS.api.pageSize,
           personFields:
-            'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies,metadata',
+            'names,emailAddresses,phoneNumbers,organizations,urls,memberships,biographies,addresses,metadata',
           pageToken,
         });
       });
@@ -463,6 +463,10 @@ export class DuplicateDetector {
           url: url.value || '',
           label: url.type || url.formattedType || '',
         }));
+        const addresses = (person.addresses || []).map((address) => ({
+          formattedValue: address.formattedValue || '',
+          label: address.type || address.formattedType || '',
+        }));
         const contactGroupMemberships = (person.memberships || [])
           .filter((m) => m.contactGroupMembership?.contactGroupResourceName)
           .map((m) => {
@@ -486,6 +490,7 @@ export class DuplicateDetector {
           emails,
           phones,
           websites,
+          addresses,
           resourceName: resourceName || undefined,
           biography,
           etag,

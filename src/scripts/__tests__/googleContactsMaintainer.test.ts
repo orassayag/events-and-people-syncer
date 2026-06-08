@@ -282,11 +282,19 @@ describe('GoogleContactsMaintainerScript', () => {
           label: 'Clash Royale | Job',
         },
       ];
-      const issues = maintainer.testScanContacts(contacts, ['Life', 'Customer Service', 'Clash Royale', 'Job']);
+      const issues = maintainer.testScanContacts(contacts, [
+        'Life',
+        'Customer Service',
+        'Clash Royale',
+        'Job',
+      ]);
       // All contacts have invalid names/formats but should be ignored due to their labels
       expect(
         issues.some((item: any) =>
-          item.issues.some((i: string) => i.startsWith('INVALID NAME') || i.startsWith('INVALID CONTACT'))
+          item.issues.some(
+            (i: string) =>
+              i.startsWith('INVALID NAME') || i.startsWith('INVALID CONTACT')
+          )
         )
       ).toBe(false);
     });
@@ -380,12 +388,14 @@ describe('GoogleContactsMaintainerScript', () => {
           firstName: 'Mr',
           lastName: 'Or Assayag',
           resourceName: 'people/1',
+          websites: [], // Remove LinkedIn URL to avoid duplicate detection by URL
         },
         {
           ...mockContact,
           firstName: 'Dr',
           lastName: 'Or Assayag',
           resourceName: 'people/2',
+          websites: [], // Remove LinkedIn URL
         },
       ];
       const issues = maintainer.testScanContacts(contacts);
@@ -408,12 +418,14 @@ describe('GoogleContactsMaintainerScript', () => {
           firstName: 'Or',
           lastName: 'Assayag',
           resourceName: 'people/1',
+          websites: [],
         },
         {
           ...mockContact,
           firstName: 'Assayag',
           lastName: 'Or',
           resourceName: 'people/2',
+          websites: [],
         },
       ];
       const issues = maintainer.testScanContacts(contacts);
@@ -433,12 +445,14 @@ describe('GoogleContactsMaintainerScript', () => {
           firstName: 'Or',
           lastName: 'Assayag',
           resourceName: 'people/1',
+          websites: [],
         },
         {
           ...mockContact,
           firstName: 'Or',
           lastName: 'Date',
           resourceName: 'people/2',
+          websites: [],
         },
       ];
       const issues = maintainer.testScanContacts(contacts);
@@ -911,7 +925,9 @@ describe('GoogleContactsMaintainerScript', () => {
 
       // First contact: "John Doe - Director HR" -> "HR" is a label the contact has -> VALID case as per new logic
       const item1 = report.find((c) => c.contact.firstName === 'John');
-      expect(item1?.issues).not.toContain(MaintainerIssueType.INVALID_CONTACT_NAME);
+      expect(item1?.issues).not.toContain(
+        MaintainerIssueType.INVALID_CONTACT_NAME
+      );
 
       expect(item1?.issues).toContain(
         MaintainerIssueType.INVALID_CONTACT_COMPANY
@@ -1477,6 +1493,58 @@ CreatedAt: 1/1/20, 12:00 PM`,
 
       expect(noteContactIssues?.issues).toContain(
         MaintainerIssueType.POSSIBLE_DUPLICATE_CONTACTS_BY_NOTES
+      );
+    });
+
+    it('should detect "Unknown" label with "Connected On" in notes', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          firstName: 'John',
+          lastName: 'Doe',
+          label: 'Unknown',
+          biography: 'Connected On 01/01/2024',
+          resourceName: 'people/unknown-connected',
+        },
+        {
+          ...mockContact,
+          firstName: 'Jane',
+          lastName: 'Smith',
+          label: 'Unknown',
+          biography: 'Just some notes',
+          resourceName: 'people/unknown-no-connected',
+        },
+        {
+          ...mockContact,
+          firstName: 'Bob',
+          lastName: 'Brown',
+          label: 'Friends',
+          biography: 'Connected On 01/01/2024',
+          resourceName: 'people/friends-connected',
+        },
+      ];
+
+      const report = maintainer.testScanContacts(contacts);
+
+      const item1 = report.find(
+        (r) => r.contact.resourceName === 'people/unknown-connected'
+      );
+      expect(item1?.issues).toContain(
+        MaintainerIssueType.UNKNOWN_LABEL_WITH_CONNECTED_ON
+      );
+
+      const item2 = report.find(
+        (r) => r.contact.resourceName === 'people/unknown-no-connected'
+      );
+      expect(item2?.issues).not.toContain(
+        MaintainerIssueType.UNKNOWN_LABEL_WITH_CONNECTED_ON
+      );
+
+      const item3 = report.find(
+        (r) => r.contact.resourceName === 'people/friends-connected'
+      );
+      expect(item3?.issues).not.toContain(
+        MaintainerIssueType.UNKNOWN_LABEL_WITH_CONNECTED_ON
       );
     });
   });

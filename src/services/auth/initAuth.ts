@@ -19,7 +19,7 @@ export async function initializeAuth(): Promise<OAuth2Client> {
     logger.info('Re-authentication required to grant new permissions...');
     const auth: OAuth2Client = await authService.ensureScopes(requiredScopes);
     if (container.isBound('OAuth2Client')) {
-      container.rebindSync('OAuth2Client').toConstantValue(auth);
+      container.rebind('OAuth2Client').toConstantValue(auth);
     } else {
       container.bind('OAuth2Client').toConstantValue(auth);
     }
@@ -28,7 +28,7 @@ export async function initializeAuth(): Promise<OAuth2Client> {
   }
   const auth: OAuth2Client = await authService.ensureValidAuth();
   if (container.isBound('OAuth2Client')) {
-    container.rebindSync('OAuth2Client').toConstantValue(auth);
+    container.rebind('OAuth2Client').toConstantValue(auth);
   } else {
     container.bind('OAuth2Client').toConstantValue(auth);
   }

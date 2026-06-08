@@ -43,6 +43,68 @@ describe('GoogleContactsMaintainerScript LinkedIn Duplicates', () => {
     resourceName: 'people/123',
   };
 
+  describe('LinkedIn URL Validation', () => {
+    it('should NOT flag valid LinkedIn URL (starting with linkedin.com/in/)', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          websites: [
+            { url: 'linkedin.com/in/alex-dineen-b1364113a', label: 'LinkedIn' },
+          ],
+        },
+      ];
+      const report = maintainer.testScanContacts(contacts);
+      const issues = report[0]?.issues || [];
+      expect(issues).not.toContain(MaintainerIssueType.INVALID_URL);
+    });
+
+    it('should flag LinkedIn URL starting with https://', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          websites: [
+            {
+              url: 'https://linkedin.com/in/alex-dineen-b1364113a',
+              label: 'LinkedIn',
+            },
+          ],
+        },
+      ];
+      const report = maintainer.testScanContacts(contacts);
+      const issues = report[0]?.issues || [];
+      expect(issues).toContain(MaintainerIssueType.INVALID_URL);
+    });
+
+    it('should flag LinkedIn URL starting with www.', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          websites: [
+            {
+              url: 'www.linkedin.com/in/alex-dineen-b1364113a',
+              label: 'LinkedIn',
+            },
+          ],
+        },
+      ];
+      const report = maintainer.testScanContacts(contacts);
+      const issues = report[0]?.issues || [];
+      expect(issues).toContain(MaintainerIssueType.INVALID_URL);
+    });
+
+    it('should flag LinkedIn URL without /in/', () => {
+      const contacts = [
+        {
+          ...mockContact,
+          websites: [{ url: 'linkedin.com/alex-dineen', label: 'LinkedIn' }],
+        },
+      ];
+      const report = maintainer.testScanContacts(contacts);
+      const issues = report[0]?.issues || [];
+      expect(issues).toContain(MaintainerIssueType.INVALID_URL);
+    });
+  });
+
   it('should detect possible duplicate if names match EXACTLY and LinkedIn matches', () => {
     const contacts = [
       {
@@ -50,18 +112,14 @@ describe('GoogleContactsMaintainerScript LinkedIn Duplicates', () => {
         firstName: 'Dummy',
         lastName: 'User',
         resourceName: 'people/1',
-        websites: [
-          { url: 'https://linkedin.com/in/dummyuser', label: 'LinkedIn' },
-        ],
+        websites: [{ url: 'linkedin.com/in/dummyuser', label: 'LinkedIn' }],
       },
       {
         ...mockContact,
         firstName: 'Dummy',
         lastName: 'User',
         resourceName: 'people/2',
-        websites: [
-          { url: 'https://www.linkedin.com/in/dummyuser/', label: 'LinkedIn' },
-        ],
+        websites: [{ url: 'linkedin.com/in/dummyuser', label: 'LinkedIn' }],
       },
     ];
     const report = maintainer.testScanContacts(contacts);
@@ -78,18 +136,14 @@ describe('GoogleContactsMaintainerScript LinkedIn Duplicates', () => {
         firstName: 'Dummy',
         lastName: 'User',
         resourceName: 'people/1',
-        websites: [
-          { url: 'https://linkedin.com/in/dummy1', label: 'LinkedIn' },
-        ],
+        websites: [{ url: 'linkedin.com/in/dummy1', label: 'LinkedIn' }],
       },
       {
         ...mockContact,
         firstName: 'Dummy',
         lastName: 'User',
         resourceName: 'people/2',
-        websites: [
-          { url: 'https://linkedin.com/in/dummy2', label: 'LinkedIn' },
-        ],
+        websites: [{ url: 'linkedin.com/in/dummy2', label: 'LinkedIn' }],
       },
     ];
     const report = maintainer.testScanContacts(contacts);
@@ -108,18 +162,14 @@ describe('GoogleContactsMaintainerScript LinkedIn Duplicates', () => {
         firstName: 'Dummy User',
         lastName: 'Vim',
         resourceName: 'people/1',
-        websites: [
-          { url: 'https://linkedin.com/in/dummyuser', label: 'LinkedIn' },
-        ],
+        websites: [{ url: 'linkedin.com/in/dummyuser', label: 'LinkedIn' }],
       },
       {
         ...mockContact,
         firstName: 'Dummy User',
         lastName: 'Job BTB',
         resourceName: 'people/2',
-        websites: [
-          { url: 'https://linkedin.com/in/dummyuser', label: 'LinkedIn' },
-        ],
+        websites: [{ url: 'linkedin.com/in/dummyuser', label: 'LinkedIn' }],
       },
     ];
     const report = maintainer.testScanContacts(contacts);
@@ -136,18 +186,14 @@ describe('GoogleContactsMaintainerScript LinkedIn Duplicates', () => {
         firstName: 'Dummy User',
         lastName: 'Vim',
         resourceName: 'people/1',
-        websites: [
-          { url: 'https://linkedin.com/in/dummy1', label: 'LinkedIn' },
-        ],
+        websites: [{ url: 'linkedin.com/in/dummy1', label: 'LinkedIn' }],
       },
       {
         ...mockContact,
         firstName: 'Dummy User',
         lastName: 'Job BTB',
         resourceName: 'people/2',
-        websites: [
-          { url: 'https://linkedin.com/in/dummy2', label: 'LinkedIn' },
-        ],
+        websites: [{ url: 'linkedin.com/in/dummy2', label: 'LinkedIn' }],
       },
     ];
     const report = maintainer.testScanContacts(contacts);

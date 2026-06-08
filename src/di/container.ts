@@ -30,6 +30,7 @@ import {
   SyncPhonesScript,
   OtherContactsSyncScript,
   DeleteEmptyContactsScript,
+  FixEmptyContactsScript,
   GoogleContactsExcluderScript,
   GoogleContactsMapperScript,
 } from '../scripts';
@@ -89,6 +90,7 @@ container.bind(SyncPhonesScript).toSelf();
 container.bind(OtherContactsFetcher).toSelf();
 container.bind(OtherContactsSyncScript).toSelf();
 container.bind(DeleteEmptyContactsScript).toSelf();
+container.bind(FixEmptyContactsScript).toSelf();
 container.bind(GoogleContactsExcluderScript).toSelf();
 container.bind(GoogleContactsMapperScript).toSelf();
 container.bind(MaintainerService).toSelf();

@@ -124,6 +124,7 @@ async function main(): Promise<void> {
       'linkedin-sync',
       'linkedin-matcher',
       'linkedin-exporter',
+      'fix-empty-contacts',
       'hibob-sync',
       'other-contacts-sync',
       'sms-whatsapp-sync',
