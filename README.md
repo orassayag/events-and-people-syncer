@@ -6,6 +6,21 @@ Built in March 2026. This application provides a robust infrastructure for conta
 
 ## Features
 
+- 🔄 Multi-source contact syncing (LinkedIn, HiBob, SMS/WhatsApp, calendar events)
+- 🤖 Interactive wizards + programmatic batch operations
+- 🔍 Intelligent duplicate detection with fuzzy matching
+- 🏢 Automatic contact organization by company labels
+- 📋 Persistent alert system for tracking problematic contacts
+- 💉 Clean, testable architecture with dependency injection (InversifyJS)
+- 📝 Structured JSON logging with PHI safety
+- 🛡️ Unique error codes for easy troubleshooting
+- 🔒 Full TypeScript with strict type checking and Zod validation
+- 🧪 Comprehensive unit and integration testing with Vitest
+- 🔒 Dry-mode for safe testing without real Google API writes
+- 🚀 Health monitoring and environment management
+- ⌨️ ESC navigation for graceful operation cancellation
+- 🎨 Rich terminal interface with spinners and progress bars
+
 ### Core Capabilities
 
 - **Multi-Source Contact Syncing**: LinkedIn, HiBob, SMS/WhatsApp, calendar events
