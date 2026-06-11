@@ -105,6 +105,10 @@ export const MaintainerIssueDefinitions = {
     id: 50,
     message: 'MISSING COMPANY AFTER LINKEDIN: #FIELDS#',
   },
+  PHONE_CONTAINS_EMAIL: {
+    id: 51,
+    message: 'PHONE CONTAINS EMAIL: #VALUE#',
+  },
 } as const;
 
 export type MaintainerIssueType = keyof typeof MaintainerIssueDefinitions;

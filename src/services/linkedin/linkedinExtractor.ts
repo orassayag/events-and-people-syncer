@@ -165,9 +165,11 @@ export class LinkedInExtractor {
             NameParser.parseFullName(cleanedFullName);
 
           const url: string = (record['URL'] || '').trim();
-          if (!firstName || !url) {
+          if (!firstName || !lastName || !url) {
             const reason = !firstName
-              ? 'Cleaned name is empty'
+              ? 'Cleaned first name is empty'
+              : !lastName
+              ? 'Cleaned last name is empty'
               : 'URL is missing';
             await this.errorLogger.logRaw(
               `[SKIPPED - ${reason}] Original: "${firstNameRaw} ${lastNameRaw}" | URL: ${url}`
@@ -191,6 +193,22 @@ export class LinkedInExtractor {
           }
           processedUrls.add(normalizedUrl);
           const profileSlug: string = UrlNormalizer.extractProfileSlug(url);
+          
+          // Check if any original fields have Hebrew characters
+          const hasHebrewInOriginal = 
+            TextUtils.hasHebrewCharacters(firstNameRaw) ||
+            TextUtils.hasHebrewCharacters(lastNameRaw) ||
+            TextUtils.hasHebrewCharacters(record['Company'] || '') ||
+            TextUtils.hasHebrewCharacters(record['Position'] || '') ||
+            TextUtils.hasHebrewCharacters(record['Email Address'] || '');
+          
+          if (hasHebrewInOriginal) {
+            await this.errorLogger.logRaw(
+              `[SKIPPED - CONTAINS HEBREW] Original: "${firstNameRaw} ${lastNameRaw}" | Company: "${record['Company'] || ''}" | Position: "${record['Position'] || ''}" | URL: ${url}`
+            );
+            continue;
+          }
+
           const company: string = TextUtils.removeHebrew(
             (record['Company'] || '').trim()
           );
@@ -204,6 +222,17 @@ export class LinkedInExtractor {
             lnAfterPhrase,
             company
           );
+
+          // Re-check if final first/last name are empty after company stripping
+          if (!finalFirstName || !finalLastName) {
+            const reason = !finalFirstName
+              ? 'Final first name is empty after company stripping'
+              : 'Final last name is empty after company stripping';
+            await this.errorLogger.logRaw(
+              `[SKIPPED - ${reason}] Original: "${firstNameRaw} ${lastNameRaw}" | URL: ${url}`
+            );
+            continue;
+          }
 
           const nameWordsCount = (finalFirstName + ' ' + finalLastName)
             .trim()

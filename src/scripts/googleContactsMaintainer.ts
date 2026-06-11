@@ -1093,6 +1093,18 @@ export class GoogleContactsMaintainerScript implements Script {
               issues.push(MaintainerIssueType.PHONE_GLOBAL_PREFIX);
             }
           }
+
+          // 5. Check if phone number contains email pattern
+          const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+          if (emailRegex.test(phone)) {
+            issues.push(MaintainerIssueType.PHONE_CONTAINS_EMAIL);
+            const msg = `PHONE CONTAINS EMAIL: ${phone}`;
+            if (!customMessages[MaintainerIssueType.PHONE_CONTAINS_EMAIL]) {
+              customMessages[MaintainerIssueType.PHONE_CONTAINS_EMAIL] = msg;
+            } else {
+              customMessages[MaintainerIssueType.PHONE_CONTAINS_EMAIL] += `\n-${msg}`;
+            }
+          }
         }
       });
 
@@ -1345,11 +1357,13 @@ export class GoogleContactsMaintainerScript implements Script {
 
         // If the suggested company is not just the prefix itself
         if (suggestedClean && suggestedClean !== 'LinkedIn') {
-          // AVOID DOUBLE PREFIX: if suggestedClean is same as prefix, or already starts with it
+          // AVOID DOUBLE PREFIX: if suggestedClean is same as prefix, or already starts with it, or their normalized versions match
+          const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
           let finalSuggested: string;
           if (
             suggestedClean.toLowerCase() === prefix.toLowerCase() ||
-            suggestedClean.toLowerCase().startsWith(prefix.toLowerCase() + ' ')
+            suggestedClean.toLowerCase().startsWith(prefix.toLowerCase() + ' ') ||
+            normalize(suggestedClean) === normalize(prefix)
           ) {
             finalSuggested = suggestedClean;
           } else {
