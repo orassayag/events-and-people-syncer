@@ -363,7 +363,7 @@ export const fixEmptyContactsScript: Script = {
     category: 'maintenance',
     requiresAuth: true,
     estimatedDuration: '1-5 minutes',
-    emoji: '🔗 ',
+    emoji: '🔗',
   },
   run: async () => {
     const { container } = await import('../di/container');

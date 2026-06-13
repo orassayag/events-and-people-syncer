@@ -151,7 +151,7 @@ export const syncPhonesScript: Script = {
     category: 'interactive',
     requiresAuth: true,
     estimatedDuration: '1-2 minutes',
-    emoji: '☎️ ',
+    emoji: '☎️',
   },
   run: async () => {
     const { container } = await import('../di/container');

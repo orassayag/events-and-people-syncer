@@ -208,12 +208,12 @@ export const deleteEmptyContactsScript: Script = {
   metadata: {
     name: 'Delete Empty Contacts',
     description:
-      '🗑️ Delete all empty contacts from Google Contacts based on specific criteria',
+      'Delete all empty contacts from Google Contacts based on specific criteria',
     version: '1.0.0',
     category: 'maintenance',
     requiresAuth: true,
     estimatedDuration: 'Varies',
-    emoji: '🗑️ ',
+    emoji: '🗑️',
   },
   run: async () => {
     const { container } = await import('../di/container');
