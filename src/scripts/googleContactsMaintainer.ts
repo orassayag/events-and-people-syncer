@@ -1102,7 +1102,8 @@ export class GoogleContactsMaintainerScript implements Script {
             if (!customMessages[MaintainerIssueType.PHONE_CONTAINS_EMAIL]) {
               customMessages[MaintainerIssueType.PHONE_CONTAINS_EMAIL] = msg;
             } else {
-              customMessages[MaintainerIssueType.PHONE_CONTAINS_EMAIL] += `\n-${msg}`;
+              customMessages[MaintainerIssueType.PHONE_CONTAINS_EMAIL] +=
+                `\n-${msg}`;
             }
           }
         }
@@ -1358,11 +1359,14 @@ export class GoogleContactsMaintainerScript implements Script {
         // If the suggested company is not just the prefix itself
         if (suggestedClean && suggestedClean !== 'LinkedIn') {
           // AVOID DOUBLE PREFIX: if suggestedClean is same as prefix, or already starts with it, or their normalized versions match
-          const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const normalize = (s: string): string =>
+            s.toLowerCase().replace(/[^a-z0-9]/g, '');
           let finalSuggested: string;
           if (
             suggestedClean.toLowerCase() === prefix.toLowerCase() ||
-            suggestedClean.toLowerCase().startsWith(prefix.toLowerCase() + ' ') ||
+            suggestedClean
+              .toLowerCase()
+              .startsWith(prefix.toLowerCase() + ' ') ||
             normalize(suggestedClean) === normalize(prefix)
           ) {
             finalSuggested = suggestedClean;
@@ -1539,6 +1543,25 @@ export class GoogleContactsMaintainerScript implements Script {
         fieldsWithMultipleSpaces.push('Company');
       if (multiSpaceRegex.test(contact.jobTitle))
         fieldsWithMultipleSpaces.push('Job Title');
+
+      contact.phones.forEach((p) => {
+        if (p.number && multiSpaceRegex.test(p.number))
+          fieldsWithMultipleSpaces.push('Phone Number');
+        if (p.label && multiSpaceRegex.test(p.label))
+          fieldsWithMultipleSpaces.push('Phone Label');
+      });
+      contact.emails.forEach((e) => {
+        if (e.value && multiSpaceRegex.test(e.value))
+          fieldsWithMultipleSpaces.push('Email');
+        if (e.label && multiSpaceRegex.test(e.label))
+          fieldsWithMultipleSpaces.push('Email Label');
+      });
+      contact.websites.forEach((w) => {
+        if (w.url && multiSpaceRegex.test(w.url))
+          fieldsWithMultipleSpaces.push('URL');
+        if (w.label && multiSpaceRegex.test(w.label))
+          fieldsWithMultipleSpaces.push('URL Label');
+      });
 
       if (fieldsWithMultipleSpaces.length > 0) {
         const uniqueFields = [...new Set(fieldsWithMultipleSpaces)];

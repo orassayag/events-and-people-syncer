@@ -1,0 +1,20 @@
+On the "SCAN_CONTACTS_REPORT.txt" we need to add a new logic -
+We are going to implement a new type of contacts - A company contact.
+It will have a first and last name, and it should be in the format of - https://contacts.google.com/person/c8831065833186992205
+First name the name of the company
+last name start with "Office" and the standard combination (HR / Job + Company name | Just Company name)
+The combination of course needs to be the same on the company field, and on each label of phone and email, just like we have today on regular google contacts.
+
+This logic relevant only for this script.
+The URL on the website must be in the following format:
+linkedin.com/company/#COMPANY_NAME# - the #COMPANY_NAME# must be filled with the company name.
+
+We need to add the following validations:
+1. A new label created called "Office" which the contact must have it. The label has already been created. If not - Add new validation rule.
+2. Validate that the first name is the company name only. One word that formatted as company name. If not - Add new validation rule.
+3. Last name MUST start with "Office" - If not - Add new validation rule.
+4. After the "Office" - Must have the standard combination we have for contacts - standard combination (HR / Job + Company name | Just Company name) - If not - Add new validation rule.
+5. Company name filed must be identical with the standard combination. - If not - Add new validation rule.
+6. Each email and phone labels we will validate - like the company name - its match the standard combination. - If not - Add new validation rule.
+7. URL - It will be linkedin.com/company/#COMPANY_NAME# - the #COMPANY_NAME# must be filled with the company name.  - If not - Add new validation rule.
+8. The label of the URL will be "LinkedIn" hardcoded as well.

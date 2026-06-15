@@ -213,6 +213,10 @@ async function main(): Promise<void> {
 }
 
 main().catch((error) => {
+  uiLogger.error(
+    'Fatal error',
+    error instanceof Error ? error : new Error(String(error))
+  );
   console.error(`${EMOJIS.STATUS.ERROR} Fatal error:`, error);
   process.exit(1);
 });
