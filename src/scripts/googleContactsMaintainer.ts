@@ -549,43 +549,85 @@ export class GoogleContactsMaintainerScript implements Script {
   } {
     const emails: string[] = [];
     const phones: string[] = [];
+    const phoneNormalizedSet = new Set<string>(); // To track unique normalized phones
 
     if (!notes) return { emails, phones };
 
+    let cleanedNotes = notes;
+
     // 1. Extract Emails using prefixed pattern
     // Pattern: Emails: email1, email2
-    const emailMatches = notes.matchAll(/Emails:\s*([^\r\n]+)/gi);
+    const emailMatches = cleanedNotes.matchAll(/Emails:\s*([^\r\n]+)/gi);
     for (const match of emailMatches) {
       const emailList = match[1].split(',').map((e) => e.trim().toLowerCase());
-      emails.push(...emailList.filter((e) => e && e !== 'null'));
-    }
-
-    // 2. Extract PhoneNumbers using prefixed pattern
-    // Pattern: PhoneNumbers: phone1, phone2
-    const phoneMatches = notes.matchAll(/PhoneNumbers:\s*([^\r\n]+)/gi);
-    for (const match of phoneMatches) {
-      const phoneList = match[1].split(',').map((p) => p.trim());
-      phones.push(...phoneList.filter((p) => p && p !== 'null'));
-    }
-
-    // 3. Extract any other emails found in the notes
-    const generalEmailRegex =
-      /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi;
-    const generalEmailMatches = notes.matchAll(generalEmailRegex);
-    for (const match of generalEmailMatches) {
-      emails.push(match[0].toLowerCase());
-    }
-
-    // 4. Extract any other phones found in the notes
-    const generalPhoneMatches = notes.matchAll(RegexPatterns.PHONE_EXTRACTION);
-    for (const match of generalPhoneMatches) {
-      const phone = match[0].trim();
-      if (this.phoneNormalizer.isValidPhone(phone)) {
-        phones.push(phone);
+      for (const email of emailList) {
+        if (email && email !== 'null') {
+          // Validate email before adding
+          const emailSchema = z.string().email();
+          const validation = emailSchema.safeParse(email);
+          if (validation.success) {
+            emails.push(email);
+          }
+        }
       }
     }
 
-    return { emails: [...new Set(emails)], phones: [...new Set(phones)] };
+    // 2. Extract any other emails found in the notes
+    const generalEmailRegex =
+      /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi;
+    const generalEmailMatches = [...cleanedNotes.matchAll(generalEmailRegex)];
+    for (const match of generalEmailMatches) {
+      const email = match[0].toLowerCase();
+      emails.push(email);
+      // Remove this email from cleanedNotes to prevent phone extraction from finding numbers inside it
+      cleanedNotes = cleanedNotes.replace(match[0], '');
+    }
+
+    // 3. Extract PhoneNumbers using prefixed pattern
+    // Pattern: PhoneNumbers: phone1, phone2
+    const phoneMatches = cleanedNotes.matchAll(/PhoneNumbers:\s*([^\r\n]+)/gi);
+    for (const match of phoneMatches) {
+      const phoneList = match[1].split(',').map((p) => p.trim());
+      for (const phone of phoneList) {
+        if (phone && phone !== 'null') {
+          // Validate phone before adding
+          if (this.phoneNormalizer.isValidPhone(phone)) {
+            // Check if any normalized variation is already in our set
+            const variations =
+              this.phoneNormalizer.getAllNormalizedVariations(phone);
+            const alreadyExists = variations.some((v) =>
+              phoneNormalizedSet.has(v)
+            );
+            if (!alreadyExists) {
+              phones.push(phone);
+              // Add all variations to our set to prevent duplicates
+              variations.forEach((v) => phoneNormalizedSet.add(v));
+            }
+          }
+        }
+      }
+    }
+
+    // 4. Extract any other phones found in the cleaned notes (without emails)
+    const generalPhoneMatches = cleanedNotes.matchAll(
+      RegexPatterns.PHONE_EXTRACTION
+    );
+    for (const match of generalPhoneMatches) {
+      const phone = match[0].trim();
+      if (this.phoneNormalizer.isValidPhone(phone)) {
+        // Check if any normalized variation is already in our set
+        const variations =
+          this.phoneNormalizer.getAllNormalizedVariations(phone);
+        const alreadyExists = variations.some((v) => phoneNormalizedSet.has(v));
+        if (!alreadyExists) {
+          phones.push(phone);
+          // Add all variations to our set to prevent duplicates
+          variations.forEach((v) => phoneNormalizedSet.add(v));
+        }
+      }
+    }
+
+    return { emails: [...new Set(emails)], phones };
   }
 
   private scanContacts(
