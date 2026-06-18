@@ -31,7 +31,6 @@ export { SyncPhonesScript } from './syncPhones';
 export { DeleteEmptyContactsScript } from './deleteEmptyContacts';
 export { FixEmptyContactsScript } from './fixEmptyContacts';
 export { OtherContactsSyncScript } from './otherContactsSync';
-export { GoogleContactsMaintainerScript } from './googleContactsMaintainer';
 export { GoogleContactsExcluderScript } from './googleContactsExcluder';
 export { GoogleContactsMapperScript } from './googleContactsMapper';
 

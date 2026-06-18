@@ -16,7 +16,7 @@ Phase 3 focuses on architectural improvements: moving scattered types to the typ
 
 ## 3.1 Move Types to types/ Folder
 
-### Problem
+### Problem: 3.1 Move Types to types/ Folder
 
 Type definitions scattered across the codebase instead of centralized in the types/ folder.
 
@@ -27,7 +27,7 @@ Type definitions scattered across the codebase instead of centralized in the typ
 3. Move leaf types first (no dependencies), then types that depend on them
 4. Watch for circular dependencies
 
-### Actions
+### Actions: 3.1 Move Types to types/ Folder
 
 #### Types to NOT Move
 
@@ -243,7 +243,7 @@ export * from './syncStats';
 // DO NOT ADD: export * from './settings'; - Settings stays in settings/
 ```
 
-### Success Criteria
+### Success Criteria: 3.1 Move Types to types/ Folder
 
 - ✅ All new type files created (EXCEPT settings.ts)
 - ✅ Settings type remains in settings/settings.ts
@@ -257,7 +257,7 @@ export * from './syncStats';
 
 ## 3.2 Consolidate Cache Implementation
 
-### Problem
+### Problem: 3.2 Consolidate Cache Implementation
 
 `companyCache.ts`, `contactCache.ts`, and `folderCache.ts` have nearly identical read/write/invalidate patterns with only schema and TTL differences.
 
@@ -269,7 +269,7 @@ export * from './syncStats';
 4. Standardize TTL approach
 5. ContactCache has extra methods (getByEmail, etc.) - keep these!
 
-### Actions
+### Actions: 3.2 Consolidate Cache Implementation
 
 #### Resolve Pre-Flight Decisions
 
@@ -503,7 +503,7 @@ export class ContactCache extends BaseCache<ContactCacheData> {
 
 Similar to CompanyCache - extend BaseCache, add getInstance(). Reduce to ~15 lines.
 
-### Success Criteria
+### Success Criteria: 3.2 Consolidate Cache Implementation
 
 - ✅ BaseCache created with type-safe `T extends { timestamp: number }`
 - ✅ Cache inconsistencies resolved (review `refactoring-decisions.md`)
@@ -520,11 +520,11 @@ Similar to CompanyCache - extend BaseCache, add getInstance(). Reduce to ~15 lin
 
 ## 3.3 Consolidate API Call Patterns
 
-### Problem
+### Problem: 3.3 Consolidate API Call Patterns
 
 Repeated "load groups, then paginate connections" pattern across 5+ files.
 
-### Actions
+### Actions: 3.3 Consolidate API Call Patterns
 
 #### Create API Helpers
 
@@ -587,7 +587,7 @@ export class ApiHelpers {
 export { ApiHelpers } from './apiHelpers';
 ```
 
-#### Update Call Sites
+#### Update Call Sites: 3.3 Consolidate API Call Patterns
 
 **Files to update:**
 
@@ -619,7 +619,7 @@ const connections = await ApiHelpers.fetchAllConnections(
 4. **contactEditor.ts (lines 1130-1133, 1162-1165)**
 5. **eventsJobsSync.ts (lines 1784-1787)**
 
-### Success Criteria
+### Success Criteria: 3.3 Consolidate API Call Patterns
 
 - ✅ ApiHelpers utility created
 - ✅ All 5+ call sites updated
@@ -631,14 +631,14 @@ const connections = await ApiHelpers.fetchAllConnections(
 
 ## 3.4 Consolidate Folder Scanning Logic
 
-### Problem
+### Problem: 3.4 Consolidate Folder Scanning Logic
 
 Similar folder scanning logic in:
 
 1. `src/scripts/eventsJobsSync.ts` (lines 249-276)
 2. `src/services/statistics/statisticsCollector.ts` (lines 151-173)
 
-### Actions
+### Actions: 3.4 Consolidate Folder Scanning Logic
 
 #### Create Shared Folder Scanner
 
@@ -704,7 +704,7 @@ export class FolderScanner {
 export { FolderScanner } from './folderScanner';
 ```
 
-#### Update Call Sites
+#### Update Call Sites: 3.4 Consolidate Folder Scanning Logic
 
 **1. Update `src/scripts/eventsJobsSync.ts` (lines 249-276)**
 
@@ -732,7 +732,7 @@ const folders = await FolderScanner.scanJobLifeEventFolders(basePath);
 
 Similar pattern - replace with FolderScanner call.
 
-### Success Criteria
+### Success Criteria: 3.4 Consolidate Folder Scanning Logic
 
 - ✅ FolderScanner utility created
 - ✅ Both call sites updated
@@ -744,14 +744,14 @@ Similar pattern - replace with FolderScanner call.
 
 ## 3.5 Consolidate ENOENT/EEXIST Error Handling
 
-### Problem
+### Problem: 3.5 Consolidate ENOENT/EEXIST Error Handling
 
 Repeated ENOENT/EEXIST handling patterns in:
 
 - `eventsJobsSync.ts` (6 locations)
 - `statisticsCollector.ts` (3 locations)
 
-### Actions
+### Actions: 3.5 Consolidate ENOENT/EEXIST Error Handling
 
 #### Enhance ErrorUtils
 
@@ -842,7 +842,7 @@ if (!content) {
 
 Similar pattern in 3 locations.
 
-### Success Criteria
+### Success Criteria: 3.5 Consolidate ENOENT/EEXIST Error Handling
 
 - ✅ ErrorUtils enhanced with file error helpers
 - ✅ All 6 locations in eventsJobsSync updated

@@ -58,7 +58,7 @@ When selecting **"Google Contacts Excluder"**, display a dropdown with 3 options
 
 ## 1. Add Rule
 
-### Flow
+### Flow (Add Rule)
 
 1. Display all validation rules from `src/types/maintainer.ts` (`MaintainerIssueDefinitions`) as a dropdown. The user selects **exactly one** rule.
 
@@ -79,7 +79,7 @@ When selecting **"Google Contacts Excluder"**, display a dropdown with 3 options
 
 ## 2. Delete a Rule
 
-### Flow
+### Flow (Delete a Rule)
 
 1. Prompt: `Enter contact ID:`
    - **Validate the contact ID** (see [Contact ID Validation](#contact-id-validation)).
@@ -102,7 +102,7 @@ When selecting **"Google Contacts Excluder"**, display a dropdown with 3 options
 
 ## 3. Skip Contact
 
-### Flow
+### Flow (Skip Contact)
 
 1. Prompt: `Enter contact ID:`
    - **Validate the contact ID** (see [Contact ID Validation](#contact-id-validation)).

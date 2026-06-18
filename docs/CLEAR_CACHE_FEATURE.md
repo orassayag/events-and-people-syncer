@@ -38,7 +38,7 @@ The script performs the following operations:
 - `folder-mappings.json`
 - `other-contacts-cache.json`
 
-### Edge Cases Handled
+### Edge Cases Handled (Clear Cache)
 
 - **No cache folder**: Displays "No cache folder found. Nothing to clear."
 - **Empty cache**: Displays "Cache folder is already empty."
@@ -61,7 +61,7 @@ The script performs the following operations:
 - `other-contacts-sync_DD_MM_YYYY.log`
 - And any other `.log` files in the folder
 
-### Edge Cases Handled
+### Edge Cases Handled (Clear Logs)
 
 - **No logs folder**: Displays "No logs folder found. Nothing to clear."
 - **No log files**: Displays "No log files found."

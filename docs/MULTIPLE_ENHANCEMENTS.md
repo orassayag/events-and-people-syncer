@@ -13,7 +13,7 @@ Four enhancements were made to improve the LinkedIn and HiBob sync scripts:
 
 ## 1. Added "Updated" Counter to Sync Summary
 
-### Problem
+### Problem: Missing "Updated" Counter
 
 The sync summary showed "New" and "Processed" counters, but didn't show how many contacts were "Updated".
 
@@ -29,7 +29,7 @@ The sync summary showed "New" and "Processed" counters, but didn't show how many
 ===========New: 000,000 | Processed: 009,042 | Updated: 000,028===========
 ```
 
-### Changes
+### Changes: Added Updated Counter
 
 - **`src/scripts/linkedinSync.ts`** - Added `updatedFormatted` counter to summary display
 - **`src/scripts/hibobSync.ts`** - Added `updatedFormatted` counter to summary display
@@ -38,7 +38,7 @@ The sync summary showed "New" and "Processed" counters, but didn't show how many
 
 ## 2. Retry Mechanism for 502 Server Errors
 
-### Problem
+### Problem: No Retry for 502 Errors
 
 When Google's API returns a 502 Server Error, the script would fail immediately without retrying. 502 errors are typically temporary.
 
@@ -49,7 +49,7 @@ When Google's API returns a 502 Server Error, the script would fail immediately 
 <title>Error 502 (Server Error)!!1</title>
 ```
 
-### Solution
+### Solution: Added 502 Retry Mechanism
 
 Added automatic retry logic specifically for 502 errors:
 
@@ -58,7 +58,7 @@ Added automatic retry logic specifically for 502 errors:
 - **Status display**: Shows retry progress in the status bar
 - **Processing pause**: Contact processing pauses during retries - the status bar shows "Retrying" and doesn't move to the next contact until retry attempts complete or succeed
 
-### Changes
+### Changes: Added 502 Retry Logic
 
 - **`src/utils/retryWithBackoff.ts`**
   - Added `is502Error()` function to detect 502 errors
@@ -96,7 +96,7 @@ The "Processing" counter stays at 42 and the "Current" contact remains "John Doe
 
 ## 3. Removed Note Truncation in Logs
 
-### Problem
+### Problem: Note Text Was Truncated
 
 Note updates in logs were truncated, making it hard to see what actually changed.
 
@@ -112,14 +112,14 @@ Note updates in logs were truncated, making it hard to see what actually changed
 [INFO] Updated contact: John Doe - Label: Job [Note: "Added by the people syncer script - Last update: 19/03/2026" -> "Updated by the people syncer script (LinkedIn) - Last update: 22/03/2026"]
 ```
 
-### Changes
+### Changes: Removed Note Truncation
 
 - **`src/scripts/linkedinSync.ts`** - Removed `.substring(0, 40)` truncation from note logging
 - **`src/services/linkedin/contactSyncer.ts`** - Removed `.substring(0, 50)` truncation from debug log
 - **`src/services/hibob/contactSyncer.ts`** - Removed `.substring(0, 50)` truncation from debug log
 - **`src/services/contacts/contactSyncer.ts`** - Removed `.substring(0, 50)` truncation from debug log
 
-### Benefit
+### Benefit: Full Note Text in Logs
 
 Full note text is now visible in logs, making it easier to:
 
@@ -131,7 +131,7 @@ Full note text is now visible in logs, making it easier to:
 
 ## 4. Remove Emojis from Calculated Company Labels
 
-### Problem
+### Problem: Emojis in Company Labels
 
 Company names with emojis (e.g., "BACCARA ®") would include those emojis in the calculated label used in the LastName field, which is undesirable.
 
@@ -141,11 +141,11 @@ Company names with emojis (e.g., "BACCARA ®") would include those emojis in the
 - Before: `Doe Job BACCARA®` (emoji included)
 - After: `Doe Job BACCARA` (emoji removed)
 
-### Solution
+### Solution: Added Emoji Removal
 
 Added emoji removal step in the `calculateFormattedCompany` function.
 
-### Changes
+### Changes: Added Emoji Removal Logic
 
 - **`src/utils/companyFormatter.ts`**
   - Added `removeEmojis()` helper function
@@ -165,7 +165,7 @@ Added emoji removal step in the `calculateFormattedCompany` function.
 3. **Remove emojis** ← NEW STEP
 4. Format to PascalCase
 
-### Benefit
+### Benefit: Clean Labels Without Emojis
 
 The calculated labels (used in LastName fields and email types) are now clean ASCII text without emojis, ensuring:
 

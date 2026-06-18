@@ -946,7 +946,7 @@ EXIT_SCRIPT: 'Exit script',  // Remove emoji, display methods will add if needed
 | 1731 | `console.log('===Note: The note was still created successfully===');` | `this.uiLogger.displayInfo('Note: The note was still created successfully');`      |
 | 1743 | `console.log('===Note: The note was still created successfully===');` | `this.uiLogger.displayInfo('Note: The note was still created successfully');`      |
 
-#### Spinner Integration
+#### Spinner Integration (Events &amp; Jobs Sync)
 
 After any `spinner.stop()` call in `eventsJobsSync.ts`, add `resetState('spinner')`:
 
@@ -981,7 +981,7 @@ Remove these `console.log('')` calls (display methods handle break lines):
 - Line 1324
 - Line 1351
 
-#### Keep Unchanged
+#### Keep Unchanged (Events &amp; Jobs Sync)
 
 - Lines 1780-1789: `displayFinalSummary()` - summary box formatting stays as-is
 
@@ -1005,7 +1005,7 @@ Remove these `console.log('')` calls (display methods handle break lines):
 | 225  | `console.log('\n===❌ Contact creation cancelled===\n');`     | `this.uiLogger.displayError('Contact creation cancelled');`   |
 | 238  | `console.log('\n===❌ Contact creation cancelled===\n');`     | `this.uiLogger.displayError('Contact creation cancelled');`   |
 
-#### Keep Unchanged
+#### Keep Unchanged (Contacts Sync)
 
 - `displayFinalSummary()` calls - summary box formatting stays as-is
 
@@ -1024,7 +1024,7 @@ Remove these `console.log('')` calls (display methods handle break lines):
 | 508-515                    | `this.uiLogger.info(\`===Displaying ${title}===\`, {}, false);` | `this.uiLogger.display(\`Displaying ${title}\`);` |
 | Similar pattern throughout | `this.uiLogger.info(\`===...===\`, {}, false);`                 | `this.uiLogger.display('...');`                   |
 
-#### Fix Duplicate Menu Bug
+#### Fix Duplicate Menu Bug (LinkedIn Sync)
 
 **Lines 465-468**: DELETE these lines completely:
 
@@ -1061,7 +1061,7 @@ Remove unnecessary `breakline()` calls that appear before display messages:
 | `this.uiLogger.error(...)`                   | → `this.uiLogger.displayError(...)`                    |
 | `this.uiLogger.warn(...)`                    | → `this.uiLogger.displayWarning(...)` (if user-facing) |
 
-#### Spinner Integration
+#### Spinner Integration (LinkedIn Sync)
 
 After spinners complete, add state reset:
 
@@ -1087,20 +1087,20 @@ this.uiLogger.resetState('spinner');
 | Header line | `console.log('\n===Statistics===')` (if exists) | `logger.display('Statistics');`             |
 | Warnings    | `logger.warn(...)`                              | `logger.displayWarning(...)` if user-facing |
 
-#### Keep Unchanged
+#### Keep Unchanged (Statistics)
 
 - All table formatting using `padLineWithEquals`
-- Lines 173: `console.log('='.repeat(width));` - table borders
+- Line 173: `console.log('='.repeat(width));` - table borders
 
 ---
 
 ### Phase 8: Refactor Contact Services
 
-#### File: `src/services/contacts/contactEditor.ts`
+#### File: `src/services/contacts/contactEditor.ts` (Phase 8)
 
 **Estimated changes**: ~25 instances
 
-**Detailed Line-by-Line Conversions**:
+**Detailed Line-by-Line Conversions (LinkedIn Sync)**:
 
 || Line | Before | After |
 ||------|--------|-------|
@@ -1121,7 +1121,7 @@ this.uiLogger.resetState('spinner');
 
 **Note**: This file needs careful review - many messages are part of interactive flows.
 
-#### File: `src/services/contacts/duplicateDetector.ts`
+#### File: `src/services/contacts/duplicateDetector.ts` (Phase 8)
 
 **Estimated changes**: ~2 instances
 
@@ -1131,7 +1131,7 @@ this.uiLogger.resetState('spinner');
 
 Convert display messages to use display methods (if any user-facing messages exist).
 
-#### File: `src/services/contacts/contactSyncer.ts`
+#### File: `src/services/contacts/contactSyncer.ts` (Phase 8)
 
 **Estimated changes**: ~5 instances
 
@@ -1154,9 +1154,9 @@ Convert display messages to use display methods (if any user-facing messages exi
 - Line 147: `console.log('');` → Remove
 - Line 151: `console.log('');` → Remove (replaced by resetState)
 
-#### File: `src/scripts/statistics.ts`
+#### File: `src/scripts/statistics.ts` (Phase 8)
 
-**Detailed Line-by-Line Conversions**:
+**Detailed Line-by-Line Conversions (Statistics)**:
 
 || Line | Before | After |
 ||------|--------|-------|
@@ -1172,7 +1172,7 @@ Convert display messages to use display methods (if any user-facing messages exi
 - All table formatting using `padLineWithEquals` (lines 154-172)
 - Line 173: `console.log('='.repeat(width));` - table borders
 
-#### File: `src/services/contacts/eventsContactEditor.ts`
+#### File: `src/services/contacts/eventsContactEditor.ts` (Phase 8)
 
 **Estimated changes**: ~5-10 instances
 
@@ -1197,7 +1197,7 @@ Convert any user-facing console.log/console.error messages to display methods.
 
 **Estimated changes**: ~35+ instances
 
-#### Detailed Line-by-Line Conversions
+#### Detailed Line-by-Line Conversions (LinkedIn Sync Detailed)
 
 **Display Method Conversions**:
 
@@ -1224,9 +1224,9 @@ Convert any user-facing console.log/console.error messages to display methods.
 || 493 | `this.uiLogger.info(UI_CONSTANTS.MESSAGES.EXIT_SCRIPT, {}, false);` | `this.uiLogger.display(UI_CONSTANTS.MESSAGES.EXIT_SCRIPT);` |
 || 508 | `this.uiLogger.info(\`===Displaying ${title}===\`, {}, false);`|`this.uiLogger.display(\`Displaying ${title}\`);`|
 || 517 |`this.uiLogger.info(...)`|`this.uiLogger.display(...)`|
-|| 523 |`this.uiLogger.info(\`-Reason: ${reason}\`, {}, false);` | **Keep unchanged** (structured data display) |
+|| 523 | `this.uiLogger.info(\`-Reason: ${reason}\`, {}, false);` | **Keep unchanged** (structured data display) |
 
-#### Fix Duplicate Menu Bug
+#### Fix Duplicate Menu Bug (LinkedIn Sync Detailed)
 
 **Lines 465-468**: DELETE these lines completely:
 
@@ -1254,7 +1254,7 @@ Remove `breakline()` calls that appear immediately before display messages:
 - Line 494: `this.uiLogger.breakline();` → Remove if before display
 - Line 505: `this.uiLogger.breakline();` → Remove if before display
 
-#### Spinner Integration
+#### Spinner Integration (LinkedIn Sync Detailed)
 
 After spinners complete, add state reset:
 
@@ -1280,7 +1280,7 @@ this.uiLogger.resetState('spinner');
 
 **Estimated changes**: ~8 instances
 
-#### Detailed Line-by-Line Conversions
+#### Detailed Line-by-Line Conversions (Statistics Detailed)
 
 || Line | Before | After |
 ||------|--------|-------|
@@ -1291,7 +1291,7 @@ this.uiLogger.resetState('spinner');
 
 - Line 46: After `spinner.stop()` and `spinner.clear()` → Add `logger.resetState('spinner');`
 
-#### Keep Unchanged
+#### Keep Unchanged (Statistics Detailed)
 
 - Lines 154-172: All `console.log` statements with `padLine()` - these are table formatting
 - Line 173: `console.log('='.repeat(width));` - table borders
@@ -1305,20 +1305,20 @@ this.uiLogger.resetState('spinner');
 
 **NEW PHASE**: Remove all standalone `console.log('')` calls in service files that were missed.
 
-#### File: `src/services/contacts/duplicateDetector.ts`
+#### File: `src/services/contacts/duplicateDetector.ts` (Phase 11)
 
 **Remove blank lines**:
 
 - Line 246: `console.log('');` → Remove (display methods handle spacing)
 
-#### File: `src/services/contacts/contactSyncer.ts`
+#### File: `src/services/contacts/contactSyncer.ts` (Phase 11)
 
 **Remove blank lines**:
 
 - Line 147: `console.log('');` → Remove (before spinner.succeed)
 - Line 151: `console.log('');` → Remove (after spinner.succeed, use resetState instead)
 
-#### File: `src/services/contacts/contactEditor.ts`
+#### File: `src/services/contacts/contactEditor.ts` (Phase 11)
 
 **Scan for console.log('') patterns**:
 Search entire file for standalone `console.log('');` calls and evaluate:
@@ -1326,7 +1326,7 @@ Search entire file for standalone `console.log('');` calls and evaluate:
 - If immediately before display method → Remove
 - If part of structured output (ContactDisplay) → Keep
 
-#### File: `src/services/contacts/eventsContactEditor.ts`
+#### File: `src/services/contacts/eventsContactEditor.ts` (Phase 11)
 
 **Scan for console.log('') patterns**:
 Search entire file for standalone `console.log('');` calls and remove those immediately before/after display methods.
@@ -2713,7 +2713,7 @@ logger.displayCustom('Custom message');
 
 ---
 
-### New Logger Methods
+### New Logger Methods (Design Decisions)
 
 ```typescript
 // Basic display (neutral)
@@ -2765,7 +2765,7 @@ logger.resetState('spinner'); // Call BEFORE next display method
 logger.display('Next step'); // Will have proper spacing
 ```
 
-### Message Formatting Rules
+### Message Formatting Rules (Design Decisions)
 
 | Rule                           | ✅ Good                                 | ❌ Bad                      |
 | ------------------------------ | --------------------------------------- | --------------------------- |
@@ -2775,7 +2775,7 @@ logger.display('Next step'); // Will have proper spacing
 | No manual emojis (use methods) | `displaySuccess('Done')`                | `display('✅ Done')`        |
 | No multi-line                  | `display('Line 1'); display('Line 2');` | `display('Line 1\nLine 2')` |
 
-### Common Patterns
+### Common Patterns (Design Decisions)
 
 ```typescript
 // BEFORE (old pattern):
@@ -2837,7 +2837,7 @@ console.log(`\n===Found ${count} items===\n`);
 this.uiLogger.display(`Found ${count} items`);
 ```
 
-### Complete Flow Example
+### Complete Flow Example (Design Decisions)
 
 **BEFORE (old implementation)**:
 
@@ -2982,7 +2982,7 @@ Estimated effort: ~8-12 hours (increased from 6-9 to account for detailed conver
 
 ## Appendix H: Quick Reference
 
-### New Logger Methods
+### New Logger Methods (Appendix H: Quick Reference)
 
 ```typescript
 // Basic display (neutral)
@@ -3034,7 +3034,7 @@ logger.resetState('spinner'); // Call BEFORE next display method
 logger.display('Next step'); // Will have proper spacing
 ```
 
-### Message Formatting Rules
+### Message Formatting Rules (Appendix H: Quick Reference)
 
 | Rule                           | ✅ Good                                 | ❌ Bad                      |
 | ------------------------------ | --------------------------------------- | --------------------------- |
@@ -3044,7 +3044,7 @@ logger.display('Next step'); // Will have proper spacing
 | No manual emojis (use methods) | `displaySuccess('Done')`                | `display('✅ Done')`        |
 | No multi-line                  | `display('Line 1'); display('Line 2');` | `display('Line 1\nLine 2')` |
 
-### Common Patterns
+### Common Patterns (Appendix H: Quick Reference)
 
 ```typescript
 // BEFORE (old pattern):
@@ -3106,7 +3106,7 @@ console.log(`\n===Found ${count} items===\n`);
 this.uiLogger.display(`Found ${count} items`);
 ```
 
-### Complete Flow Example
+### Complete Flow Example (Appendix H: Quick Reference)
 
 **BEFORE (old implementation)**:
 

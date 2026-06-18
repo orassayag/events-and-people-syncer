@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+### Added (Unreleased)
 
 - **Dry-Mode Feature** - Safe by default read-only mode for testing
   - Global `dryMode` setting (readonly) defaults to `true` to prevent accidental data changes
@@ -40,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Centralized Company Formatter** - Logic unified in `src/utils/companyFormatter.ts` for consistency across UI, API, and logs
 - **Refined Alert Logging** - Company names in alert files now reflect the standardized "LinkedIn" value
 
-### Changed
+### Changed (Unreleased)
 
 - Migrated from `inquirer` v9 to `@inquirer/prompts` v8
 - Replaced error-throwing pattern with result object pattern `{ escaped: boolean, value?: T }`
@@ -48,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All 68 prompts across 7 production files migrated to use ESC-aware wrappers
 - Improved user experience with consistent ESC behavior throughout the application
 
-### Removed
+### Removed (Unreleased)
 
 - `inquirer` v9.3.8 package dependency
 - `@types/inquirer` v9.0.9 package dependency
@@ -56,7 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2026-03-11
 
-### Added
+### Added (2026-03-11)
 
 - Complete infrastructure migration from POC to production-ready codebase
 - InversifyJS dependency injection system
@@ -72,7 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Constants management
 - Documentation (CONTRIBUTING.md, LICENSE, CHANGELOG.md, INSTRUCTIONS.md)
 
-### Changed
+### Changed (2026-03-11)
 
 - Migrated from monolithic types.ts to domain-specific type files
 - Replaced console.log with structured Logger
@@ -80,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Split validation schemas into individual entity files
 - Eliminated utils/ folder in favor of domain-specific folders
 
-### Infrastructure
+### Infrastructure (2026-03-11)
 
 - TypeScript with strict mode and decorator support
 - ESLint and Prettier for code quality

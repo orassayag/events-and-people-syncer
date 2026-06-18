@@ -14,11 +14,11 @@ Phase 0 is a critical preparation phase that must be completed before any code c
 
 ## 0.1 Capture Current State Baseline
 
-### Problem
+### Problem: Capture Current State Baseline
 
 Before refactoring, we need to know what "working" looks like so we can detect regressions.
 
-### Actions
+### Actions: Capture Current State Baseline
 
 #### Run Full Test Suite
 
@@ -76,7 +76,7 @@ cloc src > loc-count-before.txt 2>&1 || echo "cloc not available"
 find src -name "*.ts" ! -path "*/node_modules/*" ! -path "*/dist/*" -exec wc -l {} + | tail -1 >> loc-count-before.txt
 ```
 
-### Success Criteria
+### Success Criteria: Capture Current State Baseline
 
 - ✅ All baseline files created
 - ✅ Current test pass/fail state documented
@@ -87,11 +87,11 @@ find src -name "*.ts" ! -path "*/node_modules/*" ! -path "*/dist/*" -exec wc -l 
 
 ## 0.2 Identify Test Coverage Gaps
 
-### Problem
+### Problem: Identify Test Coverage Gaps
 
 Files without tests are risky to refactor. We need to know which files lack coverage.
 
-### Actions
+### Actions: Identify Test Coverage Gaps
 
 #### Find Test Files
 
@@ -137,7 +137,7 @@ Action items:
 4. Add tests for baseCache after Phase 3.2
 ```
 
-### Success Criteria
+### Success Criteria: Identify Test Coverage Gaps
 
 - ✅ Test file count documented
 - ✅ Coverage gaps identified
@@ -147,11 +147,11 @@ Action items:
 
 ## 0.3 Check for Test Mock File Paths
 
-### Problem
+### Problem: 0.3 Check for Test Mock File Paths
 
 Mocks that reference specific file paths will break when files are moved or imports change.
 
-### Actions
+### Actions: 0.3 Check for Test Mock File Paths
 
 #### Search for Mock Patterns
 
@@ -184,7 +184,7 @@ Create `mock-files-to-update.md`:
 - [ ] Test each affected test file after changes
 ```
 
-### Success Criteria
+### Success Criteria: Action items:
 
 - ✅ All mock patterns identified
 - ✅ Mock file list created
@@ -194,11 +194,11 @@ Create `mock-files-to-update.md`:
 
 ## 0.4 Search for Dynamic Imports
 
-### Problem
+### Problem: 0.4 Search for Dynamic Imports
 
 Dynamic imports (`import()`) break differently than static imports and need special attention.
 
-### Actions
+### Actions: 0.4 Search for Dynamic Imports
 
 #### Find Dynamic Imports
 
@@ -213,7 +213,7 @@ grep -r "require(" src/ >> dynamic-imports.txt 2>&1 || echo "No require found"
 cat dynamic-imports.txt
 ```
 
-#### Document Findings
+#### Document Findings: 0.4 Search for Dynamic Imports
 
 If any dynamic imports found:
 
@@ -226,7 +226,7 @@ If any dynamic imports found:
 Action: Manually update after import changes in Phase 1.2
 ```
 
-### Success Criteria
+### Success Criteria: 0.4 Search for Dynamic Imports
 
 - ✅ Dynamic import search completed
 - ✅ If found, documented for manual review
@@ -235,11 +235,11 @@ Action: Manually update after import changes in Phase 1.2
 
 ## 0.5 Analyze Type Dependencies
 
-### Problem
+### Problem: 0.5 Analyze Type Dependencies
 
 Moving types can create circular dependencies if not done carefully.
 
-### Actions
+### Actions: 0.5 Analyze Type Dependencies
 
 #### Map Current Type Imports
 
@@ -279,7 +279,7 @@ After analyzing imports, these types import from each other:
 - Last: Move types that depend on others
 ```
 
-### Success Criteria
+### Success Criteria: Potential Circular Dependency Risks
 
 - ✅ Type dependency map created
 - ✅ No circular dependencies identified (or documented if found)
@@ -289,11 +289,11 @@ After analyzing imports, these types import from each other:
 
 ## 0.6 Check EditableContactData Usage
 
-### Problem
+### Problem: 0.6 Check EditableContactData Usage
 
 Phase 1.1 makes `company` and `jobTitle` optional in EditableContactData. Need to verify no code assumes they're required.
 
-### Actions
+### Actions: 0.6 Check EditableContactData Usage
 
 #### Find All Usage
 
@@ -309,7 +309,7 @@ grep -rn "\.jobTitle\." src/ --include="*.ts" | grep -v "jobTitle\?" >> editable
 cat editable-contact-data-usage.txt
 ```
 
-#### Document Findings
+#### Document Findings: 0.6 Check EditableContactData Usage
 
 Create `editable-contact-data-review.md`:
 
@@ -327,7 +327,7 @@ Create `editable-contact-data-review.md`:
 - [ ] Test each file after making fields optional
 ```
 
-### Success Criteria
+### Success Criteria: Action items for Phase 1.1:
 
 - ✅ All usage of EditableContactData.company found
 - ✅ All usage of EditableContactData.jobTitle found
@@ -337,11 +337,11 @@ Create `editable-contact-data-review.md`:
 
 ## 0.7 Create Git Safety Net
 
-### Problem
+### Problem: 0.7 Create Git Safety Net
 
 Need ability to rollback if refactoring goes wrong.
 
-### Actions
+### Actions: 0.7 Create Git Safety Net
 
 #### Commit Current State
 
@@ -409,7 +409,7 @@ git checkout before-refactoring-YYYY-MM-DD -- src/types/
 Created: $(date)
 \`\`\`
 
-### Success Criteria
+### Success Criteria: Rollback Tag
 
 - ✅ Git working directory clean
 - ✅ Rollback tag created
@@ -420,11 +420,11 @@ Created: $(date)
 
 ## 0.8 Verify PHI and Security Patterns
 
-### Problem
+### Problem: 0.8 Verify PHI and Security Patterns
 
 Refactoring must preserve PHI safety and security patterns.
 
-### Actions
+### Actions: 0.8 Verify PHI and Security Patterns
 
 #### Check for PHI Logging Patterns
 
@@ -472,7 +472,7 @@ grep -rn "console\.\(log\|warn\|error\)" src/utils/summaryFormatter.ts
 \`\`\`
 \`\`\`
 
-### Success Criteria
+### Success Criteria: Review after each phase:
 
 - ✅ PHI-safe logging patterns identified
 - ✅ Security checklist created
@@ -482,11 +482,11 @@ grep -rn "console\.\(log\|warn\|error\)" src/utils/summaryFormatter.ts
 
 ## 0.9 Set Up Automated Validation
 
-### Problem
+### Problem: 0.9 Set Up Automated Validation
 
 Manual testing after 100+ file changes is error-prone. Need automation.
 
-### Actions
+### Actions: 0.9 Set Up Automated Validation
 
 #### Create Validation Script
 
@@ -554,7 +554,7 @@ echo "✅ All imports resolve correctly"
 chmod +x scripts/check-imports.sh
 ```
 
-### Success Criteria
+### Success Criteria: 0.9 Set Up Automated Validation
 
 - ✅ Validation script created and tested
 - ✅ Import check script created
@@ -564,11 +564,11 @@ chmod +x scripts/check-imports.sh
 
 ## 0.10 Document Suspicious Patterns Found
 
-### Problem
+### Problem: 0.10 Document Suspicious Patterns Found
 
 During investigation, several inconsistencies were found that need decisions before refactoring.
 
-### Actions
+### Actions: 0.10 Document Suspicious Patterns Found
 
 #### Create Decisions Document
 
@@ -650,7 +650,7 @@ Create `refactoring-decisions.md`:
 - [ ] Standardize to 56 in Phase 2.1 unless good reason exists
 ```
 
-### Success Criteria
+### Success Criteria: 5. Summary Box Width (55 vs 56)
 
 - ✅ All suspicious patterns documented
 - ✅ Questions listed for each

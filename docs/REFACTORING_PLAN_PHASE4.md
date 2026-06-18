@@ -180,7 +180,7 @@ Select a script to run:
 - Verify folder descriptions
 - Update if any folders added/removed
 
-### Success Criteria
+### Success Criteria: [1.2.0] - 2026-03-18
 
 - ✅ CHANGELOG.md has correct migration info
 - ✅ INQUIRER_MIGRATION_GUIDE.md marked obsolete or rewritten
@@ -401,7 +401,7 @@ Default: 50 (configurable)
 - Only applies in test/development mode
 ````
 
-### Success Criteria
+### Success Criteria: Connection Limit
 
 - ✅ All line numbers accurate (within 5 lines)
 - ✅ All API references correct
@@ -412,7 +412,7 @@ Default: 50 (configurable)
 
 ## 4.3 Consolidate Console Usage (Optional)
 
-### Problem
+### Problem: 4.3 Consolidate Console Usage (Optional)
 
 100+ direct console.log/console.warn/console.error calls mixed with Logger usage, making output inconsistent.
 
@@ -442,7 +442,7 @@ Default: 50 (configurable)
 - PHI-safe logging
 - File logging
 
-### Actions (Optional)
+### Actions (Optional): 4.3 Consolidate Console Usage (Optional)
 
 **Only proceed if:**
 
@@ -459,7 +459,7 @@ Default: 50 (configurable)
 
 **Estimated effort:** 1-2 days
 
-### Recommendation
+### Recommendation: 4.3 Consolidate Console Usage (Optional)
 
 **Skip this step** unless specific issues arise. Console.log is appropriate for user-facing scripts.
 
@@ -467,11 +467,11 @@ Default: 50 (configurable)
 
 ## 4.4 Test Infrastructure Improvements (Optional)
 
-### Problem
+### Problem: 4.4 Test Infrastructure Improvements (Optional)
 
 Repeated mock setup code across test files.
 
-### Actions (Optional)
+### Actions (Optional): 4.4 Test Infrastructure Improvements (Optional)
 
 **Only proceed if:**
 
@@ -547,7 +547,7 @@ export class FsTestUtils {
 - pathValidator.test.ts
 - folderManager.test.ts
 
-### Recommendation
+### Recommendation: 4.4 Test Infrastructure Improvements (Optional)
 
 **Skip this step** unless test maintenance becomes a problem. Current tests are functional.
 

@@ -2,11 +2,7 @@
   "name": "events-and-people-syncer",
   "version": "1.0.0",
   "private": false,
-  "description": "A comprehensive Node.js TypeScript application for managing Google Contacts through automated synchronization from multiple sources (LinkedIn, HiBob, SMS/WhatsApp, calendar events) with intelligent duplicate detection, company-based organization, and interactive workflows.",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/orassayag/events-and-people-syncer.git"
-  },
+  "description": "Events And People Syncer is a Node.js TypeScript app for automated Google Contacts management, syncing data from LinkedIn, HiBob, SMS/WhatsApp, calendars, and custom events. It supports CLI wizards and batch scripts, DI architecture, Zod validation, duplicate detection, and safe dry-mode execution",
   "keywords": [
     "nodejs",
     "typescript",
@@ -29,33 +25,24 @@
     "dry-mode",
     "contact-organization"
   ],
-  "main": "src/index.ts",
-  "type": "module",
-  "scripts": {
-    "lint": "eslint \"src/**/*.ts\"",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "format:check": "prettier --check \"src/**/*.ts\"",
-    "start": "tsx src/index.ts",
-    "start:live": "cross-env DRY_MODE=false tsx src/index.ts",
-    "start:no-cache": "tsx src/index.ts --no-cache",
-    "script": "tsx src/runner.ts",
-    "script:list": "tsx src/runner.ts list",
-    "interactive": "tsx src/runner.ts interactive-contact-manager",
-    "interactive:live": "cross-env DRY_MODE=false tsx src/runner.ts interactive-contact-manager",
-    "import-linkedin": "tsx src/runner.ts import-linkedin-contacts",
-    "import-linkedin:live": "cross-env DRY_MODE=false tsx src/runner.ts import-linkedin-contacts",
-    "linkedin-sync": "tsx src/runner.ts linkedin-sync",
-    "linkedin-sync:live": "cross-env DRY_MODE=false tsx src/runner.ts linkedin-sync",
-    "linkedin-sync:no-cache": "tsx src/runner.ts linkedin-sync --no-cache",
-    "health": "tsx src/runner.ts health-check",
-    "dev": "tsx watch src/index.ts",
-    "test": "cross-env NODE_OPTIONS='--no-warnings' vitest run --coverage",
-    "test:watch": "cross-env NODE_OPTIONS='--no-warnings' vitest",
-    "test:no-coverage": "cross-env NODE_OPTIONS='--no-warnings' vitest run",
-    "build": "tsc",
-    "poc:searchable": "tsx poc/src/poc-searchable-multiselect.ts"
+  "homepage": "https://github.com/orassayag/events-and-people-syncer#readme",
+  "bugs": {
+    "url": "https://github.com/orassayag/events-and-people-syncer/issues"
   },
-  "author": "Or Assayag <orassayag@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/orassayag/events-and-people-syncer.git"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/orassayag"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Or Assayag",
+    "email": "orassayag@gmail.com",
+    "url": "https://github.com/orassayag"
+  },
   "contributors": [
     {
       "name": "Or Assayag",
@@ -63,38 +50,73 @@
       "url": "https://github.com/orassayag"
     }
   ],
+  "type": "module",
+  "main": "src/index.ts",
   "files": [
+    ".github",
     ".vscode",
+    "demo",
     "dist",
+    "docs",
+    "logs",
+    "misc",
+    "poc",
+    "scripts",
+    "sources",
     "src",
+    ".DS_Store",
+    ".env.example",
+    ".env.production",
+    ".env.test",
     ".gitignore",
+    ".npmrc",
     ".prettierrc",
-    "eslint.config.mjs",
-    "CONTRIBUTING.md",
-    "LICENSE",
-    "INSTRUCTIONS.md",
+    "api-stats.json",
     "CHANGELOG.md",
+    "CODE_OF_CONDUCT.md",
+    "contactsScanMaintainer.bat",
+    "CONTRIBUTING.md",
+    "eslint.config.mjs",
+    "INSTRUCTIONS.md",
+    "knip.json",
+    "LICENSE",
     "package.json",
     "pnpm-lock.yaml",
     "pnpm-workspace.yaml",
     "README.md",
+    "SECURITY.md",
+    "token.json",
     "tsconfig.json",
+    "tsconfig.node.json",
     "vitest.config.ts"
   ],
-  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "linkedin-sync": "tsx src/runner.ts linkedin-sync",
+    "linkedin-sync:live": "cross-env DRY_MODE=false tsx src/runner.ts linkedin-sync",
+    "linkedin-sync:no-cache": "tsx src/runner.ts linkedin-sync --no-cache",
+    "lint": "eslint \"src/**/*.ts\"",
+    "script": "tsx src/runner.ts",
+    "script:list": "tsx src/runner.ts list",
+    "start": "tsx src/index.ts",
+    "start:live": "cross-env DRY_MODE=false tsx src/index.ts",
+    "start:no-cache": "tsx src/index.ts --no-cache",
+    "test": "cross-env NODE_OPTIONS='--no-warnings' vitest run --coverage",
+    "test:no-coverage": "cross-env NODE_OPTIONS='--no-warnings' vitest run",
+    "test:watch": "cross-env NODE_OPTIONS='--no-warnings' vitest"
+  },
   "dependencies": {
-    "@inquirer/prompts": "^8.5.2",
     "adm-zip": "^0.5.17",
-    "bidi-js": "^1.0.3",
-    "cli-spinners": "^3.4.0",
     "csv-parse": "^7.0.0",
     "dotenv": "17.4.2",
     "enquirer": "2.4.1",
     "fuse.js": "^7.4.2",
     "googleapis": "^173.0.0",
-    "inversify": "^8.1.0",
+    "inversify": "^8.1.1",
     "jsdom": "^29.1.1",
-    "log-update": "^8.0.0",
     "ora": "^9.4.0",
     "reflect-metadata": "^0.2.2",
     "zod": "^4.4.3"
@@ -117,5 +139,9 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.61.1",
     "vitest": "^4.1.9"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
   }
 }

@@ -117,7 +117,7 @@ To be installed:
 
 This is the core utility that enables ESC functionality. See detailed specification below.
 
-### Phase 2: Package Management
+### Phase 2: Package Management (Implementation Steps)
 
 **Update: package.json**
 
@@ -1090,7 +1090,7 @@ Mocks return simple objects instead of throwing errors, making test code cleaner
 - [ ] Run tests for promptWithEscape.ts
 - [ ] Fix any issues in utility
 
-### Phase 2: Package Management
+### Phase 2: Package Management (Implementation Checklist)
 
 - [ ] Update package.json: remove inquirer v9
 - [ ] Update package.json: remove @types/inquirer

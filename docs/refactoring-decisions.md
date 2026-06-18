@@ -11,7 +11,7 @@ During Phase 0 investigation, several inconsistencies were found across the code
 
 ## 1. Cache TTL Inconsistency
 
-### Issue
+### Cache TTL Inconsistency - Issue
 
 Three different cache classes use different TTL (Time-To-Live) configurations:
 
@@ -33,14 +33,14 @@ private readonly TTL: number = VALIDATION_CONSTANTS.CACHE.TTL_MS;
 this.expirationMs = SETTINGS.linkedin.cacheExpirationDays * 24 * 60 * 60 * 1000;
 ```
 
-### Questions
+### Cache TTL Inconsistency - Questions
 
 1. Are these intentionally different?
 2. What is the value of `VALIDATION_CONSTANTS.CACHE.TTL_MS`?
 3. What is the value of `SETTINGS.linkedin.cacheExpirationDays`?
 4. Should company cache use the same TTL as others?
 
-### Investigation Needed
+### Cache TTL Inconsistency - Investigation Needed
 
 ```bash
 # Check constants
@@ -48,7 +48,7 @@ grep -rn "TTL_MS" src/constants/validationConstants.ts
 grep -rn "cacheExpirationDays" src/settings/settings.ts
 ```
 
-### Decision Options
+### Cache TTL Inconsistency - Decision Options
 
 **Option A:** Standardize all caches to use `VALIDATION_CONSTANTS.CACHE.TTL_MS`
 
@@ -68,22 +68,22 @@ grep -rn "cacheExpirationDays" src/settings/settings.ts
 - ✅ Pro: Each cache can decide its TTL
 - ❌ Con: Requires passing TTL everywhere
 
-### Decision
+### Cache TTL Inconsistency - Decision
 
 - [ ] Investigate both constant values
 - [ ] Decide on standardization approach
 - [ ] Implement in BaseCache during Phase 3.2
 - [ ] Document final decision here
 
-**Chosen Option:** **\*\***\_\_\_\_**\*\***
-**Rationale:** **\*\***\_\_\_\_**\*\***
-**Date Decided:** **\*\***\_\_\_\_**\*\***
+**Chosen Option:** ****____****
+**Rationale:** ****____****
+**Date Decided:** ****____****
 
 ---
 
 ## 2. Cache Singleton Pattern Inconsistency
 
-### Issue
+### Cache Singleton Pattern Inconsistency - Issue
 
 Different cache implementations use different patterns:
 
@@ -130,13 +130,13 @@ export class FolderCache {
 
 **Usage:** `FolderCache.getInstance().get()`
 
-### Questions
+### Cache Singleton Pattern Inconsistency - Questions
 
 1. Should all caches be singletons?
 2. Why is CompanyCache not a singleton?
 3. Does singleton pattern make sense for caches?
 
-### Analysis
+### Cache Singleton Pattern Inconsistency - Analysis
 
 **Pros of Singleton:**
 
@@ -152,7 +152,7 @@ export class FolderCache {
 
 **Current CompanyCache is stateless** - creates new instance each time, no in-memory caching.
 
-### Decision Options
+### Cache Singleton Pattern Inconsistency - Decision Options
 
 **Option A:** Make all caches singletons
 
@@ -171,21 +171,21 @@ export class FolderCache {
 - ✅ Pro: Flexibility
 - ❌ Con: Complexity
 
-### Decision
+### Cache Singleton Pattern Inconsistency - Decision
 
 - [ ] Decide on singleton vs regular class
 - [ ] If removing singleton, update 6 mock locations
 - [ ] Implement in BaseCache during Phase 3.2
 
-**Chosen Option:** **\*\***\_\_\_\_**\*\***
-**Rationale:** **\*\***\_\_\_\_**\*\***
-**Date Decided:** **\*\***\_\_\_\_**\*\***
+**Chosen Option:** ****____****
+**Rationale:** ****____****
+**Date Decided:** ****____****
 
 ---
 
 ## 3. Cache Schema Validation Pattern
 
-### Issue
+### Cache Schema Validation Pattern - Issue
 
 Different caches handle schema validation differently:
 
@@ -220,13 +220,13 @@ const data: CompanyCacheData = companyCacheDataSchema.parse(
 
 Uses `parse()` which throws on error, caught by outer catch.
 
-### Questions
+### Cache Schema Validation Pattern - Questions
 
 1. Which pattern is safest?
 2. Should invalid cache data cause an error or just invalidate?
 3. Do all caches need schema validation?
 
-### Analysis
+### Cache Schema Validation Pattern - Analysis
 
 **FolderCache approach (safeParse):**
 
@@ -246,7 +246,7 @@ Uses `parse()` which throws on error, caught by outer catch.
 - ❌ Relies on catch-all error handler
 - ❌ Less explicit
 
-### Decision Options
+### Cache Schema Validation Pattern - Decision Options
 
 **Option A:** Use safeParse + invalidate (like FolderCache)
 
@@ -266,21 +266,21 @@ Uses `parse()` which throws on error, caught by outer catch.
 - ❌ Con: Unsafe
 - ❌ Con: Not recommended
 
-### Decision
+### Cache Schema Validation Pattern - Decision
 
 - [ ] Decide on validation pattern
 - [ ] Implement in BaseCache during Phase 3.2
 - [ ] Add schema parameter to BaseCache constructor
 
-**Chosen Option:** **\*\***\_\_\_\_**\*\***
-**Rationale:** **\*\***\_\_\_\_**\*\***
-**Date Decided:** **\*\***\_\_\_\_**\*\***
+**Chosen Option:** ****____****
+**Rationale:** ****____****
+**Date Decided:** ****____****
 
 ---
 
 ## 4. FolderCache Path Configuration
 
-### Issue
+### FolderCache Path Configuration - Issue
 
 FolderCache stores data in an unexpected location:
 
@@ -293,13 +293,13 @@ this.cacheFilePath = join(
 
 But folder mappings are for **events and jobs**, not LinkedIn.
 
-### Questions
+### FolderCache Path Configuration - Questions
 
 1. Should FolderCache use `SETTINGS.linkedin.cachePath`?
 2. Should there be a separate `SETTINGS.eventsJobs.cachePath`?
 3. Is this intentional or a bug?
 
-### Analysis
+### FolderCache Path Configuration - Analysis
 
 Current structure:
 
@@ -312,7 +312,7 @@ sources/.cache/
 
 All in same directory even though folder-mappings is not LinkedIn-related.
 
-### Decision Options
+### FolderCache Path Configuration - Decision Options
 
 **Option A:** Keep in linkedin.cachePath (current)
 
@@ -332,21 +332,21 @@ All in same directory even though folder-mappings is not LinkedIn-related.
 - ✅ Pro: Semantically correct
 - ❌ Con: Requires settings refactor
 
-### Decision
+### FolderCache Path Configuration - Decision
 
 - [ ] Review during Phase 3.2
 - [ ] Decide if path should change
 - [ ] If changing, migrate existing cache files
 
-**Chosen Option:** **\*\***\_\_\_\_**\*\***
-**Rationale:** **\*\***\_\_\_\_**\*\***
-**Date Decided:** **\*\***\_\_\_\_**\*\***
+**Chosen Option:** ****____****
+**Rationale:** ****____****
+**Date Decided:** ****____****
 
 ---
 
 ## 5. Summary Box Width (55 vs 56)
 
-### Issue
+### Summary Box Width (55 vs 56) - Issue
 
 Summary box formatting has inconsistent width:
 
@@ -363,13 +363,13 @@ const boxWidth = 56;
 const BOX_WIDTH = 55;
 ```
 
-### Questions
+### Summary Box Width (55 vs 56) - Questions
 
 1. Is width 55 intentional for linkedinSync?
 2. Does it need to be narrower for some reason?
 3. Is this a typo?
 
-### Analysis
+### Summary Box Width (55 vs 56) - Analysis
 
 Possible reasons for 55:
 
@@ -377,7 +377,7 @@ Possible reasons for 55:
 - Specific formatting need?
 - Just a typo?
 
-### Decision Options
+### Summary Box Width (55 vs 56) - Decision Options
 
 **Option A:** Standardize to 56 everywhere
 
@@ -389,21 +389,21 @@ Possible reasons for 55:
 - ✅ Pro: Don't break working code
 - ❌ Con: Inconsistent
 
-### Decision
+### Summary Box Width (55 vs 56) - Decision
 
 - [ ] Check if there's a reason for 55
 - [ ] Test LinkedIn sync with 56
 - [ ] Standardize to 56 in Phase 2.1 unless good reason exists
 
-**Chosen Option:** **\*\***\_\_\_\_**\*\***
-**Rationale:** **\*\***\_\_\_\_**\*\***
-**Date Decided:** **\*\***\_\_\_\_**\*\***
+**Chosen Option:** ****____****
+**Rationale:** ****____****
+**Date Decided:** ****____****
 
 ---
 
 ## 6. Error Logging Pattern
 
-### Issue
+### Error Logging Pattern - Issue
 
 Different error handling patterns found:
 
@@ -431,26 +431,26 @@ catch {
 }
 ```
 
-### Questions
+### Error Logging Pattern - Questions
 
 1. When should we use console.warn vs logger.error?
 2. When is silent failure appropriate?
 3. Should all errors be logged?
 
-### Decision
+### Error Logging Pattern - Decision
 
 - [ ] Define error logging standards
 - [ ] Document in security-checklist.md
 - [ ] Apply consistently during refactoring
 
-**Standard:** **\*\***\_\_\_\_**\*\***
-**Date Decided:** **\*\***\_\_\_\_**\*\***
+**Standard:** ****____****
+**Date Decided:** ****____****
 
 ---
 
 ## 7. Pre-existing Build Errors
 
-### Issue
+### Pre-existing Build Errors - Issue
 
 Phase 0.1 found 5 TypeScript compilation errors:
 
@@ -460,12 +460,12 @@ Phase 0.1 found 5 TypeScript compilation errors:
 4. `src/services/auth/authService.ts(212,43)`: Cannot find name 'handleSignal'
 5. `src/utils/promptWithEnquirer.ts(154,7)`: 'limit' property doesn't exist
 
-### Questions
+### Pre-existing Build Errors - Questions
 
 1. Should these be fixed before refactoring?
 2. Or can refactoring proceed with broken build?
 
-### Decision Options
+### Pre-existing Build Errors - Decision Options
 
 **Option A (RECOMMENDED):** Fix build errors first
 
@@ -481,7 +481,7 @@ Phase 0.1 found 5 TypeScript compilation errors:
 - ❌ Con: Harder to test
 - ❌ Con: Unprofessional
 
-### Decision
+### Pre-existing Build Errors - Decision
 
 - [ ] **STRONGLY RECOMMEND: Fix build errors before Phase 1**
 - [ ] Run `pnpm build` to verify errors
@@ -489,8 +489,8 @@ Phase 0.1 found 5 TypeScript compilation errors:
 - [ ] Verify build succeeds
 - [ ] Then proceed to Phase 1
 
-**Chosen Option:** **\*\***\_\_\_\_**\*\***
-**Date Decided:** **\*\***\_\_\_\_**\*\***
+**Chosen Option:** ****____****
+**Date Decided:** ****____****
 
 ---
 

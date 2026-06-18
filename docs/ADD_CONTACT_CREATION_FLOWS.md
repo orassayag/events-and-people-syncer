@@ -853,9 +853,9 @@ Full wizard order from `ContactEditor.collectInitialInput`:
 - Company input is always shown but with default value when available
 - No new skip flags are needed - existing behavior is acceptable
 
-## Files to Modify
+## Files to Modify (Label Validation Preview)
 
-### 1. `src/scripts/eventsJobsSync.ts`
+### 1. `src/scripts/eventsJobsSync.ts` (Label Validation)
 
 **Modifications:**
 
@@ -878,7 +878,7 @@ static validateMinimumRequirements(data: EditableContactData): string | true {
 }
 ```
 
-### 3. `src/services/contacts/contactEditor.ts`
+### 3. `src/services/contacts/contactEditor.ts` (Label Validation)
 
 **Update `promptForLabels()` method:**
 

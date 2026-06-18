@@ -3,9 +3,6 @@ dist
 out
 build
 node_modules
-sources
-dummy
-logs-before-fixes
 
 # Logs
 *.log*
@@ -30,6 +27,12 @@ api-stats.json
 
 # Tests
 coverage
+
+# Others:
+# Distribution
+sources
+dummy
+logs-before-fixes
 
 # Sensitive Data
 misc/plan-sources/Connections-*.csv

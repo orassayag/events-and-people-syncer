@@ -1717,7 +1717,7 @@ return [...emailMap.values(), ...nameOnlyContacts];
 
 This section documents all design decisions made during planning to address edge cases and ambiguities.
 
-### Name Parsing
+### Name Parsing (Design Decisions)
 
 **Decision 1.1: displayName vs firstName Priority (JSON)**
 
@@ -2163,7 +2163,7 @@ This section documents all design decisions made during planning to address edge
   - Better to fail fast with clear error message
   - User can resave file with correct encoding
 
-### Name Parsing
+### Name Parsing (Additional Decisions)
 
 **Decision 1.4: Compound Name Handling Limitations**
 

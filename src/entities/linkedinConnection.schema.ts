@@ -30,7 +30,7 @@ export const linkedInConnectionSchema = z.object({
   connectedOn: z.string().trim().optional().default(''),
 });
 
-export const companyMappingSchema = z.object({
+const companyMappingSchema = z.object({
   label: z.string().trim().min(1),
   companyName: z.string().trim().min(1),
 });

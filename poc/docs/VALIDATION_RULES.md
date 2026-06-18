@@ -12,14 +12,14 @@ The application uses **Zod schemas** for robust, type-safe validation with clear
 
 **Schema**: `ValidationSchemas.email`
 
-### Rules
+### Rules: Email Validation
 
 1. **Format**: Must be a valid RFC-compliant email address
 2. **Max Length**: 254 characters (RFC 5321 standard)
 3. **Consecutive Dots**: Cannot contain consecutive dots (..)
 4. **Hebrew Characters**: Not allowed (checked separately in `InputValidator`)
 
-### Valid Examples
+### Valid Examples: Email Validation
 
 ```
 user@example.com
@@ -27,7 +27,7 @@ test.user@domain.co.uk
 name+tag@example.com
 ```
 
-### Invalid Examples
+### Invalid Examples: Email Validation
 
 ```
 not-an-email           # Missing @ symbol
@@ -43,13 +43,13 @@ a@b                    # Too short (but technically valid per RFC)
 
 **Schema**: `ValidationSchemas.phone`
 
-### Rules
+### Rules: Phone Number Validation
 
 1. **Allowed Characters**: Only digits (0-9), +, -, spaces, and parentheses
 2. **Digit Count**: Must contain 7-15 digits (excluding formatting characters)
 3. **Not Only Special Characters**: Cannot be composed entirely of +, -, spaces, and parentheses
 
-### Valid Examples
+### Valid Examples: Phone Number Validation
 
 ```
 +1-555-0123
@@ -59,7 +59,7 @@ a@b                    # Too short (but technically valid per RFC)
 123-456-7890
 ```
 
-### Invalid Examples
+### Invalid Examples: Phone Number Validation
 
 ```
 123456                 # Too few digits (only 6)
@@ -75,7 +75,7 @@ phone number           # Contains non-numeric text
 
 **Schema**: `ValidationSchemas.linkedinUrl`
 
-### Rules
+### Rules: LinkedIn URL Validation
 
 1. **Valid URL Format**: Must be a well-formed URL
 2. **Hostname**: Must be `linkedin.com` or `www.linkedin.com`
@@ -85,7 +85,7 @@ phone number           # Contains non-numeric text
    - `/school/` (school/university page)
 4. **Protocol**: Automatically adds `https://` if missing
 
-### Valid Examples
+### Valid Examples: LinkedIn URL Validation
 
 ```
 https://linkedin.com/in/john-doe
@@ -94,7 +94,7 @@ linkedin.com/company/my-company
 https://linkedin.com/school/university-name
 ```
 
-### Invalid Examples
+### Invalid Examples: LinkedIn URL Validation
 
 ```
 https://facebook.com/profile       # Not LinkedIn
@@ -110,12 +110,12 @@ linkedin.com/john                   # Missing /in/ prefix
 
 **Schema**: `ValidationSchemas.fieldLength`
 
-### Rules
+### Rules: Field Length Validation
 
 1. **Max Length**: 1024 characters
 2. **Applies To**: All text fields sent to Google People API
 
-### Rationale
+### Rationale: Field Length Validation
 
 Google People API enforces a **1024-character limit** per field. Exceeding this causes API errors.
 
@@ -135,7 +135,7 @@ Google People API enforces a **1024-character limit** per field. Exceeding this 
 
 **Method**: `InputValidator.validateFieldLimits()`
 
-### Rules
+### Rules: Contact Field Limits
 
 1. **Individual Field Limit**: 1024 characters per field
 2. **Total Field Count**: Maximum 500 fields per contact
@@ -154,7 +154,7 @@ totalFields =
   labelResourceNames.length;
 ```
 
-### Rationale
+### Rationale: Contact Field Limits
 
 Google People API enforces a **500-field maximum** per contact. This includes:
 
@@ -171,13 +171,13 @@ Google People API enforces a **500-field maximum** per contact. This includes:
 
 **Schema**: `ValidationSchemas.redirectPort`
 
-### Rules
+### Rules: Port Validation
 
 1. **Type**: Must be an integer
 2. **Minimum**: 1024 (ports below are reserved for system services)
 3. **Maximum**: 65535 (highest valid port number)
 
-### Valid Examples
+### Valid Examples: Port Validation
 
 ```
 3000
@@ -186,7 +186,7 @@ Google People API enforces a **500-field maximum** per contact. This includes:
 65535
 ```
 
-### Invalid Examples
+### Invalid Examples: Port Validation
 
 ```
 80      # Below 1024 (reserved)
@@ -202,7 +202,7 @@ Google People API enforces a **500-field maximum** per contact. This includes:
 
 **Method**: `InputValidator.validateMinimumRequirements()`
 
-### Rules
+### Rules: Minimum Requirements
 
 To create a contact, the following **must** be provided:
 
@@ -210,7 +210,7 @@ To create a contact, the following **must** be provided:
 2. **Last Name**: Non-empty string (after trimming)
 3. **At Least One Label**: Contact must belong to at least one contact group
 
-### Rationale
+### Rationale: Minimum Requirements
 
 These are the minimum fields required for a meaningful contact in the Google People API.
 
@@ -220,14 +220,14 @@ These are the minimum fields required for a meaningful contact in the Google Peo
 
 **Method**: `InputValidator.validateLabelName()`
 
-### Rules
+### Rules: Label Name Validation
 
 1. **Allowed Characters**: Letters, numbers, spaces, hyphens (-), and underscores (\_)
 2. **Not Empty**: Must contain at least one character after trimming
 3. **Uniqueness**: Label name must not already exist (case-insensitive)
 4. **Reserved**: `'cancel'` is reserved for UI navigation
 
-### Valid Examples
+### Valid Examples: Label Name Validation
 
 ```
 Work
@@ -236,7 +236,7 @@ Friends-2024
 My Label 123
 ```
 
-### Invalid Examples
+### Invalid Examples: Label Name Validation
 
 ```
 (empty string)         # Cannot be empty
@@ -249,12 +249,12 @@ Work!!!                # Special characters not allowed
 
 **Method**: `InputValidator.validateNoHebrew()`
 
-### Rules
+### Rules: Hebrew Character Validation
 
 1. **No Hebrew Characters**: Text must not contain Unicode characters in the range `\u0590-\u05FF`
 2. **Applied To**: All text input fields (names, company, job title)
 
-### Rationale
+### Rationale: Hebrew Character Validation
 
 Google People API may have issues with bidirectional (RTL) text. The application includes special handling for Hebrew text display but restricts input to prevent API errors.
 
@@ -267,7 +267,7 @@ Google People API may have issues with bidirectional (RTL) text. The application
 - `InputValidator.validateUniqueEmail()`
 - `InputValidator.validateUniquePhone()`
 
-### Rules
+### Rules: Unique Email/Phone Validation
 
 1. **No Duplicates**: Same email or phone cannot be added multiple times to a single contact
 2. **Case-Insensitive**: Email comparison is case-insensitive

@@ -115,7 +115,7 @@ pnpm build
    - If you are using a personal Google account, you need to add it as a test user.
    - Click on the "OAuth consent screen" tab.
    - Click on the "Audience" tab.
-   - Scoll donw to "Test users" title.
+   - Scroll down to "Test users" title.
    - Click on "+ Add users" button.
    - Enter your email address and click on the "Save" button.
 
@@ -410,6 +410,14 @@ Imports employee contact information from HiBob exports.
 1. Export employee data from HiBob to text file
 2. Place file in configured path
 
+#### What It Does
+
+- Parses employee data from HiBob export file
+- Validates contact information
+- Detects duplicate contacts
+- Adds or updates contacts in Google Contacts with company labels
+- Logs alerts for problematic contacts
+
 #### Running HiBob Sync
 
 ```bash
@@ -422,6 +430,11 @@ pnpm start
 #### Purpose
 
 Interactive wizard for manually adding and updating Google Contacts with full validation.
+
+#### Prerequisites
+
+- Valid Google authentication token
+- Access to Google Contacts
 
 #### Use Cases
 
@@ -459,6 +472,14 @@ Create notes for job interviews and life events, with automatic contact creation
 1. Configure folder paths in settings:
    - Job interviews folder path
    - Life events folder path
+
+#### What It Does
+
+- Creates notes for job interviews and life events
+- Organizes notes into folders based on company or event name
+- Reads clipboard content for quick note creation
+- Optionally creates contacts with pre-filled company information
+- Provides options to rewrite notes, delete last note, or rename folders
 
 #### Folder Naming Conventions
 
@@ -500,6 +521,11 @@ pnpm start
 
 Migrates contacts from "Other Contacts" to main contact list.
 
+#### Prerequisites
+
+- Valid Google authentication token
+- Existing contacts in "Other Contacts" folder
+
 #### What It Does
 
 - Fetches all contacts in "Other Contacts"
@@ -512,6 +538,11 @@ Migrates contacts from "Other Contacts" to main contact list.
 #### Purpose
 
 Extracts contacts from SMS and WhatsApp chat exports.
+
+#### Prerequisites
+
+- Valid Google authentication token
+- Exported chat file in supported format (WhatsApp Web HTML or Google Messages HTML)
 
 #### Supported Formats
 
@@ -539,6 +570,18 @@ pnpm start
 #### Purpose
 
 Display comprehensive analytics about your Google Contacts.
+
+#### Prerequisites
+
+- Valid Google authentication token
+- Existing Google Contacts data
+
+#### What It Does
+
+- Fetches all Google Contacts data
+- Calculates various statistics (total contacts, contacts by label, etc.)
+- Displays recent sync history
+- Shows API usage statistics
 
 #### Information Provided
 
@@ -703,82 +746,6 @@ NODE_ENV=production pnpm script <script-name>
 ```
 
 Uses `.env.production` configuration file.
-
-## Troubleshooting
-
-### Port Already in Use
-
-If port 3000 is already in use, change `REDIRECT_PORT` in your `.env.test` file.
-
-### Authentication Issues
-
-Delete `token.json` and re-authenticate:
-
-```bash
-rm token.json
-pnpm interactive
-```
-
-### Rate Limits
-
-The Google People API has rate limits:
-
-- 300 read requests per minute
-- 60 write requests per minute
-- 1,000,000 requests per day
-
-The application will warn you when approaching limits.
-
-### Logs
-
-Application logs are stored in the `logs/` directory. Check `logs/app.log` for detailed information.
-
-## API Usage Tracking
-
-API usage statistics are automatically tracked in `api-stats.json`. Counters reset daily.
-
-## Health Checks
-
-Run the health check to verify system status:
-
-```bash
-pnpm health
-```
-
-Checks:
-
-- Authentication status
-- Google API connectivity
-- File system access
-- Environment variables
-
-## Adding New Scripts
-
-1. Create a new script file in `src/scripts/`
-2. Register it in `src/scripts/index.ts` with metadata
-3. Run `pnpm script:list` to verify
-
-Example:
-
-```typescript
-// src/scripts/my-script.ts
-export async function myScript(): Promise<void> {
-  console.log('Hello from my script!');
-}
-
-// Register in src/scripts/index.ts
-AVAILABLE_SCRIPTS['my-script'] = {
-  metadata: {
-    name: 'My Script',
-    description: 'Does something useful',
-    version: '1.0.0',
-    category: 'batch',
-    requiresAuth: true,
-    estimatedDuration: '1 minute',
-  },
-  run: myScript,
-};
-```
 
 ## Troubleshooting
 
@@ -993,18 +960,93 @@ pnpm install
 - Remove special characters from names
 - Check for hidden Unicode characters
 
-### Getting Help
+### Logs
 
-If issues persist:
+Application logs are stored in the `logs/` directory. Check `logs/app.log` for detailed information.
 
-1. **Check logs**: Review `logs/` directory for detailed error messages
-2. **Search issues**: Check [GitHub Issues](https://github.com/orassayag/events-and-people-syncer/issues)
-3. **Create issue**: If new problem, create detailed issue with:
-   - Error message
-   - Steps to reproduce
-   - Environment (OS, Node version)
-   - Relevant log excerpts (remove sensitive data)
-4. **Contact**: Email orassayag@gmail.com with questions
+## API Usage Tracking
+
+API usage statistics are automatically tracked in `api-stats.json`. Counters reset daily.
+
+### Understanding API Quotas
+
+The application automatically tracks API usage and displays statistics:
+
+```
+[People API Stats] 📖 Read: 150, ✏️  Write: 25
+```
+
+### Daily Quotas
+
+**Default Google People API Quotas:**
+
+- **Read operations**: 30,000 requests per day, 300 per minute
+- **Write operations**: 3,000 requests per day, 60 per minute
+- **Group operations**: 1,500 requests per day, 30 per minute
+
+### Monitoring Usage
+
+- Check `api-stats.json` in project root
+- Statistics reset daily at midnight UTC
+- Application warns when approaching limits
+
+### Optimizing API Usage
+
+**For Large Operations:**
+
+1. Use dry-mode first to estimate API calls
+2. Run during off-peak hours
+3. Split large imports across multiple days
+4. Use cache when possible (don't use `--no-cache` unnecessarily)
+
+**Request Quota Increase:**
+
+1. Go to Google Cloud Console → APIs & Services → Quotas
+2. Select Google People API
+3. Request increase with justification
+
+## Health Checks
+
+Run the health check to verify system status:
+
+```bash
+pnpm health
+```
+
+Checks:
+
+- Authentication status
+- Google API connectivity
+- File system access
+- Environment variables
+
+## Adding New Scripts
+
+1. Create a new script file in `src/scripts/`
+2. Register it in `src/scripts/index.ts` with metadata
+3. Run `pnpm script:list` to verify
+
+Example:
+
+```typescript
+// src/scripts/my-script.ts
+export async function myScript(): Promise<void> {
+  console.log('Hello from my script!');
+}
+
+// Register in src/scripts/index.ts
+AVAILABLE_SCRIPTS['my-script'] = {
+  metadata: {
+    name: 'My Script',
+    description: 'Does something useful',
+    version: '1.0.0',
+    category: 'batch',
+    requiresAuth: true,
+    estimatedDuration: '1 minute',
+  },
+  run: myScript,
+};
+```
 
 ## Advanced Configuration
 
@@ -1097,45 +1139,6 @@ NODE_ENV=test|production
    }
    ```
 
-## API Usage Tracking
-
-### Understanding API Quotas
-
-The application automatically tracks API usage and displays statistics:
-
-```
-[People API Stats] 📖 Read: 150, ✏️  Write: 25
-```
-
-### Daily Quotas
-
-**Default Google People API Quotas:**
-
-- **Read operations**: 30,000 requests per day, 300 per minute
-- **Write operations**: 3,000 requests per day, 60 per minute
-- **Group operations**: 1,500 requests per day, 30 per minute
-
-### Monitoring Usage
-
-- Check `api-stats.json` in project root
-- Statistics reset daily at midnight UTC
-- Application warns when approaching limits
-
-### Optimizing API Usage
-
-**For Large Operations:**
-
-1. Use dry-mode first to estimate API calls
-2. Run during off-peak hours
-3. Split large imports across multiple days
-4. Use cache when possible (don't use `--no-cache` unnecessarily)
-
-**Request Quota Increase:**
-
-1. Go to Google Cloud Console → APIs & Services → Quotas
-2. Select Google People API
-3. Request increase with justification
-
 ## Best Practices
 
 ### Before Running in Live Mode
@@ -1217,16 +1220,14 @@ The application automatically tracks API usage and displays statistics:
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/)
 - [InversifyJS Documentation](https://inversify.io/)
 
+## Last Updated
+
+June 18, 2026
+
 ## Author
 
-**Or Assayag**
-
-- Email: orassayag@gmail.com
-- GitHub: [@orassayag](https://github.com/orassayag)
-- StackOverflow: [or-assayag](https://stackoverflow.com/users/4442606/or-assayag)
-- LinkedIn: [orassayag](https://linkedin.com/in/orassayag)
-
----
-
-**Last Updated**: March 2026
-**Version**: 1.0.0
+- **Or Assayag** - _Initial work_ - [orassayag](https://github.com/orassayag)
+- Or Assayag <orassayag@gmail.com>
+- GitHub: https://github.com/orassayag
+- StackOverflow: https://stackoverflow.com/users/4442606/or-assayag?tab=profile
+- LinkedIn: https://linkedin.com/in/orassayag

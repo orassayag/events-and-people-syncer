@@ -12,14 +12,14 @@ Phase 1 addresses the most critical DRY violations and import inconsistencies th
 
 ## 1.1 Consolidate Duplicate Type Definitions
 
-### Problem
+### Problem: 1.1 Consolidate Duplicate Type Definitions
 
 - **ContactGroup** defined in 6 places
 - **EditableContactData** defined in 3 places
 - **CreateContactRequest** defined in 2 places
 - **OAuth2Client** alias in 10+ files
 
-### Actions
+### Actions: 1.1 Consolidate Duplicate Type Definitions
 
 #### ContactGroup Consolidation
 
@@ -146,7 +146,7 @@ import type { OAuth2Client } from '../types/auth';
 
 **⚠️ NOTE:** Use `import type` in consuming files too for consistency
 
-### Success Criteria
+### Success Criteria: 1.1 Consolidate Duplicate Type Definitions
 
 - ✅ Only 1 definition of ContactGroup exists
 - ✅ Only 1 definition of EditableContactData exists (with optional fields)
@@ -160,7 +160,7 @@ import type { OAuth2Client } from '../types/auth';
 
 ## 1.2 Fix Import Patterns - Use Barrel Exports
 
-### Problem
+### Problem: 1.2 Fix Import Patterns - Use Barrel Exports
 
 Direct file imports like `from '../regex/patterns'` instead of using barrel exports `from '../regex'`. Inconsistent patterns across 50+ files.
 
@@ -175,7 +175,7 @@ Direct file imports like `from '../regex/patterns'` instead of using barrel expo
 3. **Commit after each pattern:** `git commit -m "refactor: use barrel exports for regex"`
 4. **Verify imports resolve:** `./scripts/check-imports.sh`
 
-### Actions
+### Actions: 1.2 Fix Import Patterns - Use Barrel Exports
 
 #### Update Regex Imports (10 files)
 
@@ -352,7 +352,7 @@ export { InputValidator } from './inputValidator';
 export * from './validationSchemas';
 ```
 
-### Success Criteria
+### Success Criteria: 1.2 Fix Import Patterns - Use Barrel Exports
 
 - ✅ All regex imports use barrel exports
 - ✅ All logging imports use barrel exports
@@ -369,7 +369,7 @@ export * from './validationSchemas';
 
 ## 1.3 Remove Duplicate TextParser Class
 
-### Problem
+### Problem: 1.3 Remove Duplicate TextParser Class
 
 `src/parsers/textParser.ts` duplicates 100% of functionality from `src/utils/textUtils.ts` but with an older, less complete implementation.
 
@@ -384,7 +384,7 @@ TextParser has:
 
 TextUtils has the **better** implementation with additional logic for Hebrew word reordering.
 
-### Actions
+### Actions: 1.3 Remove Duplicate TextParser Class
 
 1. **Search for imports:**
 
@@ -410,7 +410,7 @@ export { TextParser } from './textParser';
 
 4. **Use TextUtils as single source of truth**
 
-### Success Criteria
+### Success Criteria: 1.3 Remove Duplicate TextParser Class
 
 - ✅ `src/parsers/textParser.ts` deleted
 - ✅ No imports of TextParser remain
@@ -421,11 +421,11 @@ export { TextParser } from './textParser';
 
 ## 1.4 Consolidate Error Message Extraction
 
-### Problem
+### Problem: 1.4 Consolidate Error Message Extraction
 
 Pattern `error instanceof Error ? error.message : 'Unknown error'` repeated in 15+ places across cache, logging, scripts, and services.
 
-### Actions
+### Actions: 1.4 Consolidate Error Message Extraction
 
 #### Create Error Utility
 
@@ -484,7 +484,7 @@ console.warn('Failed to write cache:', ErrorUtils.getErrorMessage(error));
    - `companyMatcher.ts`
    - `linkedinExtractor.ts`
 
-### Success Criteria
+### Success Criteria: 1.4 Consolidate Error Message Extraction
 
 - ✅ ErrorUtils.getErrorMessage() exists
 - ✅ All 15+ inline patterns replaced

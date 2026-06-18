@@ -38,7 +38,7 @@ The `skipped` counter tracks contacts that were displayed to the user but not su
    - Counter increments: `this.stats.added++`
    - Note: Skipped counter unchanged
 
-### Rationale:
+### Rationale (Skipped Counter):
 
 The skipped counter provides users with insight into:
 
@@ -213,7 +213,7 @@ private checkHebrewInAllFields(contact: ContactData): boolean {
 }
 ```
 
-### Rationale:
+### Rationale (LinkedIn URL Hebrew Exclusion):
 
 LinkedIn automatically converts all profile URLs to ASCII format:
 

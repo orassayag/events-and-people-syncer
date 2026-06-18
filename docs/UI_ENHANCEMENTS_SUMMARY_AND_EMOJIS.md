@@ -11,7 +11,7 @@ Two user interface improvements to enhance readability and visual clarity:
 
 ## Change 1: Reorganized Summary Layout
 
-### Problem
+### Problem: Reorganized Summary Layout
 
 The summary statistics were showing "Updated" on the first line with "New" and "Processed", which didn't group related metrics logically.
 
@@ -41,7 +41,7 @@ Better logical grouping:
 
 This groups "Updated" with other status indicators (UpToDate, Warning) rather than with creation metrics (New, Processed).
 
-### Files Modified
+### Files Modified: Reorganized Summary Layout
 
 - `src/scripts/linkedinSync.ts` - Lines 468-483
 - `src/scripts/hibobSync.ts` - Lines 458-473
@@ -50,7 +50,7 @@ This groups "Updated" with other status indicators (UpToDate, Warning) rather th
 
 ## Change 2: Added Emojis to Status Bar Fields
 
-### Problem
+### Problem: Added Emojis
 
 The current contact display in the status bar used plain dashes (`-`) which made it harder to quickly scan and identify different field types.
 
@@ -97,7 +97,7 @@ Current:
 4. **Consistent**: Uses the project's existing EMOJIS constants
 5. **Works for Both Scripts**: Applied to both LinkedIn and HiBob sync scripts
 
-### Files Modified
+### Files Modified: Added Emojis
 
 - `src/flow/syncStatusBar.ts`
   - Line 4: Added EMOJIS import

@@ -12,7 +12,7 @@ Phase 2 consolidates major duplicate logic patterns across the codebase, particu
 
 ## 2.1 Consolidate Summary Box Formatting
 
-### Problem
+### Problem: 2.1 Consolidate Summary Box Formatting
 
 Nearly identical summary box formatting logic duplicated in 4 places with hard-coded widths (55, 56).
 
@@ -23,7 +23,7 @@ Nearly identical summary box formatting logic duplicated in 4 places with hard-c
 3. `eventsJobsSync.displayFinalSummary` (eventsJobsSync.ts lines 1810-1819)
 4. `statistics.displayStatistics` (statistics.ts lines 160-182)
 
-### Actions
+### Actions: 2.1 Consolidate Summary Box Formatting
 
 #### Create Shared Formatter
 
@@ -64,7 +64,7 @@ export { SummaryFormatter } from './summaryFormatter';
 export const SUMMARY_BOX_WIDTH = 56;
 ```
 
-#### Update Call Sites
+#### Update Call Sites: 2.1 Consolidate Summary Box Formatting
 
 **1. ContactDisplay (src/services/contacts/contactDisplay.ts lines 85-94)**
 
@@ -125,7 +125,7 @@ Similar pattern - replace with SummaryFormatter call.
 
 Similar pattern - replace with SummaryFormatter call.
 
-### Success Criteria
+### Success Criteria: 2.1 Consolidate Summary Box Formatting
 
 - ✅ SummaryFormatter utility created
 - ✅ SUMMARY_BOX_WIDTH constant defined
@@ -137,11 +137,11 @@ Similar pattern - replace with SummaryFormatter call.
 
 ## 2.2 Consolidate Validation Logic
 
-### Problem
+### Problem: 2.2 Consolidate Validation Logic
 
 Folder name validation, label validation, and path validation duplicated across multiple files with subtle differences.
 
-### Actions
+### Actions: 2.2 Consolidate Validation Logic
 
 #### Centralize Folder Name Validation in FolderManager
 
@@ -255,7 +255,7 @@ Verify with:
 grep -r "ValidationHelpers" src/
 ```
 
-### Success Criteria
+### Success Criteria: 2.2 Consolidate Validation Logic
 
 - ✅ Folder validation centralized in FolderManager
 - ✅ Label validation uses InputValidator
@@ -267,12 +267,12 @@ grep -r "ValidationHelpers" src/
 
 ## 2.3 Consolidate Formatting Utilities
 
-### Problem
+### Problem: 2.3 Consolidate Formatting Utilities
 
 - `formatCompanyToPascalCase` duplicated in 3 places
 - `formatNumberWithLeadingZeros` duplicated in 3 places with different defaults
 
-### Actions
+### Actions: 2.3 Consolidate Formatting Utilities
 
 #### formatCompanyToPascalCase Consolidation
 
@@ -335,7 +335,7 @@ import { FormatUtils } from '../constants';
 const formatted = FormatUtils.formatNumberWithLeadingZeros(count, 5);
 ```
 
-### Success Criteria
+### Success Criteria: 2.3 Consolidate Formatting Utilities
 
 - ✅ Only one formatCompanyToPascalCase implementation exists
 - ✅ Only one formatNumberWithLeadingZeros implementation exists
@@ -346,14 +346,14 @@ const formatted = FormatUtils.formatNumberWithLeadingZeros(count, 5);
 
 ## 2.4 Consolidate Retry Logic
 
-### Problem
+### Problem: 2.4 Consolidate Retry Logic
 
 Two retry implementations:
 
 - `retryWithBackoff` (used widely)
 - `RetryHandler` (not used anywhere)
 
-### Actions
+### Actions: 2.4 Consolidate Retry Logic
 
 #### Search for RetryHandler Usage
 
@@ -388,7 +388,7 @@ Ensure it's exported from `src/utils/index.ts`:
 export { retryWithBackoff } from './retryWithBackoff';
 ```
 
-### Success Criteria
+### Success Criteria: 2.4 Consolidate Retry Logic
 
 - ✅ RetryHandler deleted
 - ✅ No imports of RetryHandler remain
@@ -399,14 +399,14 @@ export { retryWithBackoff } from './retryWithBackoff';
 
 ## 2.5 Consolidate Person → ContactData Mapping
 
-### Problem
+### Problem: 2.5 Consolidate Person → ContactData Mapping
 
 Large mapping block duplicated in:
 
 1. `src/services/contacts/contactSyncer.ts` (lines 93-135)
 2. `src/services/contacts/duplicateDetector.ts` (lines 329-361)
 
-### Actions
+### Actions: 2.5 Consolidate Person → ContactData Mapping
 
 #### Create Shared Mapping Function
 
@@ -502,7 +502,7 @@ const contact = ContactMapper.mapPersonToContactData(person, groupIdToName);
 
 Same pattern - replace with ContactMapper call.
 
-### Success Criteria
+### Success Criteria: 2.5 Consolidate Person → ContactData Mapping
 
 - ✅ ContactMapper utility created
 - ✅ Both call sites updated

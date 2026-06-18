@@ -1298,7 +1298,7 @@ export async function healthCheck(): Promise<void> {
 }
 ```
 
-### Phase 12: Types Refactoring
+### Phase 12: Settings Pattern Migration
 
 Transform POC's `config.ts` + `settings.ts` into reference's `settings/` folder pattern:
 

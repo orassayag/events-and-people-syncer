@@ -1,8 +1,8 @@
-# Events and People Syncer
+# Events And People Syncer
 
-A comprehensive Node.js TypeScript application for managing Google Contacts through automated synchronization scripts and interactive workflows. Built with enterprise-grade architecture and designed for reliability, testability, and maintainability.
+Events And People Syncer is a Node.js TypeScript application for automated Google Contacts management, unifying data from LinkedIn, HiBob, SMS/WhatsApp, calendars, and custom events. It uses a clean, dependency-injected architecture with strict typing, Zod validation, and structured logging.
 
-Built in March 2026. This application provides a robust infrastructure for contact management, supporting multiple data sources including LinkedIn connections, HiBob employee records, SMS/WhatsApp history, and custom event tracking.
+Built in March 2026, the system supports interactive CLI wizards and batch scripts, intelligent duplicate detection, and safe dry-mode execution to prevent unintended API writes while enabling robust testing and observability across workflows.
 
 ## Features
 
@@ -710,7 +710,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed gu
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This application has an MIT license - see the [LICENSE](LICENSE) file for details.
 
 ## Error Codes
 
@@ -725,25 +725,15 @@ For questions, issues, or contributions:
 
 ## Author
 
-**Or Assayag**
-
-- Email: orassayag@gmail.com
-- GitHub: [@orassayag](https://github.com/orassayag)
-- StackOverflow: [or-assayag](https://stackoverflow.com/users/4442606/or-assayag)
-- LinkedIn: [orassayag](https://linkedin.com/in/orassayag)
+- **Or Assayag** - _Initial work_ - [orassayag](https://github.com/orassayag)
+- Or Assayag <orassayag@gmail.com>
+- GitHub: https://github.com/orassayag
+- StackOverflow: https://stackoverflow.com/users/4442606/or-assayag?tab=profile
+- LinkedIn: https://linkedin.com/in/orassayag
 
 ## Acknowledgments
 
-Built with:
-
-- [Node.js](https://nodejs.org/) - JavaScript runtime
-- [TypeScript](https://www.typescriptlang.org/) - Type safety
-- [InversifyJS](https://inversify.io/) - Dependency injection
-- [Google People API](https://developers.google.com/people) - Contact management
-- [Zod](https://zod.dev/) - Schema validation
-- [Vitest](https://vitest.dev/) - Testing framework
-- [Enquirer](https://www.npmjs.com/package/enquirer) - Interactive prompts
-
----
-
-**Note**: This application interacts with your personal Google Contacts. Always test with dry-mode enabled before running in live mode. Review the dry-mode logs carefully to understand what changes will be made.
+- Built for educational and research purposes
+- Respects robots.txt and implements rate limiting
+- Uses user-agent rotation to avoid detection
+- Implements polite crawling practices

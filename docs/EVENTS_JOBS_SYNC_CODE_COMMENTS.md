@@ -130,7 +130,7 @@ if (this.lastSelectedFolder.type === FolderTypeEnum.LIFE_EVENT) {
 
 ### 4. `src/services/folders/folderManager.ts`
 
-#### At top of class:
+#### At top of FolderManager class:
 
 ```typescript
 export class FolderManager {
@@ -161,7 +161,7 @@ export class FolderManager {
 
 ### 5. `src/cache/folderCache.ts`
 
-#### At top of class:
+#### At top of FolderCache class:
 
 ```typescript
 export class FolderCache {
