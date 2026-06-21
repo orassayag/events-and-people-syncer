@@ -109,6 +109,10 @@ export const MaintainerIssueDefinitions = {
     id: 51,
     message: 'PHONE CONTAINS EMAIL: #VALUE#',
   },
+  DUPLICATE_EMAIL_IN_OTHER_CONTACT: {
+    id: 52,
+    message: 'DUPLICATE EMAIL IN OTHER CONTACT IN: #CONTACT-LINK#',
+  },
 } as const;
 
 export type MaintainerIssueType = keyof typeof MaintainerIssueDefinitions;

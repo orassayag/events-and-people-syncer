@@ -1877,6 +1877,23 @@ export class GoogleContactsMaintainerScript implements Script {
                 `\n-${msg}`;
             }
           }
+
+          // Check if this email exists in regular contacts
+          if (emailMap.has(email)) {
+            emailMap.get(email)?.forEach((resourceName) => {
+              if (!otherIssues.includes(MaintainerIssueType.DUPLICATE_EMAIL_IN_OTHER_CONTACT)) {
+                otherIssues.push(MaintainerIssueType.DUPLICATE_EMAIL_IN_OTHER_CONTACT);
+              }
+              const resourceId = resourceName.split('/').pop() || '';
+              const contactUrl = `https://contacts.google.com/person/${resourceId}`;
+              const msg = `DUPLICATE EMAIL IN OTHER CONTACT IN: ${contactUrl}`;
+              if (!otherCustomMessages[MaintainerIssueType.DUPLICATE_EMAIL_IN_OTHER_CONTACT]) {
+                otherCustomMessages[MaintainerIssueType.DUPLICATE_EMAIL_IN_OTHER_CONTACT] = msg;
+              } else {
+                otherCustomMessages[MaintainerIssueType.DUPLICATE_EMAIL_IN_OTHER_CONTACT] += `\n-${msg}`;
+              }
+            });
+          }
         }
       });
 
