@@ -109,7 +109,7 @@
     "test:watch": "cross-env NODE_OPTIONS='--no-warnings' vitest"
   },
   "dependencies": {
-    "adm-zip": "^0.5.18",
+    "adm-zip": "^0.6.0",
     "csv-parse": "^7.0.1",
     "dotenv": "17.4.2",
     "enquirer": "2.4.1",
