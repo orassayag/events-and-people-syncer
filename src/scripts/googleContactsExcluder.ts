@@ -146,6 +146,7 @@ export class GoogleContactsExcluderScript implements Script {
         const newEntry: ContactExclusion = {
           id: contactId,
           excludeIssues: [ruleId],
+          active: true,
         };
         exclusions.contactExclusions.push(newEntry);
         this.saveExclusions(exclusions);
@@ -270,6 +271,7 @@ export class GoogleContactsExcluderScript implements Script {
       const newEntry: ExclusionEntry = {
         id: contactId,
         reason: reasonResult.value || '',
+        active: true,
       };
 
       exclusions.skippedContacts.push(newEntry);

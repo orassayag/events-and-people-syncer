@@ -145,6 +145,7 @@ export const MaintainerIssueDefinitions = {
     id: 60,
     message: 'COMPANY CONTACT INVALID URL LABEL - SHOULD BE: LinkedIn',
   },
+  MISSING_CODE_LABEL: { id: 61, message: 'MISSING CODE LABEL' },
 } as const;
 
 export type MaintainerIssueType = keyof typeof MaintainerIssueDefinitions;
@@ -165,6 +166,8 @@ export const issueIdMap = new Map(
 export interface ExclusionEntry {
   id: string;
   reason?: string;
+  // Absent or true = the rule is enforced; false = the rule is ignored during validation.
+  active?: boolean;
 }
 
 export interface ContactExclusion extends ExclusionEntry {

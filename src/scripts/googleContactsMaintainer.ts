@@ -525,17 +525,18 @@ export class GoogleContactsMaintainerScript implements Script {
   ): MaintainerReportItem | null {
     const contactId = reportItem.contact.resourceName?.split('/').pop();
 
-    // Skip contact entirely
+    // Skip contact entirely (inactive skip rules are ignored)
     const isSkipped = exclusions.skippedContacts.some(
-      (e) => e.id === contactId
+      (e) => e.id === contactId && e.active !== false
     );
     if (isSkipped) return null;
 
-    // Skip specific issues
+    // Skip specific issues (an inactive exclusion rule is ignored)
     const contactExclusion = exclusions.contactExclusions.find(
       (e) => e.id === contactId
     );
-    if (!contactExclusion) return reportItem;
+    if (!contactExclusion || contactExclusion.active === false)
+      return reportItem;
 
     const excludeIds = new Set(contactExclusion.excludeIssues);
     const filteredIssues = reportItem.issues.filter((issueKey) => {
@@ -1106,6 +1107,16 @@ export class GoogleContactsMaintainerScript implements Script {
 
       if (activeLabels.length > 0 && !hasLabelInName) {
         issues.push(MaintainerIssueType.MISSING_LABEL);
+      }
+
+      // 4.4.0 A first name starting with the word "code" must carry the "code" label
+      if (/^code\b/i.test(firstName.trim())) {
+        const hasCodeLabel = activeLabels.some(
+          (l) => l.toLowerCase() === 'code'
+        );
+        if (!hasCodeLabel) {
+          issues.push(MaintainerIssueType.MISSING_CODE_LABEL);
+        }
       }
 
       // Requirement 1: CONTAINS ADDRESS

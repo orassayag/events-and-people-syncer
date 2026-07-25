@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { GoogleContactsMaintainerScript } from '../googleContactsMaintainer';
-import { MaintainerIssueType } from '../../types/maintainer';
+import {
+  MaintainerIssueType,
+  MaintainerIssueDefinitions,
+} from '../../types/maintainer';
 import { PhoneNormalizer } from '../../services/contacts/phoneNormalizer';
 import * as fs from 'fs';
 
@@ -1378,6 +1381,123 @@ describe('GoogleContactsMaintainerScript', () => {
         exclusions
       );
       expect(filteredItem).toBeNull();
+    });
+
+    it('should flag first name starting with "code" and missing the "code" label', () => {
+      const contacts = [
+        { ...mockContact, firstName: 'Code Wars', lastName: '', label: 'Job' },
+      ];
+      const issues = maintainer.testScanContacts(contacts);
+      expect(issues[0].issues).toContain(
+        MaintainerIssueType.MISSING_CODE_LABEL
+      );
+    });
+
+    it('should NOT flag when the "code" label is present (case-insensitive)', () => {
+      const contacts = [
+        { ...mockContact, firstName: 'Code Wars', lastName: '', label: 'code' },
+      ];
+      const issues = maintainer.testScanContacts(contacts);
+      const item = issues.find((i) => i.contact.firstName === 'Code Wars');
+      expect(item?.issues ?? []).not.toContain(
+        MaintainerIssueType.MISSING_CODE_LABEL
+      );
+    });
+
+    it('should NOT flag when "code" is only a prefix of a longer word', () => {
+      const contacts = [
+        { ...mockContact, firstName: 'Codex Alimentarius', lastName: '', label: 'Job' },
+      ];
+      const issues = maintainer.testScanContacts(contacts);
+      const item = issues.find(
+        (i) => i.contact.firstName === 'Codex Alimentarius'
+      );
+      expect(item?.issues ?? []).not.toContain(
+        MaintainerIssueType.MISSING_CODE_LABEL
+      );
+    });
+
+    it('should ignore an inactive skip rule and keep reporting the contact', () => {
+      const contacts = [
+        { ...mockContact, firstName: 'יוסי', resourceName: 'people/c1' },
+      ];
+      const exclusions = {
+        skippedContacts: [{ id: 'c1', reason: 'Test', active: false }],
+        contactExclusions: [],
+      };
+      const rawIssues = maintainer.testScanContacts(contacts);
+      const filteredItem = maintainer.testFilterExcludedIssues(
+        rawIssues[0],
+        exclusions
+      );
+      expect(filteredItem).not.toBeNull();
+      expect(filteredItem.issues).toContain(
+        MaintainerIssueType.CONTAINS_HEBREW
+      );
+    });
+
+    it('should ignore an inactive exclusion rule and keep the excluded issue', () => {
+      const contacts = [
+        { ...mockContact, firstName: 'יוסי', resourceName: 'people/c1' },
+      ];
+      const rawIssues = maintainer.testScanContacts(contacts);
+      const hebrewId =
+        MaintainerIssueDefinitions[MaintainerIssueType.CONTAINS_HEBREW].id;
+      const exclusions = {
+        skippedContacts: [],
+        contactExclusions: [
+          { id: 'c1', excludeIssues: [hebrewId], active: false },
+        ],
+      };
+      const filteredItem = maintainer.testFilterExcludedIssues(
+        rawIssues[0],
+        exclusions
+      );
+      expect(filteredItem.issues).toContain(
+        MaintainerIssueType.CONTAINS_HEBREW
+      );
+    });
+
+    it('should apply an active exclusion rule and strip the excluded issue', () => {
+      const contacts = [
+        { ...mockContact, firstName: 'יוסי', resourceName: 'people/c1' },
+      ];
+      const rawIssues = maintainer.testScanContacts(contacts);
+      const hebrewId =
+        MaintainerIssueDefinitions[MaintainerIssueType.CONTAINS_HEBREW].id;
+      const exclusions = {
+        skippedContacts: [],
+        contactExclusions: [
+          { id: 'c1', excludeIssues: [hebrewId], active: true },
+        ],
+      };
+      const filteredItem = maintainer.testFilterExcludedIssues(
+        rawIssues[0],
+        exclusions
+      );
+      expect(filteredItem.issues).not.toContain(
+        MaintainerIssueType.CONTAINS_HEBREW
+      );
+    });
+
+    it('should treat an exclusion rule without an active field as active (backward compatible)', () => {
+      const contacts = [
+        { ...mockContact, firstName: 'יוסי', resourceName: 'people/c1' },
+      ];
+      const rawIssues = maintainer.testScanContacts(contacts);
+      const hebrewId =
+        MaintainerIssueDefinitions[MaintainerIssueType.CONTAINS_HEBREW].id;
+      const exclusions = {
+        skippedContacts: [],
+        contactExclusions: [{ id: 'c1', excludeIssues: [hebrewId] }],
+      };
+      const filteredItem = maintainer.testFilterExcludedIssues(
+        rawIssues[0],
+        exclusions
+      );
+      expect(filteredItem.issues).not.toContain(
+        MaintainerIssueType.CONTAINS_HEBREW
+      );
     });
 
     it('should detect possible duplicate contacts by notes', () => {
