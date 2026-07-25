@@ -25,7 +25,10 @@ import type {
 } from '../types';
 import { Logger, SyncLogger } from '../logging';
 import { RegexPatterns } from '../regex';
-import { calculateFormattedCompany } from '../utils/companyFormatter';
+import {
+  calculateFormattedCompany,
+  formatCompanyToPascalCase,
+} from '../utils/companyFormatter';
 import { TextUtils } from '../utils/textUtils';
 import { SyncStatusBar } from '../flow/syncStatusBar';
 import { FormatUtils } from '../constants';
@@ -630,6 +633,119 @@ export class GoogleContactsMaintainerScript implements Script {
     return { emails: [...new Set(emails)], phones };
   }
 
+  private scanCompanyContact(
+    contact: ContactData,
+    activeLabels: string[]
+  ): {
+    issues: MaintainerIssueType[];
+    customMessages: Partial<Record<MaintainerIssueType, string>>;
+  } {
+    const issues: MaintainerIssueType[] = [];
+    const customMessages: Partial<Record<MaintainerIssueType, string>> = {};
+
+    const pushIssue = (issue: MaintainerIssueType, message?: string): void => {
+      if (!issues.includes(issue)) issues.push(issue);
+      if (message === undefined) return;
+      if (!customMessages[issue]) customMessages[issue] = message;
+      else customMessages[issue] += `\n-${message}`;
+    };
+
+    const firstName = (contact.firstName || '').trim();
+    const lastName = (contact.lastName || '').trim();
+    const company = (contact.company || '').trim();
+
+    // Rule 1 — must carry the Office label
+    if (!activeLabels.includes('Office')) {
+      pushIssue(MaintainerIssueType.COMPANY_CONTACT_MISSING_OFFICE_LABEL);
+    }
+
+    // Rule 2 — first name = one-word, company-formatted company name
+    const formattedFirst = formatCompanyToPascalCase(firstName);
+    if (!firstName || /\s/.test(firstName) || firstName !== formattedFirst) {
+      pushIssue(
+        MaintainerIssueType.COMPANY_CONTACT_INVALID_FIRST_NAME,
+        `COMPANY CONTACT INVALID FIRST NAME - SHOULD BE: ${formattedFirst}`
+      );
+    }
+
+    // Rule 3 — last name must start with the whole word Office
+    const startsWithOffice =
+      lastName === 'Office' || lastName.startsWith('Office ');
+    if (!startsWithOffice) {
+      pushIssue(MaintainerIssueType.COMPANY_CONTACT_LAST_NAME_NOT_START_OFFICE);
+    }
+
+    // combination = last name with a leading Office word stripped
+    const combination = startsWithOffice
+      ? lastName.slice('Office'.length).trim()
+      : lastName;
+
+    // Rule 4 — after Office, must be the standard combination
+    const escapedFirstName = firstName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const expectedComboRegex = new RegExp(
+      `^(HR |Job )?${escapedFirstName}$`
+    );
+    if (!firstName || !expectedComboRegex.test(combination)) {
+      const prefixMatch = company.match(/^(HR|Job)\s+/);
+      const intendedPrefix = prefixMatch ? `${prefixMatch[1]} ` : '';
+      pushIssue(
+        MaintainerIssueType.COMPANY_CONTACT_INVALID_COMBINATION_AFTER_OFFICE,
+        `COMPANY CONTACT INVALID COMBINATION AFTER OFFICE - SHOULD BE: ${intendedPrefix}${firstName}`
+      );
+    }
+
+    // Rule 5 — company field = combination
+    if (company !== combination) {
+      pushIssue(
+        MaintainerIssueType.COMPANY_CONTACT_COMPANY_NOT_MATCH_COMBINATION,
+        `COMPANY CONTACT COMPANY FIELD DOES NOT MATCH COMBINATION - SHOULD BE: ${combination}`
+      );
+    }
+
+    // Rule 6 — each phone/email label = combination
+    const allLabels = [
+      ...contact.phones.map((p) => (p.label || '').trim()),
+      ...contact.emails.map((e) => (e.label || '').trim()),
+    ];
+    allLabels
+      .filter((label) => label !== combination)
+      .forEach((label) => {
+        pushIssue(
+          MaintainerIssueType.COMPANY_CONTACT_LABEL_NOT_MATCH_COMBINATION,
+          `COMPANY CONTACT PHONE/EMAIL LABEL DOES NOT MATCH COMBINATION: ${label}`
+        );
+      });
+
+    // Rule 7 — URL = linkedin.com/company/<FirstName> (case-sensitive)
+    const expectedUrl = `linkedin.com/company/${firstName}`;
+    const normalizeUrl = (url: string): string =>
+      url
+        .trim()
+        .replace(/^https?:\/\//, '')
+        .replace(/^www\./, '')
+        .replace(/\/+$/, '');
+    if (contact.websites.length === 0) {
+      pushIssue(
+        MaintainerIssueType.COMPANY_CONTACT_INVALID_URL,
+        `COMPANY CONTACT INVALID URL - SHOULD BE: ${expectedUrl}`
+      );
+    } else if (
+      contact.websites.some((w) => normalizeUrl(w.url) !== expectedUrl)
+    ) {
+      pushIssue(
+        MaintainerIssueType.COMPANY_CONTACT_INVALID_URL,
+        `COMPANY CONTACT INVALID URL - SHOULD BE: ${expectedUrl}`
+      );
+    }
+
+    // Rule 8 — URL label = LinkedIn
+    if (contact.websites.some((w) => (w.label || '').trim() !== 'LinkedIn')) {
+      pushIssue(MaintainerIssueType.COMPANY_CONTACT_INVALID_URL_LABEL);
+    }
+
+    return { issues, customMessages };
+  }
+
   private scanContacts(
     contacts: ContactData[],
     allLabels: string[],
@@ -699,6 +815,29 @@ export class GoogleContactsMaintainerScript implements Script {
             !l.toLowerCase().includes('imported') &&
             l.toLowerCase() !== 'mycontacts'
         );
+
+      const lastNameTrimmed = lastName.trim();
+      const isCompanyContact =
+        activeLabels.includes('Office') ||
+        lastNameTrimmed === 'Office' ||
+        lastNameTrimmed.startsWith('Office ');
+
+      if (isCompanyContact) {
+        const { issues: ccIssues, customMessages: ccMsgs } =
+          this.scanCompanyContact(contact, activeLabels);
+        if (ccIssues.length > 0) {
+          reportItems.push({
+            contact: {
+              ...contact,
+              fullName,
+              biography: contact.biography || '',
+            },
+            issues: [...new Set(ccIssues)],
+            customIssueMessages: ccMsgs,
+          });
+        }
+        continue;
+      }
 
       const isHrOrJob = activeLabels.some((l) =>
         this.REQUIRED_URL_LABELS.includes(l)
