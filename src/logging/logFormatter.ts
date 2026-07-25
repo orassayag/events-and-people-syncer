@@ -1,9 +1,15 @@
 import { EMOJIS, FormatUtils } from '../constants';
-import { LinkedInConnection, UpdateDetails, HibobContact } from '../types';
+import {
+  ContactData,
+  LinkedInConnection,
+  UpdateDetails,
+  HibobContact,
+} from '../types';
 import {
   calculateFormattedCompany,
   stripCompanyPrefixOverlapFromName,
 } from '../utils';
+import { UrlNormalizer } from '../services/linkedin/urlNormalizer';
 
 export class LogFormatter {
   static formatContactBlock(
@@ -120,5 +126,40 @@ export class LogFormatter {
     lines.push(linkedInUrlStr);
 
     return lines.join('\n');
+  }
+
+  static formatGoogleContactBlock(contact: ContactData, index: number): string {
+    const lines: string[] = [];
+    lines.push('=======================');
+    lines.push(
+      `📰 Index: ${FormatUtils.formatNumberWithLeadingZeros(index, 6)}`
+    );
+    const fullName = `${contact.firstName} ${contact.lastName}`.trim();
+    lines.push(`${EMOJIS.FIELDS.PERSON} Full name: ${fullName}`);
+    lines.push(`${EMOJIS.FIELDS.LABEL} Labels: ${contact.label || '(none)'}`);
+    lines.push(
+      `${EMOJIS.FIELDS.COMPANY} Company: ${contact.company || '(none)'}`
+    );
+    lines.push(
+      `${EMOJIS.FIELDS.JOB_TITLE} Job Title: ${contact.jobTitle || '(none)'}`
+    );
+    lines.push(
+      `${EMOJIS.FIELDS.EMAIL} Email: ${contact.emails[0]?.value || '(none)'}`
+    );
+    lines.push(
+      `${EMOJIS.FIELDS.PHONE} Phone: ${contact.phones[0]?.number || '(none)'}`
+    );
+    const linkedInUrl =
+      LogFormatter.findLinkedInProfileUrl(contact) || '(none)';
+    lines.push(`${EMOJIS.FIELDS.LINKEDIN} LinkedIn URL: ${linkedInUrl}`);
+    return lines.join('\n');
+  }
+
+  static findLinkedInProfileUrl(contact: ContactData): string | undefined {
+    return contact.websites.find(
+      (website) =>
+        website.url.toLowerCase().includes('linkedin.com') &&
+        UrlNormalizer.isValidPersonalProfile(website.url)
+    )?.url;
   }
 }

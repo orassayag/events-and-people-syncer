@@ -1,6 +1,11 @@
 import { injectable, inject } from 'inversify';
 import readline from 'readline';
-import type { OAuth2Client, Script } from '../types';
+import type {
+  OAuth2Client,
+  Script,
+  ContactData,
+  LinkedInConnection,
+} from '../types';
 import {
   MatchType,
   MatchResult,
@@ -23,6 +28,7 @@ import {
   CompanyMatcher,
   ConnectionMatcher,
   ContactSyncer,
+  UrlNormalizer,
 } from '../services/linkedin';
 import { DuplicateDetector } from '../services/contacts';
 import { ContactCache } from '../cache';
@@ -74,11 +80,13 @@ export class LinkedInSyncScript {
     const addLogger = new SyncLogger('linkedin-sync-add', 'txt');
     const skipLogger = new SyncLogger('linkedin-sync-skip', 'txt');
     const errorLogger = new SyncLogger('linkedin-sync_errors', 'txt');
+    const unmatchedLogger = new SyncLogger('linkedin-sync-unmatched', 'txt');
     const statusBar = new SyncStatusBar();
     await logger.initialize();
     await addLogger.initialize();
     await skipLogger.initialize();
     await errorLogger.initialize();
+    await unmatchedLogger.initialize();
     this.setupConsoleCapture(logger);
     let escapeHandlerCalled = false;
     const escapeHandler = (): void => {
@@ -162,6 +170,7 @@ export class LinkedInSyncScript {
       }
       statusBar.startFetchPhase();
       let googleContactsBefore: number = 0;
+      let allGoogleContacts: ContactData[] = [];
       const originalFetch = this.duplicateDetector['fetchAllContacts'].bind(
         this.duplicateDetector
       );
@@ -174,6 +183,7 @@ export class LinkedInSyncScript {
             onProgress(count);
           }
         });
+        allGoogleContacts = contacts;
         googleContactsBefore = contacts.length;
         statusBar.updateFetchProgress(googleContactsBefore);
         return contacts;
@@ -402,6 +412,15 @@ export class LinkedInSyncScript {
       }
       // Removed redundant warning log finalization
       statusBar.complete();
+      const unmatchedGoogleContacts = this.findGoogleContactsUnmatchedByUrl(
+        connectionsToProcess,
+        allGoogleContacts
+      );
+      await this.logUnmatchedGoogleContacts(
+        unmatchedGoogleContacts,
+        unmatchedLogger,
+        logger
+      );
       await ContactCache.getInstance().invalidate();
       const googleContactsAfter: number = googleContactsBefore + status.new;
       const duration: number = Math.floor((Date.now() - startTime) / 1000);
@@ -426,7 +445,11 @@ export class LinkedInSyncScript {
         `[People API Stats] ${EMOJIS.API.READ} Read: ${endStats.read}, ${EMOJIS.API.WRITE} Write: ${endStats.write}`
       );
       if (!this.isCancelled) {
-        await this.showPostSyncMenu(status, alertLogger);
+        await this.showPostSyncMenu(
+          status,
+          alertLogger,
+          unmatchedGoogleContacts
+        );
       } else {
         this.uiLogger.displayExit();
       }
@@ -820,7 +843,8 @@ export class LinkedInSyncScript {
 
   private async showPostSyncMenu(
     status: SyncStatus,
-    alertLogger: AlertLogger
+    alertLogger: AlertLogger,
+    unmatchedGoogleContacts: ContactData[]
   ): Promise<void> {
     const currentRunAlerts = alertLogger.getCurrentRunAlerts();
     let continueMenu: boolean = true;
@@ -843,6 +867,12 @@ export class LinkedInSyncScript {
         choices.push({
           name: `${EMOJIS.NAVIGATION.SKIP}  Display Skipped (${status.skipped})`,
           value: 'skipped',
+        });
+      }
+      if (unmatchedGoogleContacts.length > 0) {
+        choices.push({
+          name: `${EMOJIS.FIELDS.LINKEDIN} Display Unmatched Google Contacts (${unmatchedGoogleContacts.length})`,
+          value: 'unmatched',
         });
       }
       choices.push({
@@ -871,6 +901,8 @@ export class LinkedInSyncScript {
         this.displayCurrentRunAlerts(currentRunAlerts.errors, 'Errors');
       } else if (choice === 'skipped') {
         this.displayCurrentRunAlerts(currentRunAlerts.skipped, 'Skipped');
+      } else if (choice === 'unmatched') {
+        this.displayUnmatchedGoogleContacts(unmatchedGoogleContacts);
       } else if (choice === 'main') {
         continueMenu = false;
       } else if (choice === 'exit') {
@@ -922,6 +954,107 @@ export class LinkedInSyncScript {
     if (remaining > 0) {
       this.uiLogger.info(
         `\n${remaining} more ${title.toLowerCase()} not displayed`,
+        {},
+        false
+      );
+    }
+  }
+
+  private findGoogleContactsUnmatchedByUrl(
+    connections: LinkedInConnection[],
+    googleContacts: ContactData[]
+  ): ContactData[] {
+    const connectionUrls = new Set<string>();
+    for (const connection of connections) {
+      if (!connection.url) {
+        continue;
+      }
+      const normalizedUrl = UrlNormalizer.normalizeLinkedInUrl(connection.url);
+      if (normalizedUrl) {
+        connectionUrls.add(normalizedUrl);
+      }
+    }
+    const unmatched: ContactData[] = [];
+    for (const contact of googleContacts) {
+      const profileUrls = contact.websites
+        .filter(
+          (website) =>
+            website.url.toLowerCase().includes('linkedin.com') &&
+            UrlNormalizer.isValidPersonalProfile(website.url)
+        )
+        .map((website) => UrlNormalizer.normalizeLinkedInUrl(website.url))
+        .filter((normalizedUrl) => normalizedUrl.length > 0);
+      if (profileUrls.length === 0) {
+        continue;
+      }
+      const hasMatch = profileUrls.some((profileUrl) =>
+        connectionUrls.has(profileUrl)
+      );
+      if (!hasMatch) {
+        unmatched.push(contact);
+      }
+    }
+    return unmatched;
+  }
+
+  private async logUnmatchedGoogleContacts(
+    contacts: ContactData[],
+    unmatchedLogger: SyncLogger,
+    logger: SyncLogger
+  ): Promise<void> {
+    await logger.logMain(
+      `Found ${contacts.length} Google contacts with a LinkedIn URL not matched to any connection`
+    );
+    let index = 1;
+    for (const contact of contacts) {
+      await unmatchedLogger.logRaw(
+        LogFormatter.formatGoogleContactBlock(contact, index)
+      );
+      index++;
+    }
+  }
+
+  private displayUnmatchedGoogleContacts(contacts: ContactData[]): void {
+    this.uiLogger.breakline();
+    const displayCount: number = Math.min(10, contacts.length);
+    const remaining: number = contacts.length - displayCount;
+    this.uiLogger.display(
+      'Displaying Google Contacts with a LinkedIn URL not matched to any connection'
+    );
+    for (let i: number = 0; i < displayCount; i++) {
+      const contact = contacts[i];
+      const personNumber: string = FormatUtils.formatNumberWithLeadingZeros(
+        i + 1
+      );
+      this.uiLogger.info(
+        `===Person ${personNumber}/${FormatUtils.formatNumberWithLeadingZeros(displayCount)}===`,
+        {},
+        false
+      );
+      this.uiLogger.info(
+        `-Full name: ${formatMixedHebrewEnglish(contact.firstName)} ${formatMixedHebrewEnglish(contact.lastName)}`,
+        {},
+        false
+      );
+      if (contact.company) {
+        this.uiLogger.info(
+          `-Company: ${formatMixedHebrewEnglish(contact.company)}`,
+          {},
+          false
+        );
+      }
+      if (contact.emails[0]?.value) {
+        this.uiLogger.info(`-Email: ${contact.emails[0].value}`, {}, false);
+      }
+      const linkedInUrl = LogFormatter.findLinkedInProfileUrl(contact);
+      if (linkedInUrl) {
+        this.uiLogger.info(`-LinkedIn URL: ${linkedInUrl}`, {}, false);
+      }
+      this.uiLogger.info('================', {}, false);
+    }
+    if (remaining > 0) {
+      this.uiLogger.info(
+        `\n${remaining} more unmatched Google contacts not displayed`,
         {},
         false
       );
