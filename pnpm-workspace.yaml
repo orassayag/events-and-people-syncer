@@ -24,4 +24,4 @@ minimumReleaseAgeExclude:
   - prettier@3.9.6
   - eslint@10.8.0
   - '@types/node@26.1.2'
-  - jsdom@30.0.0
+  - jsdom@30.0.0 || 30.0.1
