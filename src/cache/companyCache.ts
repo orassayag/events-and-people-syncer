@@ -3,10 +3,12 @@ import { join } from 'path';
 import { SETTINGS } from '../settings';
 import { CompanyCacheData } from '../types';
 import { companyCacheDataSchema } from '../entities';
+import { Logger } from '../logging/logger';
 
 export class CompanyCache {
   private readonly cacheFilePath: string;
   private readonly expirationMs: number;
+  private readonly logger: Logger = new Logger('CompanyCache');
 
   constructor() {
     this.cacheFilePath = join(
@@ -55,6 +57,11 @@ export class CompanyCache {
   async invalidate(): Promise<void> {
     try {
       await fs.unlink(this.cacheFilePath);
-    } catch {}
+    } catch (error: unknown) {
+      this.logger.debug('Failed to remove company cache file during invalidate', {
+        cacheFilePath: this.cacheFilePath,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
 }

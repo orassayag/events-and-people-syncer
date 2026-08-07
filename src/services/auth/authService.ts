@@ -23,6 +23,14 @@ import { AppError, ErrorCode } from '../../errors';
 const NETWORK_RETRY_ATTEMPTS = 3;
 const NETWORK_RETRY_DELAY_MS = 5_000; // 5 s between attempts
 const NETWORK_RETRY_BACKOFF_FACTOR = 2; // 5s → 10s → 20s
+const NETWORK_RETRY_MAX_DELAY_MS = 60_000; // cap backoff at 60s
+
+function jitteredDelay(delayMs: number): number {
+  return Math.min(
+    delayMs + Math.random() * delayMs * 0.5,
+    NETWORK_RETRY_MAX_DELAY_MS
+  );
+}
 
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
@@ -95,9 +103,13 @@ export async function withNetworkRetry<T>(
         { error: error instanceof Error ? error.message : String(error) }
       );
       if (attempt < attempts) {
-        logger.info(`Retrying in ${delayMs / 1000}s...`);
-        await sleep(delayMs);
-        delayMs *= NETWORK_RETRY_BACKOFF_FACTOR;
+        const nextDelay = jitteredDelay(delayMs);
+        logger.info(`Retrying in ${Math.round(nextDelay / 1000)}s...`);
+        await sleep(nextDelay);
+        delayMs = Math.min(
+          delayMs * NETWORK_RETRY_BACKOFF_FACTOR,
+          NETWORK_RETRY_MAX_DELAY_MS
+        );
       }
     }
   }
@@ -419,9 +431,13 @@ export class AuthService {
               { error: error instanceof Error ? error.message : String(error) }
             );
             if (attempt < NETWORK_RETRY_ATTEMPTS) {
-              this.logger.info(`Retrying in ${delayMs / 1000}s...`);
-              await sleep(delayMs);
-              delayMs *= NETWORK_RETRY_BACKOFF_FACTOR;
+              const nextDelay = jitteredDelay(delayMs);
+              this.logger.info(`Retrying in ${Math.round(nextDelay / 1000)}s...`);
+              await sleep(nextDelay);
+              delayMs = Math.min(
+                delayMs * NETWORK_RETRY_BACKOFF_FACTOR,
+                NETWORK_RETRY_MAX_DELAY_MS
+              );
             }
             continue;
           }
@@ -602,9 +618,10 @@ export class AuthService {
     }
 
     const tempFile = `${SETTINGS.paths.tokenFile}.tmp`;
-    await writeFile(tempFile, JSON.stringify(merged, null, 2));
-    const { rename } = await import('fs/promises');
+    await writeFile(tempFile, JSON.stringify(merged, null, 2), { mode: 0o600 });
+    const { rename, chmod } = await import('fs/promises');
     await rename(tempFile, SETTINGS.paths.tokenFile);
+    await chmod(SETTINGS.paths.tokenFile, 0o600);
     this.logger.info('Token saved');
   }
 

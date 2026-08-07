@@ -1,4 +1,9 @@
 import { EMOJIS } from '../constants';
+import { Logger } from '../logging/logger';
+
+const logger = new Logger('RetryWithBackoff');
+
+const MAX_BACKOFF_MS: number = 60000;
 
 function isQuotaError(error: unknown): boolean {
   if (error instanceof Error) {
@@ -54,7 +59,11 @@ export async function retryWithBackoff<T>(
   try {
     const { SyncStatusBar } = await import('../flow/syncStatusBar');
     statusBar = SyncStatusBar.getInstance();
-  } catch {}
+  } catch (error: unknown) {
+    logger.debug('SyncStatusBar unavailable; proceeding without status updates', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
   const max502Retries: number = 3;
   let retries502: number = 0;
   for (let i: number = 0; i < maxRetries; i++) {
@@ -77,8 +86,12 @@ export async function retryWithBackoff<T>(
         continue;
       }
       if (isQuotaError(error) && i < maxRetries - 1) {
-        const delay: number = Math.pow(2, i) * 1000;
-        const delayInSeconds: number = delay / 1000;
+        const base: number = Math.pow(2, i) * 1000;
+        const delay: number = Math.min(
+          base / 2 + Math.random() * base,
+          MAX_BACKOFF_MS
+        );
+        const delayInSeconds: number = Math.round(delay / 1000);
         if (statusBar) {
           statusBar.setApiStatus(
             `${EMOJIS.STATUS.WARNING}  Retrying (Quota Error) - Attempt ${i + 1}/${maxRetries} - Waiting ${delayInSeconds}s...`

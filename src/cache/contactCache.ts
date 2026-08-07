@@ -6,12 +6,14 @@ import { UrlNormalizer } from '../services/linkedin/urlNormalizer';
 import { PhoneNormalizer } from '../services/contacts/phoneNormalizer';
 import { EmailNormalizer } from '../services/contacts/emailNormalizer';
 import { SETTINGS } from '../settings';
+import { Logger } from '../logging/logger';
 
 export class ContactCache {
   private static instance: ContactCache;
   private readonly TTL: number = VALIDATION_CONSTANTS.CACHE.TTL_MS;
   private readonly cacheFilePath: string;
   private phoneIndex: Map<string, string[]> | null = null;
+  private readonly logger: Logger = new Logger('ContactCache');
 
   private constructor() {
     this.cacheFilePath = join(
@@ -120,7 +122,12 @@ export class ContactCache {
     this.phoneIndex = null;
     try {
       await fs.unlink(this.cacheFilePath);
-    } catch {}
+    } catch (error: unknown) {
+      this.logger.debug('Failed to remove contact cache file during invalidate', {
+        cacheFilePath: this.cacheFilePath,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
 
   private buildPhoneIndex(contacts: ContactData[]): void {

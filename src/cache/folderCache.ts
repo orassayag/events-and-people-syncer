@@ -4,11 +4,13 @@ import type { FolderCacheData } from '../types';
 import { folderCacheDataSchema } from '../entities';
 import { VALIDATION_CONSTANTS } from '../constants';
 import { SETTINGS } from '../settings';
+import { Logger } from '../logging/logger';
 
 export class FolderCache {
   private static instance: FolderCache;
   private readonly TTL: number = VALIDATION_CONSTANTS.CACHE.TTL_MS;
   private readonly cacheFilePath: string;
+  private readonly logger: Logger = new Logger('FolderCache');
 
   private constructor() {
     this.cacheFilePath = join(
@@ -71,6 +73,11 @@ export class FolderCache {
   async invalidate(): Promise<void> {
     try {
       await fs.unlink(this.cacheFilePath);
-    } catch {}
+    } catch (error: unknown) {
+      this.logger.debug('Failed to remove folder cache file during invalidate', {
+        cacheFilePath: this.cacheFilePath,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
 }

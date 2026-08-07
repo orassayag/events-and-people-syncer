@@ -10,6 +10,9 @@ import type {
 } from '../types';
 import { SearchableSelect } from './searchableSelect';
 import { SearchableMultiSelect } from './searchableMultiselect';
+import { Logger } from '../logging/logger';
+
+const logger = new Logger('PromptWithEnquirer');
 
 export {
   PromptResult,
@@ -106,7 +109,11 @@ async function runPrompt<T>(
         if (prompt.rl && typeof prompt.rl.close === 'function') {
           prompt.rl.close();
         }
-      } catch (_) {}
+      } catch (error: unknown) {
+        logger.debug('Prompt cleanup failed during escape handling', {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
 
     // 3. Minimal stdin reset

@@ -1,39 +1,35 @@
 import { config } from 'dotenv';
+import { z } from 'zod';
 import { SETTINGS } from './settings';
 import { Logger } from '../logging';
 
 const logger = new Logger('Settings');
 
-const requiredVars: string[] = [
-  'CLIENT_ID',
-  'CLIENT_SECRET',
-  'PROJECT_ID',
-  'AUTH_URI',
-  'TOKEN_URI',
-  'AUTH_PROVIDER_CERT_URL',
-  'REDIRECT_PORT',
-];
+const EnvSchema = z.object({
+  CLIENT_ID: z.string().min(1),
+  CLIENT_SECRET: z.string().min(1),
+  PROJECT_ID: z.string().min(1),
+  AUTH_URI: z.string().min(1),
+  TOKEN_URI: z.string().min(1),
+  AUTH_PROVIDER_CERT_URL: z.string().min(1),
+  REDIRECT_PORT: z.coerce.number().int().min(1024).max(65535),
+});
 
-function validateEnvironment(): void {
+type Env = z.infer<typeof EnvSchema>;
+
+function parseEnvironment(): Env {
   logger.debug('Validating environment variables');
-  const missingVars: string[] = requiredVars.filter(
-    (varName: string) => !process.env[varName]
-  );
-  if (missingVars.length > 0) {
-    const errorMsg = `Missing required environment variables: ${missingVars.join(', ')}`;
-    logger.error(errorMsg);
-    throw new Error(errorMsg);
-  }
-  const redirectPort: number = parseInt(
-    process.env.REDIRECT_PORT || '3000',
-    10
-  );
-  if (isNaN(redirectPort) || redirectPort < 1024 || redirectPort > 65535) {
-    const errorMsg = `Invalid REDIRECT_PORT: must be a number between 1024 and 65535`;
+  const result = EnvSchema.safeParse(process.env);
+  if (!result.success) {
+    const details = result.error.issues
+      .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+      .join('; ');
+    const errorMsg = `Invalid environment configuration: ${details}`;
     logger.error(errorMsg);
     throw new Error(errorMsg);
   }
   logger.debug('Environment variables validated');
+  return result.data;
 }
 
 export function initiate(): void {
@@ -44,16 +40,13 @@ export function initiate(): void {
     environment === 'production' ? '.env.production' : '.env.test';
   logger.debug(`Loading environment file: ${envFile}`);
   config({ path: envFile });
-  validateEnvironment();
-  SETTINGS.auth.clientId = process.env.CLIENT_ID || '';
-  SETTINGS.auth.clientSecret = process.env.CLIENT_SECRET || '';
-  SETTINGS.auth.projectId = process.env.PROJECT_ID || '';
-  SETTINGS.auth.authUri = process.env.AUTH_URI || '';
-  SETTINGS.auth.tokenUri = process.env.TOKEN_URI || '';
-  SETTINGS.auth.authProviderCertUrl = process.env.AUTH_PROVIDER_CERT_URL || '';
-  SETTINGS.auth.redirectPort = parseInt(
-    process.env.REDIRECT_PORT || '3000',
-    10
-  );
+  const env = parseEnvironment();
+  SETTINGS.auth.clientId = env.CLIENT_ID;
+  SETTINGS.auth.clientSecret = env.CLIENT_SECRET;
+  SETTINGS.auth.projectId = env.PROJECT_ID;
+  SETTINGS.auth.authUri = env.AUTH_URI;
+  SETTINGS.auth.tokenUri = env.TOKEN_URI;
+  SETTINGS.auth.authProviderCertUrl = env.AUTH_PROVIDER_CERT_URL;
+  SETTINGS.auth.redirectPort = env.REDIRECT_PORT;
   logger.debug('Settings initiated successfully');
 }

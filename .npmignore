@@ -1,0 +1,14 @@
+# Defense-in-depth: never ship secrets, runtime data, or heavy media to npm.
+# The package.json "files" allowlist is the primary control; this is a backstop.
+.env
+.env.*
+!.env.example
+token.json
+api-stats.json
+
+demo/
+misc/
+docs/
+poc/
+logs/
+sources/

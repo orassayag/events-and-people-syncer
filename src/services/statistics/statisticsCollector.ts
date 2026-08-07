@@ -62,11 +62,21 @@ export class StatisticsCollector {
     try {
       await fs.access(jobPath);
       jobExists = true;
-    } catch {}
+    } catch (error: unknown) {
+      this.logger.debug('Job-interviews directory not accessible', {
+        jobPath,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
     try {
       await fs.access(lifeEventsPath);
       lifeEventsExists = true;
-    } catch {}
+    } catch (error: unknown) {
+      this.logger.debug('Life-events directory not accessible', {
+        lifeEventsPath,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
     if (!jobExists && !lifeEventsExists) {
       throw new Error(
         'At least one directory must exist (job-interviews or life-events)'

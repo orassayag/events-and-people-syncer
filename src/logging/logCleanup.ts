@@ -1,8 +1,11 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import { LOG_CONFIG } from './logConfig';
+import { Logger } from './logger';
 
 export class LogCleanup {
+  private static readonly logger: Logger = new Logger('LogCleanup');
+
   static async cleanOldLogs(): Promise<void> {
     const retentionMs: number =
       LOG_CONFIG.logRetentionDays * 24 * 60 * 60 * 1000;
@@ -12,7 +15,12 @@ export class LogCleanup {
     try {
       await fs.access(syncLogDir);
       await this.cleanDirectory(syncLogDir, retentionMs, now);
-    } catch {}
+    } catch (error: unknown) {
+      this.logger.debug('Sync log directory not present; skipping cleanup', {
+        syncLogDir,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
 
   private static async cleanDirectory(
