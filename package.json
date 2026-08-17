@@ -108,7 +108,7 @@
     "dotenv": "17.4.2",
     "enquirer": "2.4.1",
     "fuse.js": "^7.5.0",
-    "googleapis": "^174.0.1",
+    "googleapis": "^175.0.0",
     "inversify": "^8.2.3",
     "jsdom": "^30.0.1",
     "ora": "^9.4.1",
