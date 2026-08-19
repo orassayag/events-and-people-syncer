@@ -27,7 +27,7 @@ minimumReleaseAgeExclude:
   - jsdom@30.0.0 || 30.0.1
   - csv-parse@7.0.2
   - tsx@4.23.4 || 4.23.5 || 4.23.6 || 4.23.8 || 4.23.9 || 4.23.11 || 4.23.12
-  - googleapis@174.0.0 || 174.0.1 || 175.0.0
+  - googleapis@174.0.0 || 174.0.1 || 175.0.0 || 176.0.0
   - '@types/jsdom@30.0.0'
   - '@vitest/coverage-istanbul@4.1.11'
   - '@vitest/expect@4.1.11'
