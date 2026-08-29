@@ -39,8 +39,8 @@ importers:
         specifier: ^0.2.2
         version: 0.2.2
       zod:
-        specifier: ^4.4.3
-        version: 4.4.3
+        specifier: ^4.5.2
+        version: 4.5.2
     devDependencies:
       '@eslint/js':
         specifier: ^10.0.1
@@ -2260,6 +2260,9 @@ packages:
   zod@4.4.3:
     resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
 
+  zod@4.5.2:
+    resolution: {integrity: sha512-XkYXCol10+ba/6F/cueWV+TezUeOqXW0hdeJt5CdXjTYeAgAQg5N03RQdJ80mhfFE72+pblvYMW4wy2Qp4Qbrg==}
+
 snapshots:
 
   '@asamuzakjp/css-color@6.0.5':
@@ -4303,3 +4306,5 @@ snapshots:
   yoctocolors@2.1.2: {}
 
   zod@4.4.3: {}
+
+  zod@4.5.2: {}
